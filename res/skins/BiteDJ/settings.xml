@@ -56,6 +56,38 @@
                     <Children>
                       <Label>
                         <ObjectName>SettingsRowLabel</ObjectName>
+                        <Text>Crossfader</Text>
+                        <Size>0me,0me</Size>
+                      </Label>
+                      <WidgetGroup>
+                        <ObjectName>SettingsSegmented</ObjectName>
+                        <Layout>horizontal</Layout>
+                        <Size>160f,40f</Size>
+                        <Children>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
+                            <SetVariable name="Text">Off</SetVariable>
+                            <SetVariable name="ConfigKey">[BiteDJ],crossfader_enabled</SetVariable>
+                            <SetVariable name="Value">0</SetVariable>
+                          </Template>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
+                            <SetVariable name="Text">On</SetVariable>
+                            <SetVariable name="ConfigKey">[BiteDJ],crossfader_enabled</SetVariable>
+                            <SetVariable name="Value">1</SetVariable>
+                          </Template>
+                        </Children>
+                      </WidgetGroup>
+                    </Children>
+                  </WidgetGroup>
+
+                  <WidgetGroup>
+                    <ObjectName>SettingsRow</ObjectName>
+                    <Layout>horizontal</Layout>
+                    <Size>0me,52f</Size>
+                    <Children>
+                      <Label>
+                        <ObjectName>SettingsRowLabel</ObjectName>
                         <Text>Key</Text>
                         <Size>0me,0me</Size>
                       </Label>
@@ -862,6 +894,33 @@
 
                     </Children>
                   </WidgetStack>
+                </Children>
+              </WidgetGroup>
+
+
+              <WidgetGroup>
+                <ObjectName>SettingsRow</ObjectName>
+                <Layout>horizontal</Layout>
+                <SizePolicy>me,me</SizePolicy>
+                <Children>
+                  <Label>
+                    <ObjectName>SettingsRowLabel</ObjectName>
+                    <Text>Advanced</Text>
+                    <Size>0me,0me</Size>
+                  </Label>
+                  <PushButton>
+                    <ObjectName>SettingsActionButton</ObjectName>
+                    <Size>120f,44f</Size>
+                    <NumberStates>1</NumberStates>
+                    <State>
+                      <Number>0</Number>
+                      <Text>Preferences</Text>
+                    </State>
+                    <Connection>
+                      <ConfigKey>[Master],show_preferences</ConfigKey>
+                      <EmitOnDownPress>true</EmitOnDownPress>
+                    </Connection>
+                  </PushButton>
                 </Children>
               </WidgetGroup>
 

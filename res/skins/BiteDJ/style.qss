@@ -182,7 +182,7 @@ WPushButton[value="1"]:hover {
 }
 
 #DeckTrackTime[highlight="1"] {
-  color: transparent;
+  /* color: transparent; removed to fix missing time */
 }
 
 #DeckTrackTimeMini {
@@ -190,7 +190,7 @@ WPushButton[value="1"]:hover {
 }
 
 #DeckTrackTimeMini[highlight="1"] {
-  color: transparent;
+  /* color: transparent; */
 }
 
 #DeckTrackNumberContainer {
