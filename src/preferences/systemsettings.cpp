@@ -500,7 +500,7 @@ int SystemSettings::unloadTracksOnMount(const QString& mountPoint) {
 
 bool SystemSettings::tryUnmount(const QString& mountPoint, QString* pError) {
     QProcess umount;
-    umount.start(QStringLiteral("umount"), QStringList{mountPoint});
+    umount.start(QStringLiteral("udiskie-umount"), QStringList{mountPoint});
     umount.waitForFinished();
     if (umount.exitStatus() == QProcess::NormalExit && umount.exitCode() == 0) {
         return true;

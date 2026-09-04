@@ -139,7 +139,17 @@ class WTrackTableView : public WLibraryTableView {
   protected:
     QString getModelStateKey() const override;
 
-  private:
+  
+protected:
+    void mousePressEvent(QMouseEvent* pEvent) override;
+    void mouseMoveEvent(QMouseEvent* pEvent) override;
+    void mouseReleaseEvent(QMouseEvent* pEvent) override;
+
+private:
+    QPoint m_dragStartPos;
+    bool m_bFakeDragging = false;
+    class QLabel* m_pFakeDragLabel = nullptr;
+
     void addToAutoDJ(PlaylistDAO::AutoDJSendLoc loc);
     void dragMoveEvent(QDragMoveEvent * event) override;
     void dragEnterEvent(QDragEnterEvent * event) override;

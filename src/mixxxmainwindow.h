@@ -10,6 +10,7 @@
 #include "util/parented_ptr.h"
 
 class ControlObject;
+class ControlProxy;
 class DlgDeveloperTools;
 class DlgPreferences;
 class DlgKeywheel;
@@ -157,5 +158,7 @@ class MixxxMainWindow : public QMainWindow {
 
     mixxx::preferences::ScreenSaver m_inhibitScreensaver;
 
+    std::unique_ptr<ControlProxy> m_pCoShowPreferences;
+    std::unique_ptr<ControlObject> m_pCoCrossfaderToggle;
     QSet<ControlObject*> m_skinCreatedControls;
 };

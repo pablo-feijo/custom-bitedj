@@ -60,6 +60,7 @@ DlgPreferences::DlgPreferences(
           m_pConfig(pSettingsManager->settings()),
           m_pageSizeHint(QSize(0, 0)) {
     setupUi(this);
+    this->showFullScreen();
     fixSliderStyle();
     contentsTreeWidget->setHeaderHidden(true);
 
@@ -384,7 +385,7 @@ void DlgPreferences::onShow() {
 
     // Update geometry with last values
 #ifdef __WINDOWS__
-    resize(m_geometry[2].toInt(), m_geometry[3].toInt());
+    // resize(m_geometry[2].toInt(), m_geometry[3].toInt());
 #else  // __WINDOWS__
     // On linux, when the window is opened for the first time by the window manager,
     // QT does not have information about the frame size so the offset is zero.
@@ -395,13 +396,11 @@ void DlgPreferences::onShow() {
     int offsetY = geometry().top() - frameGeometry().top();
     newX += offsetX;
     newY += offsetY;
-    setGeometry(newX,   // x position
-            newY,       // y position
-            newWidth,   // width
-            newHeight); // height
+    // Geometry scaling is intentionally disabled on BiteDJ 
+    // to allow the Sway Wayland compositor to naturally assign fullscreen layout.
 #endif // __LINUX__ / __MACOS__
     // Move is also needed on linux.
-    move(newX, newY);
+    // move(newX, newY);
 
     // Notify children that we are about to show.
     emit showDlg();

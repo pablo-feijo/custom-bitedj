@@ -1,4 +1,7 @@
 #include "widget/wtracktableview.h"
+#include <QLabel>
+#include <QScreen>
+#include "control/controlobject.h"
 
 #include <QModelIndex>
 #include <QScrollBar>
@@ -371,11 +374,11 @@ void WTrackTableView::loadTrackModel(QAbstractItemModel* pNewModel, bool restore
 
     // Defaults
     setAcceptDrops(true);
-    setDragDropMode(QAbstractItemView::NoDragDrop);
-    setDragEnabled(false);
+    setDragDropMode(QAbstractItemView::DragDrop);
+    setDragEnabled(true);
 
     if (pNewTrackModel->hasCapabilities(TrackModel::Capability::ReceiveDrops)) {
-        setDragDropMode(QAbstractItemView::DropOnly);
+        setDragDropMode(QAbstractItemView::DragDrop);
         setDropIndicatorShown(true);
         setAcceptDrops(true);
         //viewport()->setAcceptDrops(true);
@@ -1848,4 +1851,74 @@ QString WTrackTableView::getModelStateKey() const {
 
 void WTrackTableView::keyNotationChanged() {
     QWidget::update();
+}
+
+
+void WTrackTableView::mousePressEvent(QMouseEvent* pEvent) {
+    if (pEvent->button() == Qt::LeftButton) {
+        m_dragStartPos = pEvent->pos();
+    }
+    WLibraryTableView::mousePressEvent(pEvent);
+}
+
+void WTrackTableView::mouseMoveEvent(QMouseEvent* pEvent) {
+    if (pEvent->buttons() & Qt::LeftButton) {
+        if (!m_bFakeDragging && !m_dragStartPos.isNull() &&
+                (pEvent->pos() - m_dragStartPos).manhattanLength() >=
+                        QApplication::startDragDistance()) {
+            TrackModel* pTrackModel = getTrackModel();
+            if (pTrackModel) {
+                QModelIndexList selected = selectionModel()->selectedRows();
+                if (!selected.isEmpty()) {
+                    m_bFakeDragging = true;
+                    m_pFakeDragLabel = new QLabel(nullptr, Qt::ToolTip | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::X11BypassWindowManagerHint);
+                    QString trackName = "  LOADING...  ";
+                    TrackPointer pTrack = pTrackModel->getTrack(selected.first());
+                    if (pTrack) {
+                        trackName = "  " + pTrack->getArtist() + " - " + pTrack->getTitle() + "  ";
+                    }
+                    m_pFakeDragLabel->setText(trackName);
+                    m_pFakeDragLabel->setStyleSheet("QLabel { background-color: #333333; color: white; border: 2px solid #555555; border-radius: 4px; padding: 10px; font-weight: bold; }");
+                    m_pFakeDragLabel->adjustSize();
+                    m_pFakeDragLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
+                    m_pFakeDragLabel->setAttribute(Qt::WA_DeleteOnClose);
+                    m_pFakeDragLabel->show();
+                }
+            }
+        }
+        
+        if (m_bFakeDragging && m_pFakeDragLabel) {
+            m_pFakeDragLabel->move(pEvent->globalPosition().toPoint() + QPoint(10, 10));
+            return;
+        }
+    }
+    WLibraryTableView::mouseMoveEvent(pEvent);
+}
+
+void WTrackTableView::mouseReleaseEvent(QMouseEvent* pEvent) {
+    if (m_bFakeDragging) {
+        m_bFakeDragging = false;
+        if (m_pFakeDragLabel) {
+            m_pFakeDragLabel->close();
+            m_pFakeDragLabel = nullptr;
+        }
+        m_dragStartPos = QPoint();
+        
+        int screenWidth = 1024;
+        if (QApplication::primaryScreen()) {
+            screenWidth = QApplication::primaryScreen()->size().width();
+        }
+        
+        // Check if the drop is OUTSIDE the track list view (i.e., on the decks)
+        if (!this->rect().contains(pEvent->pos())) {
+            if (pEvent->globalPosition().x() < screenWidth / 2) {
+                ControlObject::set(ConfigKey("[Channel1]", "LoadSelectedTrack"), 1.0);
+            } else {
+                ControlObject::set(ConfigKey("[Channel2]", "LoadSelectedTrack"), 1.0);
+            }
+        }
+        return;
+    }
+    m_dragStartPos = QPoint();
+    WLibraryTableView::mouseReleaseEvent(pEvent);
 }

@@ -232,10 +232,27 @@
             </Children>
           </WidgetGroup>
           <WidgetGroup>
-            <ObjectName>TrackTimeContainer</ObjectName>
-            <Layout>vertical</Layout>
+            <Layout>overlay</Layout>
             <Size>0me,0me</Size>
             <Children>
+              <PushButton>
+                <ObjectName>DeckTrackTimeButton</ObjectName>
+                <SizePolicy>me,me</SizePolicy>
+                <Style>background-color: transparent; border: none;</Style>
+                <NumberStates>2</NumberStates>
+                <State><Number>0</Number></State>
+                <State><Number>1</Number></State>
+                <Connection>
+                  <ConfigKey>[Controls],ShowDurationRemaining</ConfigKey>
+                  <EmitOnDownPress>true</EmitOnDownPress>
+                  <ButtonState>LeftButton</ButtonState>
+                </Connection>
+              </PushButton>
+              <WidgetGroup>
+                <ObjectName>TrackTimeContainer</ObjectName>
+                <Layout>vertical</Layout>
+                <Size>0me,0me</Size>
+                <Children>
               <Label>
                 <ObjectName>DeckTrackTimeTitle</ObjectName>
                 <Text>Time</Text>
@@ -319,6 +336,8 @@
                   </WidgetGroup>
                 </Children>
               </WidgetGroup>
+            </Children>
+          </WidgetGroup>
             </Children>
           </WidgetGroup>
           <WidgetGroup>
