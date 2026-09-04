@@ -40,3 +40,15 @@ BiteDJ modifies `/boot/firmware/cmdline.txt` during the `mixxx-pi-gen` OS genera
 - **Kernel Preemption**: Appends `preempt=full` to the kernel boot string, allowing audio callback threads to forcefully interrupt lower-priority system processes.
 - **Silent Boot (Plymouth)**: Appends `quiet splash logo.nologo vt.global_cursor_default=0` to completely hide the Linux boot text and blinking cursor. A custom Plymouth script (`bitedj.script`) is injected to display a high-resolution Pioneer splash image seamlessly during boot.
 - **USB Audio Default**: Injects a custom `soundconfig.xml` to force `DDJ-400: USB Audio` as the default Master and Headphone output upon first boot.
+- **USB Maximum Current**: Modifies `/boot/firmware/config.txt` to include `max_usb_current=1`. This boosts the maximum USB current allowance from 600mA to 1200mA (1.2A), which is mandatory to simultaneously power the Pioneer DDJ-400 controller and the HDMI touchscreen display without voltage drops or disconnects.
+
+
+## 8. Drivers & Hardware Dependencies
+BiteDJ runs directly on the hardware with a minimal set of underlying drivers:
+- **Audio Subsystem**: While `pipewire-audio` is installed for the desktop, BiteDJ explicitly bypasses the sound server using PortAudio over ALSA (`env PA_ALSA_PLUGHW=1`) to communicate directly with the `snd-usb-audio` driver. This guarantees bit-perfect, ultra-low latency routing to the DDJ-400 hardware.
+- **Graphics Subsystem**: Hardware acceleration is provided by the `vc4-kms-v3d` DRM driver (configured in `config.txt`). Mixxx's fast-scrolling waveforms utilize OpenGL rendered natively on the GPU.
+- **Compositor**: `sway` (wlroots) is the Wayland compositor. Touchscreen input translates natively into Wayland gestures.
+- **Frameworks**: 
+  - `qt6-wayland` and `qt6-qpa-plugins` are required for native Wayland UI execution.
+  - `xwayland` provides the X11 compatibility bridge (`xcb`) for legacy dialogs and VST integrations when native Wayland touch drag-and-drop requires mitigation.
+- **Storage**: Automounting of DJ USB drives is handled by `udevil` and `udiskie`, relying on `polkitd` rules for passwordless operation.
