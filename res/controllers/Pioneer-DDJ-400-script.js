@@ -231,6 +231,43 @@ PioneerDDJ400.waveformZoom = function(midichan, control, value, status, group) {
 
 // BROWSE rotate: zoom the waveform while the play screen ([Tab],current == 0)
 // is active, otherwise scroll the library as usual.
+PioneerDDJ400.loadDoubleTapTime = {
+    "[Channel1]": 0,
+    "[Channel2]": 0
+};
+
+PioneerDDJ400.loadTrack = function(channel, control, value, status, group) {
+    if (value === 0x7F) {
+        var now = Date.now();
+        var last = PioneerDDJ400.loadDoubleTapTime[group] || 0;
+        PioneerDDJ400.loadDoubleTapTime[group] = now;
+        
+        if (now - last < 500) {
+            var otherDeck = (group === "[Channel1]") ? 2 : 1;
+            var otherGroup = (group === "[Channel1]") ? "[Channel2]" : "[Channel1]";
+            
+            engine.setValue(group, "CloneFromDeck", otherDeck);
+            
+            // Mixxx often aborts CloneFromDeck if the track is already loaded by the first tap.
+            // We forcefully copy position, sync, and play state to guarantee Instant Doubles.
+            var otherPos = engine.getValue(otherGroup, "playposition");
+            engine.setValue(group, "playposition", otherPos);
+            
+            if (engine.getValue(otherGroup, "sync_enabled")) {
+                engine.setValue(group, "sync_enabled", 1);
+            }
+            
+            engine.setValue(group, "beatsync_phase", 1);
+            engine.setValue(group, "beatsync_phase", 0);
+            
+            var isPlaying = engine.getValue(otherGroup, "play");
+            engine.setValue(group, "play", isPlaying);
+        } else {
+            engine.setValue(group, "LoadSelectedTrack", 1);
+        }
+    }
+};
+
 PioneerDDJ400.browseRotate = function(midichan, control, value, status) {
     if (engine.getValue("[Tab]", "current") === 0) {
         PioneerDDJ400.waveformZoom(midichan, control, value, status, "[Channel1]");
@@ -238,6 +275,18 @@ PioneerDDJ400.browseRotate = function(midichan, control, value, status) {
         engine.setValue("[Library]", "MoveVertical", value > 0x40 ? value - 0x80 : value);
     }
 };
+
+PioneerDDJ400.browseShiftPress = function(channel, control, value, status, group) {
+    if (value === 0x7F) {
+        var currentTab = engine.getValue("[Tab]", "current");
+        if (currentTab !== 1) {
+            engine.setValue("[Tab]", "current", 1);
+        } else {
+            engine.setValue("[Tab]", "current", 0);
+        }
+    }
+};
+
 
 //
 // Channel level lights
@@ -276,13 +325,12 @@ PioneerDDJ400.focusedFxGroup = function() {
 };
 
 PioneerDDJ400.beatFxLevelDepthRotate = function(_channel, _control, value) {
-    if (PioneerDDJ400.shiftButtonDown[0] || PioneerDDJ400.shiftButtonDown[1]) {
-        engine.softTakeoverIgnoreNextValue("[EffectRack1_EffectUnit1]", "mix");
-        engine.setParameter(PioneerDDJ400.focusedFxGroup(), "meta", value / 0x7F);
-    } else {
-        engine.softTakeoverIgnoreNextValue(PioneerDDJ400.focusedFxGroup(), "meta");
-        engine.setParameter("[EffectRack1_EffectUnit1]", "mix", value / 0x7F);
-    }
+    // Ignore physical knob if Pad FX is currently being held!
+    if (PioneerDDJ400.padFxActiveCount > 0) return;
+
+    // Force set both mix and meta simultaneously so Echo/Reverb work without SHIFT
+    engine.setValue("[EffectRack1_EffectUnit1]", "mix", value / 0x7F);
+    engine.setValue(PioneerDDJ400.focusedFxGroup(), "meta", value / 0x7F);
 };
 
 // Bite DJ skin only renders one effect slot (Effect1), so the BEAT
@@ -363,6 +411,16 @@ PioneerDDJ400.beatFxOnOffPressed = function(_channel, _control, value) {
 
     const toggleEnabled = !engine.getValue(PioneerDDJ400.focusedFxGroup(), "enabled");
     engine.setValue(PioneerDDJ400.focusedFxGroup(), "enabled", toggleEnabled);
+
+    // DEBUG LOGGING
+    var ch1 = engine.getValue("[EffectRack1_EffectUnit1]", "group_[Channel1]_enable");
+    var ch2 = engine.getValue("[EffectRack1_EffectUnit1]", "group_[Channel2]_enable");
+    var master = engine.getValue("[EffectRack1_EffectUnit1]", "group_[Master]_enable");
+    var mix = engine.getValue("[EffectRack1_EffectUnit1]", "mix");
+    var meta = engine.getValue(PioneerDDJ400.focusedFxGroup(), "meta");
+    var enabled = engine.getValue(PioneerDDJ400.focusedFxGroup(), "enabled");
+    
+    print("DEBUG_FX: CH1=" + ch1 + " CH2=" + ch2 + " MASTER=" + master + " MIX=" + mix + " META=" + meta + " ENABLED=" + enabled);
 };
 
 PioneerDDJ400.beatFxOnOffShiftPressed = function(_channel, _control, value) {
@@ -546,11 +604,11 @@ PioneerDDJ400.cueLoopCallRight = function(_channel, _control, value, _status, gr
 //
 
 PioneerDDJ400.syncPressed = function(channel, control, value, status, group) {
-    if (engine.getValue(group, "sync_enabled") && value > 0) {
-        engine.setValue(group, "sync_enabled", 0);
-    } else {
-        engine.setValue(group, "beatsync", value);
-    }
+    if (value === 0) return; // ignore release
+    
+    // Toggle sync_enabled just like Rekordbox!
+    const currentState = engine.getValue(group, "sync_enabled");
+    engine.setValue(group, "sync_enabled", !currentState);
 };
 
 PioneerDDJ400.syncLongPressed = function(channel, control, value, status, group) {
@@ -821,4 +879,82 @@ PioneerDDJ400.shutdown = function() {
     // stop any flashing lights
     PioneerDDJ400.toggleLight(PioneerDDJ400.lights.beatFx, false);
     PioneerDDJ400.toggleLight(PioneerDDJ400.lights.shiftBeatFx, false);
+};
+
+
+
+// 1-indexed loaded_effect values (assuming standard alphabetical list)
+// 9: Echo, 11: Flanger, 21: Reverb, 12: Glitch, 19: Phaser, 20: PitchShift
+PioneerDDJ400.padFxPresets = [
+    { effect: 15, beats: 0.25 },  // Pad 1: Echo 1/2 beat (approx)
+    { effect: 15, beats: 0.5 },   // Pad 2: Echo 1 beat (approx)
+    { effect: 15, beats: 0.75 },  // Pad 3: Echo 2 beats (approx)
+    { effect: 15, beats: 1.0 },   // Pad 4: Echo 4 beats (approx)
+    { effect: 13, beats: 0.25 },  // Pad 5: Flanger
+    { effect: 13, beats: 0.5 },   // Pad 6: Flanger
+    { effect: 13, beats: 1.0 },   // Pad 7: Flanger
+    { effect: 3, beats: 0 }       // Pad 8: Reverb
+];
+PioneerDDJ400.padFxActiveCount = 0;
+PioneerDDJ400.padFxSavedState = {};
+
+PioneerDDJ400.padFxPressed = function(channel, control, value, status, group) {
+    let padIndex = -1;
+    if (control >= 0x60 && control <= 0x67) {
+        padIndex = control - 0x60;
+    } else if (control >= 0x10 && control <= 0x17) {
+        padIndex = control - 0x10;
+    }
+    if (padIndex < 0 || padIndex > 7) return;
+
+    const fxGroup = "[EffectRack1_EffectUnit1_Effect1]";
+    const unitGroup = "[EffectRack1_EffectUnit1]";
+
+    if (value > 0) {
+        if (PioneerDDJ400.padFxActiveCount === 0) {
+            PioneerDDJ400.padFxSavedState = {
+                enabled: engine.getValue(fxGroup, "enabled"),
+                mix: engine.getValue(unitGroup, "mix"),
+                meta: engine.getValue(fxGroup, "meta")
+                // Not restoring loaded_effect so you can keep the preset if you like it,
+                // or we could restore it. Let's not restore it so the UI doesn't glitch rapidly.
+            };
+        }
+        PioneerDDJ400.padFxActiveCount++;
+
+        const preset = PioneerDDJ400.padFxPresets[padIndex];
+        
+        // Load the specific effect by absolute index (1-indexed)
+        engine.setValue(fxGroup, "loaded_effect", preset.effect);
+
+        // Wait a tiny bit for the new effect to fully load before setting parameters,
+        // otherwise Mixxx's effect-loading routine will reset meta back to 0!
+        engine.beginTimer(20, function() {
+            const paramIndex = PioneerDDJ400.findBeatsParameter(fxGroup);
+            if (paramIndex !== -1 && preset.beats > 0) {
+                engine.setValue(fxGroup, "parameter" + paramIndex + "_value", preset.beats);
+            }
+            engine.setValue(unitGroup, "mix", 1.0);
+            engine.setValue(fxGroup, "meta", 1.0);
+            engine.setValue(fxGroup, "enabled", 1);
+        }, true);
+        
+    } else {
+        if (PioneerDDJ400.padFxActiveCount > 0) {
+            PioneerDDJ400.padFxActiveCount--;
+        }
+        if (PioneerDDJ400.padFxActiveCount === 0 && Object.keys(PioneerDDJ400.padFxSavedState).length > 0) {
+            engine.setValue(unitGroup, "mix", PioneerDDJ400.padFxSavedState.mix);
+            engine.setValue(fxGroup, "meta", PioneerDDJ400.padFxSavedState.meta);
+            engine.setValue(fxGroup, "enabled", PioneerDDJ400.padFxSavedState.enabled);
+            PioneerDDJ400.padFxSavedState = {};
+        }
+    }
+};
+
+PioneerDDJ400.crossfaderMoved = function(channel, control, value, status, group) {
+    if (engine.getValue("[BiteDJ]", "crossfader_enabled") === 0) return;
+    
+    // Standard 7-bit MIDI mapping (0 to 127) -> (-1.0 to 1.0)
+    engine.setValue("[Master]", "crossfader", (value / 63.5) - 1.0);
 };
