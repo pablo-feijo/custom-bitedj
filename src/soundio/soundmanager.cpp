@@ -201,6 +201,16 @@ QList<SoundDevicePointer> SoundManager::getDeviceList(
                 (!hasInputs && !hasOutputs)) {
             continue;
         }
+        
+        QString name = pDevice->getDisplayName().toLower();
+        if (name.contains("surround") || name.contains("iec958") || name.contains("hdmi") || 
+            name.contains("dmix") || name.contains("sysdefault") || name.contains("front") || 
+            name.contains("a52") || name.contains("dsnoop") || name.contains("samplerate") || 
+            name.contains("speexrate") || name.contains("upmix") || name.contains("vdownmix") ||
+            name.contains("hw:card=loopback") || name.contains("lavrate") || name.contains("pulse")) {
+            continue;
+        }
+
         filteredDeviceList.push_back(pDevice);
     }
     return filteredDeviceList;
