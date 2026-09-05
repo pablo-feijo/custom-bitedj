@@ -160,7 +160,7 @@ class MixxxMainWindow : public QMainWindow {
 
     std::unique_ptr<ControlProxy> m_pCoShowPreferences;
     std::unique_ptr<ControlObject> m_pCoCrossfaderToggle;
-    std::unique_ptr<ControlObject> m_pCoLaunchWifi;
-    std::unique_ptr<ControlObject> m_pCoLaunchBluetooth;
+    std::unique_ptr<ControlProxy> m_pCoLaunchWifi;
+    std::unique_ptr<ControlProxy> m_pCoLaunchBluetooth;
     QSet<ControlObject*> m_skinCreatedControls;
 };

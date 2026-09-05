@@ -473,21 +473,19 @@ void MixxxMainWindow::initialize() {
         }
     });
 
-    m_pCoLaunchWifi = std::make_unique<ControlObject>(ConfigKey("[BiteDJ]", "launch_wifi"));
-    connect(m_pCoLaunchWifi.get(), &ControlObject::valueChanged, this, [](double value) {
+    m_pCoLaunchWifi = std::make_unique<ControlProxy>("[BiteDJ]", "launch_wifi", this);
+    m_pCoLaunchWifi->connectValueChanged(this, [](double value) {
         if (value > 0.0) {
             QProcess::startDetached("/bin/bash", QStringList() << "-c" <<
-                "export WAYLAND_DISPLAY=wayland-1; /usr/bin/wvkbd-mobintl -L 250 -b >/tmp/wifi.log 2>&1 & KBD=$!; nm-connection-editor >>/tmp/wifi.log 2>&1; kill -9 $KBD");
-            ControlObject::set(ConfigKey("[BiteDJ]", "launch_wifi"), 0.0);
+                "export WAYLAND_DISPLAY=wayland-1; export GTK_CSD=1; /usr/bin/wvkbd-mobintl -L 250 -b >/tmp/wifi.log 2>&1 & KBD=$!; foot -a nm-tui -e nmtui >>/tmp/wifi.log 2>&1; kill -9 $KBD");
         }
     });
 
-    m_pCoLaunchBluetooth = std::make_unique<ControlObject>(ConfigKey("[BiteDJ]", "launch_bluetooth"));
-    connect(m_pCoLaunchBluetooth.get(), &ControlObject::valueChanged, this, [](double value) {
+    m_pCoLaunchBluetooth = std::make_unique<ControlProxy>("[BiteDJ]", "launch_bluetooth", this);
+    m_pCoLaunchBluetooth->connectValueChanged(this, [](double value) {
         if (value > 0.0) {
             QProcess::startDetached("/bin/bash", QStringList() << "-c" <<
-                "export WAYLAND_DISPLAY=wayland-1; /usr/bin/wvkbd-mobintl -L 250 -b >/tmp/bt.log 2>&1 & KBD=$!; blueman-manager >>/tmp/bt.log 2>&1; kill -9 $KBD");
-            ControlObject::set(ConfigKey("[BiteDJ]", "launch_bluetooth"), 0.0);
+                "export WAYLAND_DISPLAY=wayland-1; export GTK_CSD=1; /usr/bin/wvkbd-mobintl -L 250 -b >/tmp/bt.log 2>&1 & KBD=$!; blueman-manager >>/tmp/bt.log 2>&1; kill -9 $KBD");
         }
     });
 }
