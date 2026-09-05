@@ -709,8 +709,8 @@ void AudioDeviceSettings::refreshDeviceList() {
         if (api == "ALSA") {
             // FINALLY: PortAudio's devName string completely strips the ALSA PCM string!
             // The ONLY string that contains 'plughw:' is the rawName.
-            if (!rawName.contains("plughw:") && rawName != "default") {
-                continue; // Only allow plughw: devices so format conversion works correctly
+            if (!rawName.contains("plughw:") && rawName != "default" && rawName != "pipewire" && rawName != "sysdefault" && !rawName.contains("hw:")) {
+                continue; // Only allow plughw: / hw: devices or pipewire/default so format conversion works correctly
             }
             
             if (rawName.contains("DDJ-400", Qt::CaseInsensitive) || rawName.contains("DDJ400", Qt::CaseInsensitive)) {
