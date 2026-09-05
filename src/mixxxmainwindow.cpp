@@ -476,11 +476,7 @@ void MixxxMainWindow::initialize() {
     m_pCoLaunchWifi = std::make_unique<ControlProxy>("[BiteDJ]", "launch_wifi", this);
     m_pCoLaunchWifi->connectValueChanged(this, [](double value) {
         if (value > 0.0) {
-            QProcess::startDetached("/bin/bash", QStringList() << "-c" <<
-                "export SWAYSOCK=$(ls /run/user/1000/sway-ipc.*.sock | head -n 1); swaymsg '[app_id=\"(?i)bitedj\"] fullscreen disable'; "
-                "export WAYLAND_DISPLAY=wayland-1; export GTK_CSD=1; /usr/bin/wvkbd-mobintl -L 250 -b >/tmp/wifi.log 2>&1 & KBD=$!; "
-                "foot -a nm-tui -o colors.background=282a36 -o colors.foreground=f8f8f2 -e nmtui >>/tmp/wifi.log 2>&1; "
-                "kill -9 $KBD; swaymsg '[app_id=\"(?i)bitedj\"] fullscreen enable'");
+            QProcess::startDetached("/usr/bin/bitedj-wifi", QStringList());
         }
     });
 
