@@ -127,6 +127,9 @@ output * bg /usr/share/backgrounds/bitedj-wallpaper.jpg fill
 default_border none
 default_floating_border none
 
-# 4. Auto-execute BiteDJ on compositor startup
+# 4. Force default workspace to prevent Sway from splitting window spaces
+workspace $ws1
+
+# 5. Auto-execute BiteDJ on compositor startup
 exec "env PA_ALSA_PLUGHW=1 WLR_DRM_NO_MODIFIERS=1 QT_WAYLAND_SHELL_INTEGRATION=xdg-shell /usr/bin/bitedj --resourcePath /usr/share/mixxx/ --full-screen --style Fusion"
 ```
