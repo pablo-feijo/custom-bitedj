@@ -483,11 +483,7 @@ void MixxxMainWindow::initialize() {
     m_pCoLaunchBluetooth = std::make_unique<ControlProxy>("[BiteDJ]", "launch_bluetooth", this);
     m_pCoLaunchBluetooth->connectValueChanged(this, [](double value) {
         if (value > 0.0) {
-            QProcess::startDetached("/bin/bash", QStringList() << "-c" <<
-                "export SWAYSOCK=$(ls /run/user/1000/sway-ipc.*.sock | head -n 1); swaymsg '[app_id=\"(?i)bitedj\"] fullscreen disable'; "
-                "export WAYLAND_DISPLAY=wayland-1; export GTK_CSD=1; /usr/bin/wvkbd-mobintl -L 250 -b >/tmp/bt.log 2>&1 & KBD=$!; "
-                "blueman-manager >>/tmp/bt.log 2>&1; "
-                "kill -9 $KBD; swaymsg '[app_id=\"(?i)bitedj\"] fullscreen enable'");
+            QProcess::startDetached("/usr/bin/bitedj-bt", QStringList());
         }
     });
 }
