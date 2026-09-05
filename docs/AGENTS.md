@@ -34,3 +34,9 @@ Before attempting large refactors or upstream cherry-picking from `mixxxdj/mixxx
 - `docs/DIFFS_FROM_BASE.md`: Master ledger of all C++ engine and OS changes vs upstream.
 - `docs/INFRASTRUCTURE.md`: Explains Polkit permissions, Kernel realtime scheduling (`preempt=full`), and Docker dependencies.
 - `docs/DDJ400_MAPPING.md`: Explains the custom Pioneer DDJ-400 Pad FX logic and Hardware UI interception.
+
+## 4. Versioning Protocol
+When preparing a new release or branch (e.g., `v0.0.4`), agents must explicitly synchronize the Semantic Version (semver) across the entire stack:
+1. **Source Code**: Ensure `BITEDJ_VERSION` in `CMakeLists.txt` matches the target branch semver (e.g., `0.0.4`). This updates the `WVersionLabel` in the Settings UI automatically.
+2. **OS Image output**: Ensure `IMG_NAME` in `mixxx-pi-gen/config` includes the semver suffix (e.g., `IMG_NAME="bitedj-pi-v0.0.4"`).
+3. **Flashing Scripts**: Update `flash-sdcard.sh` dynamically or explicitly so `ZIP_FILE` and `IMG_FILE` point to the freshly versioned output targets.
