@@ -8,7 +8,7 @@ This guide outlines the workflows for building the BiteDJ binary and generating 
 - SSH access to your Raspberry Pi (for hot deployments)
 
 ## 1. Generating a Complete OS Image
-If you need to flash a brand-new Raspberry Pi, you must bake a complete OS image containing Sway, Wayland, and all of BiteDJ's dependencies.
+If you need to flash a brand-new Raspberry Pi, you must bake a complete OS image containing Sway, Wayland, and all of BiteDJ's dependencies. Note: The image must be based on Debian 13 (Trixie) to provide the modern libraries required by the binary (e.g. GLIBC 2.38, Qt 6.8, libFLAC 14, FFmpeg 7).
 
 Run the image generator script:
 ```bash
@@ -17,7 +17,7 @@ Run the image generator script:
 This script will:
 1. Automatically compile the Linux ARM64 binary via `docker-build.sh`.
 2. Launch the `mixxx-pi-gen` Docker container.
-3. Build a customized Debian Bookworm OS from scratch (Stages 0-3).
+3. Build a customized Debian Trixie OS from scratch (Stages 0-3).
 4. Export a fully flashable `.zip` file into `mixxx-pi-gen/deploy/`.
 
 **Flashing the SD Card:**

@@ -5,13 +5,13 @@ Unlike upstream Mixxx which is distributed as a standard desktop application, Bi
 ## 1. Cross-Compilation Engine
 Upstream Mixxx relies on standard native `CMake` builds for Windows, macOS, and Linux. 
 BiteDJ utilizes a Dockerized cross-compilation pipeline to build ARM64 binaries from any host machine (macOS/x86_64).
-- **`Dockerfile`**: Provides a reproducible Debian Bookworm environment pre-loaded with an ARM64 cross-compiler (`aarch64-linux-gnu-g++`).
+- **`Dockerfile`**: Provides a reproducible Debian Trixie (13) environment pre-loaded with an ARM64 cross-compiler (`aarch64-linux-gnu-g++`).
 - **`docker-build.sh`**: Automates the invocation of the Docker container, mounting the local source tree, and compiling the binary into the `dist-linux/` folder.
 - **Dependency Fetching**: The scripts `get_libs.sh` and `get_libs2.sh` manually download and extract Debian ARM64 package headers directly from `deb.debian.org` (e.g., `libasound2-dev`, `libqt6waylandclient6`). This eliminates the need for a massive, complex sysroot.
 
 ## 2. OS Image Generation (`mixxx-pi-gen`)
 BiteDJ ships as a complete, flashable `.img` file. We use a heavily customized git submodule fork of `pi-gen` (the official tool used to build Raspberry Pi OS).
-- **Custom Stages**: We injected `stage3/02-desktop` to strip out the standard PIXEL desktop and replace it with **Sway (Wayland)**.
+- **Custom Stages**: We injected `stage3/02-desktop` to strip out the standard PIXEL desktop and replace it with **Sway (Wayland)**. We explicitly disabled the `apt autoremove` steps in this stage to prevent UI packages (like `lightdm` and `waybar`) from being accidentally purged.
 - **Auto-Kiosk Mode**: The OS is configured to auto-login the `pi` user and immediately launch `bitedj` via Sway without any display manager (GDM/LightDM).
 - **Filesystem & Swap**: We dynamically strip out non-essential Pi packages (like `rpi-swap` and `rpi-usb-gadget`) to maximize performance and SD card lifespan.
 
