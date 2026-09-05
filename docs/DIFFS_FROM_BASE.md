@@ -6,7 +6,7 @@ This document tracks all divergences from upstream Mixxx, specifically formatted
 
 ---
 
-## 1. Custom BiteDJ (v0.0.3 - Wayland & Touch Optimizations)
+## 1. Custom BiteDJ (v0.0.5 - Wayland, Touch, & Audio Optimizations)
 
 These features were engineered specifically to make BiteDJ operate flawlessly on a touchscreen Raspberry Pi running the Sway compositor.
 
@@ -25,7 +25,11 @@ These features were engineered specifically to make BiteDJ operate flawlessly on
 - **Crossfader Toggle**: Added `[BiteDJ],crossfader_enabled` in `settings.xml`. When toggled off, `mixxxmainwindow.cpp` dynamically re-routes `[ChannelX],orientation` to the Center, neutralizing physical hardware crossfaders.
 - **Preferences Button**: Added a dedicated "Preferences" trigger inside the custom UI settings menu (`[Master],show_preferences`) to invoke the native Qt preferences dialog.
 
-### D. Pioneer DDJ-400 Controller Mapping (`res/controllers/Pioneer-DDJ-400-script.js`)
+### D. Audio Device Whitelisting & Naming (`src/preferences/audiodevicesettings.cpp`)
+- **Base Mixxx**: Enumerates raw ALSA string nodes directly into the GUI output.
+- **Custom BiteDJ**: Implements a strict UI filter that hides dangerous hardware nodes, explicitly permitting `pipewire` and `sysdefault`. To provide a seamless DJ experience, the C++ engine intercepts these nodes and forcibly renames them to **"PipeWire / Bluetooth"** in the custom skin before rendering, completely preventing PortAudio from panicking the Raspberry Pi kernel.
+
+### E. Pioneer DDJ-400 Controller Mapping (`res/controllers/Pioneer-DDJ-400-script.js`)
 - Extensive custom XML/JS modifications for instant doubles and Pad FX integration (see `DDJ400_MAPPING.md` for full details).
 - *Cherry-Pick Action*: Isolate upstream mapping additions and cherry-pick specific improvements (like LED feedback updates) without touching BiteDJ's Pad FX or Release FX logic.
 
