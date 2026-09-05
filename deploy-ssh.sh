@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <raspberry_pi_ip>"
+    echo "Example: $0 192.168.18.157"
+    exit 1
+fi
+
+PI_IP=$1
+PASSWORD="bitedj"
+BINARY_PATH="dist-linux/bin/mixxx"
+
+echo "============================================================"
+echo "  BiteDJ Hot-Deployer"
+echo "============================================================"
+
+echo "1. Cross-compiling BiteDJ (ARM64)..."
+./docker-build.sh --platform linux/arm64
+
+if [ ! -f "$BINARY_PATH" ]; then
+    echo "ERROR: Compilation failed. $BINARY_PATH not found."
+    exit 1
+fi
+
+echo "2. Transferring binary to Pi ($PI_IP)..."
+expect -c "
+set timeout -1
+spawn scp -o StrictHostKeyChecking=no $BINARY_PATH pi@${PI_IP}:/tmp/bitedj
+expect \"*?assword:*\"
+send \"${PASSWORD}\r\"
+expect eof
+"
+
+echo "3. Installing binary and restarting graphical session..."
+expect -c "
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no pi@${PI_IP} \"echo ${PASSWORD} | sudo -S mv /tmp/bitedj /usr/bin/bitedj && echo ${PASSWORD} | sudo -S chmod +x /usr/bin/bitedj && echo ${PASSWORD} | sudo -S systemctl restart lightdm\"
+expect \"*?assword:*\"
+send \"${PASSWORD}\r\"
+expect eof
+"
+
+echo "============================================================"
+echo "  SUCCESS! BiteDJ has been deployed to $PI_IP and is restarting."
+echo "============================================================"
