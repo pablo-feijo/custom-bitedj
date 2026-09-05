@@ -477,7 +477,7 @@ void MixxxMainWindow::initialize() {
     connect(m_pCoLaunchWifi.get(), &ControlObject::valueChanged, this, [](double value) {
         if (value > 0.0) {
             QProcess::startDetached("/bin/bash", QStringList() << "-c" <<
-                "wvkbd-mobintl -L 250 -b & KBD_PID=$!; nm-connection-editor; kill -9 $KBD_PID");
+                "export WAYLAND_DISPLAY=wayland-1; /usr/bin/wvkbd-mobintl -L 250 -b >/tmp/wifi.log 2>&1 & KBD=$!; nm-connection-editor >>/tmp/wifi.log 2>&1; kill -9 $KBD");
             ControlObject::set(ConfigKey("[BiteDJ]", "launch_wifi"), 0.0);
         }
     });
@@ -486,7 +486,7 @@ void MixxxMainWindow::initialize() {
     connect(m_pCoLaunchBluetooth.get(), &ControlObject::valueChanged, this, [](double value) {
         if (value > 0.0) {
             QProcess::startDetached("/bin/bash", QStringList() << "-c" <<
-                "wvkbd-mobintl -L 250 -b & KBD_PID=$!; blueman-manager; kill -9 $KBD_PID");
+                "export WAYLAND_DISPLAY=wayland-1; /usr/bin/wvkbd-mobintl -L 250 -b >/tmp/bt.log 2>&1 & KBD=$!; blueman-manager >>/tmp/bt.log 2>&1; kill -9 $KBD");
             ControlObject::set(ConfigKey("[BiteDJ]", "launch_bluetooth"), 0.0);
         }
     });
