@@ -707,16 +707,16 @@ void AudioDeviceSettings::refreshDeviceList() {
         QString devName = pDevice->getDeviceId().name;
         
         if (api == "ALSA") {
-            // FINALLY: PortAudio's devName string completely strips the ALSA PCM string!
-            // The ONLY string that contains 'plughw:' is the rawName.
-            if (!rawName.contains("plughw:") && rawName != "default" && rawName != "pipewire" && rawName != "sysdefault" && !rawName.contains("hw:")) {
-                continue; // Only allow plughw: / hw: devices or pipewire/default so format conversion works correctly
+            // PortAudio devName string completely strips the ALSA PCM string!
+            if (!rawName.contains("plughw:") && !rawName.contains("hw:")) {
+                continue; // Strictly allow hardware polling to prevent PA buffer underruns
             }
             
             if (rawName.contains("DDJ-400", Qt::CaseInsensitive) || rawName.contains("DDJ400", Qt::CaseInsensitive)) {
                 cleanName = "DDJ-400";
             } else if (rawName.contains("bcm2835", Qt::CaseInsensitive) || rawName.contains("Headphones", Qt::CaseInsensitive)) {
-                cleanName = "Pi Headphones";
+                // PipeWire intercepts the raw hardware node to route BT audio flawlessly!
+                cleanName = "PipeWire / Bluetooth";
             } else if (rawName.contains("vc4hdmi", Qt::CaseInsensitive) || rawName.contains("vc4-hdmi", Qt::CaseInsensitive)) {
                 cleanName = "Pi HDMI";
             } else {
