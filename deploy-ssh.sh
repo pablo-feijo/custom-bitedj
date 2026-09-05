@@ -10,6 +10,7 @@ fi
 PI_IP=$1
 PASSWORD="bitedj"
 BINARY_PATH="dist-linux/bin/mixxx"
+SHARE_PATH="dist-linux/share/mixxx"
 
 echo "============================================================"
 echo "  BiteDJ Hot-Deployer"
@@ -23,19 +24,23 @@ if [ ! -f "$BINARY_PATH" ]; then
     exit 1
 fi
 
-echo "2. Transferring binary to Pi ($PI_IP)..."
+echo "2. Transferring binary and ALL resources (skins, controllers, etc.) to Pi ($PI_IP)..."
 expect -c "
 set timeout -1
 spawn scp -o StrictHostKeyChecking=no $BINARY_PATH pi@${PI_IP}:/tmp/bitedj
 expect \"*?assword:*\"
 send \"${PASSWORD}\r\"
 expect eof
+spawn scp -o StrictHostKeyChecking=no -r $SHARE_PATH pi@${PI_IP}:/tmp/mixxx_share
+expect \"*?assword:*\"
+send \"${PASSWORD}\r\"
+expect eof
 "
 
-echo "3. Installing binary and restarting graphical session..."
+echo "3. Installing binary and resources, then restarting graphical session..."
 expect -c "
 set timeout 30
-spawn ssh -o StrictHostKeyChecking=no pi@${PI_IP} \"echo ${PASSWORD} | sudo -S mv /tmp/bitedj /usr/bin/bitedj && echo ${PASSWORD} | sudo -S chmod +x /usr/bin/bitedj && echo ${PASSWORD} | sudo -S systemctl restart lightdm\"
+spawn ssh -o StrictHostKeyChecking=no pi@${PI_IP} \"echo ${PASSWORD} | sudo -S mv /tmp/bitedj /usr/bin/bitedj && echo ${PASSWORD} | sudo -S chmod +x /usr/bin/bitedj && echo ${PASSWORD} | sudo -S rm -rf /usr/share/mixxx && echo ${PASSWORD} | sudo -S mv /tmp/mixxx_share /usr/share/mixxx && echo ${PASSWORD} | sudo -S systemctl restart lightdm\"
 expect \"*?assword:*\"
 send \"${PASSWORD}\r\"
 expect eof
