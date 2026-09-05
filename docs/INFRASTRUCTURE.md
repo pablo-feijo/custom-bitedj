@@ -69,3 +69,64 @@ Key dependencies that require the Trixie environment include:
 - **Other Media/Formats**: `libprotobuf-lite32t64`, `libshout-idjc3`, `libopusfile0`, `libmad0`, `libmodplug1`, `libwavpack1`.
 
 When building local test environments (e.g., Docker NoVNC containers) or verifying the OS image, all of these libraries must be explicitly satisfied.
+
+## 10. Declarative System Configurations
+To ensure reproducible builds and easy debugging, the following explicit configurations and environment variables are strictly enforced across the OS to ensure the display, autologin, and USB subsystems function correctly:
+
+### LightDM Autologin (Headless Kiosk)
+**File**: `/etc/lightdm/lightdm.conf`
+Forces the Pi to bypass the login screen and instantly drop the `pi` user into the Sway Wayland compositor.
+```ini
+[Seat:*]
+autologin-user=pi
+autologin-session=sway
+```
+
+### USB Power (Controller + Display)
+**File**: `/boot/firmware/config.txt`
+Crucial for powering the DDJ-400 and an HDMI touchscreen simultaneously without undervolting.
+```ini
+max_usb_current=1
+```
+
+### Kernel Real-Time & Visuals
+**File**: `/boot/firmware/cmdline.txt`
+Prioritizes audio processing over system tasks and completely silences the boot text for a clean aesthetic.
+```text
+preempt=full cpufreq.default_governor=performance quiet splash logo.nologo vt.global_cursor_default=0
+```
+
+### Sway & Qt Wayland Environment
+When launching BiteDJ (either via autostart or debugging over SSH), the following environment block is required to bind the binary to the active Wayland session and disable legacy modifiers:
+```bash
+# Required to route display output to the running Sway session
+export SWAYSOCK=$(ls /run/user/1000/sway-ipc.*.sock | head -n 1)
+export WAYLAND_DISPLAY=wayland-1
+
+# Launch BiteDJ with explicit hardware and styling flags
+env PA_ALSA_PLUGHW=1 \
+    WLR_DRM_NO_MODIFIERS=1 \
+    QT_WAYLAND_SHELL_INTEGRATION=xdg-shell \
+    /usr/bin/bitedj --resourcePath /usr/share/mixxx/ --full-screen --style Fusion
+```
+
+### Sway Window Manager (Kiosk Compositor)
+**File**: `~/.config/sway/config` (or injected globally via `/etc/sway/config`)
+Sway handles the actual display logic. The configuration is stripped of typical desktop features to enforce a strict, single-app kiosk experience:
+
+```text
+# 1. Disable the default Sway top bar to prevent users from escaping the app
+bar {
+    mode invisible
+}
+
+# 2. Set the custom splash/background image natively
+output * bg /usr/share/backgrounds/bitedj-wallpaper.jpg fill
+
+# 3. Disable all window decorations (titlebars, borders)
+default_border none
+default_floating_border none
+
+# 4. Auto-execute BiteDJ on compositor startup
+exec "env PA_ALSA_PLUGHW=1 WLR_DRM_NO_MODIFIERS=1 QT_WAYLAND_SHELL_INTEGRATION=xdg-shell /usr/bin/bitedj --resourcePath /usr/share/mixxx/ --full-screen --style Fusion"
+```
