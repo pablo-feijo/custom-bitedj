@@ -52,6 +52,10 @@ BiteDJ runs directly on the hardware with a minimal set of underlying drivers:
   - `qt6-wayland` and `qt6-qpa-plugins` are required for native Wayland UI execution.
   - `xwayland` provides the X11 compatibility bridge (`xcb`) for legacy dialogs and VST integrations when native Wayland touch drag-and-drop requires mitigation.
 - **Storage**: Automounting of DJ USB drives is handled by `udevil` and `udiskie`, relying on `polkitd` rules for passwordless operation.
+- **Networking & Wireless**: WiFi and Bluetooth connectivity is managed entirely by native OS dialogs launched seamlessly over the UI. This requires:
+  - `network-manager-gnome` (provides `nm-connection-editor` for WiFi selection).
+  - `blueman` (provides `blueman-manager` for Bluetooth audio pairing).
+  - `wvkbd` (Wayland virtual keyboard triggered explicitly via C++ when launching these connection dialogs).
 
 ## 9. Modern Library Dependencies (Trixie OS Requirements)
 The shift from Debian Bookworm to Debian Trixie (13) was strictly mandated by the modern dependencies of the cross-compiled `v0.0.3` binary. Attempting to run the compiled binary on older distributions will result in `cannot open shared object file` or `version not found` errors. 
