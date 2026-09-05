@@ -4,6 +4,7 @@
 #include "mixxxmainwindow.h"
 
 #include <QCloseEvent>
+#include <QProcess>
 #include <QDebug>
 #include <QFileDialog>
 #include <QOpenGLContext>
@@ -469,6 +470,24 @@ void MixxxMainWindow::initialize() {
         } else {
             ControlObject::set(ConfigKey("[Channel1]", "orientation"), 1.0); // None (Center)
             ControlObject::set(ConfigKey("[Channel2]", "orientation"), 1.0); // None (Center)
+        }
+    });
+
+    m_pCoLaunchWifi = std::make_unique<ControlObject>(ConfigKey("[BiteDJ]", "launch_wifi"));
+    connect(m_pCoLaunchWifi.get(), &ControlObject::valueChanged, this, [](double value) {
+        if (value > 0.0) {
+            QProcess::startDetached("/bin/bash", QStringList() << "-c" <<
+                "wvkbd-mobintl -L 250 -b & KBD_PID=$!; nm-connection-editor; kill -9 $KBD_PID");
+            ControlObject::set(ConfigKey("[BiteDJ]", "launch_wifi"), 0.0);
+        }
+    });
+
+    m_pCoLaunchBluetooth = std::make_unique<ControlObject>(ConfigKey("[BiteDJ]", "launch_bluetooth"));
+    connect(m_pCoLaunchBluetooth.get(), &ControlObject::valueChanged, this, [](double value) {
+        if (value > 0.0) {
+            QProcess::startDetached("/bin/bash", QStringList() << "-c" <<
+                "wvkbd-mobintl -L 250 -b & KBD_PID=$!; blueman-manager; kill -9 $KBD_PID");
+            ControlObject::set(ConfigKey("[BiteDJ]", "launch_bluetooth"), 0.0);
         }
     });
 }
