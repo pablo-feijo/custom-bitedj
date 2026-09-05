@@ -52,3 +52,20 @@ BiteDJ runs directly on the hardware with a minimal set of underlying drivers:
   - `qt6-wayland` and `qt6-qpa-plugins` are required for native Wayland UI execution.
   - `xwayland` provides the X11 compatibility bridge (`xcb`) for legacy dialogs and VST integrations when native Wayland touch drag-and-drop requires mitigation.
 - **Storage**: Automounting of DJ USB drives is handled by `udevil` and `udiskie`, relying on `polkitd` rules for passwordless operation.
+
+## 9. Modern Library Dependencies (Trixie OS Requirements)
+The shift from Debian Bookworm to Debian Trixie (13) was strictly mandated by the modern dependencies of the cross-compiled `v0.0.3` binary. Attempting to run the compiled binary on older distributions will result in `cannot open shared object file` or `version not found` errors. 
+
+Key dependencies that require the Trixie environment include:
+- **Core C/C++**: `libc6` (GLIBC 2.38+) and `libstdc++6` (GLIBCXX 3.4.32+).
+- **Qt6 Ecosystem**: `libqt6core6` (Qt 6.8+), `libqt6gui6`, `libqt6widgets6`, `libqt6network6`, `libqt6opengl6`, `libqt6svg6`, `libqt6xml6`, `libqt6sql6`, and crucially `libqt6core5compat6` (Qt6 Core 5 Compat module).
+- **Audio Decoding & Processing**: 
+  - `libavcodec61`, `libavformat61`, `libavutil59`, `libswresample5` (Requires FFmpeg 7+, incompatible with Bookworm's FFmpeg 5).
+  - `libflac14` (Requires `libFLAC.so.14`, incompatible with Bookworm's `libflac12`).
+  - `libebur128-1` (For EBU R128 loudness analysis).
+  - `libtag2` (TagLib 2.x for metadata parsing).
+- **DSP & Synthesis**: `libfftw3-double3`, `libfftw3-single3`, `librubberband2t64`, `libsoundtouch1v5`.
+- **Hardware & MIDI**: `libportmidi0`, `libupower-glib3`, `libhidapi-hidraw0`.
+- **Other Media/Formats**: `libprotobuf-lite32t64`, `libshout-idjc3`, `libopusfile0`, `libmad0`, `libmodplug1`, `libwavpack1`.
+
+When building local test environments (e.g., Docker NoVNC containers) or verifying the OS image, all of these libraries must be explicitly satisfied.
