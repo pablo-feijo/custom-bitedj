@@ -27,6 +27,14 @@ Once the `.zip` is generated, insert your SD card and run:
 ```
 Follow the interactive prompts to safely write the image to your disk.
 
+**Expanding the Filesystem (Important):**
+Because the raw image is deliberately kept small (~6GB) to speed up flashing, it will not automatically fill large SD cards. If you encounter "No space left on device" errors over SSH, you must manually expand the root partition:
+```bash
+# Connect to the Pi and run:
+sudo raspi-config nonint do_expand_rootfs
+sudo resize2fs /dev/mmcblk0p2
+```
+
 ## 2. Hot-Deploying the Binary via SSH
 If you already have a working BiteDJ Raspberry Pi and just need to update the application code, you do NOT need to burn a new OS image. You can hot-swap the binary over SSH.
 
@@ -39,7 +47,10 @@ If you already have a working BiteDJ Raspberry Pi and just need to update the ap
 **Deploy to the Pi:**
 Use the included `deploy-ssh.sh` script or run:
 ```bash
-scp dist-linux/bin/bitedj pi@<YOUR_PI_IP>:/tmp/bitedj
-ssh pi@<YOUR_PI_IP> "sudo mv /tmp/bitedj /usr/bin/bitedj && sudo chmod +x /usr/bin/bitedj && killall -9 bitedj"
+scp dist-linux/bin/mixxx pi@<YOUR_PI_IP>:/tmp/bitedj
+ssh pi@<YOUR_PI_IP> "sudo mv /tmp/bitedj /usr/bin/bitedj && sudo chmod +x /usr/bin/bitedj"
+
+# Restart LightDM to cleanly reload the graphical session and prevent black screens:
+ssh pi@<YOUR_PI_IP> "sudo systemctl restart lightdm"
 ```
-The Sway compositor will automatically relaunch BiteDJ.
+LightDM will cleanly restart the Sway compositor and immediately launch the new BiteDJ binary without crashing into a failed state.
