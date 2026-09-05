@@ -108,7 +108,7 @@ export SWAYSOCK=$(ls /run/user/1000/sway-ipc.*.sock | head -n 1)
 export WAYLAND_DISPLAY=wayland-1
 
 # Launch BiteDJ with explicit hardware and styling flags
-env PA_ALSA_PLUGHW=1 \
+env 
     WLR_DRM_NO_MODIFIERS=1 \
     QT_WAYLAND_SHELL_INTEGRATION=xdg-shell \
     /usr/bin/bitedj --resourcePath /usr/share/mixxx/ --full-screen --style Fusion
@@ -132,8 +132,8 @@ default_border none
 default_floating_border none
 
 # 4. Force default workspace to prevent Sway from splitting window spaces
-workspace $ws1
+workspace 1
 
 # 5. Auto-execute BiteDJ on compositor startup
-exec "env PA_ALSA_PLUGHW=1 WLR_DRM_NO_MODIFIERS=1 QT_WAYLAND_SHELL_INTEGRATION=xdg-shell /usr/bin/bitedj --resourcePath /usr/share/mixxx/ --full-screen --style Fusion"
+exec "WLR_DRM_NO_MODIFIERS=1 QT_WAYLAND_SHELL_INTEGRATION=xdg-shell /usr/bin/bitedj --resourcePath /usr/share/mixxx/ --full-screen --style Fusion"
 ```
