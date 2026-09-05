@@ -477,7 +477,10 @@ void MixxxMainWindow::initialize() {
     m_pCoLaunchWifi->connectValueChanged(this, [](double value) {
         if (value > 0.0) {
             QProcess::startDetached("/bin/bash", QStringList() << "-c" <<
-                "export WAYLAND_DISPLAY=wayland-1; export GTK_CSD=1; /usr/bin/wvkbd-mobintl -L 250 -b >/tmp/wifi.log 2>&1 & KBD=$!; foot -a nm-tui -e nmtui >>/tmp/wifi.log 2>&1; kill -9 $KBD");
+                "export SWAYSOCK=$(ls /run/user/1000/sway-ipc.*.sock | head -n 1); swaymsg '[app_id=\"(?i)bitedj\"] fullscreen disable'; "
+                "export WAYLAND_DISPLAY=wayland-1; export GTK_CSD=1; /usr/bin/wvkbd-mobintl -L 250 -b >/tmp/wifi.log 2>&1 & KBD=$!; "
+                "foot -a nm-tui -o colors.background=282a36 -o colors.foreground=f8f8f2 -e nmtui >>/tmp/wifi.log 2>&1; "
+                "kill -9 $KBD; swaymsg '[app_id=\"(?i)bitedj\"] fullscreen enable'");
         }
     });
 
@@ -485,7 +488,10 @@ void MixxxMainWindow::initialize() {
     m_pCoLaunchBluetooth->connectValueChanged(this, [](double value) {
         if (value > 0.0) {
             QProcess::startDetached("/bin/bash", QStringList() << "-c" <<
-                "export WAYLAND_DISPLAY=wayland-1; export GTK_CSD=1; /usr/bin/wvkbd-mobintl -L 250 -b >/tmp/bt.log 2>&1 & KBD=$!; blueman-manager >>/tmp/bt.log 2>&1; kill -9 $KBD");
+                "export SWAYSOCK=$(ls /run/user/1000/sway-ipc.*.sock | head -n 1); swaymsg '[app_id=\"(?i)bitedj\"] fullscreen disable'; "
+                "export WAYLAND_DISPLAY=wayland-1; export GTK_CSD=1; /usr/bin/wvkbd-mobintl -L 250 -b >/tmp/bt.log 2>&1 & KBD=$!; "
+                "blueman-manager >>/tmp/bt.log 2>&1; "
+                "kill -9 $KBD; swaymsg '[app_id=\"(?i)bitedj\"] fullscreen enable'");
         }
     });
 }
