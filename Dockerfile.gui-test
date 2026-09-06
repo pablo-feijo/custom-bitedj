@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     curl \
     procps \
+    && sed -i "s/supportsWebCodecsH264Decode = await _checkWebCodecsH264DecodeSupport();/supportsWebCodecsH264Decode = false;/" /usr/share/novnc/core/util/browser.js \
     && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 5900 6080 8000
