@@ -1,0 +1,21 @@
+FROM bitedj-builder:latest
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    xvfb \
+    openbox \
+    x11vnc \
+    novnc \
+    websockify \
+    wmctrl \
+    xdotool \
+    pulseaudio \
+    pulseaudio-utils \
+    libasound2-plugins \
+    ffmpeg \
+    curl \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
+
+EXPOSE 5900 6080 8000
