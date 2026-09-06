@@ -67,3 +67,5 @@ src/mixxx.res
 src/test/**/*.actual
 res/qrc_mixxx.cc
 dist-linux/
+test-config/
+test-music/
