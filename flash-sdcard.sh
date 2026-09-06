@@ -3,8 +3,8 @@ set -euo pipefail
 
 TARGET_DISK="/dev/disk7"
 RAW_DISK="/dev/rdisk7"
-ZIP_FILE="mixxx-pi-gen/deploy/image_$(date +%Y-%m-%d)-bitedj-pi-v0.0.4.zip"
-IMG_FILE="mixxx-pi-gen/deploy/$(date +%Y-%m-%d)-bitedj-pi-v0.0.4.img"
+ZIP_FILE="mixxx-pi-gen/deploy/image_$(date +%Y-%m-%d)-bitedj-pi-v0.0.6.zip"
+IMG_FILE="mixxx-pi-gen/deploy/$(date +%Y-%m-%d)-bitedj-pi-v0.0.6.img"
 
 echo "============================================================"
 echo "  BiteDJ SD Card Flasher (macOS Terminal)"
