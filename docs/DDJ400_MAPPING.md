@@ -38,3 +38,21 @@ The following profiles are currently hardcoded for Pad FX1 mode:
 ## 4. UI Navigation & Hardware Disabling
 - **Tab Toggling**: Pressing the Browse rotary encoder while holding SHIFT natively toggles the UI layout tab (`[Tab],current`), allowing you to expand the library to full-screen from the controller.
 - **Crossfader Hardware Neutralization**: The JS callback explicitly intercepts physical MIDI slider inputs and drops them if the BiteDJ `[BiteDJ],crossfader_enabled` setting is disabled. This physically disconnects the controller's crossfader to prevent accidental bumps from bleeding audio.
+
+## 5. Bundled Pioneer Effect Chains
+BiteDJ bundles the complete standard Pioneer DJ club mixer effect chains in `res/effects/chains/`:
+- **Color FX (QuickEffect Racks)**:
+  - `C_Crush`: Bitcrusher downsampling curve tailored for filter sweeps.
+  - `C_Filter`: Standard club bipolar resonant low-pass / high-pass sweep.
+  - `C_Noise`: Filtered white noise generator with high/low cut tracking.
+- **Beat FX (Main Effect Units)**:
+  - `DELAY`: Pioneer style tempo-synced delay.
+  - `ECHO`: Classic quantified echo with feedback loop.
+  - `FILTER`: LFO-modulated tempo-synced filter sweep.
+  - `FLANGER`: Jet engine flanger sweeping through frequencies.
+  - `PAN`: Automatic stereo field panning.
+  - `PHASER`: Multi-stage phase shifter.
+  - `PINGPONG`: Alternating stereo channel ping pong delay.
+  - `REVERB`: High-density room/hall reverberation.
+  - `TRANS`: Rhythmic transformer gating / slicer.
+
