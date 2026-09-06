@@ -32,7 +32,7 @@ Because BiteDJ operates as a kiosk without a keyboard, standard Linux permission
 ## 6. Autostart & Environment Variables
 The Sway compositor handles BiteDJ's execution automatically on boot. 
 - **Flags**: `bitedj` is launched directly with `--full-screen` and `--style Fusion` via `i3.conf`. We explicitly removed legacy flags like `--safe-mode` that interfered with loading user preferences.
-- **Environment**: Cleaned up legacy Qt scaling flags, retaining only the absolute essentials: `PA_ALSA_PLUGHW=1` (for PortAudio raw hardware access), `WLR_DRM_NO_MODIFIERS=1`, and `QT_WAYLAND_SHELL_INTEGRATION=xdg-shell`.
+- **Environment**: Cleaned up legacy Qt scaling flags, retaining only the absolute essentials: `WLR_DRM_NO_MODIFIERS=1` and `QT_WAYLAND_SHELL_INTEGRATION=xdg-shell`.
 
 ## 7. Kernel & Boot Optimizations
 BiteDJ modifies `/boot/firmware/cmdline.txt` during the `mixxx-pi-gen` OS generation to configure the Raspberry Pi hardware explicitly for real-time audio and kiosk presentation:
@@ -45,7 +45,7 @@ BiteDJ modifies `/boot/firmware/cmdline.txt` during the `mixxx-pi-gen` OS genera
 
 ## 8. Drivers & Hardware Dependencies
 BiteDJ runs directly on the hardware with a minimal set of underlying drivers:
-- **Audio Subsystem**: While `pipewire-audio` is installed for the desktop, BiteDJ explicitly bypasses the sound server using PortAudio over ALSA (`env PA_ALSA_PLUGHW=1`) to communicate directly with the `snd-usb-audio` driver. This guarantees bit-perfect, ultra-low latency routing to the DDJ-400 hardware.
+- **Audio Subsystem**: Mixxx routes audio dynamically depending on the selected interface. The DDJ-400 CUE uses bit-perfect PortAudio directly over ALSA (`snd-usb-audio`), while Bluetooth output strictly leverages the virtual `pipewire` ALSA node. We explicitly disabled strict hardware polling (`PA_ALSA_PLUGHW`) because accessing the internal headphone hardware (`bcm2835`) directly causes a fatal `VCHI` kernel panic on the Raspberry Pi.
 - **Graphics Subsystem**: Hardware acceleration is provided by the `vc4-kms-v3d` DRM driver (configured in `config.txt`). Mixxx's fast-scrolling waveforms utilize OpenGL rendered natively on the GPU.
 - **Compositor**: `sway` (wlroots) is the Wayland compositor. Touchscreen input translates natively into Wayland gestures.
 - **Frameworks**: 
