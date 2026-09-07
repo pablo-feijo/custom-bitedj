@@ -963,16 +963,13 @@ WBeatSpinBox::up-button {
  * only clears the row width if both segment groups size to their (short)
  * labels — 0°/180° and NIGHT/DAY are at most four 14px Monospace caps, so 60px
  * still leaves them padding. */
-#ScreenRotSegmented,
-#ScreenModeSegmented {
-  qproperty-layoutAlignment: 'AlignRight | AlignVCenter';
-}
+
 
 #ScreenRotSegmented #SettingsSegmentLeft,
 #ScreenRotSegmented #SettingsSegmentRight,
 #ScreenModeSegmented #SettingsSegmentLeft,
 #ScreenModeSegmented #SettingsSegmentRight {
-  min-width: 53px;
+  min-width: 55px;
 }
 
 #SettingsSegmentLeft {
