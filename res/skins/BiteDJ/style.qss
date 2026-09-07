@@ -752,6 +752,7 @@ WLabel {
   font-weight: bold;
   text-transform: uppercase;
   padding-left: 6px;
+  margin-top: 12px;
 }
 
 #WaveformInfo_Data_Container,
