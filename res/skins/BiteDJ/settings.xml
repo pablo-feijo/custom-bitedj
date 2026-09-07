@@ -761,6 +761,106 @@
                 <Layout>horizontal</Layout>
                 <Size>0me,68f</Size>
                 <Children>
+                  <Label>
+                    <ObjectName>SettingsRowLabel</ObjectName>
+                    <Text>Screen</Text>
+                    <Size>0me,0me</Size>
+                  </Label>
+                  <WidgetGroup>
+                    <ObjectName>ScreenRotSegmented</ObjectName>
+                    <Layout>horizontal</Layout>
+                    <Size>114f,40f</Size>
+                    <Children>
+                      <Template src="skin:templates/setting_segment_button.xml">
+                        <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
+                        <SetVariable name="Text">0°</SetVariable>
+                        <SetVariable name="ConfigKey">[BiteDJ],screen_rotation</SetVariable>
+                        <SetVariable name="Value">0</SetVariable>
+                      </Template>
+                      <Template src="skin:templates/setting_segment_button.xml">
+                        <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
+                        <SetVariable name="Text">180°</SetVariable>
+                        <SetVariable name="ConfigKey">[BiteDJ],screen_rotation</SetVariable>
+                        <SetVariable name="Value">180</SetVariable>
+                      </Template>
+                    </Children>
+                  </WidgetGroup>
+                  <!-- Keeps the two groups from reading as one
+                       four-segment strip; both are lit at once and
+                       would otherwise look like a single control with
+                       two selections. -->
+                  <WidgetGroup>
+                    <Size>4f,0me</Size>
+                  </WidgetGroup>
+                  <WidgetGroup>
+                    <ObjectName>ScreenModeSegmented</ObjectName>
+                    <Layout>horizontal</Layout>
+                    <Size>114f,40f</Size>
+                    <Children>
+                      <Template src="skin:templates/setting_segment_button.xml">
+                        <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
+                        <SetVariable name="Text">Night</SetVariable>
+                        <SetVariable name="ConfigKey">[BiteDJ],high_contrast</SetVariable>
+                        <SetVariable name="Value">0</SetVariable>
+                      </Template>
+                      <Template src="skin:templates/setting_segment_button.xml">
+                        <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
+                        <SetVariable name="Text">Day</SetVariable>
+                        <SetVariable name="ConfigKey">[BiteDJ],high_contrast</SetVariable>
+                        <SetVariable name="Value">1</SetVariable>
+                      </Template>
+                    </Children>
+                  </WidgetGroup>
+                </Children>
+              </WidgetGroup>
+
+              <WidgetGroup>
+                <ObjectName>SettingsRow</ObjectName>
+                <Layout>horizontal</Layout>
+                <Size>0me,68f</Size>
+                <Children>
+                  <Label>
+                    <ObjectName>SettingsRowLabel</ObjectName>
+                    <Text>Network</Text>
+                    <Size>0me,0me</Size>
+                  </Label>
+                  <PushButton>
+                    <ObjectName>SettingsActionButton</ObjectName>
+                    <Size>114f,40f</Size>
+                    <NumberStates>1</NumberStates>
+                    <State>
+                      <Number>0</Number>
+                      <Text>WiFi</Text>
+                    </State>
+                    <Connection>
+                      <ConfigKey>[BiteDJ],launch_wifi</ConfigKey>
+                      <EmitOnDownPress>true</EmitOnDownPress>
+                    </Connection>
+                  </PushButton>
+                  <WidgetGroup>
+                    <Size>4f,0me</Size>
+                  </WidgetGroup>
+                  <PushButton>
+                    <ObjectName>SettingsActionButton</ObjectName>
+                    <Size>114f,40f</Size>
+                    <NumberStates>1</NumberStates>
+                    <State>
+                      <Number>0</Number>
+                      <Text>Bluetooth</Text>
+                    </State>
+                    <Connection>
+                      <ConfigKey>[BiteDJ],launch_bluetooth</ConfigKey>
+                      <EmitOnDownPress>true</EmitOnDownPress>
+                    </Connection>
+                  </PushButton>
+                </Children>
+              </WidgetGroup>
+
+              <WidgetGroup>
+                <ObjectName>SettingsRow</ObjectName>
+                <Layout>horizontal</Layout>
+                <Size>0me,68f</Size>
+                <Children>
                   <!-- Arming takes over the whole row instead of swapping a
                        button in place (the pattern the Devices/Audio Apply rows
                        use): at 64f the in-place page would have had to fit
@@ -778,60 +878,39 @@
                         <Children>
                           <Label>
                             <ObjectName>SettingsRowLabel</ObjectName>
-                            <Text>Screen</Text>
+                            <Text>Advanced</Text>
                             <Size>0me,0me</Size>
                           </Label>
-                          <WidgetGroup>
-                            <ObjectName>ScreenRotSegmented</ObjectName>
-                            <Layout>horizontal</Layout>
+                          <PushButton>
+                            <ObjectName>SettingsActionButton</ObjectName>
                             <Size>114f,40f</Size>
-                            <Children>
-                              <Template src="skin:templates/setting_segment_button.xml">
-                                <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
-                                <SetVariable name="Text">0°</SetVariable>
-                                <SetVariable name="ConfigKey">[BiteDJ],screen_rotation</SetVariable>
-                                <SetVariable name="Value">0</SetVariable>
-                              </Template>
-                              <Template src="skin:templates/setting_segment_button.xml">
-                                <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
-                                <SetVariable name="Text">180°</SetVariable>
-                                <SetVariable name="ConfigKey">[BiteDJ],screen_rotation</SetVariable>
-                                <SetVariable name="Value">180</SetVariable>
-                              </Template>
-                            </Children>
-                          </WidgetGroup>
-                          <!-- Keeps the two groups from reading as one
-                               four-segment strip; both are lit at once and
-                               would otherwise look like a single control with
-                               two selections. -->
+                            <NumberStates>1</NumberStates>
+                            <State>
+                              <Number>0</Number>
+                              <Text>Settings</Text>
+                            </State>
+                            <Connection>
+                              <ConfigKey>[Master],show_preferences</ConfigKey>
+                              <EmitOnDownPress>true</EmitOnDownPress>
+                            </Connection>
+                          </PushButton>
                           <WidgetGroup>
                             <Size>4f,0me</Size>
                           </WidgetGroup>
-                          <WidgetGroup>
-                            <ObjectName>ScreenModeSegmented</ObjectName>
-                            <Layout>horizontal</Layout>
+                          <PushButton>
+                            <ObjectName>SettingsActionButton</ObjectName>
                             <Size>114f,40f</Size>
-                            <Children>
-                              <Template src="skin:templates/setting_segment_button.xml">
-                                <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
-                                <SetVariable name="Text">Night</SetVariable>
-                                <SetVariable name="ConfigKey">[BiteDJ],high_contrast</SetVariable>
-                                <SetVariable name="Value">0</SetVariable>
-                              </Template>
-                              <Template src="skin:templates/setting_segment_button.xml">
-                                <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
-                                <SetVariable name="Text">Day</SetVariable>
-                                <SetVariable name="ConfigKey">[BiteDJ],high_contrast</SetVariable>
-                                <SetVariable name="Value">1</SetVariable>
-                              </Template>
-                            </Children>
-                          </WidgetGroup>
-                          <!-- Wider than the gap above: Power is not part of
-                               the screen group and must not read as a third
-                               segment of it. -->
-                          <WidgetGroup>
-                            <Size>16f,0me</Size>
-                          </WidgetGroup>
+                            <NumberStates>1</NumberStates>
+                            <State>
+                              <Number>0</Number>
+                              <Text>Power</Text>
+                            </State>
+                            <Connection>
+                              <ConfigKey>[System],shutdown_arm</ConfigKey>
+                              <EmitOnDownPress>true</EmitOnDownPress>
+                              <Transform><IsEqual>1</IsEqual></Transform>
+                            </Connection>
+                          </PushButton>
                         </Children>
                       </WidgetGroup>
 
@@ -880,90 +959,6 @@
 
                     </Children>
                   </WidgetStack>
-                </Children>
-              </WidgetGroup>
-
-              <WidgetGroup>
-                <ObjectName>SettingsRow</ObjectName>
-                <Layout>horizontal</Layout>
-                <Size>0me,68f</Size>
-                <Children>
-                  <Label>
-                    <ObjectName>SettingsRowLabel</ObjectName>
-                    <Text>Network</Text>
-                    <Size>0me,0me</Size>
-                  </Label>
-                  <PushButton>
-                    <ObjectName>SettingsActionButton</ObjectName>
-                    <Size>114f,40f</Size>
-                    <NumberStates>1</NumberStates>
-                    <State>
-                      <Number>0</Number>
-                      <Text>WiFi</Text>
-                    </State>
-                    <Connection>
-                      <ConfigKey>[BiteDJ],launch_wifi</ConfigKey>
-                      <EmitOnDownPress>true</EmitOnDownPress>
-                    </Connection>
-                  </PushButton>
-                  <WidgetGroup>
-                    <Size>4f,0me</Size>
-                  </WidgetGroup>
-                  <PushButton>
-                    <ObjectName>SettingsActionButton</ObjectName>
-                    <Size>114f,40f</Size>
-                    <NumberStates>1</NumberStates>
-                    <State>
-                      <Number>0</Number>
-                      <Text>Bluetooth</Text>
-                    </State>
-                    <Connection>
-                      <ConfigKey>[BiteDJ],launch_bluetooth</ConfigKey>
-                      <EmitOnDownPress>true</EmitOnDownPress>
-                    </Connection>
-                  </PushButton>
-                </Children>
-              </WidgetGroup>
-
-              <WidgetGroup>
-                <ObjectName>SettingsRow</ObjectName>
-                    <Layout>horizontal</Layout>
-                    <Size>0me,68f</Size>
-                    <SizePolicy>me,me</SizePolicy>
-                    <Children>
-                      <Label>
-                        <ObjectName>SettingsRowLabel</ObjectName>
-                        <Text>Advanced</Text>
-                    <Size>0me,0me</Size>
-                  </Label>
-                  <PushButton>
-                    <ObjectName>SettingsActionButton</ObjectName>
-                    <Size>114f,40f</Size>
-                    <NumberStates>1</NumberStates>
-                    <State>
-                      <Number>0</Number>
-                      <Text>Settings</Text>
-                    </State>
-                    <Connection>
-                      <ConfigKey>[Master],show_preferences</ConfigKey>
-                      <EmitOnDownPress>true</EmitOnDownPress>
-                    </Connection>
-                  </PushButton>
-                  <WidgetGroup><Size>4f,0me</Size></WidgetGroup>
-                          <PushButton>
-                            <ObjectName>SettingsActionButton</ObjectName>
-                            <Size>114f,40f</Size>
-                            <NumberStates>1</NumberStates>
-                            <State>
-                              <Number>0</Number>
-                              <Text>Power</Text>
-                            </State>
-                            <Connection>
-                              <ConfigKey>[System],shutdown_arm</ConfigKey>
-                              <EmitOnDownPress>true</EmitOnDownPress>
-                              <Transform><IsEqual>1</IsEqual></Transform>
-                            </Connection>
-                          </PushButton>
                 </Children>
               </WidgetGroup>
 
