@@ -1367,7 +1367,8 @@ WBeatSpinBox::up-button {
   color: #d73535;
   font-size: 13px;
   font-weight: bold;
-  margin: 0 12px;
+  padding: 0 14px;
+  margin: 0 6px;
   text-transform: uppercase;
 }
 
