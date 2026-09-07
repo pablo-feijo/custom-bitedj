@@ -1,45 +1,38 @@
 <?xml version='1.0' encoding='utf-8'?>
 <EffectChain>
- <Name>22. TRANS</Name>
- <MixMode>DRY/WET</MixMode>
- <SuperParameterValue>0</SuperParameterValue>
+ <Name>10. SLIP ROLL</Name>
+ <MixMode>DRY+WET</MixMode>
+ <SuperParameterValue>1.0</SuperParameterValue>
  <Effects>
   <Effect>
-   <MetaParameterValue>0</MetaParameterValue>
-   <Id>org.mixxx.effects.tremolo</Id>
+   <MetaParameterValue>1.0</MetaParameterValue>
+   <Id>org.mixxx.effects.echo</Id>
    <BackendType>Built-In</BackendType>
    <Parameters>
     <Parameter>
-     <Id>depth</Id>
-     <Value>0</Value>
-     <LinkType>LINKED</LinkType>
-     <LinkInversion>0</LinkInversion>
-     <Hidden>0</Hidden>
-    </Parameter>
-    <Parameter>
-     <Id>rate</Id>
-     <Value>1</Value>
-     <LinkType>NONE</LinkType>
-     <LinkInversion>0</LinkInversion>
-     <Hidden>0</Hidden>
-    </Parameter>
-    <Parameter>
-     <Id>width</Id>
+     <Id>delay_time</Id>
      <Value>0.5</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
-     <Id>waveform</Id>
-     <Value>0.005</Value>
+     <Id>feedback_amount</Id>
+     <Value>1.0</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
-     <Id>phase</Id>
+     <Id>pingpong_amount</Id>
      <Value>0</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>send_amount</Id>
+     <Value>1.0</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
@@ -49,19 +42,16 @@
      <Value>1</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
-     <Hidden>0</Hidden>
+     <Hidden>1</Hidden>
     </Parameter>
     <Parameter>
      <Id>triplet</Id>
      <Value>0</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
-     <Hidden>0</Hidden>
+     <Hidden>1</Hidden>
     </Parameter>
    </Parameters>
   </Effect>
-  <Effect/>
-  <Effect/>
-  <Effect/>
  </Effects>
 </EffectChain>

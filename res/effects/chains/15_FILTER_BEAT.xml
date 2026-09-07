@@ -1,52 +1,59 @@
 <?xml version='1.0' encoding='utf-8'?>
 <EffectChain>
- <Name>17. PAN</Name>
+ <Name>15. FILTER</Name>
  <MixMode>DRY/WET</MixMode>
  <SuperParameterValue>0</SuperParameterValue>
  <Effects>
   <Effect>
    <MetaParameterValue>0</MetaParameterValue>
-   <Id>org.mixxx.effects.threebandbiquadeq</Id>
+   <Id>org.mixxx.effects.tremolo</Id>
    <BackendType>Built-In</BackendType>
    <Parameters>
     <Parameter>
-     <Id>low</Id>
+     <Id>depth</Id>
      <Value>1</Value>
+     <LinkType>LINKED_LEFT_RIGHT</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>rate</Id>
+     <Value>8</Value>
+     <LinkType>LINKED_LEFT_RIGHT</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>width</Id>
+     <Value>0.5</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
-     <Id>mid</Id>
-     <Value>1</Value>
+     <Id>waveform</Id>
+     <Value>0.5</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
-     <Id>high</Id>
-     <Value>1</Value>
-     <LinkType>NONE</LinkType>
-     <LinkInversion>0</LinkInversion>
-     <Hidden>0</Hidden>
-    </Parameter>
-    <Parameter>
-     <Id>killLow</Id>
+     <Id>phase</Id>
      <Value>0</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
-     <Id>killMid</Id>
-     <Value>0</Value>
+     <Id>quantize</Id>
+     <Value>1</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
-     <Id>killHigh</Id>
-     <Value>0</Value>
+     <Id>triplet</Id>
+     <Value>1</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
@@ -55,27 +62,27 @@
   </Effect>
   <Effect>
    <MetaParameterValue>0</MetaParameterValue>
-   <Id>org.mixxx.effects.autopan</Id>
+   <Id>org.mixxx.effects.filter</Id>
    <BackendType>Built-In</BackendType>
    <Parameters>
     <Parameter>
-     <Id>period</Id>
-     <Value>4</Value>
-     <LinkType>NONE</LinkType>
-     <LinkInversion>1</LinkInversion>
-     <Hidden>0</Hidden>
-    </Parameter>
-    <Parameter>
-     <Id>smoothing</Id>
-     <Value>0.25</Value>
-     <LinkType>LINKED</LinkType>
+     <Id>lpf</Id>
+     <Value>13</Value>
+     <LinkType>LINKED_LEFT</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
-     <Id>width</Id>
-     <Value>0</Value>
-     <LinkType>LINKED</LinkType>
+     <Id>q</Id>
+     <Value>0.707107</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>hpf</Id>
+     <Value>13</Value>
+     <LinkType>LINKED_RIGHT</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
