@@ -986,3 +986,42 @@ PioneerDDJ400.crossfaderMoved = function(channel, control, value, status, group)
     // Standard 7-bit MIDI mapping (0 to 127) -> (-1.0 to 1.0)
     engine.setValue("[Master]", "crossfader", (value / 63.5) - 1.0);
 };
+
+
+PioneerDDJ400.filterKnob = function(channel, control, value, status, group) {
+    var deck = group === "[QuickEffectRack1_[Channel1]]" ? 1 : 2;
+    var shift = PioneerDDJ400.shiftButtonDown[0] || PioneerDDJ400.shiftButtonDown[1];
+
+    if (shift) {
+        // Map Shift + Filter to cycle CFX!
+        // We know C_Crush, C_Filter, C_Noise are at indices 7, 8, 9
+        // Wait, but we only have MSB (0x17) and LSB (0x37) triggering this.
+        // Let's only trigger on MSB so we don't double fire.
+        if (control === 0x17 || control === 0x18) {
+            // value is 0-127. Let's use it like an absolute knob to select between 3 effects!
+            // 0-42: index 7 (C_Crush)
+            // 43-85: index 8 (C_Filter)
+            // 86-127: index 9 (C_Noise)
+            var idx = 7;
+            if (value > 42) idx = 8;
+            if (value > 85) idx = 9;
+            engine.setValue(group, "chain_selector", idx);
+        }
+    } else {
+        // Normal filter operation (super1)
+        // Since we are reading MSB (0x17) and LSB (0x37), we need to manually reconstruct 14-bit?
+        // Actually, if we just pass MSB to super1, it's 7-bit resolution.
+        // Let's implement full 14-bit tracking!
+        PioneerDDJ400.filterState = PioneerDDJ400.filterState || {};
+        PioneerDDJ400.filterState[deck] = PioneerDDJ400.filterState[deck] || { msb: 64, lsb: 0 };
+        
+        if (control === 0x17 || control === 0x18) {
+            PioneerDDJ400.filterState[deck].msb = value;
+        } else if (control === 0x37 || control === 0x38) {
+            PioneerDDJ400.filterState[deck].lsb = value;
+        }
+        
+        var absVal = (PioneerDDJ400.filterState[deck].msb << 7) | PioneerDDJ400.filterState[deck].lsb;
+        engine.setValue(group, "super1", absVal / 16383.0);
+    }
+};

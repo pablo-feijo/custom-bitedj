@@ -947,41 +947,41 @@
             <control>
                 <description>FILTER CH1 - rotate - Filter Effect Knob</description>
                 <group>[QuickEffectRack1_[Channel1]]</group>
-                <key>super1</key>
+                <key>PioneerDDJ400.filterKnob</key>
                 <status>0xB6</status>
                 <midino>0x17</midino>
                 <options>
-                    <fourteen-bit-msb/>
+                    <Script-Binding/>
                 </options>
             </control>
             <control>
                 <description>FILTER CH1 - rotate - Filter Effect Knob</description>
                 <group>[QuickEffectRack1_[Channel1]]</group>
-                <key>super1</key>
+                <key>PioneerDDJ400.filterKnob</key>
                 <status>0xB6</status>
                 <midino>0x37</midino>
                 <options>
-                    <fourteen-bit-lsb/>
+                    <Script-Binding/>
                 </options>
             </control>
             <control>
                 <description>FILTER CH2 - rotate - Filter Effect Knob</description>
                 <group>[QuickEffectRack1_[Channel2]]</group>
-                <key>super1</key>
+                <key>PioneerDDJ400.filterKnob</key>
                 <status>0xB6</status>
                 <midino>0x18</midino>
                 <options>
-                    <fourteen-bit-msb/>
+                    <Script-Binding/>
                 </options>
             </control>
             <control>
                 <description>FILTER CH2 - rotate - Filter Effect Knob</description>
                 <group>[QuickEffectRack1_[Channel2]]</group>
-                <key>super1</key>
+                <key>PioneerDDJ400.filterKnob</key>
                 <status>0xB6</status>
                 <midino>0x38</midino>
                 <options>
-                    <fourteen-bit-lsb/>
+                    <Script-Binding/>
                 </options>
             </control>
 
