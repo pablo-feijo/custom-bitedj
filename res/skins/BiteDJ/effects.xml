@@ -1,24 +1,3 @@
-<!--
-  The Overview panel to the right of the waveforms. Two pages behind an
-  FX / KEY tab bar, so both control sets get the full panel instead of
-  sharing it:
-
-  FX  — single-column BeatFX for [EffectRack1_EffectUnit1_Effect1]. The
-        header pins the effect picker, deck routing, mix meter, and
-        Active toggle; the rows below expose the loaded Beats-typed
-        (bucket) parameters via templates/effect_param_row.xml. Rows
-        whose parameter{N}_loaded == 0 — or whose parameter is non-Beats
-        and not opted in via [Skin],beatfx_show_param{N} in mixxx.cfg —
-        collapse so the list packs from the top.
-
-  KEY — one stacked block per deck (deck 1 top, deck 2 bottom) with the
-        current key, +/-2 semitone nudges, and a reset (see
-        templates/keyfx_deck_row.xml).
-
-  [FxPanel],current selects the page; [FxPanel],fx / [FxPanel],key are
-  the per-page triggers the tab buttons write. All three are created by
-  the skin parser. Not persisted — the panel opens on FX every launch.
--->
 <Template>
   <WidgetGroup>
     <ObjectName>BeatFX_Container</ObjectName>
@@ -31,8 +10,7 @@
         <Layout>horizontal</Layout>
         <Size>0me,36f</Size>
         <Children>
-          <!-- Select-only, not toggles: always emit 1 on press (never 0),
-               so tapping the already-active tab is a no-op. -->
+          
           <PushButton>
             <ObjectName>FxPanel_TabFx</ObjectName>
             <Size>0me,36f</Size>
@@ -72,19 +50,7 @@
         </Children>
       </WidgetGroup>
 
-      <!--
-        Ignored vertical policy on purpose. WWidgetStack forwards its
-        minimumSizeHint to the *current* page, so pages of unequal height
-        re-drive the Overview's vertical layout on every switch: the FX page
-        (140px header + a parameter row) asks for more than KEY, which stole
-        ~5px off the deck strip and made the bottom of the screen jump
-        between FX and KEY — and again whenever an effect with a bucket row
-        was loaded. Ignored drops the stack out of the minimum-height
-        calculation, so this 180px side panel is sized purely by the
-        waveform column beside it. Pages are AlignTop, so content that
-        outgrows the panel packs from the top instead of shoving the rest of
-        the layout around.
-      -->
+      
       <WidgetStack currentpage="[FxPanel],current">
         <ObjectName>FxPanel_Stack</ObjectName>
         <SizePolicy>me,i</SizePolicy>
@@ -198,12 +164,7 @@
                 </Children>
               </WidgetGroup>
 
-              <!--
-                Parameter rows. Mixxx allocates kDefaultMaxParameters (16) knob
-                parameter slots per effect; only Beats-typed (bucket) slots are
-                visible by default. Each row auto-hides when its
-                parameter{N}_loaded is 0 so simple effects don't leave gaps.
-              -->
+              
               <Template src="skin:templates/effect_param_row.xml">
                 <SetVariable name="rack">1</SetVariable>
                 <SetVariable name="unit">1</SetVariable>
@@ -301,7 +262,7 @@
                 <SetVariable name="param">16</SetVariable>
               </Template>
 
-              <WidgetGroup>
+              <WidgetGroup><ObjectName>BeatFX_BottomKnobs</ObjectName><Layout>horizontal</Layout><Size>0me,min</Size><Children><WidgetGroup><Layout>vertical</Layout><Size>me,min</Size><Children><Label><Text>MIX</Text><Size>0me,16f</Size><Alignment>center</Alignment></Label><KnobComposed><Size>0me,56f</Size><Knob scalemode="STRETCH_ASPECT">icons/knob.svg</Knob><MinAngle>-140</MinAngle><MaxAngle>140</MaxAngle><Connection><ConfigKey>[EffectRack1_EffectUnit1],mix</ConfigKey></Connection></KnobComposed></Children></WidgetGroup><WidgetGroup><Layout>vertical</Layout><Size>me,min</Size><Children><Label><Text>SUPER</Text><Size>0me,16f</Size><Alignment>center</Alignment></Label><KnobComposed><Size>0me,56f</Size><Knob scalemode="STRETCH_ASPECT">icons/knob.svg</Knob><MinAngle>-140</MinAngle><MaxAngle>140</MaxAngle><Connection><ConfigKey>[EffectRack1_EffectUnit1],super1</ConfigKey></Connection></KnobComposed></Children></WidgetGroup></Children></WidgetGroup><WidgetGroup>
                 <ObjectName>BeatFX_Spacer</ObjectName>
                 <Size>0me,0me</Size>
               </WidgetGroup>
@@ -309,11 +270,7 @@
             </Children>
           </WidgetGroup>
 
-          <!--
-            KEY page: one block per deck, stacked. No shared "selected deck"
-            state exists in this skin, so each block targets its own
-            [ChannelN] controls.
-          -->
+          
           <WidgetGroup trigger="[FxPanel],key">
             <ObjectName>FxPanel_Page</ObjectName>
             <Layout>vertical</Layout>
