@@ -252,9 +252,6 @@ WPushButton[value="1"]:hover {
 }
 
 /************************************************************************/
-/*     Cue drawer                                                       */
-/************************************************************************/
-
 /* Opens the drawer on this deck; sits between the key/BPM chips and the
  * track title, so it stays narrow. */
 #DeckCueChip {
@@ -540,7 +537,8 @@ WPushButton[value="1"]:hover {
  * Declaring the surface here puts it back inside the stylesheet, which is what
  * the inversion works from. Colours are the BeatFX control surface its
  * neighbours use (BucketButton / ActiveToggle / DeckAssign). */
-WEffectSelector {
+WEffectSelector,
+WEffectChainPresetSelector {
   background-color: #1a1a1a;
   border: 1px solid #3a3a3a;
   border-radius: 2px;
@@ -556,7 +554,8 @@ WEffectSelector {
  * drawing the built-in arrow instead of falling back to it, so the arrow has to
  * come from the skin. As a QSS url() it rides the icon-inversion pipeline and
  * flips with everything else. */
-WEffectSelector::drop-down {
+WEffectSelector::drop-down,
+WEffectChainPresetSelector::drop-down {
   background-color: transparent;
   border: 0;
   subcontrol-origin: padding;
@@ -564,7 +563,8 @@ WEffectSelector::drop-down {
   width: 24px;
 }
 
-WEffectSelector::down-arrow {
+WEffectSelector::down-arrow,
+WEffectChainPresetSelector::down-arrow {
   image: url(skin:icons/dropdown_arrow.svg);
   width: 12px;
   height: 12px;
@@ -575,7 +575,8 @@ WEffectSelector::down-arrow {
  * system palette — black rows that daylight mode never sees, because nothing
  * in the skin declared them. Styling it explicitly both fixes the popup and
  * puts it inside the stylesheet, which is what the inversion works from. */
-WEffectSelector QAbstractItemView {
+WEffectSelector QAbstractItemView,
+WEffectChainPresetSelector QAbstractItemView {
   background-color: #1a1a1a;
   border: 1px solid #32323c;
   color: #e5e6ea;
@@ -786,6 +787,42 @@ WBeatSpinBox::up-button {
 
 #WaveformInfo_QuantizeButton {
   image: url(skin:icons/quantize.svg) no-repeat center center;
+}
+
+#WaveformInfo_PlayRow {
+  margin-top: 4px;
+}
+
+#WaveformPlayButton {
+  background-color: rgba(46, 204, 113, 0.18);
+  border: 1px solid #27ae60;
+  border-radius: 4px;
+  margin-right: 4px;
+  image: url(skin:icons/play.svg) no-repeat center center;
+}
+
+#WaveformPlayButton[value="1"],
+#WaveformPlayButton:pressed {
+  background-color: #27ae60;
+  border: 1px solid #2ecc71;
+  image: url(skin:icons/pause.svg) no-repeat center center;
+}
+
+#WaveformCueButton {
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #f39c12;
+  background-color: rgba(243, 156, 18, 0.18);
+  border: 1px solid #d35400;
+  border-radius: 4px;
+}
+
+#WaveformCueButton:pressed,
+#WaveformCueButton[value="1"] {
+  color: #ffffff;
+  background-color: #e67e22;
+  border: 1px solid #f39c12;
 }
 
 /************************************************************************/
