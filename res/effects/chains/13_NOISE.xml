@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <EffectChain>
- <Name>9. NOISE</Name>
+ <Name>13. NOISE</Name>
  <MixMode>DRY/WET</MixMode>
  <SuperParameterValue>0.5</SuperParameterValue>
  <Effects>
