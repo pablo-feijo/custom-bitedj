@@ -949,10 +949,10 @@
                       <EmitOnDownPress>true</EmitOnDownPress>
                     </Connection>
                   </PushButton>
-                  <WidgetGroup><Size>12f,0me</Size></WidgetGroup>
+                  <WidgetGroup><Size>4f,0me</Size></WidgetGroup>
                           <PushButton>
                             <ObjectName>SettingsActionButton</ObjectName>
-                            <Size>76f,40f</Size>
+                            <Size>114f,40f</Size>
                             <NumberStates>1</NumberStates>
                             <State>
                               <Number>0</Number>
