@@ -106,7 +106,7 @@
               <WidgetGroup>
                 <ObjectName>WaveformInfo_PlayRow</ObjectName>
                 <Layout>horizontal</Layout>
-                <Size>0me,32f</Size>
+                <Size>0me,40f</Size>
                 <Children>
                   <PushButton>
                     <ObjectName>WaveformPlayButton</ObjectName>
