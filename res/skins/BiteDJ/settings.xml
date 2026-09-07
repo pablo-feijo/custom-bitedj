@@ -784,7 +784,7 @@
                           <WidgetGroup>
                             <ObjectName>ScreenRotSegmented</ObjectName>
                             <Layout>horizontal</Layout>
-                            <Size>120f,38f</Size>
+                            <Size>120f,44f</Size>
                             <Children>
                               <Template src="skin:templates/setting_segment_button.xml">
                                 <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -810,7 +810,7 @@
                           <WidgetGroup>
                             <ObjectName>ScreenModeSegmented</ObjectName>
                             <Layout>horizontal</Layout>
-                            <Size>120f,38f</Size>
+                            <Size>120f,44f</Size>
                             <Children>
                               <Template src="skin:templates/setting_segment_button.xml">
                                 <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -860,7 +860,7 @@
                           </Label>
                           <PushButton>
                             <ObjectName>SettingsDangerButton</ObjectName>
-                            <Size>120f,38f</Size>
+                            <Size>120f,44f</Size>
                             <NumberStates>1</NumberStates>
                             <State>
                               <Number>0</Number>
@@ -877,7 +877,7 @@
                           </WidgetGroup>
                           <PushButton>
                             <ObjectName>SettingsActionButton</ObjectName>
-                            <Size>120f,38f</Size>
+                            <Size>120f,44f</Size>
                             <NumberStates>1</NumberStates>
                             <State>
                               <Number>0</Number>
@@ -909,7 +909,7 @@
                   </Label>
                   <PushButton>
                     <ObjectName>SettingsActionButton</ObjectName>
-                    <Size>120f,38f</Size>
+                    <Size>120f,44f</Size>
                     <NumberStates>1</NumberStates>
                     <State>
                       <Number>0</Number>
@@ -925,7 +925,7 @@
                   </WidgetGroup>
                   <PushButton>
                     <ObjectName>SettingsActionButton</ObjectName>
-                    <Size>120f,38f</Size>
+                    <Size>120f,44f</Size>
                     <NumberStates>1</NumberStates>
                     <State>
                       <Number>0</Number>
@@ -951,7 +951,7 @@
                   </Label>
                   <PushButton>
                     <ObjectName>SettingsActionButton</ObjectName>
-                    <Size>120f,38f</Size>
+                    <Size>120f,44f</Size>
                     <NumberStates>1</NumberStates>
                     <State>
                       <Number>0</Number>
@@ -1067,7 +1067,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>150f,36f</Size>
+                        <Size>150f,40f</Size>
                         <!-- Two rows share this line, so it can run out of width
                              at the 480px-wide floor and Qt compresses children
                              past their size hint to fit. Pin both controls (a QSS
@@ -1075,7 +1075,7 @@
                              flexible hint and row labels are what yields; without
                              it the QUALITY segment is clipped off the panel and
                              the preset becomes unselectable. -->
-                        <MinimumSize>150,36</MinimumSize>
+                        <MinimumSize>150,40</MinimumSize>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>

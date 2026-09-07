@@ -944,7 +944,7 @@ WBeatSpinBox::up-button {
   font-size: 14px;
   font-weight: bold;
   min-width: 80px;
-  max-height: 36px;
+  
   text-transform: uppercase;
   
 }
@@ -997,6 +997,7 @@ WBeatSpinBox::up-button {
 #SettingsSegmentMid[displayValue="1"],
 #SettingsSegmentRight[displayValue="1"] {
   background-color: #855ea7;
+  border-color: #a27abb;
   color: #e7e8e9;
 }
 
