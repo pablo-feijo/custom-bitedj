@@ -114,21 +114,27 @@ WPushButton[value="1"]:hover {
   margin: 50% 0;
 }
 
+#DeckTitleRow {
+  padding-left: 6px;
+}
+
 #DeckTitle {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
+  padding-left: 4px;
 }
 
 #DeckTitlePlaying {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
   color: #c9372c;
   margin-right: 4px;
 }
 
 #DeckArtist {
-  font-size: 18px;
+  font-size: 16px;
   color: #9a9b9c;
+  padding-left: 4px;
 }
 
 #DeckKey {
