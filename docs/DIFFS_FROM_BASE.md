@@ -2,11 +2,43 @@
 
 This document tracks all divergences from upstream Mixxx, specifically formatted to assist in evaluating upstream commits for cherry-picking. It is divided into two distinct layers:
 1. **Base BiteDJ (v1.0-1)**: The foundational fork that optimized Mixxx for standalone hardware, focusing on audio path resilience, USB stability, and SQLite threading.
-2. **Custom BiteDJ (v0.0.3)**: Our tailored branch built on top of Base BiteDJ, specifically engineered for native Wayland integration, touchscreen drag-and-drop, and club-ready DDJ-400 mappings.
+2. **Custom BiteDJ (v0.0.6)**: Our tailored branch built on top of Base BiteDJ, specifically engineered for native Wayland integration, screen rotation persistence, DRM hardware cursor workarounds, touchscreen drag-and-drop, and club-ready DDJ-400 mappings.
 
 ---
 
-## 1. Custom BiteDJ (v0.0.5 - Wayland, Touch, & Audio Optimizations)
+## 1. Custom BiteDJ (v0.0.6 - Display Persistence, DRM Cursor Fixes, & UI Polish)
+
+These features were engineered to stabilize standalone hardware rotation, preserve cursor visibility, and polish the touchscreen layout.
+
+### A. Screen Rotation Persistence across Sessions & Reboots (`src/preferences/systemsettings.cpp`)
+- **Live Sway Transformation**: When 0° or 180° rotation is triggered, `SystemSettings::applyScreenRotation()` auto-discovers the active `SWAYSOCK` across `/run/user/<uid>` and commands Sway (`output * transform <degrees>`).
+- **Persistent Config Sync**: Scans and rewrites `output * transform` in `~/.config/sway/config`, `/home/pi/.config/sway/config`, and all user directories, followed by a POSIX `sync()` to ensure changes survive unexpected power cycles.
+- **Startup Enforcement**: `SystemSettings` re-applies the saved rotation during constructor initialization on boot.
+
+### B. DRM Hardware Cursor Workaround (`WLR_NO_HARDWARE_CURSORS=1`)
+- **Problem**: Raspberry Pi KMS DRM drivers (`vc4`/`v3d`) do not support hardware plane rotation for cursors on transformed outputs, causing the mouse cursor to disappear at 180°.
+- **Fix**: Injected `WLR_NO_HARDWARE_CURSORS=1` into `/etc/environment`, user profiles, and image build scripts (`mixxx-pi-gen`), falling back to software cursor rendering with programmatic Sway cursor nudges.
+
+### C. System Settings & Power Layout (`res/skins/BiteDJ/system_tab.xml`, `style.qss`)
+- Standardized button widths (`114f`) and spacing (`4f`) across System and Advanced rows for visual symmetry.
+- Relocated the Power / Shutdown button to the Advanced row with in-place confirmation display.
+
+### D. Sampler Row Polish (`res/skins/BiteDJ/sampler.xml`, `style.qss`)
+- Matched `STOP ALL` button height and styling to adjacent row controls with balanced text padding.
+- Corrected label clipping on the `SOURCE` text element.
+
+### E. Deck Header & Waveform Controls Polish (`res/skins/BiteDJ/style.qss`, `waveform.xml`)
+- **Neutral Idle Play/Cue**: Neutralized idle play/cue button colors with dedicated `play.svg` / `pause.svg` icons.
+- **Restored Chip Geometry**: Restored original compact dimensions for `#DeckKey`, `#DeckHeaderBPM`, and `#DeckCueChip` while preserving high-contrast cyan (`#38bdf8`) typography.
+- **Cue to Title Spacing**: Tightened padding between `#DeckCueChip` and `#DeckTitle` (`margin-right: 2px;`, `padding-left: 0px;`).
+- **Waveform Key Note Alignment**: Added `padding-left: 6px;` and `margin-top: 12px;` to `#WaveformInfo_Key` for clean clearance under deck badges and alignment with the controls below.
+
+### F. DDJ-400 Shift + Filter Mapping (`res/controllers/Pioneer-DDJ-400-script.js`)
+- Mapped `Shift + Filter` knobs directly to the Beat FX Super parameter for dual-hand Super and Mix sweeps during live performances.
+
+---
+
+## 2. Custom BiteDJ (v0.0.5 - Wayland, Touch, & Audio Optimizations)
 
 These features were engineered specifically to make BiteDJ operate flawlessly on a touchscreen Raspberry Pi running the Sway compositor.
 
@@ -35,7 +67,7 @@ These features were engineered specifically to make BiteDJ operate flawlessly on
 
 ---
 
-## 2. Base BiteDJ (v1.0-1 - Core Infrastructure)
+## 3. Base BiteDJ (v1.0-1 - Core Infrastructure)
 
 These foundational features were implemented by the original BiteDJ fork to survive the harsh reality of standalone USB environments.
 
@@ -55,7 +87,7 @@ These foundational features were implemented by the original BiteDJ fork to surv
 
 ---
 
-## 3. Upstream Cherry-Pick Checklist
+## 4. Upstream Cherry-Pick Checklist
 
 When evaluating new Mixxx releases (e.g., 2.5, 2.6), prioritize reviewing the following upstream areas for potential cherry-picks:
 - [ ] **Library & Database Optimizations**: Upstream improvements to SQLite queries or track parsing algorithms.
