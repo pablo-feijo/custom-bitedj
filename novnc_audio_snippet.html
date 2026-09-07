@@ -1,0 +1,103 @@
+    <!-- BiteDJ Live Audio Widget -->
+    <div id="bitedj_audio_container" style="position: fixed; top: 12px; right: 16px; z-index: 999999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px;">
+        <button id="bitedj_audio_toggle" style="display: flex; align-items: center; gap: 6px; background: #eab308; color: #000; font-weight: bold; border: none; border-radius: 20px; padding: 7px 16px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.6); transition: all 0.2s ease;">
+            <span>🔊</span>
+            <span id="bitedj_audio_label">Click to Enable Live Audio</span>
+        </button>
+        <div id="bitedj_audio_controls" style="display: none; align-items: center; gap: 8px; background: rgba(18, 18, 24, 0.92); border: 1px solid #a855f7; border-radius: 20px; padding: 4px 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); color: #fff;">
+            <span style="color: #22c55e; font-size: 14px;">🔊</span>
+            <span style="font-weight: 600; font-size: 12px; color: #e2e8f0;">Live Audio</span>
+            <button id="bitedj_mute_btn" style="background: #27272a; border: 1px solid #52525b; color: #e2e8f0; border-radius: 12px; padding: 2px 8px; font-size: 11px; cursor: pointer;">Mute</button>
+            <input type="range" id="bitedj_volume" min="0" max="1" step="0.05" value="1" style="width: 60px; accent-color: #a855f7; cursor: pointer;" title="Volume">
+        </div>
+        <audio id="bitedj_audio" preload="auto"></audio>
+    </div>
+
+    <script>
+        (function() {
+            var audio = document.getElementById('bitedj_audio');
+            var toggleBtn = document.getElementById('bitedj_audio_toggle');
+            var label = document.getElementById('bitedj_audio_label');
+            var controls = document.getElementById('bitedj_audio_controls');
+            var muteBtn = document.getElementById('bitedj_mute_btn');
+            var volSlider = document.getElementById('bitedj_volume');
+            var host = window.location.hostname || 'localhost';
+            var streamUrl = 'http://' + host + ':8000/stream.mp3';
+
+            function showPlaying() {
+                toggleBtn.style.display = 'none';
+                controls.style.display = 'flex';
+            }
+
+            function showPaused() {
+                controls.style.display = 'none';
+                toggleBtn.style.display = 'flex';
+                toggleBtn.style.background = '#eab308';
+                toggleBtn.style.color = '#000';
+                label.textContent = 'Click to Enable Live Audio';
+            }
+
+            function startAudio() {
+                if (!audio.src || audio.src === '' || audio.error) {
+                    audio.src = streamUrl + '?t=' + Date.now();
+                }
+                if (audio.paused) {
+                    var promise = audio.play();
+                    if (promise !== undefined) {
+                        promise.then(function() {
+                            showPlaying();
+                        }).catch(function(err) {
+                            console.warn('Audio play blocked/failed:', err);
+                        });
+                    }
+                } else {
+                    showPlaying();
+                }
+            }
+
+            audio.addEventListener('playing', showPlaying);
+            audio.addEventListener('pause', function() {
+                if (!audio.muted) showPaused();
+            });
+            audio.addEventListener('error', function(e) {
+                console.warn('Audio error, reconnecting:', e);
+                setTimeout(startAudio, 2000);
+            });
+
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                startAudio();
+            });
+
+            muteBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                audio.muted = !audio.muted;
+                muteBtn.textContent = audio.muted ? 'Unmute' : 'Mute';
+                muteBtn.style.background = audio.muted ? '#ef4444' : '#27272a';
+            });
+
+            volSlider.addEventListener('input', function(e) {
+                e.stopPropagation();
+                audio.volume = parseFloat(volSlider.value);
+                if (audio.volume > 0 && audio.muted) {
+                    audio.muted = false;
+                    muteBtn.textContent = 'Mute';
+                    muteBtn.style.background = '#27272a';
+                }
+            });
+
+            window.addEventListener('pointerdown', function() {
+                if (audio.paused) {
+                    startAudio();
+                }
+            }, { capture: true });
+
+            window.addEventListener('keydown', function() {
+                if (audio.paused) {
+                    startAudio();
+                }
+            }, { capture: true });
+
+            startAudio();
+        })();
+    </script>
