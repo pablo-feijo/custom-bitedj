@@ -62,7 +62,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>160f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -94,7 +94,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>160f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -126,7 +126,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>160f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -164,7 +164,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>160f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -202,7 +202,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>160f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -239,7 +239,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>160f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -302,7 +302,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>160f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -345,7 +345,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>160f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -383,7 +383,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>160f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -429,7 +429,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>160f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <PushButton>
                             <ObjectName>SettingsActionButton</ObjectName>
@@ -784,7 +784,7 @@
                           <WidgetGroup>
                             <ObjectName>ScreenRotSegmented</ObjectName>
                             <Layout>horizontal</Layout>
-                            <Size>120f,44f</Size>
+                            <Size>128f,40f</Size>
                             <Children>
                               <Template src="skin:templates/setting_segment_button.xml">
                                 <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -805,12 +805,12 @@
                                would otherwise look like a single control with
                                two selections. -->
                           <WidgetGroup>
-                            <Size>12f,0me</Size>
+                            <Size>6f,0me</Size>
                           </WidgetGroup>
                           <WidgetGroup>
                             <ObjectName>ScreenModeSegmented</ObjectName>
                             <Layout>horizontal</Layout>
-                            <Size>120f,44f</Size>
+                            <Size>128f,40f</Size>
                             <Children>
                               <Template src="skin:templates/setting_segment_button.xml">
                                 <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -834,7 +834,7 @@
                           </WidgetGroup>
                           <PushButton>
                             <ObjectName>SettingsActionButton</ObjectName>
-                            <Size>64f,44f</Size>
+                            <Size>76f,40f</Size>
                             <NumberStates>1</NumberStates>
                             <State>
                               <Number>0</Number>
@@ -860,7 +860,7 @@
                           </Label>
                           <PushButton>
                             <ObjectName>SettingsDangerButton</ObjectName>
-                            <Size>120f,44f</Size>
+                            <Size>128f,40f</Size>
                             <NumberStates>1</NumberStates>
                             <State>
                               <Number>0</Number>
@@ -873,11 +873,11 @@
                             </Connection>
                           </PushButton>
                           <WidgetGroup>
-                            <Size>12f,0me</Size>
+                            <Size>6f,0me</Size>
                           </WidgetGroup>
                           <PushButton>
                             <ObjectName>SettingsActionButton</ObjectName>
-                            <Size>120f,44f</Size>
+                            <Size>128f,40f</Size>
                             <NumberStates>1</NumberStates>
                             <State>
                               <Number>0</Number>
@@ -909,7 +909,7 @@
                   </Label>
                   <PushButton>
                     <ObjectName>SettingsActionButton</ObjectName>
-                    <Size>120f,44f</Size>
+                    <Size>128f,40f</Size>
                     <NumberStates>1</NumberStates>
                     <State>
                       <Number>0</Number>
@@ -921,11 +921,11 @@
                     </Connection>
                   </PushButton>
                   <WidgetGroup>
-                    <Size>12f,0me</Size>
+                    <Size>6f,0me</Size>
                   </WidgetGroup>
                   <PushButton>
                     <ObjectName>SettingsActionButton</ObjectName>
-                    <Size>120f,44f</Size>
+                    <Size>128f,40f</Size>
                     <NumberStates>1</NumberStates>
                     <State>
                       <Number>0</Number>
@@ -941,21 +941,22 @@
 
               <WidgetGroup>
                 <ObjectName>SettingsRow</ObjectName>
-                <Layout>horizontal</Layout>
-                <SizePolicy>me,me</SizePolicy>
-                <Children>
-                  <Label>
-                    <ObjectName>SettingsRowLabel</ObjectName>
-                    <Text>Advanced</Text>
+                    <Layout>horizontal</Layout>
+                    <Size>0me,68f</Size>
+                    <SizePolicy>me,me</SizePolicy>
+                    <Children>
+                      <Label>
+                        <ObjectName>SettingsRowLabel</ObjectName>
+                        <Text>Advanced</Text>
                     <Size>0me,0me</Size>
                   </Label>
                   <PushButton>
                     <ObjectName>SettingsActionButton</ObjectName>
-                    <Size>120f,44f</Size>
+                    <Size>128f,40f</Size>
                     <NumberStates>1</NumberStates>
                     <State>
                       <Number>0</Number>
-                      <Text>Preferences</Text>
+                      <Text>Settings</Text>
                     </State>
                     <Connection>
                       <ConfigKey>[Master],show_preferences</ConfigKey>
@@ -1067,7 +1068,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>150f,40f</Size>
+                        <Size>168f,40f</Size>
                         <!-- Two rows share this line, so it can run out of width
                              at the 480px-wide floor and Qt compresses children
                              past their size hint to fit. Pin both controls (a QSS
@@ -1114,7 +1115,7 @@
 
                           <PushButton>
                             <ObjectName>SettingsActionButton</ObjectName>
-                            <Size>0me,44f</Size>
+                            <Size>0me,40f</Size>
                             <NumberStates>1</NumberStates>
                             <State>
                               <Number>0</Number>
@@ -1140,7 +1141,7 @@
                             <Children>
                               <PushButton>
                                 <ObjectName>SettingsPrimaryButton</ObjectName>
-                                <Size>0me,44f</Size>
+                                <Size>0me,40f</Size>
                                 <NumberStates>1</NumberStates>
                                 <State>
                                   <Number>0</Number>
@@ -1166,7 +1167,7 @@
                               </PushButton>
                               <PushButton>
                                 <ObjectName>SettingsActionButton</ObjectName>
-                                <Size>0me,44f</Size>
+                                <Size>0me,40f</Size>
                                 <NumberStates>1</NumberStates>
                                 <State>
                                   <Number>0</Number>
