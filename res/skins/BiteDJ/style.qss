@@ -1756,3 +1756,37 @@ WBeatSpinBox::up-button {
 #AudioActionRow #SettingsSegmentRight {
   min-width: 66px;
 }
+
+/************************************************************************/
+/*     Library Table Preview Button                                     */
+/************************************************************************/
+
+#LibraryWrapper QPushButton#LibraryPreviewButton {
+  background-color: #2b2b36;
+  border: 1px solid #484856;
+  border-radius: 4px;
+  color: #a7a9ac;
+  font-size: 14px;
+  font-weight: bold;
+  margin: 3px 6px;
+  padding: 0;
+}
+
+#LibraryWrapper QPushButton#LibraryPreviewButton:hover {
+  background-color: #3b3b4a;
+  border-color: #636375;
+  color: #ffffff;
+}
+
+#LibraryWrapper QPushButton#LibraryPreviewButton:checked {
+  background-color: #9253a1;
+  border-color: #b074bf;
+  color: #ffffff;
+}
+
+#LibraryWrapper QPushButton#LibraryPreviewButton:pressed {
+  background-color: #723b80;
+  border-color: #9253a1;
+  color: #ffffff;
+}
+

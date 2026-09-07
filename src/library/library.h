@@ -190,6 +190,8 @@ class Library: public QObject {
       /// tracks that are still loaded. Bound to [Library],clear_meta_overrides
       /// (Settings -> General -> Clear -> Meta).
       void slotClearMetaOverrides(double value);
+      /// Bite DJ: toggle track table row layout between Compact (22px) and Detail (38px).
+      void slotSetGridLayout(double value);
 
   private:
     const UserSettingsPointer m_pConfig;
@@ -220,4 +222,5 @@ class Library: public QObject {
     QScopedPointer<ControlPushButton> m_pResetPlayedTracks;
     QScopedPointer<ControlPushButton> m_pClearCueOverrides;
     QScopedPointer<ControlPushButton> m_pClearMetaOverrides;
+    QScopedPointer<ControlObject> m_pCOGridLayout;
 };

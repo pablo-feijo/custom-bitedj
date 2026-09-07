@@ -28,6 +28,9 @@ class WTrackTableView : public WLibraryTableView {
             Library* pLibrary,
             double backgroundColorOpacity);
     ~WTrackTableView() override;
+    UserSettingsPointer config() const {
+        return m_pConfig;
+    }
 #ifdef __LINUX__
     void currentChanged(const QModelIndex& current, const QModelIndex& previous) override;
 #endif
@@ -108,7 +111,8 @@ class WTrackTableView : public WLibraryTableView {
 
   public slots:
     void loadTrackModel(QAbstractItemModel* model, bool restoreState = false);
-    void slotMouseDoubleClicked(const QModelIndex &);
+    void slotMouseDoubleClicked(const QModelIndex& index);
+    void slotMouseClicked(const QModelIndex& index);
     void slotUnhide();
     void slotPurge();
     void slotDeleteTracksFromDisk();

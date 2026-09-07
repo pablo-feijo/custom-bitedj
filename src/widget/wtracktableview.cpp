@@ -1,6 +1,21 @@
 #include "widget/wtracktableview.h"
+
+#include <QDesktopServices>
+#include <QDrag>
+#include <QFileInfo>
+#include <QHeaderView>
+#include <QKeyEvent>
 #include <QLabel>
+#include <QMenu>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QPointer>
 #include <QScreen>
+#include <QScrollBar>
+#include <QTimer>
+#include <QUrl>
+
+#include "analyzer/analyzerscheduledtrack.h"
 #include "control/controlobject.h"
 
 #include <QModelIndex>
@@ -61,6 +76,7 @@ WTrackTableView::WTrackTableView(QWidget* pParent,
           m_loadCachedOnly(false) {
     // Connect slots and signals to make the world go 'round.
     connect(this, &WTrackTableView::doubleClicked, this, &WTrackTableView::slotMouseDoubleClicked);
+    connect(this, &WTrackTableView::clicked, this, &WTrackTableView::slotMouseClicked);
 
     m_pCOTGuiTick = new ControlProxy(
             QStringLiteral("[App]"), QStringLiteral("gui_tick_50ms_period_s"), this);
@@ -336,30 +352,39 @@ void WTrackTableView::loadTrackModel(QAbstractItemModel* pNewModel, bool restore
                 Qt::AutoConnection);
 
         Qt::SortOrder sortOrder;
+        const int currentIndicatorSection = horizontalHeader()->sortIndicatorSection();
         TrackModel::SortColumnId sortColumn =
-                pNewTrackModel->sortColumnIdFromColumnIndex(
-                        horizontalHeader()->sortIndicatorSection());
-        if (sortColumn != TrackModel::SortColumnId::Invalid) {
+                pNewTrackModel->sortColumnIdFromColumnIndex(currentIndicatorSection);
+        if (sortColumn != TrackModel::SortColumnId::Invalid &&
+                pNewTrackModel->isColumnSortable(currentIndicatorSection)) {
             // Sort by the saved sort section and order.
             sortOrder = horizontalHeader()->sortIndicatorOrder();
         } else {
-            // No saved order is present. Use the TrackModel's default sort order.
-            sortColumn = pNewTrackModel->sortColumnIdFromColumnIndex(
-                    pNewTrackModel->defaultSortColumn());
+            // No saved order is present or the indicator is on an unsortable column.
+            // Use the TrackModel's default sort order.
+            int defaultColumn = pNewTrackModel->defaultSortColumn();
+            sortColumn = pNewTrackModel->sortColumnIdFromColumnIndex(defaultColumn);
             sortOrder = pNewTrackModel->defaultSortOrder();
 
-            if (sortColumn == TrackModel::SortColumnId::Invalid) {
+            if (sortColumn == TrackModel::SortColumnId::Invalid ||
+                    !pNewTrackModel->isColumnSortable(defaultColumn)) {
                 // If the TrackModel has an invalid or internal column as its default
-                // sort, find the first valid sort column and sort by that.
+                // sort, find the first valid sortable column and sort by that.
                 // avoid endless while loop
                 const int columnCount = pNewModel->columnCount();
                 for (int sortColumnIndex = 0; sortColumnIndex < columnCount; sortColumnIndex++) {
-                    sortColumn = pNewTrackModel->sortColumnIdFromColumnIndex(sortColumnIndex);
-                    if (sortColumn != TrackModel::SortColumnId::Invalid) {
-                        break;
+                    if (pNewTrackModel->isColumnSortable(sortColumnIndex)) {
+                        sortColumn = pNewTrackModel->sortColumnIdFromColumnIndex(sortColumnIndex);
+                        if (sortColumn != TrackModel::SortColumnId::Invalid) {
+                            defaultColumn = sortColumnIndex;
+                            break;
+                        }
                     }
                 }
             }
+            horizontalHeader()->blockSignals(true);
+            horizontalHeader()->setSortIndicator(defaultColumn, sortOrder);
+            horizontalHeader()->blockSignals(false);
         }
 
         m_pSortColumn->set(static_cast<double>(sortColumn));
@@ -429,6 +454,30 @@ void WTrackTableView::initTrackMenu() {
             &WTrackMenu::restoreCurrentViewStateOrIndex,
             this,
             &WTrackTableView::slotrestoreCurrentIndex);
+}
+
+// slot
+void WTrackTableView::slotMouseClicked(const QModelIndex& index) {
+    if (!index.isValid()) {
+        return;
+    }
+    auto* pTrackModel = getTrackModel();
+    if (!pTrackModel) {
+        return;
+    }
+    const TrackRef trackRef = TrackRef::fromFilePath(pTrackModel->getTrackLocation(index));
+    TrackPointer pTrack = GlobalTrackCacheLocker().lookupTrackByRef(trackRef);
+    if (!pTrack) {
+        // If not in cache, load it (this may hit the disk)
+        pTrack = pTrackModel->getTrack(index);
+    }
+    if (pTrack && !pTrack->getWaveformSummary()) {
+        AnalyzerTrack::Options options;
+        AnalyzerScheduledTrack scheduled(pTrack->getId(), options);
+        QList<AnalyzerScheduledTrack> tracks;
+        tracks.append(scheduled);
+        emit m_pLibrary->analyzeTracks(tracks);
+    }
 }
 
 // slot
@@ -1811,7 +1860,16 @@ void WTrackTableView::slotSortingChanged(int headerSection, Qt::SortOrder order)
     }
 
     TrackModel::SortColumnId sortColumnId = pTrackModel->sortColumnIdFromColumnIndex(headerSection);
-    if (sortColumnId == TrackModel::SortColumnId::Invalid) {
+    if (sortColumnId == TrackModel::SortColumnId::Invalid || !pTrackModel->isColumnSortable(headerSection)) {
+        int curSection = pTrackModel->columnIndexFromSortColumnId(
+                static_cast<TrackModel::SortColumnId>(static_cast<int>(m_pSortColumn->get())));
+        if (curSection >= 0) {
+            horizontalHeader()->blockSignals(true);
+            horizontalHeader()->setSortIndicator(
+                    curSection,
+                    static_cast<Qt::SortOrder>(static_cast<int>(m_pSortOrder->get())));
+            horizontalHeader()->blockSignals(false);
+        }
         return;
     }
 
@@ -1888,7 +1946,9 @@ void WTrackTableView::mouseMoveEvent(QMouseEvent* pEvent) {
         }
         
         if (m_bFakeDragging && m_pFakeDragLabel) {
-            m_pFakeDragLabel->move(pEvent->globalPosition().toPoint() + QPoint(10, 10));
+            int dx = -m_pFakeDragLabel->width() / 2;
+            int dy = -m_pFakeDragLabel->height() - 10;
+            m_pFakeDragLabel->move(pEvent->globalPosition().toPoint() + QPoint(dx, dy));
             return;
         }
     }

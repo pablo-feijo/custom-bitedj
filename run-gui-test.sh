@@ -38,6 +38,7 @@ docker run -d \
     -v "${DIST_DIR}:/dist-linux:ro" \
     -v "${MUSIC_DIR}:/music:ro" \
     -v "${CONFIG_DIR}:/root/.mixxx:rw" \
+    -v "/Volumes/PAIBLITO 2:/media/PAIBLITO_2:ro" \
     -v "${SCRIPT_DIR}/audio_stream.py:/audio_stream.py:ro" \
     bitedj-gui-test:latest \
     bash -c "\
