@@ -944,8 +944,9 @@ WBeatSpinBox::up-button {
   font-size: 14px;
   font-weight: bold;
   min-width: 80px;
+  max-height: 36px;
   text-transform: uppercase;
-  margin: 2px 0;
+  
 }
 
 /* Samplers MODE row carries three segments (Play/Load/Unload) plus a 2-segment
