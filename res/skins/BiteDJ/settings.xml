@@ -402,6 +402,38 @@
                     </Children>
                   </WidgetGroup>
 
+                  <WidgetGroup>
+                    <ObjectName>SettingsRow</ObjectName>
+                    <Layout>horizontal</Layout>
+                    <Size>0me,52f</Size>
+                    <Children>
+                      <Label>
+                        <ObjectName>SettingsRowLabel</ObjectName>
+                        <Text>EQ Mode</Text>
+                        <Size>0me,0me</Size>
+                      </Label>
+                      <WidgetGroup>
+                        <ObjectName>SettingsSegmented</ObjectName>
+                        <Layout>horizontal</Layout>
+                        <Size>168f,40f</Size>
+                        <Children>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
+                            <SetVariable name="Text">EQ</SetVariable>
+                            <SetVariable name="ConfigKey">[BiteDJ],eq_mode</SetVariable>
+                            <SetVariable name="Value">0</SetVariable>
+                          </Template>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
+                            <SetVariable name="Text">ISO</SetVariable>
+                            <SetVariable name="ConfigKey">[BiteDJ],eq_mode</SetVariable>
+                            <SetVariable name="Value">1</SetVariable>
+                          </Template>
+                        </Children>
+                      </WidgetGroup>
+                    </Children>
+                  </WidgetGroup>
+
                   <!-- All three destructive actions share one row: the column
                        is at its five-row height budget at the 420px floor, and
                        they read as one group anyway — each throws away
