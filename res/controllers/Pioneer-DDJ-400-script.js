@@ -1002,9 +1002,9 @@ PioneerDDJ400.filterKnob = function(channel, control, value, status, group) {
             // 0-42: index 7 (C_Crush)
             // 43-85: index 8 (C_Filter)
             // 86-127: index 9 (C_Noise)
-            var idx = 7;
-            if (value > 42) idx = 8;
-            if (value > 85) idx = 9;
+            var idx = 11;
+            if (value > 42) idx = 12;
+            if (value > 85) idx = 13;
             engine.setValue(group, "chain_selector", idx);
         }
     } else {
