@@ -108,12 +108,16 @@ bool AnalyzerWaveform::shouldAnalyze(TrackPointer tio) const {
     const bool fsCacheEnabled = m_fsAnalysisCache.isEnabled();
     // In the default (home) mode the cache can be disabled entirely, in which case
     // we never read stored waveforms and always re-analyze.
-    const bool homeCacheEnabled = !fsCacheEnabled && m_fsAnalysisCache.isHomeCacheEnabled();
+    const bool homeCacheEnabled = m_fsAnalysisCache.isHomeCacheEnabled();
     if ((fsCacheEnabled || (homeCacheEnabled && trackId.isValid())) &&
             (missingWaveform || missingWavesummary)) {
-        QList<AnalysisDao::AnalysisInfo> analyses = fsCacheEnabled
-                ? m_fsAnalysisCache.getAnalysesForTrack(tio->getLocation())
-                : m_analysisDao.getAnalysesForTrack(trackId);
+        QList<AnalysisDao::AnalysisInfo> analyses;
+        if (fsCacheEnabled) {
+            analyses = m_fsAnalysisCache.getAnalysesForTrack(tio->getLocation());
+        }
+        if (analyses.isEmpty() && homeCacheEnabled && trackId.isValid()) {
+            analyses = m_analysisDao.getAnalysesForTrack(trackId);
+        }
 
         QListIterator<AnalysisDao::AnalysisInfo> it(analyses);
         while (it.hasNext()) {
@@ -304,12 +308,14 @@ void AnalyzerWaveform::storeResults(TrackPointer tio) {
     // waveforms (i.e. if the config setting was disabled in a previous scan)
     // and then it is not called. The other analyzers have signals which control
     // the update of their data.
+    bool analysesSaved = false;
     if (m_fsAnalysisCache.isEnabled()) {
-        m_fsAnalysisCache.saveTrackAnalyses(
+        analysesSaved = m_fsAnalysisCache.saveTrackAnalyses(
                 tio->getLocation(),
                 m_waveform,
                 m_waveformSummary);
-    } else if (m_fsAnalysisCache.isHomeCacheEnabled()) {
+    }
+    if (!analysesSaved && m_fsAnalysisCache.isHomeCacheEnabled()) {
         m_analysisDao.saveTrackAnalyses(
                 tio->getId(),
                 m_waveform,

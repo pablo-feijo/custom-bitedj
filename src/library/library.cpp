@@ -83,7 +83,7 @@ using namespace mixxx::library::prefs;
 const QString Library::m_sTrackViewName = QString("WTrackTableView");
 
 // The default row height of the library.
-const int Library::kDefaultRowHeightPx = 20;
+const int Library::kDefaultRowHeightPx = 22;
 
 Library::Library(
         QObject* parent,
@@ -144,6 +144,18 @@ Library::Library(
             &ControlPushButton::valueChanged,
             this,
             &Library::slotClearMetaOverrides);
+
+    m_pCOGridLayout.reset(new ControlObject(
+            ConfigKey(QStringLiteral("[Library]"),
+                    QStringLiteral("grid_layout"))));
+    const int gridLayout = m_pConfig->getValue<int>(
+            ConfigKey(QStringLiteral("[Library]"),
+                    QStringLiteral("grid_layout")), 0);
+    m_pCOGridLayout->set(gridLayout);
+    connect(m_pCOGridLayout.data(),
+            &ControlObject::valueChanged,
+            this,
+            &Library::slotSetGridLayout);
 
     connect(m_pTrackCollectionManager,
             &TrackCollectionManager::libraryScanFinished,
@@ -248,11 +260,11 @@ Library::Library(
     // mouse or keyboard if you're using MIDI control and you scroll through them...)
     if (RhythmboxFeature::isSupported() &&
             m_pConfig->getValue(
-                    ConfigKey(kConfigGroup, "ShowRhythmboxLibrary"), true)) {
+                    ConfigKey(kConfigGroup, "ShowRhythmboxLibrary"), false)) {
         addFeature(new RhythmboxFeature(this, m_pConfig));
     }
     if (m_pConfig->getValue(
-                ConfigKey(kConfigGroup, "ShowBansheeLibrary"), true)) {
+                ConfigKey(kConfigGroup, "ShowBansheeLibrary"), false)) {
         BansheeFeature::prepareDbPath(m_pConfig);
         if (BansheeFeature::isSupported()) {
             addFeature(new BansheeFeature(this, m_pConfig));
@@ -260,12 +272,12 @@ Library::Library(
     }
     if (ITunesFeature::isSupported() &&
             m_pConfig->getValue(
-                    ConfigKey(kConfigGroup, "ShowITunesLibrary"), true)) {
+                    ConfigKey(kConfigGroup, "ShowITunesLibrary"), false)) {
         addFeature(new ITunesFeature(this, m_pConfig));
     }
     if (TraktorFeature::isSupported() &&
             m_pConfig->getValue(
-                    ConfigKey(kConfigGroup, "ShowTraktorLibrary"), true)) {
+                    ConfigKey(kConfigGroup, "ShowTraktorLibrary"), false)) {
         addFeature(new TraktorFeature(this, m_pConfig));
     }
 
@@ -321,8 +333,13 @@ Library::Library(
         }
     }
 
-    m_iTrackTableRowHeight = m_pConfig->getValue(
-            ConfigKey(kConfigGroup, "RowHeight"), kDefaultRowHeightPx);
+    // gridLayout is already read at line 151
+    if (gridLayout == 1) {
+        m_iTrackTableRowHeight = 46;
+    } else {
+        m_iTrackTableRowHeight = m_pConfig->getValue(
+                ConfigKey(kConfigGroup, "RowHeight"), kDefaultRowHeightPx);
+    }
     QString fontStr =
             m_pConfig->getValueString(ConfigKey(kConfigGroup, "Font"));
     if (!fontStr.isEmpty()) {
@@ -1142,6 +1159,15 @@ void Library::slotResetPlayedTracks(double value) {
                 Notifications::Severity::Info);
     }
     kLogger.info() << "Reset played track markers for this session";
+}
+
+void Library::slotSetGridLayout(double value) {
+    const int layoutMode = (value > 0.5) ? 1 : 0;
+    m_pConfig->setValue(ConfigKey(kConfigGroup, "grid_layout"), layoutMode);
+    const int rowHeight = (layoutMode == 1) ? 46 : kDefaultRowHeightPx;
+    m_pConfig->setValue(ConfigKey(kConfigGroup, "RowHeight"), rowHeight);
+    m_iTrackTableRowHeight = rowHeight;
+    emit setTrackTableRowHeight(rowHeight);
 }
 
 LibraryTableModel* Library::trackTableModel() const {

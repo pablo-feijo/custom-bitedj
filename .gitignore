@@ -69,3 +69,4 @@ res/qrc_mixxx.cc
 dist-linux/
 test-config/
 test-music/
+test-results/

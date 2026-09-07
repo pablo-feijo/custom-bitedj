@@ -259,6 +259,38 @@
                   </WidgetGroup>
 
                   <WidgetGroup>
+                    <ObjectName>SettingsRow</ObjectName>
+                    <Layout>horizontal</Layout>
+                    <Size>0me,52f</Size>
+                    <Children>
+                      <Label>
+                        <ObjectName>SettingsRowLabel</ObjectName>
+                        <Text>Grid</Text>
+                        <Size>0me,0me</Size>
+                      </Label>
+                      <WidgetGroup>
+                        <ObjectName>SettingsSegmented</ObjectName>
+                        <Layout>horizontal</Layout>
+                        <Size>168f,40f</Size>
+                        <Children>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
+                            <SetVariable name="Text">Compact</SetVariable>
+                            <SetVariable name="ConfigKey">[Library],grid_layout</SetVariable>
+                            <SetVariable name="Value">0</SetVariable>
+                          </Template>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
+                            <SetVariable name="Text">Detail</SetVariable>
+                            <SetVariable name="ConfigKey">[Library],grid_layout</SetVariable>
+                            <SetVariable name="Value">1</SetVariable>
+                          </Template>
+                        </Children>
+                      </WidgetGroup>
+                    </Children>
+                  </WidgetGroup>
+
+                  <WidgetGroup>
                     <ObjectName>SettingsSpacer</ObjectName>
                     <Size>0me,0me</Size>
                   </WidgetGroup>
@@ -363,7 +395,7 @@
                             <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
                             <SetVariable name="Text">Stack</SetVariable>
                             <SetVariable name="ConfigKey">[Waveform],waveform_type</SetVariable>
-                            <SetVariable name="Value">25</SetVariable>
+                            <SetVariable name="Value">26</SetVariable>
                           </Template>
                         </Children>
                       </WidgetGroup>
@@ -726,10 +758,11 @@
                     <SetVariable name="VisibleConfigKey">[Library],column_visible_comment</SetVariable>
                     <SetVariable name="WeightConfigKey">[Library],column_weight_comment</SetVariable>
                   </Template>
-                  <WidgetGroup>
-                    <ObjectName>SettingsSpacer</ObjectName>
-                    <Size>0me,0me</Size>
-                  </WidgetGroup>
+                  <Template src="skin:templates/library_column_row.xml">
+                    <SetVariable name="Label">Preview</SetVariable>
+                    <SetVariable name="VisibleConfigKey">[Library],column_visible_preview</SetVariable>
+                    <SetVariable name="WeightConfigKey">[Library],column_weight_preview</SetVariable>
+                  </Template>
                 </Children>
               </WidgetGroup>
 
