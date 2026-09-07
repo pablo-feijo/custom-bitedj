@@ -832,20 +832,6 @@
                           <WidgetGroup>
                             <Size>16f,0me</Size>
                           </WidgetGroup>
-                          <PushButton>
-                            <ObjectName>SettingsActionButton</ObjectName>
-                            <Size>76f,40f</Size>
-                            <NumberStates>1</NumberStates>
-                            <State>
-                              <Number>0</Number>
-                              <Text>Power</Text>
-                            </State>
-                            <Connection>
-                              <ConfigKey>[System],shutdown_arm</ConfigKey>
-                              <EmitOnDownPress>true</EmitOnDownPress>
-                              <Transform><IsEqual>1</IsEqual></Transform>
-                            </Connection>
-                          </PushButton>
                         </Children>
                       </WidgetGroup>
 
@@ -963,6 +949,21 @@
                       <EmitOnDownPress>true</EmitOnDownPress>
                     </Connection>
                   </PushButton>
+                  <WidgetGroup><Size>12f,0me</Size></WidgetGroup>
+                          <PushButton>
+                            <ObjectName>SettingsActionButton</ObjectName>
+                            <Size>76f,40f</Size>
+                            <NumberStates>1</NumberStates>
+                            <State>
+                              <Number>0</Number>
+                              <Text>Power</Text>
+                            </State>
+                            <Connection>
+                              <ConfigKey>[System],shutdown_arm</ConfigKey>
+                              <EmitOnDownPress>true</EmitOnDownPress>
+                              <Transform><IsEqual>1</IsEqual></Transform>
+                            </Connection>
+                          </PushButton>
                 </Children>
               </WidgetGroup>
 
