@@ -1157,7 +1157,7 @@ WBeatSpinBox::up-button {
 #GeneralCol #SettingsSegmentLeft,
 #GeneralCol #SettingsSegmentMid,
 #GeneralCol #SettingsSegmentRight {
-  min-width: 72px;
+  min-width: 90px;
   font-size: 12px;
 }
 
