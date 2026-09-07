@@ -132,3 +132,53 @@ When running BiteDJ in the local Docker environment on macOS, USB controllers (s
 
 1. **Mac CoreMIDI Bridge**: A native CoreMIDI listener forwards hardware MIDI packets to the container over TCP port 5004 and routes Mixxx's LED/VU meter messages back to the physical controller.
 2. **Mixxx Device Discovery**: Open the BiteDJ GUI in noVNC (`http://localhost:6080/`), navigate to **Settings -> Devices**, and tap **Rescan**. The Pioneer DDJ-400 will appear in the device list ready for live mixing.
+
+---
+
+## 6. Headless Debugging & Precision UI Coordinate Guide
+
+When writing tests or automating UI interactions in `bitedj-gui-test-instance`:
+
+### A. Tooling Quick Reference
+| Task | Command | Forbidden / Non-functional |
+| :--- | :--- | :--- |
+| **Kill Mixxx** | `pkill -9 mixxx` | `killall mixxx` (command not found) |
+| **Take Screenshot** | `DISPLAY=:99 scrot /tmp/screen.png` | `import` (command not found) |
+| **Crop Screenshot** | `ffmpeg -y -i in.png -vf "crop=W:H:X:Y" out.png` | Python `PIL` / `cv2` (libraries not installed) |
+| **Skin Updates** | Edit `res/skins/` and copy to `dist-linux/share/mixxx/skins/` | Modifying `/dist-linux` inside container (read-only mount) |
+
+### B. Exact 1024x600 Coordinate Grid
+- **Main Tabs (`topbar.xml`)**: `y=30`
+  - `PLAY` (Overview): `x=100`
+  - `BROWSE` (Library): `x=300`
+  - `SAMPLER`: `x=500`
+  - `LEVELS`: `x=700`
+  - `SETTINGS`: `x=950`
+- **Settings Sub-Tabs**: `y=85`
+  - `GENERAL`: `x=100`, `LIBRARY`: `x=300`, `DEVICE`: `x=500`, `AUDIO`: `x=700`, `SYSTEM`: `x=900`
+- **Settings Grid (`settings.xml`)**:
+  - Left Column: `x=0..512` | Right Column: `x=512..1024`
+  - Row Height: `52px` starting at `y=100` (`y_center = 124 + row_index * 52`)
+  - Row Centers:
+    - Row 0 (`y=124`): `CROSSFADER` / `VINYL BRAKE`
+    - Row 1 (`y=176`): `KEY` / `WAVE`
+    - Row 2 (`y=228`): `DECK 1` / `APPLY WAVEFORM EQ`
+    - Row 3 (`y=280`): `DECK 2` / `EQ MODE`
+    - Row 4 (`y=332`): `JOG` / `CLEAR`
+    - Row 5 (`y=384`): `HOT CUE` / `PLAYED`
+  - 2-Segment Button Group (`168f` width): Left button center `x=876`, Right button center `x=960`
+  - 3-Segment Button Group (`168f` width): Left `x=856`, Center `x=912`, Right `x=968`
+  - Levels Page Master EQ: `FLAT (x=845, y=240)`, `MODE (x=940, y=240)`
+
+### C. Zero-Dependency Pixel Scanning Recipe
+Dump a screenshot to PPM and scan raw RGB values in standard Python to find exact widget bounds before issuing `xdotool` clicks:
+```bash
+ffmpeg -y -i /tmp/screen.png /tmp/screen.ppm 2>/dev/null
+python3 -c "
+with open('/tmp/screen.ppm', 'rb') as f:
+    f.readline(); dims = f.readline()
+    while dims.startswith(b'#'): dims = f.readline()
+    w, h = map(int, dims.split()); f.readline(); data = f.read()
+# Scan pixel buffer data[(y * w + x) * 3]
+"
+```
