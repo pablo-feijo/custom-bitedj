@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <EffectChain>
- <Name>20. SIDE REVERB HP</Name>
+ <Name>22. SIDE REVERB HP</Name>
  <MixMode>DRY+WET</MixMode>
  <SuperParameterValue>0</SuperParameterValue>
  <Effects>
