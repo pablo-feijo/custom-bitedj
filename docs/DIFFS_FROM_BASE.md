@@ -62,3 +62,7 @@ When evaluating new Mixxx releases (e.g., 2.5, 2.6), prioritize reviewing the fo
 - [ ] **BPM & Key Detection Algorithms**: Enhancements to Queen Mary DSP or Rubberband processing.
 - [ ] **New Audio Formats / Decoders**: Flac, Opus, or AAC codec support updates.
 - [ ] **Controller Scripts**: Hardware-specific XML/JS updates for non-DDJ-400 controllers that you wish to support.
+
+### D. FX Panel Touch UI Adjustments (`res/skins/BiteDJ/effects.xml`)
+- **Base Mixxx**: Relies on a hardware MIDI controller (SuperKnob) to drive effects, hiding key parameters when loaded.
+- **Custom BiteDJ**: Added permanent `MIX` and `SUPER` (SuperKnob) control knobs directly to the bottom of the FX panel in the `BiteDJ` skin to allow standalone touchscreen users to control effect depth, width, and wet/dry mix without needing a physical controller attached.
