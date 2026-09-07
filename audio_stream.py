@@ -9,8 +9,24 @@ PORT = 8000
 
 class AudioStreamHandler(http.server.BaseHTTPRequestHandler):
     def do_HEAD(self):
+        if self.path.startswith('/stream.mp3'):
+            self.send_response(200)
+            self.send_header('Content-Type', 'audio/mpeg')
+            self.send_header('Cache-Control', 'no-cache, no-store')
+            self.send_header('Connection', 'keep-alive')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS')
+            self.end_headers()
+            return
         self.send_response(200)
         self.send_header('Content-Type', 'text/html')
+        self.end_headers()
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', '*')
         self.end_headers()
 
     def do_GET(self):
@@ -33,7 +49,7 @@ class AudioStreamHandler(http.server.BaseHTTPRequestHandler):
     <h1>BiteDJ Audio Stream</h1>
     <p>Live audio monitoring from Docker test instance</p>
     <audio controls autoplay src="/stream.mp3"></audio>
-    <p style="margin-top: 30px;"><a href="http://localhost:6080/vnc.html" target="_blank">Open BiteDJ noVNC Web UI &rarr;</a></p>
+    <p style="margin-top: 30px;"><a href="http://localhost:6080/vnc.html?autoconnect=true&resize=scale&v=20260906" target="_blank">Open BiteDJ noVNC Web UI &rarr;</a></p>
 </body>
 </html>"""
             self.wfile.write(html.encode('utf-8'))
@@ -44,6 +60,7 @@ class AudioStreamHandler(http.server.BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'audio/mpeg')
             self.send_header('Cache-Control', 'no-cache, no-store')
             self.send_header('Connection', 'keep-alive')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             
             cmd = [
