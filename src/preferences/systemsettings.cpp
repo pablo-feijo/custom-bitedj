@@ -987,6 +987,42 @@ void SystemSettings::applyScreenRotation(int degrees) {
 #endif
     }
 
+    // Ensure WLR_NO_HARDWARE_CURSORS=1 is set in profiles so Sway uses software cursors
+    // (the Raspberry Pi KMS vc4/v3d hardware cursor plane does not support rotated displays).
+    const QStringList profilePaths = {
+        QDir::homePath() + QStringLiteral("/.profile"),
+        QStringLiteral("/home/pi/.profile")
+    };
+    for (const QString& profilePath : profilePaths) {
+        QFile profileFile(profilePath);
+        if (profileFile.exists() && profileFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            const QString pContent = profileFile.readAll();
+            profileFile.close();
+            if (!pContent.contains(QStringLiteral("WLR_NO_HARDWARE_CURSORS"))) {
+                if (profileFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
+                    QTextStream pOut(&profileFile);
+                    pOut << "\nexport WLR_NO_HARDWARE_CURSORS=1\n";
+                    profileFile.close();
+                    qInfo() << "SystemSettings: Added WLR_NO_HARDWARE_CURSORS=1 to" << profilePath;
+                }
+            }
+        }
+    }
+
+    QFile etcEnvFile(QStringLiteral("/etc/environment"));
+    if (etcEnvFile.exists() && etcEnvFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        const QString envContent = etcEnvFile.readAll();
+        etcEnvFile.close();
+        if (!envContent.contains(QStringLiteral("WLR_NO_HARDWARE_CURSORS"))) {
+            if (etcEnvFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
+                QTextStream envOut(&etcEnvFile);
+                envOut << "WLR_NO_HARDWARE_CURSORS=1\n";
+                etcEnvFile.close();
+                qInfo() << "SystemSettings: Added WLR_NO_HARDWARE_CURSORS=1 to /etc/environment";
+            }
+        }
+    }
+
     if (!swaysock.isEmpty()) {
         QProcess::startDetached(QStringLiteral("swaymsg"),
                 QStringList{QStringLiteral("--"),
@@ -1006,19 +1042,51 @@ void SystemSettings::applyScreenRotation(int degrees) {
                         QStringLiteral("DSI-1"),
                         QStringLiteral("transform"),
                         QString::number(degrees)});
+
+        // Re-anchor cursor position on the transformed display so it is immediately redrawn.
+        QProcess::startDetached(QStringLiteral("swaymsg"),
+                QStringList{QStringLiteral("--"),
+                        QStringLiteral("seat"),
+                        QStringLiteral("*"),
+                        QStringLiteral("cursor"),
+                        QStringLiteral("move"),
+                        QStringLiteral("1"),
+                        QStringLiteral("1")});
+        QProcess::startDetached(QStringLiteral("swaymsg"),
+                QStringList{QStringLiteral("--"),
+                        QStringLiteral("seat"),
+                        QStringLiteral("*"),
+                        QStringLiteral("cursor"),
+                        QStringLiteral("move"),
+                        QStringLiteral("-1"),
+                        QStringLiteral("-1")});
     } else {
         qInfo() << "SystemSettings: SWAYSOCK not set, screen rotation"
                 << degrees << "persisted but not applied to a live compositor";
     }
 
-    // 3. If running under X11 (or noVNC test session), rotate x11vnc and try xrandr.
+    // 3. If running under X11 (or noVNC test session), rotate x11vnc with nc (no-cursor-rotation)
+    //    and re-enable cursor drawing so it remains visible.
     const QString display = qEnvironmentVariable("DISPLAY");
     if (!display.isEmpty()) {
+        const QString rotateParam = (degrees == 180)
+                ? QStringLiteral("rotate:nc:180")
+                : QStringLiteral("rotate:0");
         QProcess::startDetached(QStringLiteral("x11vnc"),
                 QStringList{QStringLiteral("-display"),
                         display,
                         QStringLiteral("-remote"),
-                        QStringLiteral("rotate:%1").arg(degrees)});
+                        rotateParam});
+        QProcess::startDetached(QStringLiteral("x11vnc"),
+                QStringList{QStringLiteral("-display"),
+                        display,
+                        QStringLiteral("-remote"),
+                        QStringLiteral("show_cursor")});
+        QProcess::startDetached(QStringLiteral("x11vnc"),
+                QStringList{QStringLiteral("-display"),
+                        display,
+                        QStringLiteral("-remote"),
+                        QStringLiteral("cursor:arrow")});
 
         const QString xrandrRotation = (degrees == 180) ? QStringLiteral("inverted") : QStringLiteral("normal");
         QProcess::startDetached(QStringLiteral("xrandr"),
