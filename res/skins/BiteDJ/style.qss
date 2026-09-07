@@ -790,8 +790,13 @@ WBeatSpinBox::up-button {
   margin-right: 4px;
 }
 
+#WaveformInfo_Controls {
+  margin-left: 4px;
+}
+
 #WaveformInfo_PlayRow {
   margin-top: 8px;
+  margin-left: 4px;
 }
 
 #WaveformPlayButton {
