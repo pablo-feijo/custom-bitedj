@@ -29,6 +29,9 @@ constexpr int kMinSectionPx = 20;
 // clipped and the DJ can neither read nor set them. A little slack covers
 // the delegate/cell padding around the polygon strip.
 int minSectionPxForColumn(const QString& name) {
+    if (name == LIBRARYTABLE_PREVIEW) {
+        return 96;
+    }
     if (name == LIBRARYTABLE_RATING) {
         static const int minRatingPx = StarRating().sizeHint().width() + 10;
         return minRatingPx;

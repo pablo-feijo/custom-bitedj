@@ -98,3 +98,8 @@ When evaluating new Mixxx releases (e.g., 2.5, 2.6), prioritize reviewing the fo
 ### D. FX Panel Touch UI Adjustments (`res/skins/BiteDJ/effects.xml`)
 - **Base Mixxx**: Relies on a hardware MIDI controller (SuperKnob) to drive effects, hiding key parameters when loaded.
 - **Custom BiteDJ**: Added permanent `MIX` and `SUPER` (SuperKnob) control knobs directly to the bottom of the FX panel in the `BiteDJ` skin to allow standalone touchscreen users to control effect depth, width, and wet/dry mix without needing a physical controller attached.
+
+## v0.0.6-waveform Updates
+- Reverted progress-bar waveform rendering to ensure waveforms always stretch to fill the cell entirely.
+- Fixed fake drag-and-drop label to hover 10px above the touch point, preventing finger occlusion.
+- Implemented true black background and LOAD text state for empty cells instead of buggy fillPath.

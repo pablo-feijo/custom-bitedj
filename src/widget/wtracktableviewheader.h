@@ -61,6 +61,8 @@ class WTrackTableViewHeader : public QHeaderView {
     ~WTrackTableViewHeader() override;
 
     void contextMenuEvent(QContextMenuEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
     void setModel(QAbstractItemModel* model) override;
     void resizeEvent(QResizeEvent* event) override;
 

@@ -11,6 +11,7 @@
 namespace {
 
 const QString kSortInt = QStringLiteral("cast(%1 as integer)");
+const QString kSortReal = QStringLiteral("cast(%1 as real)");
 const QString kSortNoCase = QStringLiteral("lower(%1)");
 const QString kSortNoCaseLex = mixxx::DbConnection::collateLexicographically(
         QStringLiteral("lower(%1)"));
@@ -234,6 +235,7 @@ void ColumnCache::setColumns(QStringList columns) {
     insertColumnSortByEnum(COLUMN_LIBRARYTABLE_BITRATE, kSortInt);
     insertColumnSortByEnum(COLUMN_LIBRARYTABLE_SAMPLERATE, kSortInt);
     insertColumnSortByEnum(COLUMN_LIBRARYTABLE_TIMESPLAYED, kSortInt);
+    insertColumnSortByEnum(COLUMN_LIBRARYTABLE_BPM, kSortReal);
 
     insertColumnSortByEnum(COLUMN_TRACKLOCATIONSTABLE_LOCATION, kSortNoCase);
 
