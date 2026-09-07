@@ -140,31 +140,37 @@ WPushButton[value="1"]:hover {
 #DeckKey {
   font-size: 13px;
   font-weight: bold;
-  color: #08537c;
-  background-color: rgba(8, 125, 225, 0.1);
+  color: #38bdf8;
+  background-color: rgba(14, 116, 144, 0.28);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  border-radius: 3px;
   margin-right: 6px;
   qproperty-alignment: 'AlignCenter';
 }
 
 /* Playing key != file key (same cue as DeckBPM for rate_ratio != 1). */
 #DeckKey[highlight="1"] {
-  color: #c9372c;
-  background-color: rgba(241, 89, 33, 0.12);
+  color: #f87171;
+  background-color: rgba(239, 68, 68, 0.22);
+  border: 1px solid rgba(239, 68, 68, 0.45);
 }
 
 /* Matched pair with DeckKey, shown off the overview tab only. */
 #DeckHeaderBPM {
   font-size: 13px;
   font-weight: bold;
-  color: #08537c;
-  background-color: rgba(8, 125, 225, 0.1);
+  color: #38bdf8;
+  background-color: rgba(14, 116, 144, 0.28);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  border-radius: 3px;
   margin-right: 6px;
   qproperty-alignment: 'AlignCenter';
 }
 
 #DeckHeaderBPM[highlight="1"] {
-  color: #c9372c;
-  background-color: rgba(241, 89, 33, 0.12);
+  color: #f87171;
+  background-color: rgba(239, 68, 68, 0.22);
+  border: 1px solid rgba(239, 68, 68, 0.45);
 }
 
 #DeckChannelTitle, #DeckTrackTimeTitle, #DeckTempoTitle {
@@ -264,16 +270,17 @@ WPushButton[value="1"]:hover {
   font-size: 13px;
   font-weight: bold;
   text-transform: uppercase;
-  color: #08537c;
-  background-color: rgba(8, 125, 225, 0.1);
-  border: 1px solid transparent;
-  border-radius: 2px;
+  color: #38bdf8;
+  background-color: rgba(14, 116, 144, 0.28);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  border-radius: 3px;
   margin-right: 6px;
 }
 
 #DeckCueChip:pressed {
-  color: #e7e8e9;
+  color: #ffffff;
   background-color: #855ea7;
+  border: 1px solid #a87ecc;
 }
 
 #CuePanel {
@@ -806,11 +813,15 @@ WBeatSpinBox::up-button {
 }
 
 #WaveformPlayButton {
-  background-color: rgba(46, 204, 113, 0.18);
-  border: 1px solid #27ae60;
+  background-color: #1a1a24;
+  border: 1px solid #383846;
   border-radius: 4px;
   margin-right: 4px;
   image: url(skin:icons/play.svg) no-repeat center center;
+}
+
+#WaveformPlayButton:hover {
+  border: 1px solid #525262;
 }
 
 #WaveformPlayButton[value="1"],
@@ -824,10 +835,14 @@ WBeatSpinBox::up-button {
   font-size: 13px;
   font-weight: bold;
   text-transform: uppercase;
-  color: #f39c12;
-  background-color: rgba(243, 156, 18, 0.18);
-  border: 1px solid #d35400;
+  color: #d0d2d8;
+  background-color: #1a1a24;
+  border: 1px solid #383846;
   border-radius: 4px;
+}
+
+#WaveformCueButton:hover {
+  border: 1px solid #525262;
 }
 
 #WaveformCueButton:pressed,
