@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <EffectChain>
- <Name>FLANGER</Name>
- <MixMode>DRY/WET</MixMode>
+ <Name>18. PHASER</Name>
+ <MixMode>DRY+WET</MixMode>
  <SuperParameterValue>0</SuperParameterValue>
  <Effects>
   <Effect>
@@ -55,40 +55,40 @@
   </Effect>
   <Effect>
    <MetaParameterValue>0</MetaParameterValue>
-   <Id>org.mixxx.effects.flanger</Id>
+   <Id>org.mixxx.effects.phaser</Id>
    <BackendType>Built-In</BackendType>
    <Parameters>
     <Parameter>
-     <Id>speed</Id>
-     <Value>8</Value>
+     <Id>lfo_period</Id>
+     <Value>0.892901</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
-     <Id>width</Id>
-     <Value>6.39</Value>
+     <Id>feedback</Id>
+     <Value>0.703489</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
-     <Id>manual</Id>
-     <Value>6.61</Value>
+     <Id>range</Id>
+     <Value>1</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
-     <Id>regen</Id>
-     <Value>0.25</Value>
+     <Id>stages</Id>
+     <Value>3.5</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
-     <Id>mix</Id>
-     <Value>0</Value>
+     <Id>depth</Id>
+     <Value>0.5</Value>
      <LinkType>LINKED</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
@@ -96,6 +96,13 @@
     <Parameter>
      <Id>triplet</Id>
      <Value>0</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>stereo</Id>
+     <Value>1</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
