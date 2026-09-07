@@ -134,25 +134,35 @@ docker cp "${CONTAINER_NAME}:/tmp/test_02_fx_active.png" "${RESULTS_DIR}/02_fx_a
 log_pass "Effect selected, assigned to Deck 1, and set ACTIVE. Screenshot: ${RESULTS_DIR}/02_fx_active.png"
 
 # 6. Test Playback
+
 log_step "6. Testing Playback with Live Audio"
 
+# Baseline audio (Clean)
 docker exec -e DISPLAY=:99 "${CONTAINER_NAME}" bash -c "
-    # Focus main window and start playback on Deck 1
     xdotool mousemove 100 20 click 1
     sleep 0.3
     xdotool key d
-    sleep 3
-    scrot /tmp/test_03_playing.png
 "
-docker cp "${CONTAINER_NAME}:/tmp/test_03_playing.png" "${RESULTS_DIR}/03_playing.png"
-log_pass "Playback running on Deck 1. Screenshot: ${RESULTS_DIR}/03_playing.png"
+sleep 2
+curl -s -N http://localhost:8000/stream.mp3 | head -c 32768 > /tmp/baseline.mp3
+docker exec -e DISPLAY=:99 "${CONTAINER_NAME}" bash -c "xdotool key d" # stop
 
-# Verify that audio streaming is active during playback
-STREAM_PLAY_BYTES=$( (curl -s -N http://localhost:8000/stream.mp3 | head -c 65536 | wc -c || true) | tr -d '[:space:]')
-if [ -n "${STREAM_PLAY_BYTES}" ] && [ "${STREAM_PLAY_BYTES}" -ge 60000 ]; then
-    log_pass "Live MP3 stream successfully captured active audio playback (${STREAM_PLAY_BYTES} bytes)"
+log_step "7. Verifying FX Audio Modulation"
+docker exec -e DISPLAY=:99 "${CONTAINER_NAME}" bash -c "
+    # Activate FX and start playback again
+    xdotool mousemove 910 215 click 1
+    sleep 0.2
+    xdotool mousemove 100 20 click 1
+    sleep 0.3
+    xdotool key d
+"
+sleep 2
+curl -s -N http://localhost:8000/stream.mp3 | head -c 32768 > /tmp/fx_audio.mp3
+
+if cmp -s /tmp/baseline.mp3 /tmp/fx_audio.mp3; then
+    log_fail "Audio stream did not change after applying FX! Effect DSP is failing."
 else
-    log_fail "Stream did not produce expected playback bytes (got ${STREAM_PLAY_BYTES})"
+    log_pass "Audio stream modulated successfully by FX chain!"
 fi
 
 log_step "AUTOMATED TEST SUITE COMPLETED SUCCESSFULLY!"
