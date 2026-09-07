@@ -972,7 +972,7 @@ WBeatSpinBox::up-button {
 #ScreenRotSegmented #SettingsSegmentRight,
 #ScreenModeSegmented #SettingsSegmentLeft,
 #ScreenModeSegmented #SettingsSegmentRight {
-  min-width: 60px;
+  min-width: 53px;
 }
 
 #SettingsSegmentLeft {
@@ -997,7 +997,6 @@ WBeatSpinBox::up-button {
 #SettingsSegmentMid[displayValue="1"],
 #SettingsSegmentRight[displayValue="1"] {
   background-color: #855ea7;
-  border-color: #a27abb;
   color: #e7e8e9;
 }
 
@@ -1731,4 +1730,9 @@ WBeatSpinBox::up-button {
 
 #SettingsDangerButton[pressed="true"] {
   background-color: #7a2622;
+}
+
+#AudioActionRow #SettingsSegmentLeft,
+#AudioActionRow #SettingsSegmentRight {
+  min-width: 66px;
 }
