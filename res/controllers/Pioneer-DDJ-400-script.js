@@ -403,13 +403,30 @@ PioneerDDJ400.beatFxRightPressed = function(_channel, _control, value) {
 PioneerDDJ400.beatFxSelectPressed = function(_channel, _control, value) {
     if (value === 0) { return; }
 
-    engine.setValue(PioneerDDJ400.focusedFxGroup(), "next_effect", value);
+    var unitGroup = "[EffectRack1_EffectUnit1]";
+    var current = engine.getValue(unitGroup, "chain_selector");
+    
+    // The top 6 effects are our custom common ones (1-indexed in UI, but maybe 1-indexed in chain_selector?)
+    // In Mixxx, chain_selector is 1-indexed or 0-indexed? It is 1-indexed (0 means empty/none in some versions, but 1 is first chain).
+    // Let's cycle 1 -> 6
+    if (current >= 6 || current < 1) {
+        engine.setValue(unitGroup, "chain_selector", 1);
+    } else {
+        engine.setValue(unitGroup, "chain_selector", current + 1);
+    }
 };
 
 PioneerDDJ400.beatFxSelectShiftPressed = function(_channel, _control, value) {
     if (value === 0) { return; }
 
-    engine.setValue(PioneerDDJ400.focusedFxGroup(), "prev_effect", value);
+    var unitGroup = "[EffectRack1_EffectUnit1]";
+    var current = engine.getValue(unitGroup, "chain_selector");
+    
+    if (current <= 1 || current > 6) {
+        engine.setValue(unitGroup, "chain_selector", 6);
+    } else {
+        engine.setValue(unitGroup, "chain_selector", current - 1);
+    }
 };
 
 PioneerDDJ400.beatFxOnOffPressed = function(_channel, _control, value) {
@@ -904,7 +921,7 @@ PioneerDDJ400.padFxPresets = [
 PioneerDDJ400.padFxActiveCount = 0;
 PioneerDDJ400.padFxSavedState = {};
 
-PioneerDDJ400.padFxPressed = function(channel, control, value, status, group) {
+PioneerDDJ400.padFxPressed = function(_channel, control, value, status, group) {
     let padIndex = -1;
     if (control >= 0x60 && control <= 0x67) {
         padIndex = control - 0x60;
@@ -912,6 +929,17 @@ PioneerDDJ400.padFxPressed = function(channel, control, value, status, group) {
         padIndex = control - 0x10;
     }
     if (padIndex < 0 || padIndex > 7) return;
+
+    // VINYL BRAKE on Pad 8 (padIndex 7)
+    if (padIndex === 7) {
+        var deck = (_channel === 7 || _channel === 8) ? 1 : 2;
+        if (value > 0) {
+            engine.setValue("[Channel" + deck + "]", "brake", 1);
+        } else {
+            engine.setValue("[Channel" + deck + "]", "brake", 0);
+        }
+        return;
+    }
 
     const fxGroup = "[EffectRack1_EffectUnit1_Effect1]";
     const unitGroup = "[EffectRack1_EffectUnit1]";
@@ -922,19 +950,13 @@ PioneerDDJ400.padFxPressed = function(channel, control, value, status, group) {
                 enabled: engine.getValue(fxGroup, "enabled"),
                 mix: engine.getValue(unitGroup, "mix"),
                 meta: engine.getValue(fxGroup, "meta")
-                // Not restoring loaded_effect so you can keep the preset if you like it,
-                // or we could restore it. Let's not restore it so the UI doesn't glitch rapidly.
             };
         }
         PioneerDDJ400.padFxActiveCount++;
 
         const preset = PioneerDDJ400.padFxPresets[padIndex];
-        
-        // Load the specific effect by absolute index (1-indexed)
         engine.setValue(fxGroup, "loaded_effect", preset.effect);
 
-        // Wait a tiny bit for the new effect to fully load before setting parameters,
-        // otherwise Mixxx's effect-loading routine will reset meta back to 0!
         engine.beginTimer(20, function() {
             const paramIndex = PioneerDDJ400.findBeatsParameter(fxGroup);
             if (paramIndex !== -1 && preset.beats > 0) {
