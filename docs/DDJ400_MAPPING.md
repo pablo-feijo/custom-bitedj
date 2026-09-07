@@ -56,3 +56,11 @@ BiteDJ bundles the complete standard Pioneer DJ club mixer effect chains in `res
   - `REVERB`: High-density room/hall reverberation.
   - `TRANS`: Rhythmic transformer gating / slicer.
 
+## 6. Hardware Verification
+
+The DDJ-400 mapping has been verified end-to-end on physical hardware connected to BiteDJ:
+- **Transport & Jog Wheels**: Play, Cue, Scratching, and Pitch Bend tracked with zero latency.
+- **Mixer & EQ**: Channel faders, 3-band EQ, Trim, Master output, and headphone cueing.
+- **Beat FX**: Level/Depth simultaneous mix/meta sweep, ON/OFF toggle, Beat FX channel assignment.
+- **Pad FX**: Instant punch-in profiles on Pads 1–8 with automatic clean restoration on release.
+- **In-Skin Device Picker**: Discovered and enabled under **Settings -> Devices**.
