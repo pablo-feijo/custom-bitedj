@@ -26,8 +26,9 @@ BiteDJ runs on slow USB flash storage.
 If the user asks you to compile or test the application, use the scripts provided in the root directory:
 
 - **Compiling for the Pi**: Run `./docker-build.sh --platform linux/arm64`. This uses a custom Docker container to cross-compile the binary into `dist-linux/`. Do not try to compile natively on a Mac or Windows machine using standard `CMake` unless you are explicitly building a local debug version.
-- **Flashing the OS**: The complete Raspberry Pi OS is generated using `./generate-pi-image.sh`, which leverages the `mixxx-pi-gen` submodule.
+- **Local GUI & Audio Testing**: Before deploying changes or building an OS image, run `./test-gui-automated.sh` to automatically verify the 1024x600 GUI, skin layouts, FX rack DSP, and live audio stream without touching hardware. Run `./run-gui-test.sh` for interactive testing via browser at `http://localhost:6080/` and live audio at `http://localhost:8000/`. Full details in `docs/GUI_TESTING.md`.
 - **Hot-Deploying**: Use `./deploy-ssh.sh` to push a newly compiled ARM64 binary to a live Raspberry Pi over the network.
+- **Flashing the OS**: The complete Raspberry Pi OS is generated using `./generate-pi-image.sh`, which leverages the `mixxx-pi-gen` submodule.
 
 ## 3. Important Context
 Before attempting large refactors or upstream cherry-picking from `mixxxdj/mixxx`, review the following documents:

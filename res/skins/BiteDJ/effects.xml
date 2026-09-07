@@ -102,14 +102,11 @@
                 <Size>0me,140f</Size>
                 <Children>
 
-                  <EffectSelector>
+                  <EffectChainPresetSelector>
                     <ObjectName>EffectSelector</ObjectName>
-                    <EffectRack>1</EffectRack>
-                    <EffectUnit>1</EffectUnit>
-                    <Effect>1</Effect>
-                    <Elide>right</Elide>
+                    <EffectUnitGroup>[EffectRack1_EffectUnit1]</EffectUnitGroup>
                     <Size>0me,32f</Size>
-                  </EffectSelector>
+                  </EffectChainPresetSelector>
 
                   <WidgetGroup>
                     <ObjectName>BeatFX_DeckRouting</ObjectName>

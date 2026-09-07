@@ -32,7 +32,7 @@
     </Parameter>
     <Parameter>
      <Id>waveform</Id>
-     <Value>0</Value>
+     <Value>0.005</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>

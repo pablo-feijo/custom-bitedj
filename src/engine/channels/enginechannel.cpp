@@ -21,7 +21,8 @@ EngineChannel::EngineChannel(const ChannelHandleAndGroup& handleGroup,
           m_channelIndex(-1) {
     m_pPFL = new ControlPushButton(ConfigKey(getGroup(), "pfl"));
     m_pPFL->setButtonMode(ControlPushButton::TOGGLE);
-    m_pMainMix = new ControlPushButton(ConfigKey(getGroup(), "main_mix"));
+    m_pMainMix = new ControlPushButton(ConfigKey(getGroup(), "main_mix"), false, 1.0);
+    m_pMainMix->set(1.0);
     m_pMainMix->setButtonMode(ControlPushButton::POWERWINDOW);
     m_pMainMix->addAlias(ConfigKey(getGroup(), QStringLiteral("master")));
     // crossfader assignment is persistent
