@@ -328,15 +328,9 @@ PioneerDDJ400.beatFxLevelDepthRotate = function(_channel, _control, value) {
     // Ignore physical knob if Pad FX is currently being held!
     if (PioneerDDJ400.padFxActiveCount > 0) return;
 
-    var shift = PioneerDDJ400.shiftButtonDown[0] || PioneerDDJ400.shiftButtonDown[1];
-
-    if (shift) {
-        // Map Shift + Depth to SUPER knob
-        engine.setValue("[EffectRack1_EffectUnit1]", "super1", value / 0x7F);
-    } else {
-        // Map Depth to MIX knob
-        engine.setValue("[EffectRack1_EffectUnit1]", "mix", value / 0x7F);
-    }
+    // Map Level/Depth to Beat FX MIX knob (both with and without Shift)
+    // so Shift + Filter (Super) and Level/Depth (Mix) can be tweaked simultaneously.
+    engine.setValue("[EffectRack1_EffectUnit1]", "mix", value / 0x7F);
 };
 
 // Bite DJ skin only renders one effect slot (Effect1), so the BEAT
@@ -992,36 +986,25 @@ PioneerDDJ400.filterKnob = function(channel, control, value, status, group) {
     var deck = group === "[QuickEffectRack1_[Channel1]]" ? 1 : 2;
     var shift = PioneerDDJ400.shiftButtonDown[0] || PioneerDDJ400.shiftButtonDown[1];
 
+    PioneerDDJ400.filterState = PioneerDDJ400.filterState || {};
+    PioneerDDJ400.filterState[deck] = PioneerDDJ400.filterState[deck] || { msb: 64, lsb: 0 };
+    
+    if (control === 0x17 || control === 0x18) {
+        PioneerDDJ400.filterState[deck].msb = value;
+    } else if (control === 0x37 || control === 0x38) {
+        PioneerDDJ400.filterState[deck].lsb = value;
+    }
+    
+    var absVal = (PioneerDDJ400.filterState[deck].msb << 7) | PioneerDDJ400.filterState[deck].lsb;
+    var normVal = absVal / 16383.0;
+
     if (shift) {
-        // Map Shift + Filter to cycle CFX!
-        // We know C_Crush, C_Filter, C_Noise are at indices 7, 8, 9
-        // Wait, but we only have MSB (0x17) and LSB (0x37) triggering this.
-        // Let's only trigger on MSB so we don't double fire.
-        if (control === 0x17 || control === 0x18) {
-            // value is 0-127. Let's use it like an absolute knob to select between 3 effects!
-            // 0-42: index 7 (C_Crush)
-            // 43-85: index 8 (C_Filter)
-            // 86-127: index 9 (C_Noise)
-            var idx = 11;
-            if (value > 42) idx = 12;
-            if (value > 85) idx = 13;
-            engine.setValue(group, "chain_selector", idx);
-        }
+        // Shift + Filter (Deck 1 or Deck 2) controls the main Beat FX SUPER knob!
+        // This allows simultaneous two-handed manipulation of both Super (left hand)
+        // and Level/Depth Mix (right hand).
+        engine.setValue("[EffectRack1_EffectUnit1]", "super1", normVal);
     } else {
-        // Normal filter operation (super1)
-        // Since we are reading MSB (0x17) and LSB (0x37), we need to manually reconstruct 14-bit?
-        // Actually, if we just pass MSB to super1, it's 7-bit resolution.
-        // Let's implement full 14-bit tracking!
-        PioneerDDJ400.filterState = PioneerDDJ400.filterState || {};
-        PioneerDDJ400.filterState[deck] = PioneerDDJ400.filterState[deck] || { msb: 64, lsb: 0 };
-        
-        if (control === 0x17 || control === 0x18) {
-            PioneerDDJ400.filterState[deck].msb = value;
-        } else if (control === 0x37 || control === 0x38) {
-            PioneerDDJ400.filterState[deck].lsb = value;
-        }
-        
-        var absVal = (PioneerDDJ400.filterState[deck].msb << 7) | PioneerDDJ400.filterState[deck].lsb;
-        engine.setValue(group, "super1", absVal / 16383.0);
+        // Normal Filter knob controls the channel QuickEffect (super1)
+        engine.setValue(group, "super1", normVal);
     }
 };

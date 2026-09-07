@@ -2,13 +2,14 @@
 
 The Pioneer DDJ-400 mapping has been significantly overhauled to optimize performance for a standalone, touchscreen-driven workflow, mirroring modern club setups.
 
-## 1. Beat FX and Release FX Re-routing
-In upstream Mixxx, the Level/Depth knob on the DDJ-400 only adjusts the master dry/wet `mix` parameter. The user must hold SHIFT to adjust the specific effect's `meta` parameter (e.g., Echo feedback, Reverb decay, Filter frequency).
+## 1. Simultaneous Beat FX Super & Mix Control
+In upstream Mixxx, adjusting both the effect parameter (`super`) and the wet/dry ratio (`mix`) required toggling Shift on the single Level/Depth knob, preventing simultaneous dual-parameter sweeps.
 
 **BiteDJ Modification:**
-The Level/Depth knob has been patched in JS to adjust **both** the `mix` and `meta` values simultaneously when turned.
-- This creates an instant "Release FX" style sweep.
-- Applying an Echo or Reverb via the Blue ON/OFF button and turning the knob instantly intensifies the trail and pushes the dry/wet ratio without needing SHIFT.
+- **Shift + Filter Knob** (on either Deck 1 or Deck 2): Dynamically controls the main Beat FX **SUPER** knob (`[EffectRack1_EffectUnit1], super1`) with full 14-bit resolution.
+- **Level/Depth Knob**: Directly controls the Beat FX **MIX** knob (`[EffectRack1_EffectUnit1], mix`).
+- **Two-Handed Live Sweeps**: A DJ can hold Shift with their thumb and simultaneously sweep the **SUPER** knob with one hand (using either Filter knob) and the **MIX** knob with the other hand (using the Level/Depth knob).
+- **Normal Filter Operation**: When Shift is not held, the Filter knobs control each deck's respective QuickEffect Filter (`[QuickEffectRack1_[ChannelN]], super1`) as standard.
 
 ## 2. Pad FX 1 Integration
 The DDJ-400 has a dedicated hardware mode for "Pad FX 1" which was largely underutilized or buggy in upstream Mixxx.
