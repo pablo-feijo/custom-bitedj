@@ -184,6 +184,8 @@ class SystemSettings : public QObject {
     // runs on both paths and must survive running twice.
     void releaseRecordingTarget();
 
+    void applyScreenRotation(int degrees);
+
     // Re-entrancy guard: ejectRow() pumps the event loop while waiting for the
     // asynchronous track release, which can re-deliver a tap. One eject at a time.
     bool m_ejecting = false;

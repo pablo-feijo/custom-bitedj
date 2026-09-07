@@ -3,14 +3,20 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QEventLoop>
+#include <QFile>
 #include <QFileInfo>
 #include <QFileInfoList>
 #include <QProcess>
+#include <QRegularExpression>
 #include <QSet>
 #include <QStorageInfo>
 #include <QStringList>
+#include <QTextStream>
 #include <QThread>
 #include <QtDebug>
+#if defined(Q_OS_UNIX)
+#include <unistd.h>
+#endif
 
 #include "analyzer/trackanalysisscheduler.h"
 #include "control/controlobject.h"
@@ -194,11 +200,15 @@ SystemSettings::SystemSettings(UserSettingsPointer pConfig,
     // Screen rotation in degrees, 0 or 180 (System settings tab).
     const ConfigKey screenRotationKey(kBiteDj, QStringLiteral("screen_rotation"));
     m_pCoScreenRotation = std::make_unique<ControlObject>(screenRotationKey);
-    m_pCoScreenRotation->set(m_pConfig->getValue(screenRotationKey, 0.0));
+    const double savedRotation = m_pConfig->getValue(screenRotationKey, 0.0);
+    m_pCoScreenRotation->set(savedRotation);
     connect(m_pCoScreenRotation.get(),
             &ControlObject::valueChanged,
             this,
             &SystemSettings::onScreenRotationChanged);
+
+    // Apply persisted screen rotation to compositor and sway config on startup.
+    applyScreenRotation(savedRotation == 180.0 ? 180 : 0);
 
     // Drive-level eject, addressed by physical USB port.
     for (int drive = 1; drive <= kNumEjectDrives; ++drive) {
@@ -878,19 +888,144 @@ void SystemSettings::onScreenRotationChanged(double value) {
             static_cast<double>(degrees));
     m_pConfig->save();
 
-    // Rotate the live session.
-    if (qEnvironmentVariableIsEmpty("SWAYSOCK")) {
-        qInfo() << "SystemSettings: SWAYSOCK not set, screen rotation"
-                << degrees << "persisted but not applied to a live compositor";
-        return;
+    applyScreenRotation(degrees);
+}
+
+void SystemSettings::applyScreenRotation(int degrees) {
+    // 1. Update ~/.config/sway/config so rotation is preserved across reboots
+    //    before BiteDJ even launches.
+    QStringList candidatePaths = {
+        QDir::homePath() + QStringLiteral("/.config/sway/config"),
+        QStringLiteral("/home/pi/.config/sway/config")
+    };
+    const QDir homeRoot(QStringLiteral("/home"));
+    if (homeRoot.exists()) {
+        const QStringList users = homeRoot.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+        for (const QString& user : users) {
+            candidatePaths.append(QStringLiteral("/home/%1/.config/sway/config").arg(user));
+        }
     }
-    if (!QProcess::startDetached(QStringLiteral("swaymsg"),
-                QStringList{QStringLiteral("output"),
+    candidatePaths.removeDuplicates();
+
+    for (const QString& swayConfigPath : candidatePaths) {
+        QFileInfo fi(swayConfigPath);
+        if (!fi.dir().exists()) {
+            continue;
+        }
+
+        QString content;
+        QFile swayConfigFile(swayConfigPath);
+        if (swayConfigFile.exists()) {
+            if (swayConfigFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                QTextStream in(&swayConfigFile);
+                content = in.readAll();
+                swayConfigFile.close();
+            }
+        }
+
+        static const QRegularExpression transformRegex(
+                QStringLiteral(R"((?m)^\s*output\s+\*\s+transform\s+\S+.*$)"));
+        const QString newTransformLine = QStringLiteral("output * transform %1").arg(degrees);
+
+        if (content.contains(transformRegex)) {
+            content.replace(transformRegex, newTransformLine);
+        } else {
+            static const QRegularExpression outputModeRegex(
+                    QStringLiteral(R"((?m)^\s*output\s+\*\s+mode\s+.*$)"));
+            auto match = outputModeRegex.match(content);
+            if (match.hasMatch()) {
+                const int insertPos = match.capturedEnd();
+                content.insert(insertPos, QStringLiteral("\n") + newTransformLine);
+            } else {
+                content.append(QStringLiteral("\n") + newTransformLine + QStringLiteral("\n"));
+            }
+        }
+
+        if (swayConfigFile.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
+            QTextStream out(&swayConfigFile);
+            out << content;
+            swayConfigFile.close();
+            QFile::setPermissions(swayConfigPath,
+                    QFileDevice::ReadOwner | QFileDevice::WriteOwner |
+                    QFileDevice::ReadGroup | QFileDevice::WriteGroup |
+                    QFileDevice::ReadOther | QFileDevice::WriteOther);
+            qInfo() << "SystemSettings: Updated" << swayConfigPath << "with" << newTransformLine;
+        } else {
+            qWarning() << "SystemSettings: Failed to write" << swayConfigPath;
+        }
+    }
+
+#if defined(Q_OS_UNIX)
+    sync();
+#endif
+
+    // 2. Rotate the live compositor session (Wayland / Sway).
+    QString swaysock = qEnvironmentVariable("SWAYSOCK");
+    if (swaysock.isEmpty()) {
+#if defined(Q_OS_UNIX)
+        QStringList userDirs = {
+            QStringLiteral("/run/user/%1").arg(getuid()),
+            QStringLiteral("/run/user/1000")
+        };
+        userDirs.removeDuplicates();
+        for (const QString& dirPath : userDirs) {
+            QDir dir(dirPath);
+            if (!dir.exists()) {
+                continue;
+            }
+            const QStringList entries = dir.entryList(
+                    QStringList{QStringLiteral("sway-ipc.*.sock")},
+                    QDir::Files | QDir::System,
+                    QDir::Time);
+            if (!entries.isEmpty()) {
+                swaysock = dir.absoluteFilePath(entries.first());
+                qputenv("SWAYSOCK", swaysock.toUtf8());
+                qInfo() << "SystemSettings: Located and set SWAYSOCK =" << swaysock;
+                break;
+            }
+        }
+#endif
+    }
+
+    if (!swaysock.isEmpty()) {
+        QProcess::startDetached(QStringLiteral("swaymsg"),
+                QStringList{QStringLiteral("--"),
+                        QStringLiteral("output"),
                         QStringLiteral("*"),
                         QStringLiteral("transform"),
-                        QString::number(degrees)})) {
-        notify(tr("Failed to apply screen rotation"),
-                Notifications::Severity::Error);
+                        QString::number(degrees)});
+        QProcess::startDetached(QStringLiteral("swaymsg"),
+                QStringList{QStringLiteral("--"),
+                        QStringLiteral("output"),
+                        QStringLiteral("HDMI-A-1"),
+                        QStringLiteral("transform"),
+                        QString::number(degrees)});
+        QProcess::startDetached(QStringLiteral("swaymsg"),
+                QStringList{QStringLiteral("--"),
+                        QStringLiteral("output"),
+                        QStringLiteral("DSI-1"),
+                        QStringLiteral("transform"),
+                        QString::number(degrees)});
+    } else {
+        qInfo() << "SystemSettings: SWAYSOCK not set, screen rotation"
+                << degrees << "persisted but not applied to a live compositor";
+    }
+
+    // 3. If running under X11 (or noVNC test session), rotate x11vnc and try xrandr.
+    const QString display = qEnvironmentVariable("DISPLAY");
+    if (!display.isEmpty()) {
+        QProcess::startDetached(QStringLiteral("x11vnc"),
+                QStringList{QStringLiteral("-display"),
+                        display,
+                        QStringLiteral("-remote"),
+                        QStringLiteral("rotate:%1").arg(degrees)});
+
+        const QString xrandrRotation = (degrees == 180) ? QStringLiteral("inverted") : QStringLiteral("normal");
+        QProcess::startDetached(QStringLiteral("xrandr"),
+                QStringList{QStringLiteral("-display"),
+                        display,
+                        QStringLiteral("-o"),
+                        xrandrRotation});
     }
 }
 
