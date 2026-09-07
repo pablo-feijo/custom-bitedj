@@ -121,7 +121,7 @@ WPushButton[value="1"]:hover {
 #DeckTitle {
   font-size: 16px;
   font-weight: bold;
-  padding-left: 4px;
+  padding-left: 0px;
 }
 
 #DeckTitlePlaying {
@@ -268,7 +268,7 @@ WPushButton[value="1"]:hover {
   background-color: rgba(8, 125, 225, 0.25);
   border: 1px solid transparent;
   border-radius: 2px;
-  margin-right: 6px;
+  margin-right: 2px;
 }
 
 #DeckCueChip:pressed {
