@@ -18,8 +18,8 @@
     </Parameter>
     <Parameter>
      <Id>rate</Id>
-     <Value>0.25</Value>
-     <LinkType>LINKED</LinkType>
+     <Value>1</Value>
+     <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
@@ -32,7 +32,7 @@
     </Parameter>
     <Parameter>
      <Id>waveform</Id>
-     <Value>0.5</Value>
+     <Value>0</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
