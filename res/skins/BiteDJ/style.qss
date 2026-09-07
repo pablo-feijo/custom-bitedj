@@ -787,10 +787,11 @@ WBeatSpinBox::up-button {
 
 #WaveformInfo_QuantizeButton {
   image: url(skin:icons/quantize.svg) no-repeat center center;
+  margin-right: 4px;
 }
 
 #WaveformInfo_PlayRow {
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 #WaveformPlayButton {
