@@ -328,9 +328,15 @@ PioneerDDJ400.beatFxLevelDepthRotate = function(_channel, _control, value) {
     // Ignore physical knob if Pad FX is currently being held!
     if (PioneerDDJ400.padFxActiveCount > 0) return;
 
-    // Force set both mix and meta simultaneously so Echo/Reverb work without SHIFT
-    engine.setValue("[EffectRack1_EffectUnit1]", "mix", value / 0x7F);
-    engine.setValue(PioneerDDJ400.focusedFxGroup(), "meta", value / 0x7F);
+    var shift = PioneerDDJ400.shiftButtonDown[0] || PioneerDDJ400.shiftButtonDown[1];
+
+    if (shift) {
+        // Map Shift + Depth to SUPER knob
+        engine.setValue("[EffectRack1_EffectUnit1]", "super1", value / 0x7F);
+    } else {
+        // Map Depth to MIX knob
+        engine.setValue("[EffectRack1_EffectUnit1]", "mix", value / 0x7F);
+    }
 };
 
 // Bite DJ skin only renders one effect slot (Effect1), so the BEAT
