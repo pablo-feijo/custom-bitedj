@@ -121,7 +121,7 @@
               <Label>
                 <ObjectName>SamplersHeaderLabel</ObjectName>
                 <Text>DRIVE</Text>
-                <Size>56f,me</Size>
+                <Size>70f,me</Size>
               </Label>
               <!-- 44f chips in a 48f row, not the 56f the selectors below get:
                    at the 420px floor this tab already spends 312 of its 360 on
@@ -153,7 +153,7 @@
               <Label>
                 <ObjectName>SamplersHeaderLabel</ObjectName>
                 <Text>SOURCE</Text>
-                <Size>56f,me</Size>
+                <Size>70f,me</Size>
               </Label>
               <!-- SOURCE picks the deck LOAD clones from, so a deck with
                    nothing on it is not a source worth offering. Each segment
@@ -246,12 +246,11 @@
             </Children>
           </WidgetGroup>
 
-          <!-- STOP ALL — fires every [SamplerN],stop in one tap. Sized smaller
-               than the segmented selectors so it's clearly a panic action and
-               not confused with a normal toggle. -->
+          <!-- STOP ALL — fires every [SamplerN],stop in one tap. Sized to match
+               the 56f height of the row options with generous tap area. -->
           <PushButton>
             <ObjectName>SamplersStopAll</ObjectName>
-            <Size>96f,48f</Size>
+            <Size>114f,56f</Size>
             <NumberStates>1</NumberStates>
             <State>
               <Number>0</Number>
