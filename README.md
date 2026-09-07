@@ -200,7 +200,9 @@ to live on the unit.
 - Per-parameter manifest metadata exposed as ControlObjects, plus per-effect-slot
   quantize/triplet proxies and a raw-value alias per knob parameter.
 - Per-effect parameters persist across BeatFX switches.
-- FX pane split into Key vs. FX sub-panels. We are intentionally keeping only these two tabs (FX and KEY) in the Overview panel for now, mapping effect times (e.g., Roll lengths) natively through the Beats parameter grid instead of a dedicated PADS tab.
+- FX pane split into FX and Pitch, with pitch up/down in the UI; later split again
+  into Key vs. FX sub-panels, with tests for keyfx. Fixed slight row expansion when
+  switching between the FX and KEY sub-panes.
 - Fixed effect knob parameter changes to use `slotValueChanged`.
 
 ## Controllers & MIDI
