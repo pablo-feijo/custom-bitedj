@@ -133,6 +133,16 @@
                 <Elide>right</Elide>
                 <Channel><Variable name="channel"/></Channel>
               </TrackProperty>
+              <Label>
+                <ObjectName>DeckOnAir</ObjectName>
+                <Size>60f,20f</Size>
+                <Text>ON AIR</Text>
+                <Alignment>center</Alignment>
+                <Connection>
+                  <ConfigKey>[Channel<Variable name="channel"/>],on_air</ConfigKey>
+                  <BindProperty>highlight</BindProperty>
+                </Connection>
+              </Label>
             </Children>
           </WidgetGroup>
         </Children>

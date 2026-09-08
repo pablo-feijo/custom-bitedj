@@ -1029,6 +1029,8 @@ add_library(mixxx-lib STATIC EXCLUDE_FROM_ALL
   src/widget/wstarrating.cpp
   src/widget/wsamplerdrive.cpp
   src/widget/wusblist.cpp
+  src/widget/wsysteminfo.cpp
+  src/util/systemtelemetry.cpp
   src/widget/wversionlabel.cpp
   src/widget/wstatuslight.cpp
   src/widget/wtime.cpp
@@ -1630,6 +1632,7 @@ if(BUILD_TESTING)
     src/test/synccontroltest.cpp
     src/test/synctrackmetadatatest.cpp
     src/test/systemsettings_test.cpp
+    src/test/systemtelemetry_test.cpp
     src/test/tableview_test.cpp
     src/test/taglibtest.cpp
     src/test/touchscrollfilter_test.cpp

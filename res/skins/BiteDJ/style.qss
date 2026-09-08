@@ -728,6 +728,32 @@ WLabel {
   margin-right: 10px;
 }
 
+#WaveformSourceRow { background-color: #24242c; }
+#WaveformDeckNumber { font-weight: bold; font-size: 14px; color: #c49ade; }
+#WaveformSource { font-size: 13px; font-weight: bold; color: #e5e6ea; }
+#WaveformCaption { font-size: 10px; color: #9999a8; qproperty-alignment: 'AlignCenter'; }
+#WaveformCaption[highlight="1"] { color: #b28ad0; }
+#WaveformKeyValue { font-size: 14px; font-weight: bold; color: #38bdf8; }
+#WaveformKeyValue[highlight="1"] { color: #f87171; }
+#WaveformJumpValue, #WaveformLoopValue { padding: 0px; margin: 0px; font-size: 14px; }
+#WaveformJumpValue { qproperty-alignment: 'AlignCenter'; }
+#WaveformJumpButton, #WaveformStateButton, #WaveformTransportButton {
+  background-color: #1a1a24; border: 1px solid #383846; border-radius: 3px;
+  color: #c5c5d0; font-size: 12px; font-weight: bold;
+}
+#WaveformJumpButton { font-size: 28px; }
+#WaveformStateButton, #WaveformTransportButton { margin: 1px; }
+#WaveformStateButton[value="1"] { background-color: #8058a0; color: #ffffff; }
+#WaveformTransportButton[value="1"] { background-color: #238751; color: #ffffff; }
+#WaveformJumpButton:pressed { background-color: #8058a0; color: #ffffff; }
+#DeckOnAir { font-size: 10px; font-weight: bold; color: #71717c; background-color: #24242c; }
+#DeckOnAir[highlight="1"] { color: #ffffff; background-color: #c9372c; }
+#InfoCard { background-color: #17171f; border: 1px solid #383846; border-radius: 6px; }
+#InfoHeading { color: #aaaaba; font-size: 14px; font-weight: bold; }
+#InfoValue { color: #e5e6ea; font-size: 42px; font-weight: bold; }
+#InfoHint { color: #9999a8; font-size: 12px; }
+#InfoOutput { color: #c5c5d0; font-size: 14px; padding: 10px; }
+
 #WaveformInfo_Header {
   background-color: #32323c;
   border-top-right-radius: 10px 25px;
@@ -1789,4 +1815,3 @@ WBeatSpinBox::up-button {
   border-color: #9253a1;
   color: #ffffff;
 }
-

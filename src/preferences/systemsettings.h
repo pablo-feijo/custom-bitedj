@@ -74,6 +74,11 @@ class SystemSettings : public QObject {
     // there is also reachable by the settings actions that clear it again.
     static bool isOnRemovableMedia(const QString& path);
 
+    // Uses cached mount/slot labels; no filesystem access during label repaint.
+    QString trackSourceLabel(const QString& path) const;
+    static QString classifyTrackSource(const QString& path,
+            const QStringList& mountPoints, const QStringList& labels);
+
     // Unloads every track loaded from the indexed mount, then unmounts it and
     // re-enumerates. Idempotent on out-of-range. Safe to call from the GUI
     // thread.
@@ -144,6 +149,7 @@ class SystemSettings : public QObject {
     // tick. On a real change (or when forced) it updates m_usbMounts/
     // m_usbRowLabels/the count CO and emits usbRowsChanged.
     void refresh(bool force = false);
+    QStringList m_usbSourceLabels;
     // Adds a QFileSystemWatcher watch for each removable root that currently
     // exists and is not already watched. Cheap and idempotent; re-run whenever a
     // root may have appeared (e.g. on the poll tick).

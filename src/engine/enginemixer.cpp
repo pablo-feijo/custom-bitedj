@@ -195,6 +195,8 @@ EngineMixer::EngineMixer(
             true,
             false,
             true); // persist = true
+    m_pMainOutputConnected = new ControlObject(ConfigKey(group, "main_output_connected"));
+    m_pMainOutputConnected->setReadOnly();
     m_pBoothEnabled = new ControlObject(ConfigKey(group, "booth_enabled"));
     m_pBoothEnabled->setReadOnly();
     m_pMainMonoMixdown = new ControlObject(ConfigKey(group, "mono_mixdown"),
@@ -240,6 +242,7 @@ EngineMixer::~EngineMixer() {
     delete m_pAudioLatencyOverload;
 
     delete m_pMainEnabled;
+    delete m_pMainOutputConnected;
     delete m_pBoothEnabled;
     delete m_pMainMonoMixdown;
     delete m_pMicMonitorMode;
@@ -544,6 +547,16 @@ void EngineMixer::process(const int iBufferSize) {
                 iBufferSize,
                 m_sampleRate,
                 m_pEngineEffectsManager);
+    }
+
+    // Publish after this callback's channel/crossfader gains are known, including
+    // inactive decks so an unload clears their badge. A direct external deck
+    // output is not proof that it reaches an external mixer's main output.
+    for (int i = 0; i < m_channels.size(); ++i) {
+        auto* channel = m_channels[i]->m_pChannel;
+        channel->updateOnAir(mainEnabled && m_pMainOutputConnected->toBool() &&
+                m_pMainGain->get() > 0.0 &&
+                getMainGain(i) > CSAMPLE_GAIN_ZERO);
     }
 
     // Process crossfader orientation bus channel effects
@@ -995,6 +1008,8 @@ void EngineMixer::onOutputConnected(const AudioOutput& output) {
     case AudioPathType::Main:
         // overwrite config option if a main output is configured
         m_pMainEnabled->forceSet(1.0);
+        ++m_mainOutputConnections;
+        m_pMainOutputConnected->forceSet(1.0);
         break;
     case AudioPathType::Headphones:
         m_pMainEnabled->forceSet(1.0);
@@ -1021,6 +1036,15 @@ void EngineMixer::onOutputConnected(const AudioOutput& output) {
 void EngineMixer::onOutputDisconnected(const AudioOutput& output) {
     switch (output.getType()) {
     case AudioPathType::Main:
+        m_mainOutputConnections = std::max(0, m_mainOutputConnections - 1);
+        m_pMainOutputConnected->forceSet(m_mainOutputConnections > 0 ? 1.0 : 0.0);
+        if (m_mainOutputConnections == 0) {
+            // The last device may stop audio callbacks entirely; don't leave
+            // a stale ON AIR badge waiting for a callback that won't arrive.
+            for (auto* channelInfo : m_channels) {
+                channelInfo->m_pChannel->updateOnAir(false);
+            }
+        }
         // not used, because we need the main buffer for headphone mix
         // and recording/broadcasting as well
         break;

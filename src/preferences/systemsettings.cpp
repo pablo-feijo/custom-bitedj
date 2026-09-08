@@ -445,6 +445,7 @@ void SystemSettings::refresh(bool force) {
     }
 
     m_usbRowLabels.clear();
+    m_usbSourceLabels.clear();
     for (const UsbMount& mount : std::as_const(m_usbMounts)) {
         // Show the short volume name (the mountpoint's final path component)
         // rather than the full path — it fits the small screen and leaves room
@@ -454,6 +455,16 @@ void SystemSettings::refresh(bool force) {
             name = mount.mountPoint;
         }
         m_usbRowLabels.append(name);
+        QString source = name;
+        for (int slot = 1; slot <= kNumEjectDrives; ++slot) {
+            const QString port = m_pConfig->getValueString(ConfigKey(kBiteDj,
+                    QStringLiteral("usb_drive_path_%1").arg(slot)));
+            if (!port.isEmpty() && deviceOnUsbPath(mount.device, port)) {
+                source = QStringLiteral("USB%1").arg(slot);
+                break;
+            }
+        }
+        m_usbSourceLabels.append(source);
     }
     m_pCoUsbCount->forceSet(static_cast<double>(m_usbMounts.size()));
     emit usbRowsChanged(m_usbRowLabels);
@@ -668,6 +679,37 @@ void SystemSettings::ejectRow(int index) {
                     .arg(ejected.join(QStringLiteral(", "))),
             Notifications::Severity::Info);
     refresh();
+}
+
+QString SystemSettings::classifyTrackSource(const QString& path,
+        const QStringList& mountPoints, const QStringList& labels) {
+    if (path.isEmpty()) {
+        return {};
+    }
+    const QString clean = QDir::cleanPath(path);
+    int best = -1;
+    int length = 0;
+    for (int i = 0; i < mountPoints.size(); ++i) {
+        const QString mount = QDir::cleanPath(mountPoints[i]);
+        if ((clean == mount || clean.startsWith(mount + QLatin1Char('/'))) &&
+                mount.size() > length) {
+            best = i;
+            length = mount.size();
+        }
+    }
+    if (best >= 0) {
+        return labels.value(best, QStringLiteral("USB"));
+    }
+    // A removed source must not turn into LOCAL while its track is still loaded.
+    return isOnRemovableMedia(clean) ? tr("OFFLINE") : tr("LOCAL");
+}
+
+QString SystemSettings::trackSourceLabel(const QString& path) const {
+    QStringList points;
+    for (const auto& mount : m_usbMounts) {
+        points.append(mount.mountPoint);
+    }
+    return classifyTrackSource(path, points, m_usbSourceLabels);
 }
 
 void SystemSettings::ejectDrive(int driveNumber) {

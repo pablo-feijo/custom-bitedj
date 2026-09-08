@@ -19,9 +19,11 @@ EngineDeck::EngineDeck(
                   /*isTalkoverChannel*/ false,
                   primaryDeck),
           m_pConfig(pConfig),
+          m_pOnAir(new ControlObject(ConfigKey(getGroup(), "on_air"))),
           m_pInputConfigured(new ControlObject(ConfigKey(getGroup(), "input_configured"))),
           m_pPassing(new ControlPushButton(ConfigKey(getGroup(), "passthrough"))) {
     m_pInputConfigured->setReadOnly();
+    m_pOnAir->setReadOnly();
     // Set up passthrough utilities and fields
     m_pPassing->setButtonMode(ControlPushButton::POWERWINDOW);
     m_bPassthroughIsActive = false;
@@ -41,6 +43,18 @@ EngineDeck::~EngineDeck() {
     delete m_pPassing;
     delete m_pBuffer;
     delete m_pPregain;
+}
+
+void EngineDeck::updateOnAir(bool mainPathOpen) {
+    if (!mainPathOpen) {
+        m_pOnAir->forceSet(0.0);
+        return;
+    }
+    // Speed includes scratching, reverse and cue preview; sample amplitude
+    // would flicker during quiet passages. Passthrough requires a real input.
+    const bool running = isPassthroughActive() ||
+            (m_pBuffer->isTrackLoaded() && m_pBuffer->getSpeed() != 0.0);
+    m_pOnAir->forceSet(running ? 1.0 : 0.0);
 }
 
 void EngineDeck::process(CSAMPLE* pOut, const int iBufferSize) {
