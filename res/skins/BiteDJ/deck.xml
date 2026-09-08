@@ -167,33 +167,9 @@
                     <Size>0me,25f</Size>
                     <Children>
                       <Label>
-                        <ObjectName>DeckPlayingLeft</ObjectName>
-                        <Text>&lt;&lt;</Text>
-                        <Style>
-                          color: #f15921;
-                        </Style>
-                        <!-- To override basic style -->
-                        <Connection>
-                          <ConfigKey>[Channel<Variable name="channel"/>],play</ConfigKey>
-                          <BindProperty>visible</BindProperty>
-                        </Connection>
-                      </Label>
-                      <Label>
                         <ObjectName>DeckChannelTitle</ObjectName>
                         <Text>Deck<Variable name="channel"/></Text>
                         <Size>max,25f</Size>
-                      </Label>
-                      <Label>
-                        <ObjectName>DeckPlayingRight</ObjectName>
-                        <Text>&gt;&gt;</Text>
-                        <Style>
-                          color: #f15921;
-                        </Style>
-                        <!-- To override basic style -->
-                        <Connection>
-                          <ConfigKey>[Channel<Variable name="channel"/>],play</ConfigKey>
-                          <BindProperty>visible</BindProperty>
-                        </Connection>
                       </Label>
                     </Children>
                   </WidgetGroup>

@@ -28,7 +28,12 @@ To ensure changes and automated UI tests succeed on the first attempt without tr
 ### 2. Zero-Guessing Precision Coordinate System (1024x600)
 Never guess pixel coordinates for `xdotool` clicks. Use the exact layout geometry or scan via standard library Python:
 
-#### A. Top Tab Bar (`topbar.xml`): `y=0..60`
+The top bar is now 48px (previously 60px). The legacy coordinates below remain
+reference points: main-tab centers are now y=24; settings sub-tabs and top-anchored
+content move up 12px. Expanding overview lanes may reposition centered controls,
+so remeasure those from a current screenshot before clicking.
+
+#### A. Top Tab Bar (`topbar.xml`): `y=0..48`
 - `PLAY` (Overview): `x=100, y=30`
 - `BROWSE` (Library): `x=300, y=30`
 - `SAMPLER`: `x=500, y=30`

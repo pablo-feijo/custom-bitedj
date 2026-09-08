@@ -2,7 +2,7 @@
   <WidgetGroup>
     <ObjectName>Topbar</ObjectName>
     <Layout>vertical</Layout>
-    <Size>0me,60f</Size>
+    <Size>0me,48f</Size>
     <Children>
       <WidgetGroup>
         <ObjectName>TabControls</ObjectName>

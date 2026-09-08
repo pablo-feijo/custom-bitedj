@@ -92,3 +92,10 @@ Deck/source badges now use 11px type, separate backgrounds and a 6px gap.
 The track-strip key and CUE badges use 10px type at 16px height, with an 8px
 trailing gap after CUE. Verified in the primary 1024x600 VNC view; skin XML
 parsing and whitespace checks passed. No native code changed.
+
+### Compact top menu and playback label
+
+Reduced the main bar from 60px to 48px, trimming vertical button margins to
+preserve label clearance. Removed the orange playback arrows around the deck
+number. Verified the 1024x600 overview during playback: deck labels stay stable
+and the ON badge still activates. Updated VNC; XML parsing and diff checks pass.
