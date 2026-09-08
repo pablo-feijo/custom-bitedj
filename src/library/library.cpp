@@ -329,13 +329,9 @@ Library::Library(
         }
     }
 
-    // gridLayout is already read at line 151
-    if (gridLayout == 1) {
-        m_iTrackTableRowHeight = 46;
-    } else {
-        m_iTrackTableRowHeight = m_pConfig->getValue(
-                ConfigKey(kConfigGroup, "RowHeight"), kDefaultRowHeightPx);
-    }
+    m_iTrackTableRowHeight = m_pConfig->getValue(
+            ConfigKey(kConfigGroup, "RowHeight"),
+            gridLayout == 1 ? 46 : kDefaultRowHeightPx);
     QString fontStr =
             m_pConfig->getValueString(ConfigKey(kConfigGroup, "Font"));
     if (!fontStr.isEmpty()) {
@@ -827,6 +823,8 @@ void Library::setFont(const QFont& font) {
     double newFontHeight = newMetrics.height();
 
     m_trackTableFont = font;
+    m_pConfig->setValue(
+            ConfigKey(kConfigGroup, "Font"), m_trackTableFont.toString());
     emit setTrackTableFont(font);
 
     // adapt the previous font height/row height ratio
@@ -837,6 +835,8 @@ void Library::setFont(const QFont& font) {
 
 void Library::setRowHeight(int rowHeight) {
     m_iTrackTableRowHeight = rowHeight;
+    m_pConfig->setValue(
+            ConfigKey(kConfigGroup, "RowHeight"), m_iTrackTableRowHeight);
     emit setTrackTableRowHeight(rowHeight);
 }
 

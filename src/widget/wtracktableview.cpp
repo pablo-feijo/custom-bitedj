@@ -294,15 +294,9 @@ void WTrackTableView::loadTrackModel(QAbstractItemModel* pNewModel, bool restore
 
     setModel(pNewModel);
     setHorizontalHeader(header);
-    // Bite DJ fork: when LibraryColumnControl owns column visibility +
-    // widths, also lock the order and disable user drag-resize. Reorders
-    // wouldn't survive restart (we no longer save the per-model protobuf)
-    // and drag-resize would silently get clobbered by the next flex-weight
-    // re-apply on header resize — both are confusing transient UX. Fixed
-    // resize mode still permits programmatic resizeSection(), which is
-    // what LibraryColumnControl::applyTo uses.
+    // Persisted column order is independent of managed visibility/widths.
     const bool columnControlActive = LibraryColumnControl::tryInstance() != nullptr;
-    header->setSectionsMovable(!columnControlActive);
+    header->setSectionsMovable(true);
     if (columnControlActive) {
         header->setSectionResizeMode(QHeaderView::Fixed);
     }
@@ -1717,7 +1711,14 @@ void WTrackTableView::doSortByColumn(int headerSection, Qt::SortOrder sortOrder)
         const QModelIndexList indices = selectionModel()->selectedRows();
         selectedTrackPositions = pTrackModel->getSelectedPositions(indices);
     } else {
-        selectedTrackIds = getSelectedTrackIds();
+        // Use model row identities, not getTrackId(): external models resolve
+        // that API to local library IDs (and may import analysis as a side effect).
+        for (const auto& index : selectionModel()->selectedRows()) {
+            const auto id = pTrackModel->getTrackRowIdentity(index);
+            if (id.isValid()) {
+                selectedTrackIds.append(id);
+            }
+        }
     }
 
     int savedHScrollBarPos = horizontalScrollBar()->value();
