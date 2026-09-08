@@ -823,12 +823,14 @@ TrackId TrackDAO::addTracksAddTrack(const TrackPointer& pTrack, bool unremove) {
         pTrack->initId(trackId);
         pTrack->setDateAdded(trackDateAdded);
 
+        bool analysesSaved = false;
         if (m_fsAnalysisCache.isEnabled()) {
-            m_fsAnalysisCache.saveTrackAnalyses(
+            analysesSaved = m_fsAnalysisCache.saveTrackAnalyses(
                     pTrack->getLocation(),
                     pTrack->getWaveform(),
                     pTrack->getWaveformSummary());
-        } else if (m_fsAnalysisCache.isHomeCacheEnabled()) {
+        }
+        if (!analysesSaved && m_fsAnalysisCache.isHomeCacheEnabled()) {
             m_analysisDao.saveTrackAnalyses(
                     trackId,
                     pTrack->getWaveform(),
@@ -1745,12 +1747,14 @@ bool TrackDAO::updateTrack(const Track& track) const {
     // kLogger.debug() << "Update track took : " <<
     // time.elapsed().formatMillisWithUnit() << "Now updating cues";
     // time.start();
+    bool analysesSaved = false;
     if (m_fsAnalysisCache.isEnabled()) {
-        m_fsAnalysisCache.saveTrackAnalyses(
+        analysesSaved = m_fsAnalysisCache.saveTrackAnalyses(
                 track.getLocation(),
                 track.getWaveform(),
                 track.getWaveformSummary());
-    } else if (m_fsAnalysisCache.isHomeCacheEnabled()) {
+    }
+    if (!analysesSaved && m_fsAnalysisCache.isHomeCacheEnabled()) {
         m_analysisDao.saveTrackAnalyses(
                 trackId,
                 track.getWaveform(),

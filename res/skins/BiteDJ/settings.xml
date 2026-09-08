@@ -56,13 +56,45 @@
                     <Children>
                       <Label>
                         <ObjectName>SettingsRowLabel</ObjectName>
+                        <Text>Crossfader</Text>
+                        <Size>0me,0me</Size>
+                      </Label>
+                      <WidgetGroup>
+                        <ObjectName>SettingsSegmented</ObjectName>
+                        <Layout>horizontal</Layout>
+                        <Size>168f,40f</Size>
+                        <Children>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
+                            <SetVariable name="Text">Off</SetVariable>
+                            <SetVariable name="ConfigKey">[BiteDJ],crossfader_enabled</SetVariable>
+                            <SetVariable name="Value">0</SetVariable>
+                          </Template>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
+                            <SetVariable name="Text">On</SetVariable>
+                            <SetVariable name="ConfigKey">[BiteDJ],crossfader_enabled</SetVariable>
+                            <SetVariable name="Value">1</SetVariable>
+                          </Template>
+                        </Children>
+                      </WidgetGroup>
+                    </Children>
+                  </WidgetGroup>
+
+                  <WidgetGroup>
+                    <ObjectName>SettingsRow</ObjectName>
+                    <Layout>horizontal</Layout>
+                    <Size>0me,52f</Size>
+                    <Children>
+                      <Label>
+                        <ObjectName>SettingsRowLabel</ObjectName>
                         <Text>Key</Text>
                         <Size>0me,0me</Size>
                       </Label>
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>160f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -94,7 +126,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>138f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -132,7 +164,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>138f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -170,7 +202,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>150f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -207,7 +239,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>160f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -220,6 +252,38 @@
                             <SetVariable name="Text">Gated</SetVariable>
                             <SetVariable name="ConfigKey">[Controls],HotcueActivatePlays</SetVariable>
                             <SetVariable name="Value">0</SetVariable>
+                          </Template>
+                        </Children>
+                      </WidgetGroup>
+                    </Children>
+                  </WidgetGroup>
+
+                  <WidgetGroup>
+                    <ObjectName>SettingsRow</ObjectName>
+                    <Layout>horizontal</Layout>
+                    <Size>0me,52f</Size>
+                    <Children>
+                      <Label>
+                        <ObjectName>SettingsRowLabel</ObjectName>
+                        <Text>Grid</Text>
+                        <Size>0me,0me</Size>
+                      </Label>
+                      <WidgetGroup>
+                        <ObjectName>SettingsSegmented</ObjectName>
+                        <Layout>horizontal</Layout>
+                        <Size>168f,40f</Size>
+                        <Children>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
+                            <SetVariable name="Text">Compact</SetVariable>
+                            <SetVariable name="ConfigKey">[Library],grid_layout</SetVariable>
+                            <SetVariable name="Value">0</SetVariable>
+                          </Template>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
+                            <SetVariable name="Text">Detail</SetVariable>
+                            <SetVariable name="ConfigKey">[Library],grid_layout</SetVariable>
+                            <SetVariable name="Value">1</SetVariable>
                           </Template>
                         </Children>
                       </WidgetGroup>
@@ -270,7 +334,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>150f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -313,7 +377,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>150f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -329,7 +393,7 @@
                           </Template>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
-                            <SetVariable name="Text">Stack</SetVariable>
+                            <SetVariable name="Text">3 Band</SetVariable>
                             <SetVariable name="ConfigKey">[Waveform],waveform_type</SetVariable>
                             <SetVariable name="Value">25</SetVariable>
                           </Template>
@@ -351,7 +415,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>110f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
@@ -364,6 +428,38 @@
                             <SetVariable name="Text">Off</SetVariable>
                             <SetVariable name="ConfigKey">[Waveform],apply_eq_to_waveform</SetVariable>
                             <SetVariable name="Value">0</SetVariable>
+                          </Template>
+                        </Children>
+                      </WidgetGroup>
+                    </Children>
+                  </WidgetGroup>
+
+                  <WidgetGroup>
+                    <ObjectName>SettingsRow</ObjectName>
+                    <Layout>horizontal</Layout>
+                    <Size>0me,52f</Size>
+                    <Children>
+                      <Label>
+                        <ObjectName>SettingsRowLabel</ObjectName>
+                        <Text>EQ Mode</Text>
+                        <Size>0me,0me</Size>
+                      </Label>
+                      <WidgetGroup>
+                        <ObjectName>SettingsSegmented</ObjectName>
+                        <Layout>horizontal</Layout>
+                        <Size>168f,40f</Size>
+                        <Children>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
+                            <SetVariable name="Text">EQ</SetVariable>
+                            <SetVariable name="ConfigKey">[BiteDJ],eq_mode</SetVariable>
+                            <SetVariable name="Value">0</SetVariable>
+                          </Template>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
+                            <SetVariable name="Text">ISO</SetVariable>
+                            <SetVariable name="ConfigKey">[BiteDJ],eq_mode</SetVariable>
+                            <SetVariable name="Value">1</SetVariable>
                           </Template>
                         </Children>
                       </WidgetGroup>
@@ -397,11 +493,11 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>144f,40f</Size>
+                        <Size>168f,40f</Size>
                         <Children>
                           <PushButton>
                             <ObjectName>SettingsActionButton</ObjectName>
-                            <Size>48f,40f</Size>
+                            <Size> 0me,0me</Size>
                             <NumberStates>1</NumberStates>
                             <State>
                               <Number>0</Number>
@@ -414,7 +510,7 @@
                           </PushButton>
                           <PushButton>
                             <ObjectName>SettingsActionButton</ObjectName>
-                            <Size>48f,40f</Size>
+                            <Size> 0me,0me</Size>
                             <NumberStates>1</NumberStates>
                             <State>
                               <Number>0</Number>
@@ -427,7 +523,7 @@
                           </PushButton>
                           <PushButton>
                             <ObjectName>SettingsActionButton</ObjectName>
-                            <Size>48f,40f</Size>
+                            <Size> 0me,0me</Size>
                             <NumberStates>1</NumberStates>
                             <State>
                               <Number>0</Number>
@@ -455,7 +551,7 @@
                       </Label>
                       <PushButton>
                         <ObjectName>SettingsActionButton</ObjectName>
-                        <Size>140f,40f</Size>
+                        <Size> 160f,40f</Size>
                         <NumberStates>1</NumberStates>
                         <State>
                           <Number>0</Number>
@@ -662,10 +758,11 @@
                     <SetVariable name="VisibleConfigKey">[Library],column_visible_comment</SetVariable>
                     <SetVariable name="WeightConfigKey">[Library],column_weight_comment</SetVariable>
                   </Template>
-                  <WidgetGroup>
-                    <ObjectName>SettingsSpacer</ObjectName>
-                    <Size>0me,0me</Size>
-                  </WidgetGroup>
+                  <Template src="skin:templates/library_column_row.xml">
+                    <SetVariable name="Label">Preview</SetVariable>
+                    <SetVariable name="VisibleConfigKey">[Library],column_visible_preview</SetVariable>
+                    <SetVariable name="WeightConfigKey">[Library],column_weight_preview</SetVariable>
+                  </Template>
                 </Children>
               </WidgetGroup>
 
@@ -729,6 +826,106 @@
                 <Layout>horizontal</Layout>
                 <Size>0me,68f</Size>
                 <Children>
+                  <Label>
+                    <ObjectName>SettingsRowLabel</ObjectName>
+                    <Text>Screen</Text>
+                    <Size>0me,0me</Size>
+                  </Label>
+                  <WidgetGroup>
+                    <ObjectName>ScreenRotSegmented</ObjectName>
+                    <Layout>horizontal</Layout>
+                    <Size>114f,40f</Size>
+                    <Children>
+                      <Template src="skin:templates/setting_segment_button.xml">
+                        <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
+                        <SetVariable name="Text">0°</SetVariable>
+                        <SetVariable name="ConfigKey">[BiteDJ],screen_rotation</SetVariable>
+                        <SetVariable name="Value">0</SetVariable>
+                      </Template>
+                      <Template src="skin:templates/setting_segment_button.xml">
+                        <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
+                        <SetVariable name="Text">180°</SetVariable>
+                        <SetVariable name="ConfigKey">[BiteDJ],screen_rotation</SetVariable>
+                        <SetVariable name="Value">180</SetVariable>
+                      </Template>
+                    </Children>
+                  </WidgetGroup>
+                  <!-- Keeps the two groups from reading as one
+                       four-segment strip; both are lit at once and
+                       would otherwise look like a single control with
+                       two selections. -->
+                  <WidgetGroup>
+                    <Size>4f,0me</Size>
+                  </WidgetGroup>
+                  <WidgetGroup>
+                    <ObjectName>ScreenModeSegmented</ObjectName>
+                    <Layout>horizontal</Layout>
+                    <Size>114f,40f</Size>
+                    <Children>
+                      <Template src="skin:templates/setting_segment_button.xml">
+                        <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
+                        <SetVariable name="Text">Night</SetVariable>
+                        <SetVariable name="ConfigKey">[BiteDJ],high_contrast</SetVariable>
+                        <SetVariable name="Value">0</SetVariable>
+                      </Template>
+                      <Template src="skin:templates/setting_segment_button.xml">
+                        <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
+                        <SetVariable name="Text">Day</SetVariable>
+                        <SetVariable name="ConfigKey">[BiteDJ],high_contrast</SetVariable>
+                        <SetVariable name="Value">1</SetVariable>
+                      </Template>
+                    </Children>
+                  </WidgetGroup>
+                </Children>
+              </WidgetGroup>
+
+              <WidgetGroup>
+                <ObjectName>SettingsRow</ObjectName>
+                <Layout>horizontal</Layout>
+                <Size>0me,68f</Size>
+                <Children>
+                  <Label>
+                    <ObjectName>SettingsRowLabel</ObjectName>
+                    <Text>Network</Text>
+                    <Size>0me,0me</Size>
+                  </Label>
+                  <PushButton>
+                    <ObjectName>SettingsActionButton</ObjectName>
+                    <Size>114f,40f</Size>
+                    <NumberStates>1</NumberStates>
+                    <State>
+                      <Number>0</Number>
+                      <Text>WiFi</Text>
+                    </State>
+                    <Connection>
+                      <ConfigKey>[BiteDJ],launch_wifi</ConfigKey>
+                      <EmitOnDownPress>true</EmitOnDownPress>
+                    </Connection>
+                  </PushButton>
+                  <WidgetGroup>
+                    <Size>4f,0me</Size>
+                  </WidgetGroup>
+                  <PushButton>
+                    <ObjectName>SettingsActionButton</ObjectName>
+                    <Size>114f,40f</Size>
+                    <NumberStates>1</NumberStates>
+                    <State>
+                      <Number>0</Number>
+                      <Text>Bluetooth</Text>
+                    </State>
+                    <Connection>
+                      <ConfigKey>[BiteDJ],launch_bluetooth</ConfigKey>
+                      <EmitOnDownPress>true</EmitOnDownPress>
+                    </Connection>
+                  </PushButton>
+                </Children>
+              </WidgetGroup>
+
+              <WidgetGroup>
+                <ObjectName>SettingsRow</ObjectName>
+                <Layout>horizontal</Layout>
+                <Size>0me,68f</Size>
+                <Children>
                   <!-- Arming takes over the whole row instead of swapping a
                        button in place (the pattern the Devices/Audio Apply rows
                        use): at 64f the in-place page would have had to fit
@@ -746,63 +943,28 @@
                         <Children>
                           <Label>
                             <ObjectName>SettingsRowLabel</ObjectName>
-                            <Text>Screen</Text>
+                            <Text>Advanced</Text>
                             <Size>0me,0me</Size>
                           </Label>
+                          <PushButton>
+                            <ObjectName>SettingsActionButton</ObjectName>
+                            <Size>114f,40f</Size>
+                            <NumberStates>1</NumberStates>
+                            <State>
+                              <Number>0</Number>
+                              <Text>Settings</Text>
+                            </State>
+                            <Connection>
+                              <ConfigKey>[Master],show_preferences</ConfigKey>
+                              <EmitOnDownPress>true</EmitOnDownPress>
+                            </Connection>
+                          </PushButton>
                           <WidgetGroup>
-                            <ObjectName>ScreenRotSegmented</ObjectName>
-                            <Layout>horizontal</Layout>
-                            <Size>120f,44f</Size>
-                            <Children>
-                              <Template src="skin:templates/setting_segment_button.xml">
-                                <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
-                                <SetVariable name="Text">0°</SetVariable>
-                                <SetVariable name="ConfigKey">[BiteDJ],screen_rotation</SetVariable>
-                                <SetVariable name="Value">0</SetVariable>
-                              </Template>
-                              <Template src="skin:templates/setting_segment_button.xml">
-                                <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
-                                <SetVariable name="Text">180°</SetVariable>
-                                <SetVariable name="ConfigKey">[BiteDJ],screen_rotation</SetVariable>
-                                <SetVariable name="Value">180</SetVariable>
-                              </Template>
-                            </Children>
-                          </WidgetGroup>
-                          <!-- Keeps the two groups from reading as one
-                               four-segment strip; both are lit at once and
-                               would otherwise look like a single control with
-                               two selections. -->
-                          <WidgetGroup>
-                            <Size>12f,0me</Size>
-                          </WidgetGroup>
-                          <WidgetGroup>
-                            <ObjectName>ScreenModeSegmented</ObjectName>
-                            <Layout>horizontal</Layout>
-                            <Size>120f,44f</Size>
-                            <Children>
-                              <Template src="skin:templates/setting_segment_button.xml">
-                                <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
-                                <SetVariable name="Text">Night</SetVariable>
-                                <SetVariable name="ConfigKey">[BiteDJ],high_contrast</SetVariable>
-                                <SetVariable name="Value">0</SetVariable>
-                              </Template>
-                              <Template src="skin:templates/setting_segment_button.xml">
-                                <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
-                                <SetVariable name="Text">Day</SetVariable>
-                                <SetVariable name="ConfigKey">[BiteDJ],high_contrast</SetVariable>
-                                <SetVariable name="Value">1</SetVariable>
-                              </Template>
-                            </Children>
-                          </WidgetGroup>
-                          <!-- Wider than the gap above: Power is not part of
-                               the screen group and must not read as a third
-                               segment of it. -->
-                          <WidgetGroup>
-                            <Size>16f,0me</Size>
+                            <Size>4f,0me</Size>
                           </WidgetGroup>
                           <PushButton>
                             <ObjectName>SettingsActionButton</ObjectName>
-                            <Size>64f,44f</Size>
+                            <Size>114f,40f</Size>
                             <NumberStates>1</NumberStates>
                             <State>
                               <Number>0</Number>
@@ -828,7 +990,7 @@
                           </Label>
                           <PushButton>
                             <ObjectName>SettingsDangerButton</ObjectName>
-                            <Size>120f,44f</Size>
+                            <Size>114f,40f</Size>
                             <NumberStates>1</NumberStates>
                             <State>
                               <Number>0</Number>
@@ -841,11 +1003,11 @@
                             </Connection>
                           </PushButton>
                           <WidgetGroup>
-                            <Size>12f,0me</Size>
+                            <Size>4f,0me</Size>
                           </WidgetGroup>
                           <PushButton>
                             <ObjectName>SettingsActionButton</ObjectName>
-                            <Size>120f,44f</Size>
+                            <Size>114f,40f</Size>
                             <NumberStates>1</NumberStates>
                             <State>
                               <Number>0</Number>
@@ -967,7 +1129,7 @@
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
-                        <Size>150f,40f</Size>
+                        <Size>168f,40f</Size>
                         <!-- Two rows share this line, so it can run out of width
                              at the 480px-wide floor and Qt compresses children
                              past their size hint to fit. Pin both controls (a QSS
@@ -1014,7 +1176,7 @@
 
                           <PushButton>
                             <ObjectName>SettingsActionButton</ObjectName>
-                            <Size>0me,44f</Size>
+                            <Size>0me,40f</Size>
                             <NumberStates>1</NumberStates>
                             <State>
                               <Number>0</Number>
@@ -1040,7 +1202,7 @@
                             <Children>
                               <PushButton>
                                 <ObjectName>SettingsPrimaryButton</ObjectName>
-                                <Size>0me,44f</Size>
+                                <Size>0me,40f</Size>
                                 <NumberStates>1</NumberStates>
                                 <State>
                                   <Number>0</Number>
@@ -1066,7 +1228,7 @@
                               </PushButton>
                               <PushButton>
                                 <ObjectName>SettingsActionButton</ObjectName>
-                                <Size>0me,44f</Size>
+                                <Size>0me,40f</Size>
                                 <NumberStates>1</NumberStates>
                                 <State>
                                   <Number>0</Number>

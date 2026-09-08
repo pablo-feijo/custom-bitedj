@@ -895,11 +895,11 @@ void EngineMixer::addChannel(EngineChannel* pChannel) {
     pChannelInfo->m_handle = m_pChannelHandleFactory->getOrCreateHandle(group);
     pChannelInfo->m_pVolumeControl = new ControlAudioTaperPot(
             ConfigKey(group, "volume"), -20, 0, 1);
-    // Decks start with their level fader fully down so nothing plays out of the
-    // main mix until the DJ has beatmatched the track and deliberately brings
-    // the fader up. Samplers, preview decks, microphones and aux inputs keep
-    // their conventional full-volume default.
-    const double defaultVolume = PlayerManager::isDeckGroup(group) ? 0.0 : 1.0;
+    // BiteDJ: Decks default to 1.0 (unity) so audio plays out of the box in
+    // standalone / touchscreen / demo mode without requiring a hardware MIDI controller.
+    // When a physical controller (e.g. DDJ-400) is connected, touching or moving
+    // the hardware faders immediately overrides this value.
+    const double defaultVolume = 1.0;
     pChannelInfo->m_pVolumeControl->setDefaultValue(defaultVolume);
     pChannelInfo->m_pVolumeControl->set(defaultVolume);
     pChannelInfo->m_pMuteControl = new ControlPushButton(

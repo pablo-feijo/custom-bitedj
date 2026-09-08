@@ -1,6 +1,10 @@
+#include "control/controlproxy.h"
+#include "control/controlobject.h"
+#include <memory>
 #include "mixxxmainwindow.h"
 
 #include <QCloseEvent>
+#include <QProcess>
 #include <QDebug>
 #include <QFileDialog>
 #include <QOpenGLContext>
@@ -299,6 +303,10 @@ void MixxxMainWindow::initialize() {
     m_pPrefDlg->setWindowIcon(QIcon(MIXXX_ICON_PATH));
     m_pPrefDlg->setHidden(true);
     connect(m_pPrefDlg,
+            &QDialog::finished,
+            this,
+            [this](int){ this->slotViewFullScreen(true); });
+    connect(m_pPrefDlg,
             &DlgPreferences::tooltipModeChanged,
             this,
             &MixxxMainWindow::slotTooltipModeChanged);
@@ -441,6 +449,43 @@ void MixxxMainWindow::initialize() {
         qDebug("Enabling Auto DJ from CLI flag.");
         ControlObject::set(ConfigKey("[AutoDJ]", "enabled"), 1.0);
     }
+
+    // ControlProxy safely attaches to the control created by the skin parser
+    // or creates a dummy if it doesn't exist yet, without claiming ownership.
+    m_pCoShowPreferences = std::make_unique<ControlProxy>("[Master]", "show_preferences", this);
+    m_pCoShowPreferences->connectValueChanged(this,
+            [this](double v){
+                if (v > 0) {
+                    this->slotViewFullScreen(false);
+                    this->slotOptionsPreferences();
+                }
+            });
+
+    m_pCoCrossfaderToggle = std::make_unique<ControlObject>(ConfigKey("[BiteDJ]", "crossfader_enabled"));
+    m_pCoCrossfaderToggle->set(1.0); // Default to ON
+    connect(m_pCoCrossfaderToggle.get(), &ControlObject::valueChanged, this, [](double value) {
+        if (value > 0.0) {
+            ControlObject::set(ConfigKey("[Channel1]", "orientation"), 0.0); // A (Left)
+            ControlObject::set(ConfigKey("[Channel2]", "orientation"), 2.0); // B (Right)
+        } else {
+            ControlObject::set(ConfigKey("[Channel1]", "orientation"), 1.0); // None (Center)
+            ControlObject::set(ConfigKey("[Channel2]", "orientation"), 1.0); // None (Center)
+        }
+    });
+
+    m_pCoLaunchWifi = std::make_unique<ControlProxy>("[BiteDJ]", "launch_wifi", this);
+    m_pCoLaunchWifi->connectValueChanged(this, [](double value) {
+        if (value > 0.0) {
+            QProcess::startDetached("/usr/bin/bitedj-wifi", QStringList());
+        }
+    });
+
+    m_pCoLaunchBluetooth = std::make_unique<ControlProxy>("[BiteDJ]", "launch_bluetooth", this);
+    m_pCoLaunchBluetooth->connectValueChanged(this, [](double value) {
+        if (value > 0.0) {
+            QProcess::startDetached("/usr/bin/bitedj-bt", QStringList());
+        }
+    });
 }
 
 MixxxMainWindow::~MixxxMainWindow() {

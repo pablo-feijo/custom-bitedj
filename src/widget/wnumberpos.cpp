@@ -130,3 +130,17 @@ void WNumberPos::slotSetTimeFormat(double v) {
 
     slotSetTimeElapsed(m_dOldTimeElapsed);
 }
+
+#include <QMouseEvent>
+
+void WNumberPos::mousePressEvent(QMouseEvent* e) {
+    if (e->button() == Qt::LeftButton) {
+        double current = m_pShowTrackTimeRemaining->get();
+        double next = (static_cast<int>(current) + 1) % 2;
+        m_pShowTrackTimeRemaining->set(next);
+        slotSetDisplayMode(next);
+        e->accept();
+    } else {
+        WNumber::mousePressEvent(e);
+    }
+}

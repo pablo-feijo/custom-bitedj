@@ -2,6 +2,7 @@
 
 #include <QCheckBox>
 #include <QContextMenuEvent>
+#include <QMouseEvent>
 #include <QScopedValueRollback>
 #include <QWidgetAction>
 
@@ -176,6 +177,26 @@ void WTrackTableViewHeader::contextMenuEvent(QContextMenuEvent* pEvent) {
     }
     pEvent->accept();
     m_menu.popup(pEvent->globalPos());
+}
+
+void WTrackTableViewHeader::mousePressEvent(QMouseEvent* event) {
+    int logical = logicalIndexAt(event->pos());
+    TrackModel* pTrackModel = getTrackModel();
+    if (pTrackModel && logical >= 0 && !pTrackModel->isColumnSortable(logical)) {
+        event->accept();
+        return;
+    }
+    QHeaderView::mousePressEvent(event);
+}
+
+void WTrackTableViewHeader::mouseReleaseEvent(QMouseEvent* event) {
+    int logical = logicalIndexAt(event->pos());
+    TrackModel* pTrackModel = getTrackModel();
+    if (pTrackModel && logical >= 0 && !pTrackModel->isColumnSortable(logical)) {
+        event->accept();
+        return;
+    }
+    QHeaderView::mouseReleaseEvent(event);
 }
 
 void WTrackTableViewHeader::resizeEvent(QResizeEvent* pEvent) {

@@ -4,6 +4,9 @@ By Deckshark
 
 # BiteDJ
 
+> **Note:** This repository hosts a custom build of BiteDJ. We are currently *vibe coding* on top of the original project to experiment with new custom layouts, shaders, and embedded optimizations!
+
+
 BiteDJ is an independent project based upon the free and open source Mixxx DJ software and is distributed under the GNU General Public License v2.0. Support requests regarding BiteDJ should be directed at its maintainers.
 
 All changes in this fork were made from the upstream base revision **Mixxx 2.5.6**.
@@ -241,3 +244,14 @@ New test coverage added alongside the fork's features: `foldertreemodel`,
 - Slot loaded/unloaded log messages raised to INFO severity.
 - Fork settings `shared_ptr`s are dropped before manager teardown.
 - It will never be Christmas 2024 again.
+
+## Build Requirements & OS Image Generation
+- The pre-compiled Linux binary requires **Debian 13 (Trixie)** or a similarly modern OS (e.g., Ubuntu 24.04) to satisfy its modern library dependencies (GLIBC 2.38, Qt 6.8, libFLAC 14, FFmpeg 7).
+- When using the `mixxx-pi-gen` submodule to generate the Raspberry Pi OS image:
+  - The configuration uses `RELEASE="trixie"` and pulls the `debian:trixie` base image to ensure compatibility with the BiteDJ binary.
+  - The `apt autoremove` cleanup steps in the `02-desktop` and `04-enable-wayland` build stages are explicitly disabled to prevent `pi-printer-support` removal from accidentally purging `raspberrypi-ui-mods`, `lightdm`, and `waybar`.
+
+## Changelog
+
+For a detailed list of changes and release notes, please see [CHANGELOG.md](CHANGELOG.md).
+

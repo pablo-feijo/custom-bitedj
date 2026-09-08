@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <EffectChain>
- <Name>Side Reverb HP</Name>
+ <Name>21. PINGPONG</Name>
  <MixMode>DRY+WET</MixMode>
  <SuperParameterValue>0</SuperParameterValue>
  <Effects>
@@ -11,21 +11,21 @@
    <Parameters>
     <Parameter>
      <Id>low</Id>
-     <Value>0.28125</Value>
+     <Value>1</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
      <Id>mid</Id>
-     <Value>0.96875</Value>
+     <Value>1</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
      <Id>high</Id>
-     <Value>0.984375</Value>
+     <Value>1</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
@@ -55,26 +55,26 @@
   </Effect>
   <Effect>
    <MetaParameterValue>0</MetaParameterValue>
-   <Id>org.mixxx.effects.reverb</Id>
+   <Id>org.mixxx.effects.echo</Id>
    <BackendType>Built-In</BackendType>
    <Parameters>
     <Parameter>
-     <Id>decay</Id>
-     <Value>0.690476</Value>
+     <Id>delay_time</Id>
+     <Value>0.5</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
-     <Id>bandwidth</Id>
-     <Value>1</Value>
+     <Id>feedback_amount</Id>
+     <Value>0.707946</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
-     <Id>damping</Id>
-     <Value>0.15625</Value>
+     <Id>pingpong_amount</Id>
+     <Value>0</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
@@ -86,36 +86,23 @@
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
-   </Parameters>
-  </Effect>
-  <Effect>
-   <MetaParameterValue>0</MetaParameterValue>
-   <Id>org.mixxx.effects.balance</Id>
-   <BackendType>Built-In</BackendType>
-   <Parameters>
     <Parameter>
-     <Id>balance</Id>
-     <Value>-0.015625</Value>
+     <Id>quantize</Id>
+     <Value>1</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
-     <Id>midSide</Id>
-     <Value>0.508312</Value>
-     <LinkType>NONE</LinkType>
-     <LinkInversion>0</LinkInversion>
-     <Hidden>0</Hidden>
-    </Parameter>
-    <Parameter>
-     <Id>bypassFreq</Id>
-     <Value>26.0248</Value>
+     <Id>triplet</Id>
+     <Value>0</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
    </Parameters>
   </Effect>
+  <Effect/>
   <Effect/>
  </Effects>
 </EffectChain>

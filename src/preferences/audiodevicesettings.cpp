@@ -1,3 +1,5 @@
+#include <QFile>
+#include <QTextStream>
 #include "preferences/audiodevicesettings.h"
 
 #include <QSet>
@@ -696,11 +698,48 @@ void AudioDeviceSettings::refreshDeviceList() {
         if (pDevice->getDeviceId().name == kNetworkDeviceInternalName) {
             continue;
         }
-        const int channels = static_cast<int>(pDevice->getNumOutputChannels());
+        
+        // BiteDJ: Extremely aggressive filter for touch UI.
+        // We only want to show the DDJ-400 and the Pi's internal audio.
+        // We also want to rename them so they look pretty on the tiny screen!
+        QString rawName = pDevice->getDisplayName();
+        QString cleanName = rawName;
+        QString devName = pDevice->getDeviceId().name;
+        
+        if (api == "ALSA") {
+            // PortAudio devName string completely strips the ALSA PCM string!
+            // The ONLY string that contains 'plughw:' or 'pipewire' is the rawName.
+            if (!rawName.contains("plughw:") && rawName != "pipewire" && rawName != "default" && rawName != "sysdefault" && !rawName.contains("hw:")) {
+                continue; // Allow pipewire, default, and hardware nodes
+            }
+            
+            if (rawName.contains("DDJ-400", Qt::CaseInsensitive) || rawName.contains("DDJ400", Qt::CaseInsensitive)) {
+                cleanName = "DDJ-400";
+            } else if (rawName.contains("bcm2835", Qt::CaseInsensitive) || rawName.contains("Headphones", Qt::CaseInsensitive)) {
+                cleanName = "Pi Headphones";
+            } else if (rawName.contains("vc4hdmi", Qt::CaseInsensitive) || rawName.contains("vc4-hdmi", Qt::CaseInsensitive)) {
+                cleanName = "Pi HDMI";
+            } else if (rawName == "pipewire" || rawName == "default" || rawName == "sysdefault") {
+                cleanName = "PipeWire / Bluetooth";
+            } else {
+                continue; // Filter everything else
+            }
+        }
+        int channels = static_cast<int>(pDevice->getNumOutputChannels());
         if (channels < 2) {
             continue; // need at least stereo for a bus
         }
-        m_deviceNames.append(pDevice->getDisplayName());
+        
+        // BiteDJ: ALSA 'plughw' devices often lie and advertise 32 or 64 virtual channels!
+        // This causes the touch UI to generate dozens of useless "ch 31-32" options.
+        // Cap the DDJ-400 at 4 channels (Master 1-2, Headphone 3-4) and everything else at 2.
+        if (cleanName == "DDJ-400") {
+            channels = qMin(channels, 4);
+        } else {
+            channels = qMin(channels, 2);
+        }
+        
+        m_deviceNames.append(cleanName);
         m_deviceIds.append(pDevice->getDeviceId());
         m_deviceOutputChannels.append(channels);
     }

@@ -32,7 +32,7 @@
               <WidgetGroup>
                 <ObjectName>WaveformInfo_Key_Container</ObjectName>
                 <Layout>horizontal</Layout>
-                <Size>0me,30f</Size>
+                <Size>30me,30f</Size>
                 <Children>
                   <!-- Left, not centred: the key used to share this row with a
                        ♭♯ chip and centred in what was left of it. On its own it
@@ -84,7 +84,7 @@
               <WidgetGroup>
                 <ObjectName>WaveformInfo_Controls</ObjectName>
                 <Layout>horizontal</Layout>
-                <Size>0me,30f</Size>
+                <Size>30me,30f</Size>
                 <Children>
 
                   <Template src="skin:templates/toggle_button.xml">
@@ -101,6 +101,45 @@
                     <SetVariable name="LeftConnectionControl">[Channel<Variable name="channel"/>],keylock</SetVariable>
                   </Template>
 
+                </Children>
+              </WidgetGroup>
+              <WidgetGroup>
+                <ObjectName>WaveformInfo_PlayRow</ObjectName>
+                <Layout>horizontal</Layout>
+                <Size>0me,40f</Size>
+                <Children>
+                  <PushButton>
+                    <ObjectName>WaveformPlayButton</ObjectName>
+                    <Size>30me,30f</Size>
+                    <NumberStates>2</NumberStates>
+                    <State>
+                      <Number>0</Number>
+                      <Text></Text>
+                    </State>
+                    <State>
+                      <Number>1</Number>
+                      <Text></Text>
+                    </State>
+                    <Connection>
+                      <ConfigKey>[Channel<Variable name="channel"/>],play</ConfigKey>
+                    </Connection>
+                  </PushButton>
+                  <PushButton>
+                    <ObjectName>WaveformCueButton</ObjectName>
+                    <Size>30me,30f</Size>
+                    <NumberStates>2</NumberStates>
+                    <State>
+                      <Number>0</Number>
+                      <Text>CUE</Text>
+                    </State>
+                    <State>
+                      <Number>1</Number>
+                      <Text>CUE</Text>
+                    </State>
+                    <Connection>
+                      <ConfigKey>[Channel<Variable name="channel"/>],cue_default</ConfigKey>
+                    </Connection>
+                  </PushButton>
                 </Children>
               </WidgetGroup>
             </Children>

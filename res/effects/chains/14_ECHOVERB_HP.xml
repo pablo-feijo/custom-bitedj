@@ -1,52 +1,52 @@
 <?xml version='1.0' encoding='utf-8'?>
 <EffectChain>
- <Name>Smooth Growl</Name>
- <MixMode>DRY/WET</MixMode>
+ <Name>14. ECHOVERB HP</Name>
+ <MixMode>DRY+WET</MixMode>
  <SuperParameterValue>0</SuperParameterValue>
  <Effects>
   <Effect>
    <MetaParameterValue>0</MetaParameterValue>
-   <Id>org.mixxx.effects.bitcrusher</Id>
+   <Id>org.mixxx.effects.threebandbiquadeq</Id>
    <BackendType>Built-In</BackendType>
    <Parameters>
     <Parameter>
-     <Id>bit_depth</Id>
-     <Value>16</Value>
-     <LinkType>LINKED</LinkType>
-     <LinkInversion>1</LinkInversion>
-     <Hidden>0</Hidden>
-    </Parameter>
-    <Parameter>
-     <Id>downsample</Id>
-     <Value>1</Value>
-     <LinkType>LINKED</LinkType>
-     <LinkInversion>1</LinkInversion>
-     <Hidden>0</Hidden>
-    </Parameter>
-   </Parameters>
-  </Effect>
-  <Effect>
-   <MetaParameterValue>0</MetaParameterValue>
-   <Id>org.mixxx.effects.moogladder4filter</Id>
-   <BackendType>Built-In</BackendType>
-   <Parameters>
-    <Parameter>
-     <Id>lpf</Id>
-     <Value>0.5</Value>
-     <LinkType>LINKED</LinkType>
-     <LinkInversion>1</LinkInversion>
-     <Hidden>0</Hidden>
-    </Parameter>
-    <Parameter>
-     <Id>resonance</Id>
-     <Value>1.54534</Value>
+     <Id>low</Id>
+     <Value>0.34375</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
     </Parameter>
     <Parameter>
-     <Id>hpf</Id>
-     <Value>0.0003</Value>
+     <Id>mid</Id>
+     <Value>1</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>high</Id>
+     <Value>1</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>killLow</Id>
+     <Value>0</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>killMid</Id>
+     <Value>0</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>killHigh</Id>
+     <Value>0</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
@@ -60,7 +60,7 @@
    <Parameters>
     <Parameter>
      <Id>delay_time</Id>
-     <Value>0.996914</Value>
+     <Value>0.5</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
@@ -74,7 +74,7 @@
     </Parameter>
     <Parameter>
      <Id>pingpong_amount</Id>
-     <Value>0.169252</Value>
+     <Value>0</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>
@@ -96,6 +96,41 @@
     <Parameter>
      <Id>triplet</Id>
      <Value>0</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+   </Parameters>
+  </Effect>
+  <Effect>
+   <MetaParameterValue>0</MetaParameterValue>
+   <Id>org.mixxx.effects.reverb</Id>
+   <BackendType>Built-In</BackendType>
+   <Parameters>
+    <Parameter>
+     <Id>decay</Id>
+     <Value>0.5</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>bandwidth</Id>
+     <Value>1</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>damping</Id>
+     <Value>0.277905</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>send_amount</Id>
+     <Value>1</Value>
      <LinkType>NONE</LinkType>
      <LinkInversion>0</LinkInversion>
      <Hidden>0</Hidden>

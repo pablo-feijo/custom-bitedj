@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <EffectChain>
- <Name>Mid/Side</Name>
+ <Name>17. MID-SIDE</Name>
  <MixMode>DRY/WET</MixMode>
  <SuperParameterValue>0.5</SuperParameterValue>
  <Effects>

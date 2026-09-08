@@ -1,24 +1,12 @@
 #pragma once
 
-#include <QPushButton>
-
-#include "control/pollingcontrolproxy.h"
 #include "library/tabledelegates/tableitemdelegate.h"
 #include "track/track_decl.h"
-#include "util/parented_ptr.h"
 
-class ControlProxy;
+#include <QHash>
+#include <QPixmap>
+
 class WLibraryTableView;
-
-// A QPushButton for rendering the library preview button within the
-// PreviewButtonDelegate.
-class LibraryPreviewButton : public QPushButton {
-    Q_OBJECT
-  public:
-    explicit LibraryPreviewButton(QWidget* parent);
-
-    void paint(QPainter* painter);
-};
 
 class PreviewButtonDelegate : public TableItemDelegate {
     Q_OBJECT
@@ -32,12 +20,9 @@ class PreviewButtonDelegate : public TableItemDelegate {
             const QStyleOptionViewItem& option,
             const QModelIndex& index) const override;
 
-    // Apparently this no-op override is required to trigger a paint
-    // event after row has been painted with the 'selected' style. (Qt 5)
     void setEditorData(
             QWidget* editor,
             const QModelIndex& index) const override;
-    // Seems this is not required
     void setModelData(
             QWidget* editor,
             QAbstractItemModel* model,
@@ -49,38 +34,29 @@ class PreviewButtonDelegate : public TableItemDelegate {
     QSize sizeHint(
             const QStyleOptionViewItem& option,
             const QModelIndex& index) const override;
-    void updateEditorGeometry(QWidget* editor,
+    void updateEditorGeometry(
+            QWidget* editor,
             const QStyleOptionViewItem& option,
             const QModelIndex& index) const override;
 
   signals:
     void loadTrackToPlayer(const TrackPointer& pTrack, const QString& group, bool play);
-    void buttonSetChecked(bool);
 
   public slots:
     void cellEntered(const QModelIndex& index);
-    void buttonClicked();
-    void previewDeckPlayChanged(double v);
+
+  private slots:
+    void waveformTypeChanged(double value);
 
   private:
-    bool isPreviewDeckPlaying() const;
-    bool isTrackLoadedInPreviewDeck(
-            const QModelIndex& index) const;
-    bool isTrackLoadedInPreviewDeckAndPlaying(
-            const QModelIndex& index) const {
-        if (!isPreviewDeckPlaying()) {
-            // No need to query additional data from the table
-            return false;
-        }
-        return isTrackLoadedInPreviewDeck(index);
-    }
+    struct CachedPreview {
+        QPixmap pixmap;
+        int width;
+        int height;
+        int waveformType;
+    };
 
     const int m_column;
-
-    const parented_ptr<ControlProxy> m_pPreviewDeckPlay;
-    PollingControlProxy m_pCueGotoAndPlay;
-
-    const parented_ptr<LibraryPreviewButton> m_pButton;
-
-    QPersistentModelIndex m_currentEditedCellIndex;
+    mutable QHash<QString, CachedPreview> m_previewCache;
+    class ControlProxy* m_pCOWaveformType;
 };

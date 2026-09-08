@@ -106,8 +106,16 @@ bool TouchScrollFilter::handleMouseMove(QMouseEvent* pEvent) {
 
     const QPointF pos = pEvent->position();
     if (m_state == State::Pending) {
+        if (std::abs(pos.x() - m_pressPos.x()) >= dragStartDistance()) {
+            // Horizontal drag started! This is a Drag & Drop gesture.
+            m_state = State::Idle;
+            replayPress();
+            // Let the current Move event fall through to the view so it can start QDrag
+            return false;
+        }
+
         if (std::abs(pos.y() - m_pressPos.y()) < dragStartDistance()) {
-            // Might still become a tap, keep swallowing.
+            // Might still become a tap or horizontal drag, keep swallowing.
             pEvent->accept();
             return true;
         }

@@ -198,8 +198,6 @@ BrowseTableModel::BrowseTableModel(QObject* parent,
     m_columnIndexBySortColumnId[static_cast<int>(
             TrackModel::SortColumnId::Key)] = COLUMN_KEY;
     m_columnIndexBySortColumnId[static_cast<int>(
-            TrackModel::SortColumnId::Preview)] = COLUMN_PREVIEW;
-    m_columnIndexBySortColumnId[static_cast<int>(
             TrackModel::SortColumnId::Grouping)] = COLUMN_GROUPING;
     m_columnIndexBySortColumnId[static_cast<int>(
             TrackModel::SortColumnId::FileModifiedTime)] =
@@ -218,6 +216,7 @@ BrowseTableModel::BrowseTableModel(QObject* parent,
             m_sortColumnIdByColumnIndex.insert(columnIndex, sortColumn);
         }
     }
+    setDefaultSort(COLUMN_TITLE, Qt::AscendingOrder);
 
     setHorizontalHeaderLabels(headerLabels);
 
@@ -296,6 +295,9 @@ int BrowseTableModel::columnIndexFromSortColumnId(TrackModel::SortColumnId colum
 }
 
 TrackModel::SortColumnId BrowseTableModel::sortColumnIdFromColumnIndex(int index) const {
+    if (index == COLUMN_PREVIEW) {
+        return TrackModel::SortColumnId::Invalid;
+    }
     return m_sortColumnIdByColumnIndex.value(index, TrackModel::SortColumnId::Invalid);
 }
 
@@ -363,6 +365,41 @@ TrackId BrowseTableModel::getTrackId(const QModelIndex& index) const {
 }
 
 QVariant BrowseTableModel::data(const QModelIndex& index, int role) const {
+    if (role == Qt::DisplayRole || role == Qt::UserRole) {
+        if (index.column() == COLUMN_BPM || index.column() == COLUMN_KEY) {
+            QVariant val = QStandardItemModel::data(index, role);
+            bool isZero = false;
+            if (role == Qt::DisplayRole) {
+                isZero = (val.isNull() || val.toString().trimmed().isEmpty() || val.toString() == "0" || val.toString() == "0.0");
+            } else {
+                if (index.column() == COLUMN_BPM) {
+                    isZero = (val.isNull() || val.toDouble() <= 0.0);
+                } else {
+                    isZero = (val.isNull() || val.toString().trimmed().isEmpty());
+                }
+            }
+            if (isZero) {
+                TrackPointer pTrack = getTrack(index);
+                if (pTrack) {
+                    if (index.column() == COLUMN_BPM) {
+                        double bpm = pTrack->getBpm();
+                        if (bpm > 0.0) {
+                            if (role == Qt::DisplayRole) {
+                                return QString::number(bpm, 'f', 1);
+                            } else {
+                                return bpm;
+                            }
+                        }
+                    } else if (index.column() == COLUMN_KEY) {
+                        QString key = pTrack->getKeyText();
+                        if (!key.isEmpty()) {
+                            return key;
+                        }
+                    }
+                }
+            }
+        }
+    }
     // Paint the row red once a load has revealed the file to be missing, so the
     // DJ can see at a glance which entries are dead (e.g. left over after a USB
     // drive was pulled). Other roles are unaffected.
@@ -560,6 +597,7 @@ TrackModel::Capabilities BrowseTableModel::getCapabilities() const {
             Capability::LoadToPreviewDeck |
             Capability::LoadToSampler |
             Capability::RemoveFromDisk |
+            Capability::Analyze |
             Capability::Sorting;
 }
 
@@ -701,7 +739,7 @@ bool BrowseTableModel::isColumnSortable(int column) const {
 QAbstractItemDelegate* BrowseTableModel::delegateForColumn(const int i, QObject* pParent) {
     WLibraryTableView* pTableView = qobject_cast<WLibraryTableView*>(pParent);
     DEBUG_ASSERT(pTableView);
-    if (PlayerInfo::instance().numPreviewDecks() > 0 && i == COLUMN_PREVIEW) {
+    if (i == COLUMN_PREVIEW) {
         return new PreviewButtonDelegate(pTableView, i);
     }
     // Custom delegate on every text column so a flagged row renders in its

@@ -102,7 +102,7 @@ set(MIXXX_VERSION_PRERELEASE "") # set to "alpha" "beta" or ""
 # The Bite DJ fork version. This is the product version displayed in the UI and
 # reported by `bitedj --version`; it moves independently of the Mixxx base
 # version above.
-set(BITEDJ_VERSION "1.0")
+set(BITEDJ_VERSION "0.0.6")
 set(BITEDJ_VERSION_PRERELEASE "") # set to "alpha" "beta" or ""
 if(NOT BITEDJ_VERSION MATCHES "^[0-9]+(\\.[0-9]+)*$")
   message(FATAL_ERROR "BITEDJ_VERSION must be a dot-separated numeric version, got '${BITEDJ_VERSION}'")
@@ -646,11 +646,7 @@ add_library(mixxx-lib STATIC EXCLUDE_FROM_ALL
   src/library/export/trackexportwizard.cpp
   src/library/export/trackexportworker.cpp
   src/library/externaltrackcollection.cpp
-  src/library/itunes/itunesdao.cpp
-  src/library/itunes/itunesfeature.cpp
-  src/library/itunes/itunesimporter.cpp
-  src/library/itunes/itunesplaylistmodel.cpp
-  src/library/itunes/itunesxmlimporter.cpp
+
   src/library/library_prefs.cpp
   src/library/library.cpp
   src/library/librarycolumncontrol.cpp
@@ -1585,7 +1581,7 @@ if(BUILD_TESTING)
     src/test/hotcuecontrol_test.cpp
     src/test/imageutils_test.cpp
     src/test/indexrange_test.cpp
-    src/test/itunesxmlimportertest.cpp
+
     src/test/keycontrol_test.cpp
     src/test/keyfactorytest.cpp
     src/test/keyutilstest.cpp

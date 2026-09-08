@@ -732,11 +732,22 @@ void WOverview::drawWaveformPixmap(QPainter* pPainter) {
         }
 
         if (m_diffGain != diffGain || m_waveformImageScaled.isNull()) {
-            QRect sourceRect(0,
-                    static_cast<int>(diffGain),
-                    m_waveformSourceImage.width(),
-                    m_waveformSourceImage.height() -
-                            2 * static_cast<int>(diffGain));
+            QRect sourceRect;
+            if (m_type == Type::Stacked) {
+                // Single-sided from bottom: crop empty space from the top only
+                int topCrop = m_waveformSourceImage.height() - static_cast<int>(m_waveformPeak);
+                if (topCrop < 0) topCrop = 0;
+                sourceRect = QRect(0,
+                        topCrop,
+                        m_waveformSourceImage.width(),
+                        m_waveformSourceImage.height() - topCrop);
+            } else {
+                sourceRect = QRect(0,
+                        static_cast<int>(diffGain),
+                        m_waveformSourceImage.width(),
+                        m_waveformSourceImage.height() -
+                                2 * static_cast<int>(diffGain));
+            }
             QImage croppedImage = m_waveformSourceImage.copy(sourceRect);
             if (m_orientation == Qt::Vertical) {
                 // Rotate pixmap
@@ -1345,6 +1356,8 @@ bool WOverview::drawNextPixmapPart() {
         drawNextPixmapPartLMH(&painter, pWaveform, nextCompletion);
     } else if (m_type == Type::HSV) {
         drawNextPixmapPartHSV(&painter, pWaveform, nextCompletion);
+    } else if (m_type == Type::Stacked) {
+        drawNextPixmapPartStacked(&painter, pWaveform, nextCompletion);
     } else { // Type::RGB:
         drawNextPixmapPartRGB(&painter, pWaveform, nextCompletion);
     }
@@ -1486,6 +1499,69 @@ void WOverview::drawNextPixmapPartLMH(QPainter* pPainter,
                 m_waveformPeak,
                 static_cast<float>(pWaveform->getAll(currentCompletion)),
                 static_cast<float>(pWaveform->getAll(currentCompletion + 1)));
+    }
+
+    m_actualCompletion = nextCompletion;
+}
+
+void WOverview::drawNextPixmapPartStacked(QPainter* pPainter,
+        ConstWaveformPointer pWaveform,
+        const int nextCompletion) {
+    DEBUG_ASSERT(!m_waveformSourceImage.isNull());
+    ScopedTimer t(QStringLiteral("WOverview::drawNextPixmapPartStacked"));
+
+    QColor lowColor = m_signalColors.getLowColor();
+    QPen lowColorPen(QBrush(lowColor), 1);
+
+    QColor midColor = m_signalColors.getMidColor();
+    QPen midColorPen(QBrush(midColor), 1);
+
+    QColor highColor = m_signalColors.getHighColor();
+    QPen highColorPen(QBrush(highColor), 1);
+
+    int currentCompletion = 0;
+    for (currentCompletion = m_actualCompletion;
+            currentCompletion < nextCompletion;
+            currentCompletion += 2) {
+        
+        float low = static_cast<float>(pWaveform->getLow(currentCompletion)) + static_cast<float>(pWaveform->getLow(currentCompletion + 1));
+        float mid = static_cast<float>(pWaveform->getMid(currentCompletion)) + static_cast<float>(pWaveform->getMid(currentCompletion + 1));
+        float high = static_cast<float>(pWaveform->getHigh(currentCompletion)) + static_cast<float>(pWaveform->getHigh(currentCompletion + 1));
+
+        // Use a scale factor so that max possible sum (765) fits within the 510px height
+        const float scale = 0.6f;
+
+        low *= scale;
+        mid *= scale;
+        high *= scale;
+
+        float x = currentCompletion / 2.0f;
+        float y = m_waveformSourceImage.height(); // Start drawing from the very bottom edge of the 510px image
+
+        // Draw low
+        if (low > 0) {
+            pPainter->setPen(lowColorPen);
+            pPainter->drawLine(QPointF(x, y), QPointF(x, y - low));
+            y -= low;
+        }
+
+        // Draw mid
+        if (mid > 0) {
+            pPainter->setPen(midColorPen);
+            pPainter->drawLine(QPointF(x, y), QPointF(x, y - mid));
+            y -= mid;
+        }
+
+        // Draw high
+        if (high > 0) {
+            pPainter->setPen(highColorPen);
+            pPainter->drawLine(QPointF(x, y), QPointF(x, y - high));
+        }
+
+        m_waveformPeak = math_max3(
+                m_waveformPeak,
+                low + mid + high,
+                0.0f);
     }
 
     m_actualCompletion = nextCompletion;
