@@ -152,6 +152,11 @@ WaveformWidgetFactory::WaveformWidgetFactory()
           m_frameCnt(0),
           m_actualFrameRate(0),
           m_playMarkerPosition(WaveformWidgetRenderer::s_defaultPlayMarkerPosition) {
+    m_pCOWaveformType.reset(new ControlObject(ConfigKey(QStringLiteral("[Waveform]"), QStringLiteral("waveform_type"))));
+    m_pCOWaveformType->set(0.0);
+    connect(m_pCOWaveformType.data(), &ControlObject::valueChanged, this, &WaveformWidgetFactory::slotSetWidgetTypeFromControl);
+    m_pCOWaveformOverviewType.reset(new ControlObject(ConfigKey(QStringLiteral("[Waveform]"), QStringLiteral("WaveformOverviewType"))));
+    m_pCOWaveformOverviewType->set(0.0);
     m_visualGain[All] = 1.0;
     m_visualGain[Low] = 1.0;
     m_visualGain[Mid] = 1.0;
@@ -411,18 +416,7 @@ bool WaveformWidgetFactory::setConfig(UserSettingsPointer config) {
         setWidgetType(autoChooseWidgetType(), &m_configType);
     }
 
-    if (!m_pCOWaveformType) {
-        m_pCOWaveformType.reset(new ControlObject(
-                ConfigKey(QStringLiteral("[Waveform]"),
-                        QStringLiteral("waveform_type"))));
-        m_pCOWaveformType->set(static_cast<int>(m_configType));
-        connect(m_pCOWaveformType.data(),
-                &ControlObject::valueChanged,
-                this,
-                &WaveformWidgetFactory::slotSetWidgetTypeFromControl);
-    } else {
-        m_pCOWaveformType->set(static_cast<int>(m_configType));
-    }
+    m_pCOWaveformType->set(static_cast<int>(m_configType));
 
     for (int i = 0; i < FilterCount; i++) {
         double visualGain = m_config->getValueString(
@@ -650,6 +644,23 @@ bool WaveformWidgetFactory::widgetTypeSupportsUntilMark() const {
 
 void WaveformWidgetFactory::slotSetWidgetTypeFromControl(double value) {
     auto type = static_cast<WaveformWidgetType::Type>(static_cast<int>(value));
+
+    // Sync WaveformOverviewType
+    double overviewType = 0.0; // Filtered default
+    if (type == WaveformWidgetType::AllShaderRGBStackedWaveform ||
+        static_cast<int>(type) == 25 || static_cast<int>(type) == 26) {
+        overviewType = 3.0; // Stacked
+    } else if (type == WaveformWidgetType::AllShaderRGBWaveform ||
+               static_cast<int>(type) == 17) {
+        overviewType = 2.0; // RGB
+    }
+    
+    // Set the ControlObject AND config!
+    ControlObject::set(ConfigKey(QStringLiteral("[Waveform]"), QStringLiteral("WaveformOverviewType")), overviewType);
+    if (m_config) {
+        m_config->setValue(ConfigKey("[Waveform]", "WaveformOverviewType"), overviewType);
+    }
+
     int handleIndex = findHandleIndexFromType(type);
     if (handleIndex < 0) {
         return;
@@ -1101,6 +1112,8 @@ void WaveformWidgetFactory::evaluateWidgets() {
             break;
 #endif
         case WaveformWidgetType::AllShaderRGBStackedWaveform:
+            widgetName = tr("3-Band (GLSL)");
+            category = WaveformWidgetCategory::AllShader;
 #ifndef MIXXX_USE_QOPENGL
             continue;
 #else
