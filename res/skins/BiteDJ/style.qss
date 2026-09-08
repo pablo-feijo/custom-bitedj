@@ -116,6 +116,7 @@ WPushButton[value="1"]:hover {
 
 #DeckTitleRow {
   padding-left: 6px;
+  qproperty-layoutAlignment: 'AlignVCenter';
 }
 
 #DeckTitle {
@@ -138,7 +139,7 @@ WPushButton[value="1"]:hover {
 }
 
 #DeckKey {
-  font-size: 13px;
+  font-size: 10px;
   font-weight: bold;
   color: #38bdf8;
   background-color: rgba(8, 125, 225, 0.25);
@@ -264,14 +265,14 @@ WPushButton[value="1"]:hover {
 /* Opens the drawer on this deck; sits between the key/BPM chips and the
  * track title, so it stays narrow. */
 #DeckCueChip {
-  font-size: 13px;
+  font-size: 10px;
   font-weight: bold;
   text-transform: uppercase;
   color: #38bdf8;
   background-color: rgba(8, 125, 225, 0.25);
   border: 1px solid transparent;
   border-radius: 2px;
-  margin-right: 2px;
+  margin-right: 8px;
 }
 
 #DeckCueChip:pressed {
@@ -734,14 +735,16 @@ WLabel {
   qproperty-layoutAlignment: 'AlignVCenter';
 }
 
-#WaveformSourceRow { background-color: #24242c; }
-#WaveformDeckNumber { font-weight: bold; font-size: 14px; color: #c49ade; }
-#WaveformSource { font-size: 13px; font-weight: bold; color: #e5e6ea; }
-#WaveformLoopIcon { font-size: 18px; color: #9999a8; qproperty-alignment: 'AlignCenter'; }
-#WaveformLoopIcon[highlight="1"] { color: #b28ad0; }
-#WaveformKeyValue { font-size: 14px; font-weight: bold; color: #38bdf8; }
+#WaveformSourceRow { qproperty-layoutSpacing: 6; }
+#WaveformDeckNumber { font-weight: bold; font-size: 11px; color: #c49ade; background-color: #302638; border-radius: 3px; qproperty-alignment: 'AlignCenter'; }
+#WaveformSource { font-size: 11px; font-weight: bold; color: #e5e6ea; background-color: #24242c; border-radius: 3px; qproperty-alignment: 'AlignCenter'; }
+#WaveformKeyLoopRow { qproperty-layoutSpacing: 4; }
+#WaveformMetadataCell { qproperty-layoutSpacing: 0; }
+#WaveformCaption { font-size: 9px; color: #9999a8; qproperty-alignment: 'AlignCenter'; }
+#WaveformCaption[highlight="1"] { color: #b28ad0; }
+#WaveformKeyValue { font-size: 12px; font-weight: bold; color: #38bdf8; qproperty-alignment: 'AlignCenter'; }
 #WaveformKeyValue[highlight="1"] { color: #f87171; }
-#WaveformLoopValue { padding: 0px; margin: 0px; font-size: 14px; }
+#WaveformLoopValue { padding: 0px; margin: 0px; font-size: 12px; qproperty-alignment: 'AlignCenter'; }
 #WaveformStateButton, #WaveformTransportButton {
   background-color: #1a1a24; border: 1px solid #383846; border-radius: 3px;
   color: #c5c5d0; font-size: 12px; font-weight: bold;

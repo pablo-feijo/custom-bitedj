@@ -84,3 +84,11 @@ hardware proof are recorded in STEM_FEASIBILITY.md.
   on the selected deck only. KEY +2 changed Cm to Dm and Reset restored Cm.
 - Day/night layouts and the shortened active-output badge were inspected in
   the updated primary VNC instance. XML parsing and diff checks passed.
+
+### Sidebar typography follow-up
+
+Restored 9px KEY/LOOP captions above 12px values in two aligned columns.
+Deck/source badges now use 11px type, separate backgrounds and a 6px gap.
+The track-strip key and CUE badges use 10px type at 16px height, with an 8px
+trailing gap after CUE. Verified in the primary 1024x600 VNC view; skin XML
+parsing and whitespace checks passed. No native code changed.

@@ -4,7 +4,7 @@
     <Layout>horizontal</Layout>
     <Size>0me,50me</Size>
     <Children>
-      <!-- 116px content + 10px separation. Beat jump lives in the right panel. -->
+      <!-- 110px content + 6px inset + 10px separation. Beat jump lives in the right panel. -->
       <WidgetGroup>
         <ObjectName>WaveformInfo</ObjectName>
         <Layout>vertical</Layout>
@@ -17,12 +17,12 @@
             <Children>
               <Label>
                 <ObjectName>WaveformDeckNumber</ObjectName>
-                <Size>24f,26f</Size>
+                <Size>28f,26f</Size>
                 <Text>D<Variable name="channel"/></Text>
               </Label>
               <TrackProperty>
                 <ObjectName>WaveformSource</ObjectName>
-                <Size>86f,26f</Size>
+                <Size>76f,26f</Size>
                 <Property>source</Property>
                 <DisableActions>true</DisableActions>
                 <Elide>right</Elide>
@@ -35,33 +35,38 @@
             <Layout>horizontal</Layout>
             <Size>0me,28f</Size>
             <Children>
-              <Key>
-                <ObjectName>WaveformKeyValue</ObjectName>
-                <Size>56f,28f</Size>
-                <Channel><Variable name="channel"/></Channel>
-                <Connection>
-                  <ConfigKey>[Channel<Variable name="channel"/>],visual_key</ConfigKey>
-                </Connection>
-                <Connection>
-                  <ConfigKey>[Channel<Variable name="channel"/>],key_shifted</ConfigKey>
-                  <BindProperty>highlight</BindProperty>
-                </Connection>
-              </Key>
-              <Label>
-                <ObjectName>WaveformLoopIcon</ObjectName>
-                <Size>20f,28f</Size>
-                <Text>↻</Text>
-                <Connection>
-                  <ConfigKey>[Channel<Variable name="channel"/>],loop_enabled</ConfigKey>
-                  <BindProperty>highlight</BindProperty>
-                </Connection>
-              </Label>
-              <BeatSpinBox>
-                <ObjectName>WaveformLoopValue</ObjectName>
-                <Size>34f,28f</Size>
-                <Value>[Channel<Variable name="channel"/>],beatloop_size</Value>
-                <ReadOnly>true</ReadOnly>
-              </BeatSpinBox>
+              <WidgetGroup>
+                <ObjectName>WaveformMetadataCell</ObjectName>
+                <Layout>vertical</Layout>
+                <Size>53f,28f</Size>
+                <Children>
+                  <Label><ObjectName>WaveformCaption</ObjectName><Size>0me,11f</Size><Text>KEY</Text></Label>
+                  <Key>
+                    <ObjectName>WaveformKeyValue</ObjectName>
+                    <Size>0me,17f</Size>
+                    <Channel><Variable name="channel"/></Channel>
+                    <Connection><ConfigKey>[Channel<Variable name="channel"/>],visual_key</ConfigKey></Connection>
+                    <Connection><ConfigKey>[Channel<Variable name="channel"/>],key_shifted</ConfigKey><BindProperty>highlight</BindProperty></Connection>
+                  </Key>
+                </Children>
+              </WidgetGroup>
+              <WidgetGroup>
+                <ObjectName>WaveformMetadataCell</ObjectName>
+                <Layout>vertical</Layout>
+                <Size>53f,28f</Size>
+                <Children>
+                  <Label>
+                    <ObjectName>WaveformCaption</ObjectName><Size>0me,11f</Size><Text>LOOP</Text>
+                    <Connection><ConfigKey>[Channel<Variable name="channel"/>],loop_enabled</ConfigKey><BindProperty>highlight</BindProperty></Connection>
+                  </Label>
+                  <BeatSpinBox>
+                    <ObjectName>WaveformLoopValue</ObjectName>
+                    <Size>0me,17f</Size>
+                    <Value>[Channel<Variable name="channel"/>],beatloop_size</Value>
+                    <ReadOnly>true</ReadOnly>
+                  </BeatSpinBox>
+                </Children>
+              </WidgetGroup>
             </Children>
           </WidgetGroup>
           <WidgetGroup>

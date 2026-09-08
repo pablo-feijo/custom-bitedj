@@ -16,7 +16,7 @@
               <Key>
                 <ObjectName>DeckKey</ObjectName>
                 <TooltipId>visual_key</TooltipId>
-                <Size>44max,20f</Size>
+                <Size>36f,16f</Size>
                 <Alignment>center</Alignment>
                 <Channel><Variable name="channel"/></Channel>
                 <Connection>
@@ -95,7 +95,7 @@
                 <Children>
                   <PushButton>
                     <ObjectName>DeckCueChip</ObjectName>
-                    <Size>44f,20f</Size>
+                    <Size>38f,16f</Size>
                     <NumberStates>2</NumberStates>
                     <State>
                       <Number>0</Number>
