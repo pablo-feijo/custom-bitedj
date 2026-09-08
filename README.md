@@ -4,6 +4,9 @@ By Deckshark
 
 # BiteDJ
 
+> **Note:** This repository hosts a custom build of BiteDJ. We are currently *vibe coding* on top of the original project to experiment with new custom layouts, shaders, and embedded optimizations!
+
+
 BiteDJ is an independent project based upon the free and open source Mixxx DJ software and is distributed under the GNU General Public License v2.0. Support requests regarding BiteDJ should be directed at its maintainers.
 
 All changes in this fork were made from the upstream base revision **Mixxx 2.5.6**.
