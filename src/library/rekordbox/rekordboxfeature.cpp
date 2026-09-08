@@ -1,6 +1,7 @@
 #include "library/rekordbox/rekordboxfeature.h"
 
 #include "library/rekordbox/rekordboxanlz.h"
+#include "library/rekordbox/rekordboxpagechain.h"
 
 #include <mp3guessenc.h>
 #include <rekordbox_anlz.h>
@@ -595,10 +596,13 @@ QString parseDeviceDB(mixxx::DbConnectionPoolPtr dbConnectionPool, TreeItem* dev
     for (int tableOrderIndex = 0; tableOrderIndex < totalTables; tableOrderIndex++) {
         for (const auto& table : *rekordboxDB.tables()) {
             if (table->type() == tableOrder[tableOrderIndex]) {
-                uint16_t lastIndex = table->last_page()->index();
+                const uint32_t lastIndex = table->last_page()->index();
+                mixxx::rekordbox::PageChainGuard pageChain(
+                        rekordboxDB.len_page(), ks.size());
                 rekordbox_pdb_t::page_ref_t* currentRef = table->first_page();
 
                 while (true) {
+                    pageChain.visit(currentRef->index());
                     rekordbox_pdb_t::page_t* page = currentRef->body();
 
                     if (page->is_data_page()) {
@@ -984,13 +988,39 @@ void setHotCue(TrackPointer track,
 namespace mixxx {
 namespace rekordbox {
 
+QStringList readAnalyzeFiles(TrackPointer track,
+        mixxx::audio::SampleRate sampleRate,
+        int timingOffset,
+        const QString& anlzPath) {
+    QStringList failedPaths;
+    const auto importFile = [&](const QString& filePath, bool beatsOnly) {
+        try {
+            if (!QFileInfo(filePath).isReadable()) {
+                throw std::runtime_error("Rekordbox analysis file is unavailable");
+            }
+            readAnalyze(track, sampleRate, timingOffset, beatsOnly, filePath);
+        } catch (const std::exception& error) {
+            // The generated ANLZ parser constructs all sections before the
+            // importer mutates the track, so a truncated file preserves cues.
+            qWarning() << "Could not import Rekordbox analysis:" << filePath << error.what();
+            failedPaths.append(filePath);
+        }
+    };
+    // DAT-only exports still need BOTH passes: beats first, then cues.
+    importFile(anlzPath, true);
+    const QString extPath = anlzPath.left(anlzPath.length() - 3) + "EXT";
+    importFile(QFileInfo::exists(extPath) ? extPath : anlzPath, false);
+    failedPaths.removeDuplicates();
+    return failedPaths;
+}
+
 void readAnalyze(TrackPointer track,
         mixxx::audio::SampleRate sampleRate,
         int timingOffset,
         bool ignoreCues,
         const QString& anlzPath) {
     if (!QFile(anlzPath).exists()) {
-        return;
+        throw std::runtime_error("Rekordbox analysis file disappeared");
     }
 
     qDebug() << "Rekordbox ANLZ path:" << anlzPath << " for: " << track->getTitle();
@@ -1463,14 +1493,14 @@ TrackPointer RekordboxPlaylistModel::getTrack(const QModelIndex& index) const {
     QString anlzPath =
             getFieldVariant(index, ColumnCache::COLUMN_REKORDBOX_ANALYZE_PATH)
                     .toString();
-    QString anlzPathExt = anlzPath.left(anlzPath.length() - 3) + "EXT";
-
-    if (QFile(anlzPathExt).exists()) {
-        // Beatgrids appear to be only correct in legacy ANLZ file
-        mixxx::rekordbox::readAnalyze(track, sampleRate, timingOffset, true, anlzPath);
-        mixxx::rekordbox::readAnalyze(track, sampleRate, timingOffset, false, anlzPathExt);
-    } else {
-        mixxx::rekordbox::readAnalyze(track, sampleRate, timingOffset, false, anlzPath);
+    const auto failedPaths = mixxx::rekordbox::readAnalyzeFiles(
+            track, sampleRate, timingOffset, anlzPath);
+    if (!failedPaths.isEmpty()) {
+        if (auto* notifications = Notifications::tryInstance()) {
+            notifications->publish(
+                    tr("Some Rekordbox analysis could not be read. Audio remains available."),
+                    Notifications::Severity::Warning);
+        }
     }
 
     // Cues stored on the drive by this unit are the DJ's own and outrank the
