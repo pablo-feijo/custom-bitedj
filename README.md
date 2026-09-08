@@ -247,3 +247,8 @@ New test coverage added alongside the fork's features: `foldertreemodel`,
 - When using the `mixxx-pi-gen` submodule to generate the Raspberry Pi OS image:
   - The configuration uses `RELEASE="trixie"` and pulls the `debian:trixie` base image to ensure compatibility with the BiteDJ binary.
   - The `apt autoremove` cleanup steps in the `02-desktop` and `04-enable-wayland` build stages are explicitly disabled to prevent `pi-printer-support` removal from accidentally purging `raspberrypi-ui-mods`, `lightdm`, and `waybar`.
+
+## Changelog
+
+For a detailed list of changes and release notes, please see [CHANGELOG.md](CHANGELOG.md).
+
