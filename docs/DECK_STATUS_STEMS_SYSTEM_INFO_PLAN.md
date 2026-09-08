@@ -47,7 +47,8 @@ Adapt them to the 1024x600 touchscreen and BiteDJ's existing design.
 ### 1. Source, key and beat jump
 
 Use the existing 126px waveform information column as the starting point.
-Arrange a compact source label, labeled musical key and beat-jump size readout.
+Arrange a compact source label and labeled musical key/loop readouts.
+Following user review, beat jump lives in the right panel beside FX and KEY.
 Preserve access to loop size, quantize, keylock, play and cue. Exact geometry
 must be settled in a 1024x600 mockup before editing skin XML; the current column
 already contains these controls and cannot simply absorb extra rows.
@@ -58,13 +59,13 @@ no track is loaded. Handle long names, multiple partitions, unplugging and
 track replacement. Use existing device identity rules rather than enumeration
 order to assign USB numbers. Keep eject in the existing System page initially.
 
-Show beat jump independently of loop length. A touch control may open a compact
-size selector with backward/forward actions, using native beat-jump controls.
+Show beat jump independently of loop length in a dedicated JUMP tab, with
+per-deck halve/double size buttons and backward/forward actions using native controls.
 Reserve at least 44px touch targets for new interactive controls.
 
 ### 2. ON AIR and active deck states
 
-Place a compact red ON AIR badge beside each track title, with a corresponding
+Place a compact red ON badge (main-output activity) beside each track title, with a corresponding
 small waveform indication only if the mockup leaves sufficient space.
 Reserve its space so titles do not shift when it changes.
 
@@ -133,7 +134,7 @@ revisit the stem scope; do not ship decorative controls that cannot work.
 Likely touchpoints: `res/skins/BiteDJ/{deck,waveform,settings,skin}.xml`,
 `res/skins/BiteDJ/style.qss`, `src/preferences/systemsettings.*`, an appropriate
 native telemetry/source-label component, and mixer/player controls for ON AIR.
-Keep the Overview FX/KEY stack as specified in AGENTS.md; do not restore PADS
+Keep Overview FX/KEY/JUMP as specified in AGENTS.md; do not restore PADS
 or CFX tabs or alter the native Beats parameter grid.
 
 For implementation, add focused tests for source classification, ON AIR state

@@ -228,10 +228,12 @@ WPushButton[value="1"]:hover {
 }
 
 #BeatFX_Header {
-  qproperty-layoutAlignment: 'AlignHCenter | AlignVCenter';
+  qproperty-layoutAlignment: 'AlignTop';
+  qproperty-layoutSpacing: 8;
+  padding-bottom: 8px;
 }
 
-/* FX / KEY page tabs. Same select-only bar as the Settings sub-tabs, sized
+/* FX / KEY / JUMP page tabs. Same select-only bar as the Settings sub-tabs, sized
  * down to fit the 180px panel. */
 #FxPanel_TabBar {
   margin: 0 0 6px 0;
@@ -242,7 +244,7 @@ WPushButton[value="1"]:hover {
   background-color: transparent;
   border: 2px solid #32323c;
   color: #a7a9ac;
-  font-size: 15px;
+  font-size: 12px;
   font-weight: bold;
   text-transform: uppercase;
 }
@@ -254,6 +256,7 @@ WPushButton[value="1"]:hover {
 }
 
 #FxPanel_Page {
+  padding-top: 8px;
   qproperty-layoutAlignment: 'AlignTop';
 }
 
@@ -427,8 +430,7 @@ WPushButton[value="1"]:hover {
  * the deck badges used in the sampler view so the FX panel and the deck
  * strips agree on which color means which deck. */
 #BeatFX_DeckRouting {
-  qproperty-layoutSpacing: 4;
-  padding: 4px 0;
+  qproperty-layoutSpacing: 8;
 }
 
 #BeatFX_DeckAssign1,
@@ -471,7 +473,8 @@ WPushButton[value="1"]:hover {
 
 /* KEY page: one stacked block per deck, +/-2 semitone nudges and reset. */
 #KeyFX_DeckBlock {
-  padding: 0 0 10px 0;
+  padding-bottom: 16px;
+  qproperty-layoutSpacing: 8;
 }
 
 #KeyFX_DeckHeader {
@@ -505,7 +508,7 @@ WPushButton[value="1"]:hover {
 }
 
 #KeyFX_ButtonRow {
-  qproperty-layoutSpacing: 4;
+  qproperty-layoutSpacing: 8;
 }
 
 #KeyFX_Down,
@@ -726,27 +729,27 @@ WLabel {
 
 #WaveformInfo {
   margin-right: 10px;
+  padding-left: 6px;
+  qproperty-layoutSpacing: 8;
+  qproperty-layoutAlignment: 'AlignVCenter';
 }
 
 #WaveformSourceRow { background-color: #24242c; }
 #WaveformDeckNumber { font-weight: bold; font-size: 14px; color: #c49ade; }
 #WaveformSource { font-size: 13px; font-weight: bold; color: #e5e6ea; }
-#WaveformCaption { font-size: 10px; color: #9999a8; qproperty-alignment: 'AlignCenter'; }
-#WaveformCaption[highlight="1"] { color: #b28ad0; }
+#WaveformLoopIcon { font-size: 18px; color: #9999a8; qproperty-alignment: 'AlignCenter'; }
+#WaveformLoopIcon[highlight="1"] { color: #b28ad0; }
 #WaveformKeyValue { font-size: 14px; font-weight: bold; color: #38bdf8; }
 #WaveformKeyValue[highlight="1"] { color: #f87171; }
-#WaveformJumpValue, #WaveformLoopValue { padding: 0px; margin: 0px; font-size: 14px; }
-#WaveformJumpValue { qproperty-alignment: 'AlignCenter'; }
-#WaveformJumpButton, #WaveformStateButton, #WaveformTransportButton {
+#WaveformLoopValue { padding: 0px; margin: 0px; font-size: 14px; }
+#WaveformStateButton, #WaveformTransportButton {
   background-color: #1a1a24; border: 1px solid #383846; border-radius: 3px;
   color: #c5c5d0; font-size: 12px; font-weight: bold;
 }
-#WaveformJumpButton { font-size: 28px; }
-#WaveformStateButton, #WaveformTransportButton { margin: 1px; }
+#WaveformStateRow, #WaveformTransportRow { qproperty-layoutSpacing: 4; }
 #WaveformStateButton[value="1"] { background-color: #8058a0; color: #ffffff; }
 #WaveformTransportButton[value="1"] { background-color: #238751; color: #ffffff; }
-#WaveformJumpButton:pressed { background-color: #8058a0; color: #ffffff; }
-#DeckOnAir { font-size: 10px; font-weight: bold; color: #71717c; background-color: #24242c; }
+#DeckOnAir { font-size: 9px; font-weight: bold; color: #71717c; background-color: #24242c; }
 #DeckOnAir[highlight="1"] { color: #ffffff; background-color: #c9372c; }
 #InfoCard { background-color: #17171f; border: 1px solid #383846; border-radius: 6px; }
 #InfoHeading { color: #aaaaba; font-size: 14px; font-weight: bold; }
@@ -1815,3 +1818,17 @@ WBeatSpinBox::up-button {
   border-color: #9253a1;
   color: #ffffff;
 }
+
+/* Beat-jump controls share the right panel with FX and KEY. */
+#JumpDeckBlock { padding-bottom: 16px; qproperty-layoutSpacing: 8; }
+#JumpButtonRow { qproperty-layoutSpacing: 8; }
+#JumpSize { font-size: 17px; font-weight: bold; padding: 0; margin: 0; qproperty-alignment: 'AlignCenter'; }
+#JumpUnits { font-size: 10px; color: #9999a8; }
+#JumpSizeButton, #JumpActionButton {
+  background-color: #1a1a24; border: 1px solid #383846; border-radius: 3px;
+  color: #c5c5d0; font-size: 12px; font-weight: bold;
+}
+#JumpSizeButton { font-size: 18px; }
+#JumpSizeButton:pressed, #JumpActionButton:pressed { background-color: #8058a0; color: #ffffff; }
+
+#BeatFX_BottomKnobs { padding-top: 8px; qproperty-layoutSpacing: 8; }

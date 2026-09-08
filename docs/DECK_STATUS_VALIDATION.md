@@ -7,11 +7,11 @@ Later merge target: `codex/v0.0.7`. No merge or version bump performed.
 
 - Per-deck source labels use cached removable-drive identity: configured USB
   slots, volume names, LOCAL, OFFLINE and an empty unloaded state.
-- The waveform sidebar keeps key/loop information, adds a separate beat-jump
-  size and backward/forward actions, and labels QNT/LOCK with active styling.
-  Beat-jump size follows the native control/controller; this first UI does not
-  include a touch size picker.
-- ON AIR reserves space beside the track title. Read-only `[ChannelN],on_air`
+- The waveform sidebar keeps source/key/loop information and labels QNT/LOCK
+  with active styling. The right panel now contains FX, KEY and JUMP tabs.
+  JUMP offers per-deck size readouts, halve/double size buttons and backward/
+  forward actions. The sidebar is 126px wide; the active-output badge reads ON at 26x16.
+- The ON badge reserves space beside the track title. Read-only `[ChannelN],on_air`
   follows transport/passthrough, fader/crossfader/mute and an actual connected
   main output. Quiet passages do not flicker. Disconnecting the last main
   output clears it even if callbacks stop. External mixer audibility cannot be
@@ -22,7 +22,8 @@ Later merge target: `codex/v0.0.7`. No merge or version bump performed.
   temperature, local clock and main-output configuration/connection state.
   Pending audio edits are explicitly labeled. CPU/sensor reads run on a worker
   once per second, with missing/stale data shown as N/A.
-- Existing settings indices 0..4 and the Overview FX/KEY tabs are preserved.
+- Existing settings indices 0..4 are preserved. JUMP is appended after FX/KEY
+  per the user's layout refinement; PADS and CFX remain absent.
 
 ## Checks
 
@@ -68,3 +69,18 @@ physical controller input and long-duration hardware performance have not been
 validated. The container exposes no Pi thermal sensor and correctly shows N/A.
 Native stem mixing is not implemented; its dependency assessment and required
 hardware proof are recorded in STEM_FEASIBILITY.md.
+
+## Layout refinement after review
+
+- The badge now reads ON. Sidebar captions were simplified to key and loop
+  values; source, metadata, state buttons and transport have an 8px group gap
+  and are vertically centered in each waveform lane.
+- FX removes the duplicate MIX meter, uses 44px selector/routing/activation
+  controls and keeps its native beat grid intact. Roll was visually checked
+  with that grid visible and both MIX/SUPER knobs fitting above the deck strips.
+- KEY and JUMP share 148px deck blocks, 28px headers, 44px control rows and
+  consistent 8px gaps. KEY reset now occupies a full-width second row.
+- JUMP was verified at both 2 and 4 beats; halve/double and forward/back operate
+  on the selected deck only. KEY +2 changed Cm to Dm and Reset restored Cm.
+- Day/night layouts and the shortened active-output badge were inspected in
+  the updated primary VNC instance. XML parsing and diff checks passed.

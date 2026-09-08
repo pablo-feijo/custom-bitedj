@@ -6,7 +6,7 @@
 - Before finishing, check commits created for the current task and amend any nonconforming messages. Do not rewrite unrelated history.
 
 ## UI Layout
-- Overview Panel: We are intentionally keeping only the **FX** and **KEY** tabs for now. 
+- Overview Panel: Keep **FX**, **KEY**, and **JUMP** tabs. Beat-jump size and actions belong in JUMP, not the left waveform sidebar.
 - Do not attempt to add `PADS` or `CFX` tabs back to the native `WidgetStack` in `effects.xml`.
 - Effect times (e.g., Roll lengths 1/8, 1/4, 1/2, 1) are mapped natively through the skin's Beats parameter grid (which appears automatically for `_units == 1` Beats-typed parameters).
 
@@ -60,14 +60,15 @@ Never guess pixel coordinates for `xdotool` clicks. Use the exact layout geometr
   - Track Row 0: `y=218`
   - Track Row 1: `y=240` (row spacing = +22px in Compact, +38px in Detail)
 
-#### C. Settings Sub-Tab Bar: `y=60..112`
-- `GENERAL`: `x=100, y=85`
-- `LIBRARY`: `x=300, y=85`
-- `DEVICE`: `x=500, y=85`
-- `AUDIO`: `x=700, y=85`
-- `SYSTEM`: `x=900, y=85`
+#### C. Settings Sub-Tab Bar: `y=60..100`
+- `GENERAL`: `x=85, y=80`
+- `LIBRARY`: `x=255, y=80`
+- `DEVICE`: `x=425, y=80`
+- `AUDIO`: `x=595, y=80`
+- `SYSTEM`: `x=765, y=80`
+- `INFO`: `x=937, y=80`
 
-#### D. Settings -> General Options (`x=100, y=85`)
+#### D. Settings -> General Options (`x=85, y=80`)
 Split into two 512px columns. Row height: 52px each, starting at `y=100` (`y_center = 124 + (row_index * 52)`).
 - **Left Column (`x=0..512`)**:
   - Row 0 (`y=124`) `CROSSFADER`: `OFF (x=366)`, `ON (x=446)`
@@ -85,7 +86,7 @@ Split into two 512px columns. Row height: 52px each, starting at `y=100` (`y_cen
   - Row 4 (`y=332`) `CLEAR`: `CACHE (x=852)`, `CUES (x=908)`, `META (x=964)`
   - Row 5 (`y=384`) `PLAYED`: `RESET (x=910)`
 
-#### E. Settings -> Library Options (`x=300, y=85`)
+#### E. Settings -> Library Options (`x=255, y=80`)
 Configures visible columns and column widths (`OFF | XS | S | M | L`).
 - **Left Column (`x=0..512`)**:
   - Column buttons at: `OFF (x=296)`, `XS (x=346)`, `S (x=386)`, `M (x=426)`, `L (x=466)`
@@ -117,3 +118,15 @@ Convert screenshot to PPM (`ffmpeg -i screen.png screen.ppm`) and parse raw RGB 
 - Measure both available margins: `gap_above` and `gap_below`.
 - The balanced target position is `(gap_above + gap_below) / 2`.
 - Verify both the element's own QSS (`margin-top`, `padding-left`) and its container's layout alignment (`qproperty-layoutAlignment`).
+
+#### H. Overview Right Panel (1024x600)
+- Tab centers: `FX (878,90)`, `KEY (934,90)`, `JUMP (990,90)`.
+- KEY: Deck 1 `-2 (891,178)`, `+2 (977,178)`, `RESET (934,230)`;
+  Deck 2 uses the same x coordinates at `y=326` and `y=378`.
+- JUMP: Deck 1 halve/double at `(891,178)` / `(977,178)`,
+  backward/forward at `(891,230)` / `(977,230)`;
+  Deck 2 uses `y=326` and `y=378`.
+- FX: selector `(934,142)`, deck routing `(891,194)` / `(977,194)`,
+  activation `(934,246)`. Parameter-grid positions depend on the selected effect.
+- Wait for display-mode notifications to clear before clicking the main tabs;
+  the notification temporarily covers the top bar.

@@ -135,8 +135,8 @@
               </TrackProperty>
               <Label>
                 <ObjectName>DeckOnAir</ObjectName>
-                <Size>60f,20f</Size>
-                <Text>ON AIR</Text>
+                <Size>26f,16f</Size>
+                <Text>ON</Text>
                 <Alignment>center</Alignment>
                 <Connection>
                   <ConfigKey>[Channel<Variable name="channel"/>],on_air</ConfigKey>
