@@ -891,16 +891,18 @@ WBeatSpinBox::up-button {
 
 #TabControls {
   background-color: #855ea7;
-  margin-bottom: 5px;
+  margin-bottom: 2px;
+  qproperty-layoutSpacing: 10;
+  padding: 0 6px;
 }
 
 /* Five tabs share the bar, so at the 480px floor each cell is ~96px. The
- * margin is a percentage (not px) and the font is small enough that the
+ * inter-button gap is explicit and the font is small enough that the
  * longest label — SETTINGS, 8 chars of monospace — still clears its cell. */
 #TabControls WPushButton {
   font-weight: bold;
-  font-size: 15px;
-  margin: 7px 3%;
+  font-size: 14px;
+  margin: 6px 0;
   max-width: 250px;
   text-transform: uppercase;
 }

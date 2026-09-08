@@ -102,3 +102,7 @@ and the ON badge still activates. Updated VNC; XML parsing and diff checks pass.
 
 Top-menu button follow-up: reduced label type from 17px to 15px and increased
 vertical margins from 4px to 7px, shortening the buttons within the 48px bar.
+
+Further menu refinement: 40px total bar height, 14px labels, 26px button
+height and explicit 10px gaps between buttons. Visually checked at 1024x600
+in the updated VNC instance; XML parsing and whitespace checks passed.
