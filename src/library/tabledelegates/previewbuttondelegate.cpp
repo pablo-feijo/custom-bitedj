@@ -10,6 +10,7 @@
 #include "library/dao/fsanalysiscache.h"
 #include "library/trackmodel.h"
 #include "moc_previewbuttondelegate.cpp"
+#include "track/globaltrackcache.h"
 #include "track/track.h"
 #include "waveform/waveform.h"
 #include "waveform/waveformfactory.h"
@@ -27,12 +28,24 @@ inline TrackModel* trackModel(QTableView* pTableView) {
 
 } // namespace
 
+#include "control/controlproxy.h"
+
 PreviewButtonDelegate::PreviewButtonDelegate(
         WLibraryTableView* parent,
         int column)
         : TableItemDelegate(parent),
           m_column(column) {
     DEBUG_ASSERT(m_column >= 0);
+    m_pCOWaveformType = new ControlProxy(
+            QStringLiteral("[Waveform]"), QStringLiteral("waveform_type"), this);
+    m_pCOWaveformType->connectValueChanged(this, &PreviewButtonDelegate::waveformTypeChanged);
+}
+
+void PreviewButtonDelegate::waveformTypeChanged(double value) {
+    Q_UNUSED(value);
+    if (m_pTableView && m_pTableView->viewport()) {
+        m_pTableView->viewport()->update();
+    }
 }
 
 PreviewButtonDelegate::~PreviewButtonDelegate() = default;
@@ -69,8 +82,24 @@ void PreviewButtonDelegate::paintItem(QPainter* painter,
     if (!pTrackModel) {
         return;
     }
-    TrackPointer pTrack = pTrackModel->getTrack(index);
+    
+    // In BrowseTableModel, getTrack() calls getOrAddTrack() which hits the disk/database
+    // and blocks the GUI thread. Since we only want to draw a waveform if it's readily
+    // available, we use a non-blocking cache lookup instead.
+    const TrackRef trackRef = TrackRef::fromFilePath(pTrackModel->getTrackLocation(index));
+    TrackPointer pTrack = GlobalTrackCacheLocker().lookupTrackByRef(trackRef);
+    
     if (!pTrack) {
+        // Fallback: Check if the model is not BrowseTableModel (e.g. it's already in the library)
+        // Actually, if it's in the library, it might be in cache. If not, we still don't want to block paint!
+        // We can just show "LOAD" if it's not in cache.
+        painter->setPen(QColor(150, 150, 160));
+        QFont f = painter->font();
+        f.setPointSizeF(f.pointSizeF() * 0.85);
+        f.setBold(true);
+        painter->setFont(f);
+        painter->drawText(option.rect.adjusted(2, 2, -2, -2), Qt::AlignCenter, QStringLiteral("LOAD"));
+        painter->restore();
         return;
     }
 
@@ -207,11 +236,11 @@ void PreviewButtonDelegate::paintItem(QPainter* painter,
         maxPeak = 255;
     }
 
-    const int srcH = 2 * static_cast<int>(maxPeak) + 2;
-    const int centerY = srcH / 2;
+    const int centerY = h / 2;
+    float scaleY = static_cast<float>(h) / static_cast<float>(2 * maxPeak + 2);
     
-    // Always use numFrames so that whatever data we have ALWAYS stretches to fill the entire preview box!
-    QImage sourceImage(numFrames, srcH, QImage::Format_ARGB32_Premultiplied);
+    // Draw directly into final size image
+    QImage sourceImage(w, h, QImage::Format_ARGB32_Premultiplied);
     sourceImage.fill(Qt::transparent);
 
     QPainter imgPainter(&sourceImage);
@@ -219,105 +248,117 @@ void PreviewButtonDelegate::paintItem(QPainter* painter,
 
     // Baseline 
     imgPainter.setPen(QColor(0x35, 0x35, 0x42));
-    imgPainter.drawLine(0, centerY, numFrames, centerY);
+    imgPainter.drawLine(0, centerY, w, centerY);
 
     const QColor lowColor(0x00, 0x4e, 0xe4);   // Bass: blue
     const QColor midColor(0xc9, 0x5a, 0x00);   // Mid: amber
     const QColor highColor(0xf6, 0xe9, 0xd3);  // High: cream
+    
+    double step = static_cast<double>(numFrames) / w;
 
-    for (int i = 0; i < numFrames; ++i) {
+    for (int x = 0; x < w; ++x) {
+        int i = static_cast<int>(x * step);
+        if (i >= numFrames) i = numFrames - 1;
+        
         const int leftIdx = 2 * i;
         const int rightIdx = 2 * i + 1;
 
-        const unsigned char topAmp = pWaveform->getAll(leftIdx);
-        const unsigned char botAmp = pWaveform->getAll(rightIdx);
-        const unsigned char lowLeft = pWaveform->getLow(leftIdx);
-        const unsigned char midLeft = pWaveform->getMid(leftIdx);
-        const unsigned char highLeft = pWaveform->getHigh(leftIdx);
-        const unsigned char lowRight = pWaveform->getLow(rightIdx);
-        const unsigned char midRight = pWaveform->getMid(rightIdx);
-        const unsigned char highRight = pWaveform->getHigh(rightIdx);
+        const int topAmp = static_cast<int>(pWaveform->getAll(leftIdx) * scaleY);
+        const int botAmp = static_cast<int>(pWaveform->getAll(rightIdx) * scaleY);
+        const int lowLeft = static_cast<int>(pWaveform->getLow(leftIdx) * scaleY);
+        const int midLeft = static_cast<int>(pWaveform->getMid(leftIdx) * scaleY);
+        const int highLeft = static_cast<int>(pWaveform->getHigh(leftIdx) * scaleY);
+        const int lowRight = static_cast<int>(pWaveform->getLow(rightIdx) * scaleY);
+        const int midRight = static_cast<int>(pWaveform->getMid(rightIdx) * scaleY);
+        const int highRight = static_cast<int>(pWaveform->getHigh(rightIdx) * scaleY);
 
         if (style == WaveformStyle::RGB) {
             // Mixxx RGB overview: Low = Red, Mid = Green, High = Blue
             // Top half (Left channel)
-            float rL = lowLeft;
-            float gL = midLeft;
-            float bL = highLeft;
+            float rL = pWaveform->getLow(leftIdx);
+            float gL = pWaveform->getMid(leftIdx);
+            float bL = pWaveform->getHigh(leftIdx);
             float maxL = std::max({rL, gL, bL});
             if (maxL > 0.0f && topAmp > 0) {
                 imgPainter.setPen(QColor::fromRgbF(rL / maxL, gL / maxL, bL / maxL));
-                imgPainter.drawLine(i, centerY - topAmp, i, centerY);
+                imgPainter.drawLine(x, centerY - topAmp, x, centerY);
             } else if (topAmp > 0) {
                 imgPainter.setPen(QColor(0x00, 0x7d, 0xe1));
-                imgPainter.drawLine(i, centerY - topAmp, i, centerY);
+                imgPainter.drawLine(x, centerY - topAmp, x, centerY);
             }
 
             // Bottom half (Right channel)
-            float rR = lowRight;
-            float gR = midRight;
-            float bR = highRight;
+            float rR = pWaveform->getLow(rightIdx);
+            float gR = pWaveform->getMid(rightIdx);
+            float bR = pWaveform->getHigh(rightIdx);
             float maxR = std::max({rR, gR, bR});
             if (maxR > 0.0f && botAmp > 0) {
                 imgPainter.setPen(QColor::fromRgbF(rR / maxR, gR / maxR, bR / maxR));
-                imgPainter.drawLine(i, centerY, i, centerY + botAmp);
+                imgPainter.drawLine(x, centerY, x, centerY + botAmp);
             } else if (botAmp > 0) {
                 imgPainter.setPen(QColor(0x00, 0x7d, 0xe1));
-                imgPainter.drawLine(i, centerY, i, centerY + botAmp);
+                imgPainter.drawLine(x, centerY, x, centerY + botAmp);
             }
         } else if (style == WaveformStyle::Filtered) {
-            // Layered 3-band: Low background, Mid layer, High foreground
             if (lowLeft > 0 || lowRight > 0) {
                 imgPainter.setPen(lowColor);
-                imgPainter.drawLine(i, centerY - lowLeft, i, centerY + lowRight);
+                imgPainter.drawLine(x, centerY - lowLeft, x, centerY + lowRight);
             }
             if (midLeft > 0 || midRight > 0) {
                 imgPainter.setPen(midColor);
-                imgPainter.drawLine(i, centerY - midLeft, i, centerY + midRight);
+                imgPainter.drawLine(x, centerY - midLeft, x, centerY + midRight);
             }
             if (highLeft > 0 || highRight > 0) {
                 imgPainter.setPen(highColor);
-                imgPainter.drawLine(i, centerY - highLeft, i, centerY + highRight);
+                imgPainter.drawLine(x, centerY - highLeft, x, centerY + highRight);
             }
         } else if (style == WaveformStyle::Stacked) {
-            // Stacked 3-band from center outwards
-            if (lowLeft > 0 || lowRight > 0) {
+            const float stackScale = 0.6f;
+            int hl = static_cast<int>(highLeft * stackScale);
+            int hr = static_cast<int>(highRight * stackScale);
+            int ml = static_cast<int>(midLeft * stackScale);
+            int mr = static_cast<int>(midRight * stackScale);
+            int ll = static_cast<int>(lowLeft * stackScale);
+            int lr = static_cast<int>(lowRight * stackScale);
+
+            if (hl > 0 || hr > 0) {
+                imgPainter.setPen(highColor);
+                imgPainter.drawLine(x, centerY - hl, x, centerY + hr);
+            }
+            if (ml > 0) {
+                imgPainter.setPen(midColor);
+                imgPainter.drawLine(x, centerY - hl - ml, x, centerY - hl);
+            }
+            if (mr > 0) {
+                imgPainter.setPen(midColor);
+                imgPainter.drawLine(x, centerY + hr, x, centerY + hr + mr);
+            }
+            if (ll > 0) {
                 imgPainter.setPen(lowColor);
-                imgPainter.drawLine(i, centerY - lowLeft, i, centerY + lowRight);
+                imgPainter.drawLine(x, centerY - hl - ml - ll, x, centerY - hl - ml);
             }
-            if (midLeft > 0) {
-                imgPainter.setPen(midColor);
-                imgPainter.drawLine(i, centerY - lowLeft - midLeft, i, centerY - lowLeft);
-            }
-            if (midRight > 0) {
-                imgPainter.setPen(midColor);
-                imgPainter.drawLine(i, centerY + lowRight, i, centerY + lowRight + midRight);
-            }
-            if (highLeft > 0) {
-                imgPainter.setPen(highColor);
-                imgPainter.drawLine(i, centerY - lowLeft - midLeft - highLeft, i, centerY - lowLeft - midLeft);
-            }
-            if (highRight > 0) {
-                imgPainter.setPen(highColor);
-                imgPainter.drawLine(i, centerY + lowRight + midRight, i, centerY + lowRight + midRight + highRight);
+            if (lr > 0) {
+                imgPainter.setPen(lowColor);
+                imgPainter.drawLine(x, centerY + hr + mr, x, centerY + hr + mr + lr);
             }
         } else if (style == WaveformStyle::HSV) {
-            float total = (lowLeft + lowRight + midLeft + midRight + highLeft + highRight) * 1.2f;
+            float total = (pWaveform->getLow(leftIdx) + pWaveform->getLow(rightIdx) + 
+                           pWaveform->getMid(leftIdx) + pWaveform->getMid(rightIdx) + 
+                           pWaveform->getHigh(leftIdx) + pWaveform->getHigh(rightIdx)) * 1.2f;
             float lo = 0.0f, hi = 0.0f;
             if (total > 0.0f) {
-                lo = (lowLeft + lowRight) / total;
-                hi = (highLeft + highRight) / total;
+                lo = (pWaveform->getLow(leftIdx) + pWaveform->getLow(rightIdx)) / total;
+                hi = (pWaveform->getHigh(leftIdx) + pWaveform->getHigh(rightIdx)) / total;
             }
             QColor hsvC;
             hsvC.setHsvF(0.6f, std::clamp(1.0f - hi, 0.0f, 1.0f), std::clamp(1.0f - lo, 0.0f, 1.0f));
             imgPainter.setPen(hsvC);
-            imgPainter.drawLine(i, centerY - topAmp, i, centerY + botAmp);
+            imgPainter.drawLine(x, centerY - topAmp, x, centerY + botAmp);
         }
     }
     imgPainter.end();
 
-    QImage scaledImg = sourceImage.scaled(w, h, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-    QPixmap resultPixmap = QPixmap::fromImage(scaledImg);
+    QPixmap resultPixmap = QPixmap::fromImage(sourceImage);
 
     CachedPreview cached;
     cached.pixmap = resultPixmap;

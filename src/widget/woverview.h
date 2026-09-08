@@ -47,6 +47,7 @@ class WOverview : public WWidget, public TrackDropTarget {
         Filtered,
         HSV,
         RGB,
+        Stacked,
     };
     Q_ENUM(Type);
 
@@ -98,6 +99,10 @@ class WOverview : public WWidget, public TrackDropTarget {
             ConstWaveformPointer pWaveform,
             const int nextCompletion);
     void drawNextPixmapPartRGB(QPainter* pPainter,
+            ConstWaveformPointer pWaveform,
+            const int nextCompletion);
+
+    void drawNextPixmapPartStacked(QPainter* pPainter,
             ConstWaveformPointer pWaveform,
             const int nextCompletion);
 

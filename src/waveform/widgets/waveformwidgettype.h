@@ -29,8 +29,8 @@ class WaveformWidgetType {
         AllShaderHSVWaveform,        // 21 HSV (all-shaders)
         AllShaderTexturedFiltered,   // 22 Filtered (textured) (all-shaders)
         AllShaderTexturedRGB,        // 23 RGB (textured) (all-shaders)
-        AllShaderTexturedStacked,    // 24 Stacked (textured) (all-shaders)
-        AllShaderRGBStackedWaveform, // 26 Stacked (all-shaders)
-        Count_WaveformwidgetType     //    Also used as invalid value
+        AllShaderTexturedStacked = 24,    // 24 Stacked (textured) (all-shaders)
+        AllShaderRGBStackedWaveform = 25, // 25 Stacked (all-shaders)
+        Count_WaveformwidgetType = 26     //    Also used as invalid value
     };
 };

@@ -1,5 +1,6 @@
 #include "widget/wlibrarysidebar.h"
 
+#include <QFileInfo>
 #include <QHeaderView>
 #include <QUrl>
 #include <QtDebug>
@@ -221,9 +222,26 @@ void WLibrarySidebar::toggleSelectedItem() {
 // feature roots that own children — same gate as mousePressEvent.
 void WLibrarySidebar::activateSelectedLeaf() {
     QModelIndex idx = selectedIndex();
-    if (!idx.isValid() || idx.model()->hasChildren(idx)) {
+    if (!idx.isValid()) {
         return;
     }
+
+    bool isTopLevel = !idx.parent().isValid();
+    QString dataStr = idx.data(SidebarModel::DataRole).toString();
+
+    // Do not collapse for top-level feature roots (e.g. "Computer", "Playlists") that have children.
+    // They are just grouping containers.
+    if (isTopLevel && idx.model()->hasChildren(idx)) {
+        return;
+    }
+
+    // Do not collapse for dummy Browse nodes that just act as folders
+    if (dataStr == "QUICK_LINK_NODE" || dataStr == "DEVICE_NODE") {
+        return;
+    }
+
+    // Otherwise, collapse! This ensures that ANY clicked folder, playlist, or crate
+    // (even if it has sub-items) will hide the sidebar and show its track table.
     emit leafItemActivated(idx.data(Qt::DisplayRole).toString());
     ControlObject::set(ConfigKey(QStringLiteral("[Sidebar]"),
                                QStringLiteral("sidebar_visible")),
@@ -392,13 +410,24 @@ void WLibrarySidebar::mousePressEvent(QMouseEvent* event) {
     if (!idx.isValid()) {
         return;
     }
-    bool leaf = !idx.model()->hasChildren(idx);
-    if (leaf) {
-        emit leafItemActivated(idx.data(Qt::DisplayRole).toString());
-        ControlObject::set(ConfigKey(QStringLiteral("[Sidebar]"),
-                                   QStringLiteral("sidebar_visible")),
-                0);
+    
+    bool isTopLevel = !idx.parent().isValid();
+    QString dataStr = idx.data(SidebarModel::DataRole).toString();
+
+    // Do not collapse for top-level feature roots that have children.
+    if (isTopLevel && idx.model()->hasChildren(idx)) {
+        return;
     }
+
+    // Do not collapse for dummy Browse nodes
+    if (dataStr == "QUICK_LINK_NODE" || dataStr == "DEVICE_NODE") {
+        return;
+    }
+
+    emit leafItemActivated(idx.data(Qt::DisplayRole).toString());
+    ControlObject::set(ConfigKey(QStringLiteral("[Sidebar]"),
+                               QStringLiteral("sidebar_visible")),
+            0);
 }
 
 void WLibrarySidebar::focusInEvent(QFocusEvent* event) {
