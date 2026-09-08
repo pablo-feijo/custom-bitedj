@@ -21,6 +21,8 @@ Our custom work includes:
 - Raspberry Pi cursor workarounds and custom audio-device presentation.
 - DDJ-400 Pad FX workflows and Shift + Filter control of the Beat FX Super parameter.
 - Compact deck, sampler, settings, and waveform presentation refinements.
+- Persisted browser column order and text size, with external-track selection retained when sorting.
+- Programmatic FX enable/disable state publication and more resilient Rekordbox analysis reading.
 
 See the [change ledger](docs/DIFFS_FROM_BASE.md) for implementation details and
 version history, and the [DDJ-400 mapping guide](docs/DDJ400_MAPPING.md) for controls.
@@ -63,7 +65,8 @@ Its approach to clear upstream attribution informed this README organization.
 
 Our [fork review and feature map](docs/XSPLOIT_FORK_REVIEW.md) records the reviewed
 revision, overlap with our code, candidate changes, and validation needed before
-adoption. Entries are proposals; this documentation change does not implement them.
+adoption. The [approved first batch](docs/XSPLOIT_FIRST_BATCH.md) tracks the
+selected fixes and their validation; other entries remain proposals.
 
 ## Community, support, and credits
 

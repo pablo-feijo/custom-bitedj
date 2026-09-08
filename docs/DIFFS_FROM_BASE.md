@@ -4,6 +4,21 @@ This document tracks all divergences from upstream Mixxx, specifically formatted
 1. **Base BiteDJ (v1.0-1)**: The foundational fork that optimized Mixxx for standalone hardware, focusing on audio path resilience, USB stability, and SQLite threading.
 2. **Custom BiteDJ (v0.0.6)**: Our tailored branch built on top of Base BiteDJ, specifically engineered for native Wayland integration, screen rotation persistence, DRM hardware cursor workarounds, touchscreen drag-and-drop, and club-ready DDJ-400 mappings.
 
+## Pending integration: selected PiFlex fixes
+
+Working branch `codex/xsploit-readme-feature-map`, intended target `codex/v0.0.7`.
+See [first-batch implementation and validation](XSPLOIT_FIRST_BATCH.md).
+
+- Explicit engine publication for programmatic effect enable/disable.
+- Persisted browser column ordering and text size, with model/proxy identity
+  preserved during sorting. Managed widths and Wayland track dragging retained.
+- Rekordbox page-chain bounds/cycle checks and independent DAT/EXT analysis import
+  that warns on optional-data failure while retaining audio loading.
+- Worktree-owned GUI instances, independent ports/config/results, and reusable
+  branch/semver/Conventional Commits rules for agents.
+
+These are selected adaptations of xsploit/bitedj at `4c1dfec590`, not a fork merge.
+
 ---
 
 ## 1. Custom BiteDJ (v0.0.6 - Display Persistence, DRM Cursor Fixes, & UI Polish)
