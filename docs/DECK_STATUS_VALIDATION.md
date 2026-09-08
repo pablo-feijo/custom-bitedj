@@ -99,3 +99,6 @@ Reduced the main bar from 60px to 48px, trimming vertical button margins to
 preserve label clearance. Removed the orange playback arrows around the deck
 number. Verified the 1024x600 overview during playback: deck labels stay stable
 and the ON badge still activates. Updated VNC; XML parsing and diff checks pass.
+
+Top-menu button follow-up: reduced label type from 17px to 15px and increased
+vertical margins from 4px to 7px, shortening the buttons within the 48px bar.

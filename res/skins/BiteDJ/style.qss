@@ -899,8 +899,8 @@ WBeatSpinBox::up-button {
  * longest label — SETTINGS, 8 chars of monospace — still clears its cell. */
 #TabControls WPushButton {
   font-weight: bold;
-  font-size: 17px;
-  margin: 4px 3%;
+  font-size: 15px;
+  margin: 7px 3%;
   max-width: 250px;
   text-transform: uppercase;
 }
