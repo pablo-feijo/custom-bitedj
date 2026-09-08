@@ -17,7 +17,7 @@ RGBStackedWaveformWidget::RGBStackedWaveformWidget(const QString& group, QWidget
     addRenderer<WaveformRendererEndOfTrack>();
     addRenderer<WaveformRendererPreroll>();
     addRenderer<WaveformRenderMarkRange>();
-    addRenderer<WaveformRendererFiltered>(true); // true for RGB Stacked
+    addRenderer<WaveformRendererFiltered>(2); // 2 for 3-Band Stacked
     addRenderer<WaveformRenderBeat>();
     addRenderer<WaveformRenderMark>();
 

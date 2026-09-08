@@ -645,11 +645,7 @@ add_library(mixxx-lib STATIC EXCLUDE_FROM_ALL
   src/library/export/trackexportwizard.cpp
   src/library/export/trackexportworker.cpp
   src/library/externaltrackcollection.cpp
-  src/library/itunes/itunesdao.cpp
-  src/library/itunes/itunesfeature.cpp
-  src/library/itunes/itunesimporter.cpp
-  src/library/itunes/itunesplaylistmodel.cpp
-  src/library/itunes/itunesxmlimporter.cpp
+
   src/library/library_prefs.cpp
   src/library/library.cpp
   src/library/librarycolumncontrol.cpp
@@ -1584,7 +1580,7 @@ if(BUILD_TESTING)
     src/test/hotcuecontrol_test.cpp
     src/test/imageutils_test.cpp
     src/test/indexrange_test.cpp
-    src/test/itunesxmlimportertest.cpp
+
     src/test/keycontrol_test.cpp
     src/test/keyfactorytest.cpp
     src/test/keyutilstest.cpp

@@ -1930,11 +1930,12 @@ void WTrackTableView::mouseMoveEvent(QMouseEvent* pEvent) {
                 if (!selected.isEmpty()) {
                     m_bFakeDragging = true;
                     m_pFakeDragLabel = new QLabel(nullptr, Qt::ToolTip | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::X11BypassWindowManagerHint);
-                    QString trackName = "  LOADING...  ";
-                    TrackPointer pTrack = pTrackModel->getTrack(selected.first());
-                    if (pTrack) {
-                        trackName = "  " + pTrack->getArtist() + " - " + pTrack->getTitle() + "  ";
-                    }
+                    
+                    // Do not call pTrackModel->getTrack(selected.first()) here!
+                    // This hits the DAO and blocks the GUI thread on drag start.
+                    // Just show a generic label, we don't need the exact track name for the drag icon.
+                    QString trackName = "  Drop to Load  ";
+                    
                     m_pFakeDragLabel->setText(trackName);
                     m_pFakeDragLabel->setStyleSheet("QLabel { background-color: #333333; color: white; border: 2px solid #555555; border-radius: 4px; padding: 10px; font-weight: bold; }");
                     m_pFakeDragLabel->adjustSize();

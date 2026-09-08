@@ -230,6 +230,7 @@ class WaveformWidgetFactory : public QObject, public Singleton<WaveformWidgetFac
     UserSettingsPointer m_config;
 
     QScopedPointer<ControlObject> m_pCOWaveformType;
+    QScopedPointer<ControlObject> m_pCOWaveformOverviewType;
     QScopedPointer<ControlObject> m_pCOApplyEqToWaveform;
 
     bool m_skipRender;

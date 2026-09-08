@@ -17,7 +17,7 @@ FilteredWaveformWidget::FilteredWaveformWidget(const QString& group, QWidget* pa
     addRenderer<WaveformRendererEndOfTrack>();
     addRenderer<WaveformRendererPreroll>();
     addRenderer<WaveformRenderMarkRange>();
-    addRenderer<WaveformRendererFiltered>(false);
+    addRenderer<WaveformRendererFiltered>(0);
     addRenderer<WaveformRenderBeat>();
     addRenderer<WaveformRenderMark>();
 

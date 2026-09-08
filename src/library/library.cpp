@@ -21,7 +21,7 @@
 #include "library/export/libraryexporter.h"
 #endif
 #include "library/externaltrackcollection.h"
-#include "library/itunes/itunesfeature.h"
+
 #include "library/library_prefs.h"
 #include "library/librarycolumncontrol.h"
 #include "library/librarycontrol.h"
@@ -270,11 +270,7 @@ Library::Library(
             addFeature(new BansheeFeature(this, m_pConfig));
         }
     }
-    if (ITunesFeature::isSupported() &&
-            m_pConfig->getValue(
-                    ConfigKey(kConfigGroup, "ShowITunesLibrary"), false)) {
-        addFeature(new ITunesFeature(this, m_pConfig));
-    }
+
     if (TraktorFeature::isSupported() &&
             m_pConfig->getValue(
                     ConfigKey(kConfigGroup, "ShowTraktorLibrary"), false)) {
