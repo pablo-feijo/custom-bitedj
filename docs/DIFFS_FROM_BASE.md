@@ -103,3 +103,8 @@ When evaluating new Mixxx releases (e.g., 2.5, 2.6), prioritize reviewing the fo
 - Reverted progress-bar waveform rendering to ensure waveforms always stretch to fill the cell entirely.
 - Fixed fake drag-and-drop label to hover 10px above the touch point, preventing finger occlusion.
 - Implemented true black background and LOAD text state for empty cells instead of buggy fillPath.
+## v0.0.6 (RGB Stacked Waveform Fixes)
+- **C++ Factory Registration**: Explicitly mapped the `25` waveform enum to the string `"3-Band (GLSL)"` in `WaveformWidgetFactory`, fixing a bug where Mixxx would silently reject the user's setting and fallback to RGB.
+- **Preview Button Connections**: Ensured the global `[Waveform] waveform_type` ControlObject is instantiated *before* `WTrackTableView` creates `PreviewButtonDelegate`s. This resolves the bug where track library waveforms were permanently frozen on the startup setting.
+- **Overview Stack Sync**: Created a dedicated `WaveformOverviewType` property in the backend to ensure Deck `WOverview` waveforms respond natively to the 3-Band setting change.
+- **WaveformRendererFiltered Track Colors**: Updated `WaveformRendererFiltered` to correctly source dynamic RGB track colors (`m_rgbLowColor`, etc.) for `mode == 2`, fixing a major rendering bug where 3-Band stacked waveforms were drawing black due to an undefined generic skin color fallback.
