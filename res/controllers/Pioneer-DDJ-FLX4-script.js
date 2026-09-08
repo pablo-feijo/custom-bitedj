@@ -25,7 +25,7 @@
 //                ON/OFF toggles focused effect slot
 //                SHIFT + ON/OFF disables all three effect slots.
 //
-//      * 32 beat jump forward & back (Shift + </> CUE/LOOP CALL arrows)
+//      * Memory Cue CALL, MEMORY and DELETE (CUE/LOOP CALL arrows)
 //      * Toggle quantize (Shift + channel cue)
 //
 //  Not implemented (after discussion and trial attempts):
@@ -33,7 +33,6 @@
 //        * -4BEAT auto loop (hacky---prefer a clean way to set a 4 beat loop
 //                            from a previous position on long press)
 //
-//        * CUE/LOOP CALL - memory & delete (complex and not useful. Hot cues are sufficient)
 //
 //      * Secondary pad modes (trial attempts complex and too experimental)
 //        * Keyboard mode
@@ -311,6 +310,30 @@ PioneerDDJFLX4.browseRotate = function(midichan, control, value, status) {
     } else {
         engine.setValue("[Library]", "MoveVertical", value > 0x40 ? value - 0x80 : value);
     }
+};
+
+// From Play, BROWSE press opens the browser. On the browser and other screens
+// it retains the mapping's existing focus-forward behavior.
+PioneerDDJFLX4.browsePress = function(_midichan, _control, value) {
+    if (value === 0) {
+        return;
+    }
+    if (engine.getValue("[Tab]", "current") === 0) {
+        engine.setValue("[Tab]", "current", 1);
+        engine.setValue("[Tab]", "library", 1);
+        return;
+    }
+    script.triggerControl("[Library]", "MoveFocusForward", 100);
+};
+
+// SHIFT + right LOAD toggles the Browser.
+PioneerDDJFLX4.toggleBrowser = function(_midichan, _control, value) {
+    if (value === 0) {
+        return;
+    }
+    const browserOpen = engine.getValue("[Tab]", "current") === 1;
+    engine.setValue("[Tab]", "current", browserOpen ? 0 : 1);
+    engine.setValue("[Tab]", browserOpen ? "overview" : "library", 1);
 };
 
 //
@@ -622,13 +645,33 @@ PioneerDDJFLX4.stopLoopInPendingBlink = function(status, group) {
 
 PioneerDDJFLX4.cueLoopCallLeft = function(_channel, _control, value, _status, group) {
     if (value) {
-        engine.setValue(group, "loop_scale", 0.5);
+        if (engine.getValue(group, "loop_enabled") > 0) {
+            engine.setValue(group, "loop_scale", 0.5);
+        } else {
+            engine.setValue(group, "memorycue_prev", 1);
+        }
     }
 };
 
 PioneerDDJFLX4.cueLoopCallRight = function(_channel, _control, value, _status, group) {
     if (value) {
-        engine.setValue(group, "loop_scale", 2.0);
+        if (engine.getValue(group, "loop_enabled") > 0) {
+            engine.setValue(group, "loop_scale", 2.0);
+        } else {
+            engine.setValue(group, "memorycue_next", 1);
+        }
+    }
+};
+
+PioneerDDJFLX4.memoryCueSet = function(_channel, _control, value, _status, group) {
+    if (value) {
+        engine.setValue(group, "memorycue_set", 1);
+    }
+};
+
+PioneerDDJFLX4.memoryCueDelete = function(_channel, _control, value, _status, group) {
+    if (value) {
+        engine.setValue(group, "memorycue_delete", 1);
     }
 };
 
