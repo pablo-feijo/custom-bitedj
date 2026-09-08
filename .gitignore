@@ -70,3 +70,6 @@ dist-linux/
 test-config/
 test-music/
 test-results/
+test-results/
+test-music/
+test-config/
