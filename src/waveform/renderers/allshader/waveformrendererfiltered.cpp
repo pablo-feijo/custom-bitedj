@@ -9,9 +9,9 @@
 namespace allshader {
 
 WaveformRendererFiltered::WaveformRendererFiltered(
-        WaveformWidgetRenderer* waveformWidget, bool bRgbStacked)
+        WaveformWidgetRenderer* waveformWidget, int mode)
         : WaveformRendererSignalBase(waveformWidget),
-          m_bRgbStacked(bRgbStacked) {
+          m_mode(mode) {
 }
 
 void WaveformRendererFiltered::onSetup(const QDomNode& node) {
@@ -121,6 +121,27 @@ void WaveformRendererFiltered::paintGL() {
             }
         }
 
+        if (m_mode == 2) {
+            // ThreeBand Stacked! Order from center: High (2), Mid (1), Low (0)
+            // Low is drawn first, so it needs to cover the entire combined size.
+            float h0 = max[2][0];
+            float h1 = max[2][1];
+            float m0 = max[1][0];
+            float m1 = max[1][1];
+            float l0 = max[0][0];
+            float l1 = max[0][1];
+
+            // Scale down to prevent clipping (since we are adding up to 3 bands)
+            const float stackScale = 0.6f;
+
+            max[0][0] = (h0 + m0 + l0) * stackScale;
+            max[0][1] = (h1 + m1 + l1) * stackScale;
+            max[1][0] = (h0 + m0) * stackScale;
+            max[1][1] = (h1 + m1) * stackScale;
+            max[2][0] = h0 * stackScale;
+            max[2][1] = h1 * stackScale;
+        }
+
         for (int bandIndex = 0; bandIndex < 3; bandIndex++) {
             max[bandIndex][0] *= bandGain[bandIndex];
             max[bandIndex][1] *= bandGain[bandIndex];
@@ -148,7 +169,7 @@ void WaveformRendererFiltered::paintGL() {
     m_shader.setUniformValue(matrixLocation, matrix);
 
     QColor colors[4];
-    if (m_bRgbStacked) {
+    if (m_mode == 1 || m_mode == 2) {
         colors[0].setRgbF(static_cast<float>(m_rgbLowColor_r),
                 static_cast<float>(m_rgbLowColor_g),
                 static_cast<float>(m_rgbLowColor_b));
