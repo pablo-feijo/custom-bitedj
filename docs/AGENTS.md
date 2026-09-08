@@ -62,3 +62,17 @@ When preparing a new release or branch (e.g., `v0.0.4`), agents must explicitly 
 When resolving bugs on live hardware or applying hot-patches over SSH (e.g., editing `~/.config/sway/config` or modifying `gsettings` on the Pi), you **must immediately backport those changes to the local repository.** 
 - Never leave a live Pi in a state that cannot be exactly reproduced by `./generate-pi-image.sh`.
 - If you fix a system issue, commit the corresponding changes to the `mixxx-pi-gen` submodule (e.g., injecting the fix into `i3.conf` or `01-run.sh`) so the local build state remains the absolute source of truth.
+
+## 6. Commit Message Convention
+
+All new and amended commits must use Conventional Commits:
+`<type>[optional scope]: <description>` (for example,
+`fix(effects): publish programmatic enable changes to the audio engine`).
+Use an appropriate type such as `feat`, `fix`, `docs`, `refactor`, `test`,
+`build`, `ci`, `perf`, or `chore`. Use `!` and a `BREAKING CHANGE:` footer
+when applicable. Keep each commit focused and include source attribution
+in the body for adapted upstream work.
+
+Before finishing a task, check the commits created by that task and amend
+any nonconforming messages. Do not rewrite unrelated or already-published
+history unless the user explicitly requests it.
