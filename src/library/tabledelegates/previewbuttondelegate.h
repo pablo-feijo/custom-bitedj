@@ -45,6 +45,9 @@ class PreviewButtonDelegate : public TableItemDelegate {
   public slots:
     void cellEntered(const QModelIndex& index);
 
+  private slots:
+    void waveformTypeChanged(double value);
+
   private:
     struct CachedPreview {
         QPixmap pixmap;
@@ -55,4 +58,5 @@ class PreviewButtonDelegate : public TableItemDelegate {
 
     const int m_column;
     mutable QHash<QString, CachedPreview> m_previewCache;
+    class ControlProxy* m_pCOWaveformType;
 };

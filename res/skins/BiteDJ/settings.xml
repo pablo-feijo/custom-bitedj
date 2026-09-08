@@ -393,9 +393,9 @@
                           </Template>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
-                            <SetVariable name="Text">Stack</SetVariable>
+                            <SetVariable name="Text">3 Band</SetVariable>
                             <SetVariable name="ConfigKey">[Waveform],waveform_type</SetVariable>
-                            <SetVariable name="Value">26</SetVariable>
+                            <SetVariable name="Value">25</SetVariable>
                           </Template>
                         </Children>
                       </WidgetGroup>

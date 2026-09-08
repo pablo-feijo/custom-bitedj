@@ -461,9 +461,9 @@
             <Channel><Variable name="channel"/></Channel>
             <BgColor>#000</BgColor>
             <SignalColor>#222</SignalColor>
-            <SignalLowColor>#007de1</SignalLowColor>
-            <SignalMidColor>#007de1</SignalMidColor>
-            <SignalHighColor>#007de1</SignalHighColor>
+            <SignalLowColor>#004ee4</SignalLowColor>
+            <SignalMidColor>#c95a00</SignalMidColor>
+            <SignalHighColor>#f6e9d3</SignalHighColor>
             <PlayedOverlayColor>#40ffffff</PlayedOverlayColor>
             <!-- Time left in the track, drawn straight onto the summary as a
                  watermark: centred and translucent enough to read the signal
