@@ -4,6 +4,24 @@
 - Use Conventional Commits for every commit: `type(scope): description` (scope is optional).
 - Use appropriate types such as `feat`, `fix`, `docs`, `refactor`, `test`, `build`, or `chore`.
 - Before finishing, check commits created for the current task and amend any nonconforming messages. Do not rewrite unrelated history.
+Read [docs/AGENTS.md](docs/AGENTS.md) before making changes. It contains the
+architecture, versioning, branch isolation, testing and Conventional Commits rules.
+
+## Required Task Workflow
+
+- Start every new task on a new `codex/<topic>` feature branch in a separate Git
+  worktree, based on the agreed semver integration branch. Reuse that worktree
+  for follow-ups and record the intended merge target in the task checklist.
+- Keep build outputs, installed binaries, settings and test containers independent
+  per worktree. Never switch or overwrite another task's checkout or VNC instance.
+- Use `run-gui-test.sh`; select free ports automatically or set
+  `BITEDJ_TEST_INSTANCE`, `BITEDJ_TEST_WEB_PORT`, `BITEDJ_TEST_AUDIO_PORT`, and
+  `BITEDJ_TEST_VNC_PORT`. Read the printed endpoints, not assumed port 6080.
+- Before manual test commands below, run `source ./gui-test-settings.sh` and
+  `verify_test_instance_owner`. `$CONTAINER_NAME` must identify this task's owned
+  instance. See [GUI testing](docs/GUI_TESTING.md) for the full recipe.
+- Use Conventional Commits for every new or amended commit. Merge into the
+  agreed semver branch later when requested; synchronize versions for the release.
 
 ## UI Layout
 - Overview Panel: Keep **FX**, **KEY**, and **JUMP** tabs. Beat-jump size and actions belong in JUMP, not the left waveform sidebar.
@@ -15,11 +33,11 @@
 To ensure changes and automated UI tests succeed on the first attempt without trial-and-error:
 
 ### 1. Container Tooling & Environment Constraints
-- **Process Management**: Always use `pkill -9 mixxx` to terminate Mixxx in `bitedj-gui-test-instance`. Never call `killall` (not installed in container).
+- **Process Management**: Always use `pkill -9 mixxx` to terminate Mixxx in the verified `$CONTAINER_NAME` instance. Never call `killall` (not installed in container).
 - **Restart Recipe**:
   ```bash
-  docker exec bitedj-gui-test-instance pkill -9 mixxx && sleep 1 && \
-  docker exec -d bitedj-gui-test-instance bash -c "DISPLAY=:99 QT_AUTO_SCREEN_SCALE_FACTOR=0 QT_ENABLE_HIGHDPI_SCALING=0 QT_SCALE_FACTOR=1.0 BITEDJ_SETTINGS_PATH=/root/.mixxx /dist-linux/bin/mixxx /music/BiteDJ_Test_Groove_128BPM.wav /music/BiteDJ_Test_Techno_124BPM.wav --resourcePath /dist-linux/share/mixxx/ --full-screen --style Fusion"
+  docker exec "$CONTAINER_NAME" pkill -9 mixxx && sleep 1 && \
+  docker exec -d "$CONTAINER_NAME" bash -c "DISPLAY=:99 QT_AUTO_SCREEN_SCALE_FACTOR=0 QT_ENABLE_HIGHDPI_SCALING=0 QT_SCALE_FACTOR=1.0 BITEDJ_SETTINGS_PATH=/root/.mixxx /dist-linux/bin/mixxx /music/BiteDJ_Test_Groove_128BPM.wav /music/BiteDJ_Test_Techno_124BPM.wav --resourcePath /dist-linux/share/mixxx/ --full-screen --style Fusion"
   ```
 - **Screenshot Capture**: Always use `DISPLAY=:99 scrot /tmp/screen.png` inside the container, then `docker cp` to host. Never use ImageMagick `import` (not installed).
 - **Image Cropping**: Always use `ffmpeg -y -i <in.png> -vf "crop=<w>:<h>:<x>:<y>" <out.png>`. Do not assume Python `PIL` or OpenCV are installed.
@@ -52,13 +70,13 @@ so remeasure those from a current screenshot before clicking.
 - **Reliable Keyboard Navigation Flow to load `/music`**:
   ```bash
   # 1. Ensure in Browse tab
-  docker exec bitedj-gui-test-instance bash -c "DISPLAY=:99 xdotool mousemove 300 30 click 1"
+  docker exec "$CONTAINER_NAME" bash -c "DISPLAY=:99 xdotool mousemove 300 30 click 1"
   # 2. Click Back button to reveal sidebar tree if currently in table view
-  docker exec bitedj-gui-test-instance bash -c "DISPLAY=:99 xdotool mousemove 963 79 click 1"
+  docker exec "$CONTAINER_NAME" bash -c "DISPLAY=:99 xdotool mousemove 963 79 click 1"
   # 3. Direct click on MUSIC under Quick Links (once expanded)
-  docker exec bitedj-gui-test-instance bash -c "DISPLAY=:99 xdotool mousemove 100 142 click 1"
+  docker exec "$CONTAINER_NAME" bash -c "DISPLAY=:99 xdotool mousemove 100 142 click 1"
   # Alternatively, keyboard sequence from sidebar focus:
-  docker exec bitedj-gui-test-instance bash -c "DISPLAY=:99 xdotool key Up Up Right Down Right Down Return"
+  docker exec "$CONTAINER_NAME" bash -c "DISPLAY=:99 xdotool key Up Up Right Down Right Down Return"
   ```
 - **Track Table Geometry (when music loaded)**:
   - Table Header: `y=195`

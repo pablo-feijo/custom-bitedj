@@ -6,6 +6,66 @@ Use this workflow to **quickly test and verify changes before deploying to hardw
 
 ---
 
+## Independent Branch Instances
+
+Create a feature worktree from the agreed, existing semver integration branch:
+
+```bash
+git worktree add ../bitedj-my-feature -b codex/my-feature codex/v0.0.7
+cd ../bitedj-my-feature
+./docker-build.sh --platform linux/arm64
+./run-gui-test.sh
+```
+
+Use the actual agreed base if the next semver branch has not been created yet.
+The launcher chooses a worktree-specific container and free localhost ports.
+It prints the noVNC, audio and VNC endpoints. Another worktree can run the same
+commands concurrently; its writable build, install, settings and results stay separate.
+
+For stable endpoints, choose an unused port set:
+
+```bash
+BITEDJ_TEST_INSTANCE=bitedj-xsploit-gui \
+BITEDJ_TEST_WEB_PORT=6081 \
+BITEDJ_TEST_AUDIO_PORT=8001 \
+BITEDJ_TEST_VNC_PORT=5901 ./run-gui-test.sh
+```
+
+The launcher remembers the instance in `test-config/active-instance`. Settings
+live in `test-config/<instance>/`, results in `test-results/<instance>/`.
+The FX and preview scripts select that instance and discover its mapped ports.
+Container ownership labels prevent either launching or testing against another
+worktree/branch by mistake. The legacy instance on port 6080 is left alone.
+
+To inspect or restart only your instance:
+
+```bash
+source ./gui-test-settings.sh
+verify_test_instance_owner
+docker port "$CONTAINER_NAME"
+docker exec "$CONTAINER_NAME" pkill -9 mixxx
+# Relaunch with the same explicit port variables to retain fixed endpoints:
+BITEDJ_TEST_WEB_PORT=6081 BITEDJ_TEST_AUDIO_PORT=8001 \
+BITEDJ_TEST_VNC_PORT=5901 ./run-gui-test.sh
+```
+
+Restarting replaces only the owned container and preserves its settings directory.
+Default automatic ports may change on restart. Use a separate worktree for each
+branch; do not switch a checkout underneath a running test instance. No host USB
+volume is mounted by default. Set `BITEDJ_TEST_USB_DIR=/path/to/export` to mount
+a chosen export read-only at `/media/TestUSB`. Rebuild the shared GUI image when required with
+`BITEDJ_TEST_REBUILD_IMAGE=1`; already-running containers retain their images.
+
+The examples below describe the historical fixed-port setup. Substitute the
+owned `$CONTAINER_NAME` and printed endpoints. This checkout provides
+`test-gui-fx.sh` and `test-gui-preview.sh`; references below to
+`test-gui-automated.sh` describe the older workflow, whose script is absent here.
+Their coordinate-based checks need review against the current skin; screenshot
+capture and HTTP checks alone do not prove correct DSP. Use the native
+`EffectSlotTest` for control-to-audio verification.
+
+---
+
 ## 1. Architecture Overview
 
 ```

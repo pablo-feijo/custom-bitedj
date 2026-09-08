@@ -4,6 +4,47 @@ Hello! If you are an AI assistant or autonomous agent (like Antigravity, Claude,
 
 BiteDJ is a highly-customized fork of Mixxx, specifically engineered to run as a headless **Raspberry Pi OS Appliance** using the **Sway/Wayland compositor** and a multi-touch screen.
 
+## Branch and Test Isolation — Required for Every New Task
+
+- Before edits, inspect `git status`, branches, and `git worktree list`.
+- Start each new implementation task on a new `codex/<topic>` feature branch
+  from the intended semver integration branch, in a **separate worktree**.
+  Never perform feature work directly on the semver branch or switch a checkout
+  that contains another task's work. Reuse the feature worktree for follow-ups
+  to the same task; do not create another branch for every message.
+- Record the intended merge target in the task checklist. The user-designated
+  target for the PiFlex first batch is `codex/v0.0.7`. Do not substitute `main`
+  or an older release branch. If the target does not yet exist, preserve the
+  agreed base and document the future target; do not invent its starting state.
+- Keep application version numbers at the feature branch's inherited version
+  until preparing the semver release. Then apply the synchronization protocol below.
+- Every worktree must have its own `build-linux/`, `dist-linux/`, test settings,
+  results, and GUI container. Never share writable build/install/config directories
+  between branches. A shared compiler cache and immutable Docker image are fine.
+- Use `run-gui-test.sh` and `gui-test-settings.sh`: they derive a worktree-specific
+  container name, assign free host ports by default, and refuse to replace a
+  container labeled for another worktree/branch. Explicit names/ports may be set
+  with `BITEDJ_TEST_INSTANCE`, `BITEDJ_TEST_WEB_PORT`, `BITEDJ_TEST_AUDIO_PORT`,
+  and `BITEDJ_TEST_VNC_PORT`.
+- Read the printed endpoints or `docker port`; **never assume port 6080 or the
+  legacy `bitedj-gui-test-instance` belongs to this task**. Source
+  `gui-test-settings.sh` and run `verify_test_instance_owner` before manual
+  test operations. Use `$CONTAINER_NAME` in commands.
+- For stopping Mixxx in an owned instance, use
+  `docker exec "$CONTAINER_NAME" pkill -9 mixxx`. Never use `killall`, global
+  container cleanup, or remove another task's test instance.
+- Existing fixtures under the original `test-config/` are not automatically
+  copied. New instances use `test-config/<instance>/`; explicitly choose any
+  settings migration. Optional USB test media should be read-only and selected
+  for that task; no developer-specific volume is mounted automatically.
+- Build/test the feature branch and leave its VNC available when requested.
+  Report its exact branch, instance, endpoints, validation results, and merge
+  target. Merge or deploy to hardware only when requested.
+
+See [GUI_TESTING.md](GUI_TESTING.md) for reproducible commands. Historical
+fixed-name commands later in this document describe the old single-instance
+setup; replace their target with the verified owned `$CONTAINER_NAME`.
+
 ## 1. Architectural Rules for Agents
 
 ### A. Do Not Use QDrag for Touchscreen Drag-and-Drop

@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     websockify \
     wmctrl \
     xdotool \
+    scrot \
     pulseaudio \
     pulseaudio-utils \
     libasound2-plugins \
