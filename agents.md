@@ -1,5 +1,10 @@
 # Agent Instructions
 
+## Commit Messages
+- Use Conventional Commits for every commit: `type(scope): description` (scope is optional).
+- Use appropriate types such as `feat`, `fix`, `docs`, `refactor`, `test`, `build`, or `chore`.
+- Before finishing, check commits created for the current task and amend any nonconforming messages. Do not rewrite unrelated history.
+
 ## UI Layout
 - Overview Panel: We are intentionally keeping only the **FX** and **KEY** tabs for now. 
 - Do not attempt to add `PADS` or `CFX` tabs back to the native `WidgetStack` in `effects.xml`.
