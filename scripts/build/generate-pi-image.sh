@@ -16,25 +16,28 @@ if ! docker info >/dev/null 2>&1; then
     exit 1
 fi
 
-# 2. Check if pre-built BiteDJ Linux ARM64 binary exists
-if [ ! -f "${DIST_DIR}/bin/mixxx" ] && [ ! -f "${DIST_DIR}/bin/bitedj" ]; then
-    echo "==> BiteDJ build artifacts not found in dist-linux/"
-    echo "    Compiling BiteDJ Linux ARM64 binary first with ./scripts/build/docker-build.sh..."
-    "${REPO_DIR}/scripts/build/docker-build.sh" --platform linux/arm64
-fi
-
-if [ ! -f "${DIST_DIR}/bin/mixxx" ] && [ ! -f "${DIST_DIR}/bin/bitedj" ]; then
-    echo "ERROR: dist-linux/bin/mixxx was not generated." >&2
+# Check the pinned submodule before spending time compiling.
+if [[ ! -f "$PI_GEN_DIR/build-docker.sh" ]]; then
+    echo "ERROR: Initialize the pinned image generator with git submodule update --init mixxx-pi-gen" >&2
     exit 1
 fi
 
-echo "==> BiteDJ pre-built artifacts detected in ${DIST_DIR}."
-
-# 3. Ensure mixxx-pi-gen is present
-if [ ! -d "${PI_GEN_DIR}" ]; then
-    echo "ERROR: ${PI_GEN_DIR} not found." >&2
-    exit 1
+# Reuse only an intact ARM64 install from the current source and version.
+if ! python3 "$REPO_DIR/scripts/build/build-support.py" verify --platform linux/arm64; then
+    echo "==> Building fresh, verified ARM64 artifacts..."
+    "$REPO_DIR/scripts/build/docker-build.sh" --platform linux/arm64
 fi
+python3 "$REPO_DIR/scripts/build/build-support.py" verify --platform linux/arm64
+
+# Image naming must agree with the actual binary, including its prerelease.
+python3 - "$DIST_DIR/build-provenance.json" "$PI_GEN_DIR/config" <<'VERSION'
+import json, pathlib, re, sys
+version = json.loads(pathlib.Path(sys.argv[1]).read_text())["version"]
+config = pathlib.Path(sys.argv[2]).read_text()
+match = re.search(r'^IMG_NAME=["\']?([^"\'\n]+)', config, re.M)
+if not match or not match[1].endswith('-v' + version):
+    raise SystemExit('Set pi-gen config IMG_NAME to bitedj-pi-v' + version + ' before generating the image')
+VERSION
 
 # 4. Run pi-gen container build
 echo "==> Launching Raspberry Pi OS image generation container..."

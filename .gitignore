@@ -73,3 +73,7 @@ test-results/
 
 # Native test analysis cache (generated locally, never a fixture).
 /.bitedj/
+
+# Verified build staging and same-worktree build lock.
+/dist-linux-staging.*/
+/.bitedj-build-lock/

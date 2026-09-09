@@ -37,7 +37,8 @@ source ./scripts/test/gui-test-settings.sh
 verify_test_instance_owner
 ```
 
-Image and hardware operations retain their existing behavior:
+Image generation validates the installed artifact manifest and matching image
+version; see [the build guide](BUILD_AND_DEPLOY.md). Hardware entry points:
 
 ```sh
 ./scripts/build/generate-pi-image.sh
