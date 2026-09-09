@@ -8,7 +8,15 @@ on:
     branches:
       - main
       - develop
+      - 'codex/v[0-9]*.[0-9]*.[0-9]*'
+      - 'codex-v[0-9]*.[0-9]*.[0-9]*'
+      - 'v[0-9]*.[0-9]*.[0-9]*'
   workflow_dispatch:
+    inputs:
+      e2e:
+        description: Build the desktop and run isolated E2E smoke tests
+        type: boolean
+        default: false
 
 # Only keep the newest run per PR/branch alive, older ones are obsolete.
 concurrency:
@@ -19,12 +27,26 @@ permissions:
   contents: read # to fetch code (actions/checkout)
 
 jobs:
+  fast-tests:
+    name: Fast controller and resource tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python3 scripts/test/run-tests.py fast
+
   unit-tests:
-    name: Unit tests
+    name: Native unit and integration tests
+    needs: fast-tests
     runs-on: ubuntu-24.04
     # A cold (ccache-less) build of mixxx-lib takes roughly an hour.
     timeout-minutes: 120
     env:
+      # Release integration branches always exercise the desktop smoke path.
+      RUN_E2E: ${{ inputs.e2e == true || (github.event_name == 'push' && (startsWith(github.ref_name, 'codex/v') || startsWith(github.ref_name, 'codex-v') || startsWith(github.ref_name, 'v'))) }}
       CCACHE_DIR: /home/runner/.cache/ccache
       # Render analyzer/waveform tests to an offscreen buffer, there is no
       # display server on the runner.
@@ -99,6 +121,7 @@ jobs:
         uses: ammaraskar/gcc-problem-matcher@0.3.0
 
       - name: "Build test suite"
+        id: native_build
         run: cmake --build . --config RelWithDebInfo --target mixxx-test
         working-directory: build
         env:
@@ -110,21 +133,39 @@ jobs:
           ccache --show-stats
           ccache --cleanup
 
-      - name: "Run unit tests"
+      - name: "Run native tests"
         # --no-tests=error guards against a configuration that registers no
         # tests at all, which ctest would otherwise report as success.
-        run: >-
-          ctest
-          --no-tests=error
-          --timeout 45
-          --parallel 1
-          --output-junit test-results.xml
-        working-directory: build
+        run: python3 scripts/test/run-tests.py native --build-dir build
+
+      - name: "Run removable-drive integration tests"
+        # Mount/unmount fixtures only in a private namespace, never the runner's /mnt.
+        run: sudo bash scripts/test/run-removable-tests.sh --build-dir build
+
+      - name: "Build desktop for E2E"
+        id: desktop_build
+        if: ${{ !cancelled() && env.RUN_E2E == 'true' && steps.native_build.outcome == 'success' }}
+        run: |
+          cmake --build build --target mixxx --parallel 2
+          cmake --install build --prefix "$PWD/dist-linux"
+
+      - name: "Build matching Ubuntu E2E runtime"
+        id: e2e_runtime
+        if: ${{ !cancelled() && env.RUN_E2E == 'true' && steps.desktop_build.outcome == 'success' }}
+        run: |
+          docker build --build-arg BASE_IMAGE=ubuntu:24.04 -t bitedj-builder:latest -f docker/build.Dockerfile .
+          docker build -t bitedj-gui-test:latest -f docker/gui-test.Dockerfile .
+
+      - name: "Run desktop E2E"
+        if: ${{ !cancelled() && env.RUN_E2E == 'true' && steps.e2e_runtime.outcome == 'success' }}
+        run: python3 scripts/test/run-tests.py e2e
 
       - name: "Upload test results"
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: build/test-results.xml
+          path: |
+            build/*-results.xml
+            test-results/bitedj-e2e-*/
           if-no-files-found: warn

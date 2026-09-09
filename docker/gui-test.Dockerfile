@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y \
     wmctrl \
     xdotool \
     scrot \
+    x11-utils \
+    scrot \
     pulseaudio \
     pulseaudio-utils \
     libasound2-plugins \

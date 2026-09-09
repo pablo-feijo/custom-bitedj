@@ -8,6 +8,9 @@ Custom Bite DJ is an independent fork of [Team Deckshark’s BiteDJ](https://git
 
 ## Branch and Test Isolation — Required for Every New Task
 
+- Integrate each task into a semver branch with a squash merge: one Conventional Commit for the complete task, without bringing its intermediate commits or a merge commit into the semver history.
+- Rewrite previously published semver commits only when explicitly requested. Preserve unrelated history and a local backup ref, and push rewritten history with an explicit expected-value force-with-lease.
+
 - Before edits, inspect `git status`, branches, and `git worktree list`.
 - Start each new implementation task on a new `codex/<topic>` feature branch
   from the intended semver integration branch, in a **separate worktree**.

@@ -3,7 +3,7 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DIST_DIR="${REPO_DIR}/dist-linux"
-MUSIC_DIR="${REPO_DIR}/test-music"
+MUSIC_DIR="${BITEDJ_TEST_MUSIC_DIR:-${REPO_DIR}/test-music}"
 source "${REPO_DIR}/scripts/test/gui-test-settings.sh"
 for port in "${BITEDJ_TEST_WEB_PORT:-}" "${BITEDJ_TEST_AUDIO_PORT:-}" "${BITEDJ_TEST_VNC_PORT:-}"; do
     if [[ -n "${port}" ]] && [[ ! "${port}" =~ ^[1-9][0-9]{0,4}$ || "${port}" -lt 1 || "${port}" -gt 65535 ]]; then
@@ -28,6 +28,29 @@ if [ ! -f "${DIST_DIR}/bin/mixxx" ]; then
     echo "Error: dist-linux/bin/mixxx not found!"
     echo "Please build the ARM64 binary first with: ./scripts/build/docker-build.sh --platform linux/arm64"
     exit 1
+fi
+
+# Automated runs get disposable settings, deterministic music, and no host ports.
+# Reuse the launcher ownership convention without replacing a manual instance.
+if [[ "${BITEDJ_TEST_AUTOMATED:-0}" == 1 ]]; then
+    if docker container inspect "${CONTAINER_NAME}" >/dev/null 2>&1; then
+        echo "Automated tests require a fresh instance name." >&2
+        exit 1
+    fi
+    docker image inspect bitedj-gui-test:latest >/dev/null
+    docker run -d --name "${CONTAINER_NAME}" \
+        --label "us.bitedj.test.worktree=${REPO_DIR}" \
+        --label "us.bitedj.test.branch=$(git -C "${REPO_DIR}" branch --show-current)" \
+        --label "us.bitedj.test.kind=e2e" \
+        -v "${DIST_DIR}:/dist-linux:ro" \
+        -v "${REPO_DIR}/res/skins/BiteDJ:/dist-linux/share/mixxx/skins/BiteDJ:ro" \
+        -v "${REPO_DIR}/res/effects/chains:/dist-linux/share/mixxx/effects/chains:ro" \
+        -v "${MUSIC_DIR}:/music:ro" \
+        -v "${REPO_DIR}/tests/e2e/fixtures:/fixtures:ro" \
+        -v "${REPO_DIR}/tests/e2e/start.sh:/start-e2e.sh:ro" \
+        -v "${REPO_DIR}/scripts/test/audio_stream.py:/audio_stream.py:ro" \
+        bitedj-gui-test:latest bash /start-e2e.sh
+    exit
 fi
 
 echo "==> 1. Synchronizing effect chains and resources to dist-linux..."

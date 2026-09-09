@@ -10,6 +10,9 @@
 - Synchronize full binary/package/archive/image versions, record the original branch and source commit as provenance, and verify the rebuilt binary's reported version before delivery. Never relabel an old binary. Unsuffixed versions are reserved for final releases.
 
 ## Commit Messages
+
+- Integrate each task into a semver branch with a squash merge: one Conventional Commit for the complete task, without bringing its intermediate commits or a merge commit into the semver history.
+- Rewrite previously published semver commits only when explicitly requested. Preserve unrelated history and a local backup ref, and push rewritten history with an explicit expected-value force-with-lease.
 - Use Conventional Commits for every commit: `type(scope): description` (scope is optional).
 - Use appropriate types such as `feat`, `fix`, `docs`, `refactor`, `test`, `build`, or `chore`.
 - Before finishing, check commits created for the current task and amend any nonconforming messages. Do not rewrite unrelated history.
@@ -19,7 +22,9 @@ architecture, versioning, branch isolation, testing and Conventional Commits rul
 ## Required Task Workflow
 
 - Start every new task on a new `codex/<topic>` feature branch in a separate Git
-  worktree, based on the agreed semver integration branch. Reuse that worktree
+  worktree, based on the latest agreed semver integration branch (currently
+  `codex/v0.0.7`). Fetch the matching remote ref and inspect the local integration
+  tip before branching; preserve local integration commits. Reuse that worktree
   for follow-ups and record the intended merge target in the task checklist.
 - Keep build outputs, installed binaries, settings and test containers independent
   per worktree. Never switch or overwrite another task's checkout or VNC instance.
