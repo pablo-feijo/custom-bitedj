@@ -1,4 +1,5 @@
-FROM bitedj-builder:latest
+ARG BITEDJ_BUILDER_IMAGE=bitedj-builder-linux-arm64:latest
+FROM ${BITEDJ_BUILDER_IMAGE}
 
 ENV DEBIAN_FRONTEND=noninteractive
 

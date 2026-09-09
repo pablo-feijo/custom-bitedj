@@ -246,14 +246,14 @@ Convert screenshot to PPM (`ffmpeg -i screen.png screen.ppm`) and parse raw RGB 
 - Verify both the element's own QSS (`margin-top`, `padding-left`) and its container's layout alignment (`qproperty-layoutAlignment`).
 
 #### H. Overview Right Panel (1024x600)
-- Tab centers: `FX (878,90)`, `KEY (934,90)`, `JUMP (990,90)`.
+- Tab centers: `FX (878,70)`, `KEY (934,70)`, `JUMP (990,70)`.
 - KEY: Deck 1 `-2 (891,178)`, `+2 (977,178)`, `RESET (934,230)`;
   Deck 2 uses the same x coordinates at `y=326` and `y=378`.
 - JUMP: Deck 1 halve/double at `(891,178)` / `(977,178)`,
   backward/forward at `(891,230)` / `(977,230)`;
   Deck 2 uses `y=326` and `y=378`.
-- FX: selector `(934,142)`, deck routing `(891,194)` / `(977,194)`,
-  activation `(934,246)`. Parameter-grid positions depend on the selected effect.
+- FX: selector `(934,122)`, deck routing `(891,174)` / `(977,174)`,
+  activation `(934,226)`. Parameter-grid positions depend on the selected effect.
 - Wait for display-mode notifications to clear before clicking the main tabs;
   the notification temporarily covers the top bar.
 
@@ -291,3 +291,47 @@ Bottom-preview cue priority: use 2px colored marker lines with a contrasting bor
 The main `cue_point` is shown as an orange **CUE** marker in both bottom previews, matching Play (`#ff6000`). It remains visible when the playhead is exactly on the cue. Verify this separately from hot-cue letters and memory-cue numbers, with phrases On/Off.
 
 At overlapping positions, the orange main **CUE** line and label paint last, above hot cues and memory cues. Keep the CUE label unabridged; cue metadata and existing edit targets are unchanged. Test exact overlaps with a hot cue and a memory cue separately.
+
+## Beat FX catalogue and picker
+
+Maintain [docs/BEAT_FX.md](docs/BEAT_FX.md) alongside factory XML and native controls.
+The Standard section uses versioned `[RB7] ` IDs with documented native
+approximations. Preserve legacy/custom files, Pad FX IDs and the Saved section.
+Never silently claim reverse, freeze, slip or transport behavior for delay chains.
+Generate factory XML with `scripts/build/generate-beatfx.py`; keep tests in
+`tests/effects/` and native audio/control regressions in `src/test/`.
+
+The picker uses two columns and seven rows per page, with minimum 50px effect
+buttons, 8px gaps and 16px outside padding. Preserve that touch clearance;
+page changes and Close must never load an effect. Match selected state to the
+live chain. Refresh the [picker gallery](docs/UI_SCREENSHOTS.md#beat-fx-picker)
+and Play image for visible changes, together with changelog links.
+
+Beat grid labels are periods in beats. Bind `parameterN_beat_period`; native
+code converts Tremolo's cycles/beat and mirrors clamped values. Keep existing
+raw controls and persisted parameter values unchanged. Verify both Echo and
+Tremolo when changing time controls, including Echo's two-beat maximum.
+
+## Docker disk hygiene
+
+Follow [Docker maintenance](docs/DOCKER_MAINTENANCE.md) before large builds and
+when recovering from disk exhaustion. Inspect host and Docker disk usage before
+and after heavy builds; aim for at least 10 GiB free before starting and remove
+obsolete task-owned outputs when space falls below that budget. When
+the user requests full cleanup, run `docker system prune --all --volumes --force`
+and report reclaimed space; do not substitute dangling-only cleanup. This
+explicit global request permits pruning stopped instances across worktrees.
+Keep running containers and persisted named-volume data outside that cleanup.
+Recreate needed test instances through their owned-worktree launchers and read
+the new ports. Do not prune globally on every build or restart a healthy engine.
+
+The fullscreen `BeatFxPicker` is an explicit native exception to the kiosk's
+dialog suppression. Do not remove that exception or broadly enable stock
+modal dialogs. Use `HighContrast::mapStyleSheet` for its native styling and verify
+both Night and Day after styling changes.
+
+Verified picker coordinates at 1024×600: Standard `(564,40)`, Saved `(692,40)`,
+Clear FX `(820,40)`, Close `(948,40)`; effect column centers `x=262,762`,
+row centers `y=131,192,254,316,378,439,501`; Previous `(106,560)`, Next `(918,560)`.
+Order is row-major; page 1 has entries 1–14, page 2 has 15–25. Selection uses
+persisted preset IDs; page/section buttons never write `chain_selector`.

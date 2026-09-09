@@ -148,15 +148,16 @@ bool MixxxApplication::notify(QObject* pTarget, QEvent* pEvent) {
     // Bite DJ: kiosk-style UI. The unit is touch-only, so tooltips and
     // modal dialog boxes are suppressed application-wide; all interaction
     // that stock Mixxx routes through dialogs is handled by in-skin pages
-    // and the NotificationStrip instead. Sole exception: DlgPreferences
-    // (and its child dialogs), kept for tuning the engine.
+    // and the NotificationStrip instead. Exceptions: DlgPreferences
+    // (and its children), and the explicitly designed fullscreen Beat FX picker.
     switch (pEvent->type()) {
     case QEvent::ToolTip:
         // Swallow every tooltip event before it reaches any widget.
         return true;
     case QEvent::Show:
         if (auto* pDialog = qobject_cast<QDialog*>(pTarget)) {
-            if (!belongsToPreferencesDialog(pDialog)) {
+            if (!belongsToPreferencesDialog(pDialog) &&
+                    pDialog->objectName() != QStringLiteral("BeatFxPicker")) {
                 // Dismiss as soon as the event loop spins again: a queued
                 // reject() also quits a modal exec() loop right after it starts,
                 // and callers get the safe "cancelled" result.

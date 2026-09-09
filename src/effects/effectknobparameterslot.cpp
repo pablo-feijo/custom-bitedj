@@ -75,6 +75,10 @@ EffectKnobParameterSlot::EffectKnobParameterSlot(
             this,
             &EffectKnobParameterSlot::slotValueAliasFromSkin);
 
+    m_pControlBeatPeriod = new ControlObject(
+            ConfigKey(m_group, itemPrefix + QStringLiteral("_beat_period")));
+    connect(m_pControlBeatPeriod, &ControlObject::valueChanged,
+            this, &EffectKnobParameterSlot::slotBeatPeriodFromSkin);
     m_pMetaknobSoftTakeover = new SoftTakeover();
 
     clear();
@@ -90,6 +94,7 @@ EffectKnobParameterSlot::~EffectKnobParameterSlot() {
     delete m_pControlMax;
     delete m_pControlDefault;
     delete m_pControlValueAlias;
+    delete m_pControlBeatPeriod;
     delete m_pMetaknobSoftTakeover;
 }
 
@@ -131,6 +136,7 @@ void EffectKnobParameterSlot::loadParameter(EffectParameterPointer pEffectParame
         // emits.
         m_bMirroringValueAlias = true;
         m_pControlValueAlias->forceSet(m_pEffectParameter->getValue());
+        m_pControlBeatPeriod->forceSet(beatPeriod(m_pEffectParameter->getValue()));
         m_bMirroringValueAlias = false;
 
         m_pControlLinkType->set(
@@ -163,6 +169,7 @@ void EffectKnobParameterSlot::clear() {
     m_pControlDefault->forceSet(0.0);
     m_bMirroringValueAlias = true;
     m_pControlValueAlias->forceSet(0.0);
+    m_pControlBeatPeriod->forceSet(0.0);
     m_bMirroringValueAlias = false;
     emit updated();
 }
@@ -306,6 +313,7 @@ void EffectKnobParameterSlot::slotKnobValueMirror(double v) {
     }
     m_bMirroringValueAlias = true;
     m_pControlValueAlias->set(v);
+    m_pControlBeatPeriod->set(beatPeriod(v));
     m_bMirroringValueAlias = false;
 }
 
@@ -324,7 +332,7 @@ void EffectKnobParameterSlot::slotValueAliasFromSkin(double v) {
     // would never match. forceSet bypasses behaviour and emits
     // valueChanged, which re-enters this slot — the guard above bails.
     double clamped = m_pControlValue->get();
-    if (clamped != v) {
+    if (m_pControlValueAlias->get() != clamped) {
         m_pControlValueAlias->forceSet(clamped);
     }
     // Push to the audio engine ourselves: m_pControlValue->set(v)
@@ -337,5 +345,26 @@ void EffectKnobParameterSlot::slotValueAliasFromSkin(double v) {
     // sender pointer differs, so the UI looks right but the audio
     // thread keeps using the stale value.
     slotValueChanged(clamped);
+    m_pControlBeatPeriod->set(beatPeriod(clamped));
     m_bMirroringValueAlias = false;
+}
+
+// Beats metadata alone does not distinguish a period from Tremolo's cycles/beat.
+// Keep existing raw controls and saved values intact; the skin uses this alias.
+double EffectKnobParameterSlot::beatPeriod(double raw) const {
+    if (m_pManifestParameter && m_pManifestParameter->unitsHint() ==
+                    EffectManifestParameter::UnitsHint::Beats &&
+            m_pManifestParameter->id() == QStringLiteral("rate")) {
+        return raw > 0 ? 1.0 / raw : 0;
+    }
+    return raw;
+}
+
+void EffectKnobParameterSlot::slotBeatPeriodFromSkin(double beats) {
+    if (m_bMirroringValueAlias || !m_pManifestParameter || beats <= 0 ||
+            m_pManifestParameter->unitsHint() != EffectManifestParameter::UnitsHint::Beats) {
+        return;
+    }
+    // The reciprocal conversion is its own inverse.
+    slotValueAliasFromSkin(beatPeriod(beats));
 }

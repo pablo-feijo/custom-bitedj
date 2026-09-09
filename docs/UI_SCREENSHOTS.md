@@ -5,19 +5,22 @@
 This guide describes [Custom Bite DJ](../README.md), an independent fork of
 [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on Mixxx.
 
-Native **1024×600** screenshots of the 0.0.7 working interface, using synthetic
-music in an isolated ARM64 Docker instance and the Night theme.
-UI source revision: `8f87aa338f` on `codex/v0.0.7`.
-The [synthetic Rekordbox fixture](../tests/rekordbox/README.md) supplies the two
-loaded tracks, phrases and cue colors. Its copied export directory is not a
-mounted USB drive, so the Play source badges read **OFFLINE**; no physical MIDI
-controller or USB drive is attached. The two fallback rows in Browse show LOAD
-until their preview data is available.
+Native **1024×600** screenshots using synthetic music in isolated ARM64 Docker
+instances. Play and Beat FX were refreshed on `codex/ddj400-shift-fx-back` for
+the catalogue and picker changes documented here; they use the generated Groove
+128 BPM and Techno 124 BPM tracks. The picker is shown in Night and Day modes.
+
+Browse and Settings retain UI source revision `8f87aa338f` on `codex/v0.0.7`,
+in Night mode. Their [synthetic Rekordbox fixture](../tests/rekordbox/README.md)
+supplies tracks, phrases and cue colors. Its copied export directory is not a
+mounted USB drive; the source badges read **OFFLINE**. No physical MIDI controller
+or USB drive is attached. The two fallback Browse rows show LOAD until preview
+data is available.
 
 See the [0.0.7 changelog](../CHANGELOG.md#007--unreleased) for the changes behind
 these screens, or [return to the README](../README.md).
 
-[Play](#play) | [Browse with previews](#browse-preview) | [General](#settings-general) | [Library](#settings-library) | [Pad FX](#settings-pad-fx) | [Device](#settings-device) | [Audio](#settings-audio) | [System](#settings-system) | [Info](#settings-info)
+[Play](#play) | [Beat FX picker](#beat-fx-picker) | [Browse with previews](#browse-preview) | [General](#settings-general) | [Library](#settings-library) | [Pad FX](#settings-pad-fx) | [Device](#settings-device) | [Audio](#settings-audio) | [System](#settings-system) | [Info](#settings-info)
 
 <a id="play"></a>
 
@@ -26,6 +29,36 @@ these screens, or [return to the README](../README.md).
 Two loaded decks with scrolling waveforms, deck overviews and the FX panel. The KEY and JUMP tabs share the right-hand panel.
 
 ![Play: Two loaded decks with scrolling waveforms, deck overviews and the FX panel. The KEY and JUMP tabs share the right-hand panel.](images/ui/0.0.7/play.png)
+
+<a id="beat-fx-picker"></a>
+
+## Beat FX picker
+
+The Standard section follows the 25-name Rekordbox 7 single-mode Beat FX list.
+Every entry is a documented [native approximation](BEAT_FX.md), with differences
+from Rekordbox explained in the catalogue. Selecting an effect closes the picker
+and leaves FX Off until activated. Page navigation and Close preserve selection.
+
+Two columns provide 492px-wide effect buttons with at least 50px height and an
+8px gutter. ECHO is selected here. The second page keeps the same row spacing.
+
+![Standard Beat FX, Night mode, page 1 with ECHO selected.](images/ui/0.0.7/beat-fx-page-1.png)
+
+![Standard Beat FX, Night mode, page 2.](images/ui/0.0.7/beat-fx-page-2.png)
+
+<details>
+<summary>Day mode and preserved Saved presets</summary>
+
+![Standard Beat FX in Day mode.](images/ui/0.0.7/beat-fx-day.png)
+
+Saved keeps existing preset files and identities. The former duplicate FILTER
+labels now display as COLOR FILTER and RHYTHMIC FILTER.
+
+![Saved presets, page 1, including COLOR FILTER.](images/ui/0.0.7/beat-fx-saved-1.png)
+
+![Saved presets, page 2, including RHYTHMIC FILTER.](images/ui/0.0.7/beat-fx-saved-2.png)
+
+</details>
 
 <a id="browse-preview"></a>
 

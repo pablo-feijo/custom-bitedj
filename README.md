@@ -79,3 +79,7 @@ own terms. See [licensing and distribution notes](docs/LICENSING.md).
 See [the test strategy](docs/TESTING.md) for fast checks, native integration tests,
 removable-drive fixtures and isolated desktop E2E. Start with
 `python3 scripts/test/run-tests.py fast`.
+
+The [Beat FX picker](docs/UI_SCREENSHOTS.md#beat-fx-picker) offers a two-column
+standard list and a separate Saved section. See [Beat FX](docs/BEAT_FX.md) for
+the 25 native approximations, differences from Rekordbox and upgrade behavior.

@@ -93,6 +93,7 @@ class EffectChainPresetManager : public QObject {
 
     void importUserPresets();
     void importDefaultPresets();
+    void importRekordbox7Presets();
     void generateDefaultQuickEffectPresets();
     void prependRemainingPresetsToLists();
 

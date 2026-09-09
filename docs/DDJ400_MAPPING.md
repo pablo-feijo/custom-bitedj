@@ -16,6 +16,26 @@ In upstream Mixxx, adjusting both the effect parameter (`super`) and the wet/dry
 - **Two-Handed Live Sweeps**: A DJ can hold Shift with their thumb and simultaneously sweep the **SUPER** knob with one hand (using either Filter knob) and the **MIX** knob with the other hand (using the Level/Depth knob).
 - **Normal Filter Operation**: When Shift is not held, the Filter knobs control each deck's respective QuickEffect Filter (`[QuickEffectRack1_[ChannelN]], super1`) as standard.
 
+### Effect selection
+
+Press **BEAT FX SELECT** to advance one entry in the configured Beat FX list.
+Hold **either deck's SHIFT** and press that same button to go backward.
+Button release does nothing. Navigation follows the native preset list,
+including its configured order and boundary behavior; there is no six-entry cap.
+`chain_selector` is a relative encoder: send +1 forward or -1 backward,
+never a preset index.
+
+The mapping accepts normal SELECT (`0x94`, note `0x63`) with tracked Shift
+state, as well as the dedicated shifted SELECT (`0x94`, note `0x64`). Deck 1/2
+Shift is note `0x3F` on status `0x90`/`0x91`. Both paths update
+`[EffectRack1_EffectUnit1],chain_selector` once per press.
+
+Run `node tests/controllers/test_ddj400_effect_select.cjs` for the MIDI-binding
+regression checks. On hardware, select a middle effect, hold each deck's Shift
+in turn and press SELECT: verify one step backward, no step on release, and
+forward selection after releasing Shift. Check the native list boundary at the first
+effect. Hardware validation of this fallback remains pending.
+
 ## 2. Configurable Pad FX
 
 Settings → PAD FX selects Deck 1/2, Normal/Shift bank and one of eight pads.
@@ -87,3 +107,17 @@ The DDJ-400 mapping has been verified end-to-end on physical hardware connected 
 - **Beat FX**: Level/Depth simultaneous mix/meta sweep, ON/OFF toggle, Beat FX channel assignment.
 - **Pad FX**: Instant punch-in profiles on Pads 1–8 with automatic clean restoration on release.
 - **In-Skin Device Picker**: Discovered and enabled under **Settings -> Devices**.
+
+## Standard Beat FX and touch picker
+
+The [Beat FX catalogue](BEAT_FX.md) defines the 25 Rekordbox 7 single-mode names,
+original native approximations and their limitations. The two-column picker
+shows Standard and Saved separately; SELECT traverses the underlying standard
+then saved order, including the empty entry at the wrap boundary. New standard
+presets select Off and activate every occupied slot together from the existing
+Effect1 `enabled` control. Physical DDJ-400 verification remains a hardware check.
+
+BEAT left/right now writes periods `[0.125, 0.25, 0.5, 1, 2, 4]` to the first
+loaded Beats-typed parameter's `parameterN_beat_period` alias. Native code
+converts Tremolo's rate and preserves Echo's period semantics. Values clamp to
+the manifest range and the screen highlights the actual applied period.

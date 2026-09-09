@@ -9,6 +9,7 @@ DIST_DIR="${REPO_DIR}/dist-linux"
 PLATFORM=""
 CLEAN=false
 RUN_TESTS=false
+TEST_FILTER="."
 REBUILD_IMAGE=false
 
 print_usage() {
@@ -20,6 +21,7 @@ print_usage() {
     echo "  --platform <platform>  Target platform, e.g. linux/arm64 or linux/amd64 (default: host platform)"
     echo "  --clean                Remove existing build directory before building"
     echo "  --test                 Run unit tests (ctest) after compilation"
+    echo "  --test-filter <regex>  Build/run only matching native tests (implies --test)"
     echo "  --rebuild-image        Force rebuild of the Docker builder image"
     echo "  -h, --help             Show this help message"
 }
@@ -37,6 +39,11 @@ while [[ $# -gt 0 ]]; do
         --test)
             RUN_TESTS=true
             shift
+            ;;
+        --test-filter)
+            RUN_TESTS=true
+            TEST_FILTER="${2:?--test-filter requires a regex}"
+            shift 2
             ;;
         --rebuild-image)
             REBUILD_IMAGE=true
@@ -83,6 +90,7 @@ docker run --rm \
     -v bitedj-ccache:/root/.cache/ccache \
     -w /src/build-linux \
     -e CCACHE_DIR=/root/.cache/ccache \
+    -e BITEDJ_CTEST_FILTER="${TEST_FILTER}" \
     "${FULL_IMAGE_NAME}" \
     bash -c "
         set -euo pipefail
@@ -124,12 +132,12 @@ docker run --rm \
             ln -sf mixxx /src/dist-linux/bin/bitedj
         fi
 
-        $([[ "${RUN_TESTS}" = true ]] && echo '
-        echo \"==> Running tests...\"
-        cmake --build . --parallel \$(nproc) --target mixxx-test
-        export QT_QPA_PLATFORM=offscreen
-        ctest --output-on-failure --timeout 45
-        ' || true)
+        if [[ "${RUN_TESTS}" == true ]]; then
+            echo '==> Running tests...'
+            cmake --build . --parallel \$(nproc) --target mixxx-test
+            export QT_QPA_PLATFORM=offscreen
+            ctest --output-on-failure --timeout 45 -R \"\${BITEDJ_CTEST_FILTER}\"
+        fi
 
         echo '==> Build completed successfully!'
     "

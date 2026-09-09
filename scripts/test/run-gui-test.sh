@@ -56,6 +56,7 @@ fi
 echo "==> 1. Synchronizing effect chains and resources to dist-linux..."
 mkdir -p "${DIST_DIR}/share/mixxx/effects/chains"
 cp -r "${REPO_DIR}/res/effects/chains/"*.xml "${DIST_DIR}/share/mixxx/effects/chains/"
+cp -R "${REPO_DIR}/res/effects/rekordbox7" "${DIST_DIR}/share/mixxx/effects/"
 cp -r "${REPO_DIR}/res/skins/BiteDJ" "${DIST_DIR}/share/mixxx/skins/"
 
 echo "==> 2. Ensuring test music tracks exist..."
@@ -65,7 +66,7 @@ fi
 
 echo "==> 3. Building/verifying BiteDJ GUI test container..."
 if [[ "${BITEDJ_TEST_REBUILD_IMAGE:-0}" == 1 ]] || ! docker image inspect bitedj-gui-test:latest >/dev/null 2>&1; then
-    docker build -t bitedj-gui-test:latest -f "${REPO_DIR}/docker/gui-test.Dockerfile" "${REPO_DIR}"
+    docker build --build-arg "BITEDJ_BUILDER_IMAGE=${BITEDJ_BUILDER_IMAGE:-bitedj-builder-linux-arm64:latest}" -t bitedj-gui-test:latest -f "${REPO_DIR}/docker/gui-test.Dockerfile" "${REPO_DIR}"
 fi
 
 echo "==> 4. Launching BiteDJ GUI test instance (1024x600, VNC + PulseAudio)..."

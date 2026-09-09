@@ -15,6 +15,7 @@ class WEffectChainPresetSelector : public QComboBox, public WBaseWidget {
     WEffectChainPresetSelector(QWidget* pParent, EffectsManager* pEffectsManager);
 
     void setup(const QDomNode& node, const SkinContext& context);
+    void showPopup() override;
 
   private slots:
     void populate();

@@ -15,18 +15,15 @@
   (persisted CO, defaults to 0 — slot index N is positional within the
   loaded effect, not tied to a named parameter).
 
-  Bucket mapping: labels read as period in beats (⅛, ¼, ½, 1, 2, 4),
-  and the written value is rate in cycles per beat (1/period). Matches
-  Tremolo's `rate` (the most-user-visible Beats parameter). For
-  period-semantic parameters (Echo delay_time, Phaser lfo_period) the
-  labels read inverted under this mapping — flag if those effects need
-  per-parameter inverse pairings.
+  Bucket labels and parameterN_beat_period both use periods in beats.
+  Native code converts Tremolo cycles/beat and clamps to manifest limits;
+  the highlighted value is always the actual applied period.
 
   Skin connections only bind one CO per visibility binding and have no
   AND/OR transform, so the composite visibility is built out of nested
   WidgetGroups.
 
-  See CLAUDE.md "Mixxx fork patches" for the fork-side surface that
+  See docs/BEAT_FX.md for the fork-side surface that
   exposes parameter{N}_units.
 -->
 <Template>
@@ -70,19 +67,19 @@
                     <SetVariable name="EffectGroup"><Variable name="EffectGroup"/></SetVariable>
                     <SetVariable name="param"><Variable name="param"/></SetVariable>
                     <SetVariable name="Label">⅛</SetVariable>
-                    <SetVariable name="Value">8</SetVariable>
+                    <SetVariable name="Value">0.125</SetVariable>
                   </Template>
                   <Template src="skin:templates/effect_param_bucket.xml">
                     <SetVariable name="EffectGroup"><Variable name="EffectGroup"/></SetVariable>
                     <SetVariable name="param"><Variable name="param"/></SetVariable>
                     <SetVariable name="Label">¼</SetVariable>
-                    <SetVariable name="Value">4</SetVariable>
+                    <SetVariable name="Value">0.25</SetVariable>
                   </Template>
                   <Template src="skin:templates/effect_param_bucket.xml">
                     <SetVariable name="EffectGroup"><Variable name="EffectGroup"/></SetVariable>
                     <SetVariable name="param"><Variable name="param"/></SetVariable>
                     <SetVariable name="Label">½</SetVariable>
-                    <SetVariable name="Value">2</SetVariable>
+                    <SetVariable name="Value">0.5</SetVariable>
                   </Template>
                 </Children>
               </WidgetGroup>
@@ -100,13 +97,13 @@
                     <SetVariable name="EffectGroup"><Variable name="EffectGroup"/></SetVariable>
                     <SetVariable name="param"><Variable name="param"/></SetVariable>
                     <SetVariable name="Label">2</SetVariable>
-                    <SetVariable name="Value">0.5</SetVariable>
+                    <SetVariable name="Value">2</SetVariable>
                   </Template>
                   <Template src="skin:templates/effect_param_bucket.xml">
                     <SetVariable name="EffectGroup"><Variable name="EffectGroup"/></SetVariable>
                     <SetVariable name="param"><Variable name="param"/></SetVariable>
                     <SetVariable name="Label">4</SetVariable>
-                    <SetVariable name="Value">0.25</SetVariable>
+                    <SetVariable name="Value">4</SetVariable>
                   </Template>
                 </Children>
               </WidgetGroup>

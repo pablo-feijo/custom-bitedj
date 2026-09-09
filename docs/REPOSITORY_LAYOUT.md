@@ -52,7 +52,7 @@ container ownership labels, settings and results remain rooted in that worktree.
 Docker recipes require the repository root as their build context:
 
 ```sh
-docker build -f docker/build.Dockerfile -t bitedj-builder .
+docker build --platform linux/arm64 -f docker/build.Dockerfile -t bitedj-builder-linux-arm64 .
 docker build -f docker/gui-test.Dockerfile -t bitedj-gui-test .
 ```
 
@@ -78,3 +78,5 @@ helpers extract Ubuntu ARM64 runtime libraries into ignored
   and verify commands from both the root and an unrelated working directory.
 - Update this map when introducing a new category. Link to it from other guides
   instead of maintaining competing directory maps.
+
+Use [Docker maintenance](DOCKER_MAINTENANCE.md) to keep build and container disk usage bounded.

@@ -170,6 +170,15 @@ stale duplicate coordinates.
   executable permissions, and verify path resolution from outside the repo.
 - Update the canonical map when adding a category; link to it instead of copying it.
 
+## Docker maintenance
+
+Use the canonical [Docker cleanup and disk recovery guide](DOCKER_MAINTENANCE.md).
+Check disk space before large builds. For an explicitly requested full prune,
+use `docker system prune --all --volumes --force`, report reclaimed space and
+recreate removed stopped GUI environments from their own worktrees. This is the
+explicitly authorized exception to routine container-isolation rules. Preserve
+running containers and named-volume data; do not globally prune on every build.
+
 ## 2. Infrastructure & Build Workflows
 
 If the user asks you to compile or test the application, use the scripts under `scripts/`, as listed in [the repository layout](REPOSITORY_LAYOUT.md):

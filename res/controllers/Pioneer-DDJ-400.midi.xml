@@ -1011,7 +1011,7 @@
             </control>
 
             <control>
-                <description>BEAT FX SELECT - press - load next effect entry for focused Effect</description>
+                <description>BEAT FX SELECT - press - next Beat FX chain; hold either SHIFT for previous</description>
                 <group>[EffectRack1_EffectUnit1]</group>
                 <key>PioneerDDJ400.beatFxSelectPressed</key>
                 <status>0x94</status>
@@ -1021,7 +1021,7 @@
                 </options>
             </control>
             <control>
-              <description>BEAT FX SELECT +SHIFT - press - load previous effect entry for focused Effect</description>
+              <description>BEAT FX SELECT +SHIFT - press - previous Beat FX chain</description>
                 <group>[EffectRack1_EffectUnit1]</group>
                 <key>PioneerDDJ400.beatFxSelectShiftPressed</key>
                 <status>0x94</status>

@@ -1,6 +1,7 @@
 #include "effects/effectchain.h"
 
 #include "control/controlencoder.h"
+#include "control/controlproxy.h"
 #include "control/controlpotmeter.h"
 #include "control/controlpushbutton.h"
 #include "effects/effectslot.h"
@@ -193,6 +194,7 @@ const QString& EffectChain::presetName() const {
 }
 
 void EffectChain::loadChainPreset(EffectChainPresetPointer pChainPreset) {
+    m_presetName.clear(); // Suppress grouped enable propagation while replacing slots.
     slotControlClear(1);
     VERIFY_OR_DEBUG_ASSERT(pChainPreset) {
         return;
@@ -222,6 +224,13 @@ void EffectChain::loadChainPreset(EffectChainPresetPointer pChainPreset) {
     m_pControlChainSuperParameter->setDefaultValue(pChainPreset->superKnob());
 
     m_presetName = pChainPreset->name();
+    if (pChainPreset->isRekordbox7()) {
+        // Selection is silent until FX ON. Every component shares slot 1's
+        // activation, used by both the touchscreen and DDJ-400 mapping.
+        for (const auto& slot : std::as_const(m_effectSlots)) {
+            slot->setEnabled(false);
+        }
+    }
     emit chainPresetChanged(m_presetName);
 
     setControlLoadedPresetIndex(presetIndex());
@@ -290,6 +299,19 @@ EffectSlotPointer EffectChain::addEffectSlot(const QString& group) {
             m_pEngineEffectChain));
 
     m_effectSlots.append(pEffectSlot);
+    if (m_effectSlots.size() == 1) {
+        auto* enabled = new ControlProxy(group, QStringLiteral("enabled"), this);
+        enabled->connectValueChanged(this, [this](double value) {
+            if (!m_presetName.startsWith(QStringLiteral("[RB7] "))) {
+                return;
+            }
+            for (int i = 1; i < m_effectSlots.size(); ++i) {
+                if (m_effectSlots[i]->isLoaded()) {
+                    m_effectSlots[i]->setEnabled(value > 0);
+                }
+            }
+        });
+    }
     int numEffectSlots = static_cast<int>(m_pControlNumEffectSlots->get()) + 1;
     m_pControlNumEffectSlots->forceSet(numEffectSlots);
     m_pControlChainFocusedEffect->setStates(numEffectSlots);

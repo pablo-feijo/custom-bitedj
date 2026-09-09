@@ -69,8 +69,7 @@ a chosen export read-only at `/media/TestUSB`. Rebuild the shared GUI image when
 
 The examples below describe the historical fixed-port setup. Substitute the
 owned `$CONTAINER_NAME` and printed endpoints. This checkout provides
-`scripts/test/test-gui-fx.sh` and `scripts/test/test-gui-preview.sh`; references below to
-`test-gui-automated.sh` describe the older workflow, whose script is absent here.
+`scripts/test/test-gui-fx.sh` and `scripts/test/test-gui-preview.sh`.
 Their coordinate-based checks need review against the current skin; screenshot
 capture and HTTP checks alone do not prove correct DSP. Use the native
 `EffectSlotTest` for control-to-audio verification.
@@ -147,28 +146,26 @@ To spin up the container and interact with the UI manually:
 
 ---
 
-## 3. Automated Pre-Deployment Suite (`test-gui-automated.sh`)
+## 3. GUI and audio capture smoke
 
-To run an end-to-end automated verification without manual clicking:
+Start with two paused synthetic tracks, default Deck 1 FX routing and Night mode:
 
 ```bash
-./test-gui-automated.sh
+./scripts/test/capture-fx-smoke.sh
 ```
 
-### What It Tests:
-1. **Container Health**: Verifies container is running or boots it up.
-2. **Network Endpoints**: Asserts HTTP 200 on noVNC (`:6080/vnc.html`), ES modules (`:6080/core/rfb.js`), and Live Audio (`:8000/`).
-3. **Audio Stream Throughput**: Reads live MP3 stream data and verifies audio buffers are flowing from PulseAudio.
-4. **Mixxx Window Geometry**: Verifies Xvfb window is running at exactly 1024x600 resolution.
-5. **Track Cueing**: Seeks both decks to position 0:00 and captures proof screenshot.
-6. **FX Rack DSP Activation**: Selects an effect from the dropdown, assigns to Deck 1, turns state to `ACTIVE`, and sets `MIX` to 100%.
-7. **Playback Verification**: Triggers playback on Deck 1, validates elapsed time progression, and verifies active audio bytes over the MP3 stream.
+The script verifies owned-container health, discovered HTTP endpoints, nonempty
+MP3 stream data and 1024×600 window geometry. It then requests cueing, selects
+Standard ECHO through the two-column picker, and records clean/FX playback.
+Inspect the resulting `01_cued.png`, `02_picker.png`, `03_fx_off.png` and
+`04_fx_active.png`, plus `baseline.mp3` and `fx_audio.mp3`, under the instance's
+ignored `test-results/<instance>/` directory.
 
-### Proof Artifacts
-Each run outputs visual verification screenshots to `test-results/`:
-- `test-results/01_cued.png`: Decks cued at start.
-- `test-results/02_fx_active.png`: FX unit configured and active.
-- `test-results/03_playing.png`: Active playback waveform scrolling.
+These captures need review: HTTP success does not validate JavaScript syntax,
+and different MP3 bytes do not prove DSP behavior. The focused native
+`EffectSlotTest` checks effect activation, catalogue loading, beat timing,
+bounded audio and stereo Ping Pong. Use the documentation capture helper for
+reviewed gallery images, not these raw smoke artifacts.
 
 ---
 
@@ -180,8 +177,8 @@ Before pushing code to a live Raspberry Pi or building an OS image, always follo
 # 1. Compile the ARM64 binary into dist-linux/
 ./scripts/build/docker-build.sh --platform linux/arm64
 
-# 2. Run the automated GUI & audio test suite
-./test-gui-automated.sh
+# 2. Run and review the GUI/audio capture smoke
+./scripts/test/capture-fx-smoke.sh
 
 # 3. (Optional) Open browser for manual listen/touch check
 open http://localhost:6080/
@@ -323,3 +320,43 @@ in [the canonical screenshot policy](../AGENTS.md#published-ui-screenshots).
 During 0.0.7 development, refresh its gallery in place. After release, preserve
 it and its image directory; create a separate gallery and image directory for
 the next version and point new changelog/README links there.
+
+### Docker cleanup and recovery
+
+See [Docker maintenance](DOCKER_MAINTENANCE.md) for full prune, disk checks and
+recovery after engine failure. A full prune removes stopped GUI instances and
+may remove their unused image. Host `test-config/` remains; relaunch from the
+correct worktree and use its freshly printed endpoints.
+
+### Beat FX picker
+
+At 1024×600, Play's FX tab is `(878,70)`, selector `(934,122)`, Deck 1/2
+routing `(891,174)` / `(977,174)`, and activation `(934,226)`. The standard
+picker has two columns and seven rows: column centers `x=262,762`; row centers
+`y=131,192,254,316,378,439,501`. Buttons are 492px wide and 53–54px tall,
+with 8px gaps and 16px outside padding. Header centers: Standard `(564,40)`,
+Saved `(692,40)`, Clear FX `(820,40)`, Close `(948,40)`; footer Previous
+`(106,560)` and Next `(918,560)`. Header/footer targets are 48px tall.
+
+Standard order is row-major, entries 1–14 then 15–25, listed in
+[Beat FX](BEAT_FX.md). Saved holds legacy/custom entries. Native persisted IDs
+remain independent of labels. Page/section changes and Close/Escape must leave
+the selected chain unchanged. Selection starts a standard chain Off; the
+existing Effect1 `enabled` control activates all its occupied slots together.
+The `parameterN_beat_period` alias uses periods in beats and converts rate-based
+parameters without changing saved raw values.
+
+Run `scripts/test/capture-beatfx-docs.sh` with two paused synthetic tracks in
+Night mode. Inspect both standard pages and both Saved pages, especially Color
+Filter versus Rhythmic Filter, selected highlighting, last-row clearance and
+hidden empty cells. Publish reviewed Play/picker images in the
+[current gallery](UI_SCREENSHOTS.md#beat-fx-picker). Also test Day through
+Settings → System → Day `(980,312)`, then restore Night `(922,312)`; wait for
+the skin reload/notification before using the top tabs. Verify Clear and Escape
+separately and confirm selecting an entry closes the picker without activating FX.
+
+Focused native checks, including dialog-open geometry and page-change behavior:
+
+```sh
+./scripts/build/docker-build.sh --platform linux/arm64 --test-filter 'EffectSlotTest\.'
+```

@@ -13,6 +13,12 @@ UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 
 ### Added
 
+- Two-column, paged Beat FX picker with large touch targets and separate Standard
+  and Saved sections ([picker preview](docs/UI_SCREENSHOTS.md#beat-fx-picker)).
+- The 25 Rekordbox 7 single-mode standard names using documented native
+  approximations; versioned factory updates preserve saved/legacy presets
+  ([implementation differences](docs/BEAT_FX.md)).
+
 - System-owned Pad FX presets and a compact eight-pad Settings editor, with
   independent effect lanes and DDJ-400 Normal/Shift banks
   ([Pad FX preview](docs/UI_SCREENSHOTS.md#settings-pad-fx)).
@@ -34,6 +40,13 @@ UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 
 ### Changed
 
+- Distinguish legacy Color Filter and Rhythmic Filter labels, give new Ping Pong
+  stereo feedback, and replace duplicate Roll configurations with distinct,
+  explicitly documented approximations. Standard presets activate all components
+  together and select Off ([Play preview](docs/UI_SCREENSHOTS.md#play)).
+- Beat buttons and DDJ-400 BEAT controls now use periods consistently for Echo
+  and Tremolo; the displayed selection follows native range clamping.
+
 - Include the user-approved pi-gen boot overrides (`over_voltage=6`,
   `arm_freq=2000`, `gpu_freq=750`) in the pinned 0.0.7 image generator; preserve
   the local library visibility and compact-row settings in its reference profile.
@@ -53,6 +66,10 @@ UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 - Adopt the Custom Bite DJ identity with concise upstream credits.
 
 ### Fixed
+
+- DDJ-400 BEAT FX SELECT now moves backward while either deck's Shift is held,
+  including when the normal SELECT MIDI note is sent. Preserve the dedicated
+  shifted note and native preset-list navigation; see the [mapping guide](docs/DDJ400_MAPPING.md#effect-selection).
 
 - Phrase visibility now toggles both paused bottom previews immediately.
 - Stronger colored preview cue lines remain visible above waveform shading.

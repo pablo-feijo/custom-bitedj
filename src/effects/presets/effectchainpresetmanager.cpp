@@ -572,6 +572,33 @@ void EffectChainPresetManager::importDefaultPresets() {
     }
 }
 
+void EffectChainPresetManager::importRekordbox7Presets() {
+    // Versioned factory catalogue: always read installed resources so upgrades
+    // cannot be masked by stale copies in the user's settings directory.
+    QDir directory(QDir(m_pConfig->getResourcePath()).filePath(QStringLiteral("effects/rekordbox7")));
+    QList<EffectChainPresetPointer> factory;
+    for (const auto& file : directory.entryList({QStringLiteral("*.xml")}, QDir::Files, QDir::Name)) {
+        auto preset = loadPresetFromFile(directory.filePath(file));
+        if (!preset || preset->isEmpty() || !preset->isRekordbox7()) {
+            continue;
+        }
+        preset->setReadOnly();
+        m_effectChainPresets.insert(preset->name(), preset);
+        factory.append(preset);
+    }
+    if (factory.isEmpty()) {
+        return; // Keep saved presets usable if the installation is incomplete.
+    }
+    // Preserve legacy/custom files and their relative order after the standard
+    // section. The touch picker exposes them in a separate Saved section.
+    for (const auto& preset : std::as_const(m_effectChainPresetsSorted)) {
+        if (!preset->isRekordbox7()) {
+            factory.append(preset);
+        }
+    }
+    m_effectChainPresetsSorted = factory;
+}
+
 void EffectChainPresetManager::generateDefaultQuickEffectPresets() {
     // importDefaultPresets should be called before this function
     DEBUG_ASSERT(!m_effectChainPresetsSorted.isEmpty());
@@ -626,6 +653,7 @@ void EffectChainPresetManager::resetToDefaults() {
     importDefaultPresets();
     generateDefaultQuickEffectPresets();
     prependRemainingPresetsToLists();
+    importRekordbox7Presets();
 
     // Re-add the empty chain preset
     EffectChainPresetPointer pEmptyChainPreset = createEmptyReadOnlyChainPreset();
@@ -748,6 +776,9 @@ EffectsXmlData EffectChainPresetManager::readEffectsXml(
 
     importUserPresets();
 
+    importRekordbox7Presets();
+    m_effectChainPresetsSorted.clear();
+
     // Reload order of custom chain presets
     QDomElement chainPresetsElement =
             XmlParse::selectElement(root, EffectXml::kChainPresetList);
@@ -802,6 +833,7 @@ EffectsXmlData EffectChainPresetManager::readEffectsXml(
     }
 
     prependRemainingPresetsToLists();
+    importRekordbox7Presets();
 
     // Create the empty '---' chain preset on each start.
     // Its sole purpose is to eject the current QuickEffect chain presets via GUI.

@@ -21,8 +21,8 @@
 //      * BeatFX: Assigned Effect Unit 1
 //                < LEFT toggles focus between Effects 1, 2 and 3 leftward
 //                > RIGHT toggles focus between Effects 1, 2 and 3 rightward
-//                v DOWN loads next effect entry for focused Effect
-//                SHIFT + v UP loads previous effect entry for focused Effect
+//                FX SELECT loads the next Beat FX chain
+//                SHIFT + FX SELECT loads the previous Beat FX chain
 //                LEVEL/DEPTH controls the Mix knob of the Effect Unit
 //                SHIFT + LEVEL/DEPTH controls the Meta knob of the focused Effect
 //                ON/OFF toggles focused effect slot
@@ -337,8 +337,8 @@ PioneerDDJ400.beatFxLevelDepthRotate = function(_channel, _control, value) {
 // LEFT/RIGHT buttons step through the on-screen bucket grid of the
 // loaded Beats-typed parameter instead of switching focused slot.
 // Order matches the row template's reading order
-// (⅛ → ¼ → ½ → 1 → 2 → 4), values are raw rate-in-cycles-per-beat.
-PioneerDDJ400.beatFxBuckets = [8, 4, 2, 1, 0.5, 0.25];
+// (⅛ → ¼ → ½ → 1 → 2 → 4), values are periods in beats; native code handles rate parameters.
+PioneerDDJ400.beatFxBuckets = [0.125, 0.25, 0.5, 1, 2, 4];
 
 PioneerDDJ400.findBeatsParameter = function(group) {
     for (let i = 1; i <= 16; i++) {
@@ -358,7 +358,7 @@ PioneerDDJ400.stepBeatFxBucket = function(direction) {
     if (paramIndex === -1) { return; }
 
     const buckets = PioneerDDJ400.beatFxBuckets;
-    const valueKey = "parameter" + paramIndex + "_value";
+    const valueKey = "parameter" + paramIndex + "_beat_period";
     const current = engine.getValue(group, valueKey);
 
     // Snap to nearest bucket, then step. Off-bucket values (rare —
@@ -397,30 +397,21 @@ PioneerDDJ400.beatFxRightPressed = function(_channel, _control, value) {
 PioneerDDJ400.beatFxSelectPressed = function(_channel, _control, value) {
     if (value === 0) { return; }
 
-    var unitGroup = "[EffectRack1_EffectUnit1]";
-    var current = engine.getValue(unitGroup, "chain_selector");
-    
-    // The top 6 effects are our custom common ones (1-indexed in UI, but maybe 1-indexed in chain_selector?)
-    // In Mixxx, chain_selector is 1-indexed or 0-indexed? It is 1-indexed (0 means empty/none in some versions, but 1 is first chain).
-    // Let's cycle 1 -> 6
-    if (current >= 6 || current < 1) {
-        engine.setValue(unitGroup, "chain_selector", 1);
-    } else {
-        engine.setValue(unitGroup, "chain_selector", current + 1);
+    // Also honor either deck's Shift when SELECT arrives on the normal note.
+    // The dedicated shifted SELECT note remains mapped to the reverse handler.
+    if (PioneerDDJ400.shiftButtonDown[0] || PioneerDDJ400.shiftButtonDown[1]) {
+        PioneerDDJ400.beatFxSelectShiftPressed(_channel, _control, value);
+        return;
     }
+
+    // chain_selector is a relative ControlEncoder: only its sign matters.
+    engine.setValue("[EffectRack1_EffectUnit1]", "chain_selector", 1);
 };
 
 PioneerDDJ400.beatFxSelectShiftPressed = function(_channel, _control, value) {
     if (value === 0) { return; }
 
-    var unitGroup = "[EffectRack1_EffectUnit1]";
-    var current = engine.getValue(unitGroup, "chain_selector");
-    
-    if (current <= 1 || current > 6) {
-        engine.setValue(unitGroup, "chain_selector", 6);
-    } else {
-        engine.setValue(unitGroup, "chain_selector", current - 1);
-    }
+    engine.setValue("[EffectRack1_EffectUnit1]", "chain_selector", -1);
 };
 
 PioneerDDJ400.beatFxOnOffPressed = function(_channel, _control, value) {
