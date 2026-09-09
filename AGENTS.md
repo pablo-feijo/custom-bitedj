@@ -23,6 +23,18 @@ architecture, versioning, branch isolation, testing and Conventional Commits rul
 - Use Conventional Commits for every new or amended commit. Merge into the
   agreed semver branch later when requested; synchronize versions for the release.
 
+## Branch Hygiene
+
+- After authorized integration and publication, clean up fully merged task
+  branches locally and on the user's remote using the
+  [canonical branch cleanup procedure](docs/AGENTS.md#branch-cleanup-after-integration).
+- Keep semver/release branches, `main`, the remote default branch, tags and all
+  unmerged work. Preserve active worktrees and branches backing live GUI instances;
+  report deferred cleanup rather than disrupting another task.
+- Verify ancestry and remote reachability, including pinned submodule commits,
+  before deleting branches. Keep generated files in ignored runtime directories;
+  do not combine branch cleanup with destructive filesystem cleanup.
+
 ## Pad FX Architecture
 - System settings own Pad FX defaults, saved overrides and reset commands.
   Skins only place the optional editor; never embed presets or effect logic in XML.

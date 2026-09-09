@@ -23,3 +23,11 @@ stale Library settings coordinate/visibility map from the live screenshot.
 Owned instance: `bitedj-gui-718691038`, left on Play. Discover its current
 endpoints with the settings helper and `docker port`; launch ports can change.
 No UI source or persisted control values changed. Feature changes merged into `codex/v0.0.7` on user request. No release or push requested.
+
+## Branch hygiene follow-up
+
+Merge target: `codex/v0.0.7`.
+
+- [x] Add canonical agent rules for local/remote cleanup after integration.
+- [x] Preserve release refs, unmerged work, active GUI ownership and submodule reachability.
+- [x] Link the root agent guide to the policy and check the documentation diff.

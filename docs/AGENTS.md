@@ -45,6 +45,45 @@ See [GUI_TESTING.md](GUI_TESTING.md) for reproducible commands. Historical
 fixed-name commands later in this document describe the old single-instance
 setup; replace their target with the verified owned `$CONTAINER_NAME`.
 
+## Branch Cleanup After Integration
+
+- Include branch hygiene in task completion. After an authorized merge and push,
+  remove the task's fully merged feature branches locally and on the user's
+  remote when the checks below pass. A cleanup request authorizes this routine
+  cleanup; do not repeatedly ask for confirmation. Cleanup does not authorize
+  additional merges, pushes of unrelated work, or discarding unmerged commits.
+- Preserve `main`, the remote default branch, all semver/release branches
+  (including `codex/v0.0.7` and `v0.0.2-effects`), and all tags. Preserve unmerged
+  branches regardless of their age or name. Do not delete branches on third-party
+  upstream remotes; identify the user's remote from its URL, not its name alone.
+- Fetch and prune the user's remote before auditing. Inspect local and remote
+  refs, working-tree status, `git worktree list`, and live test-instance ownership.
+  Use full ref names to avoid branch/tag ambiguity and exclude symbolic refs
+  such as `origin/HEAD` from deletion candidates.
+- Prove each candidate tip is an ancestor of a retained integration/release ref
+  with `git merge-base --is-ancestor`. For remote deletion, also prove the tip is
+  reachable from a retained, published remote ref. Matching filenames, similar
+  commit messages, or an apparently equivalent squash are not ancestry proof.
+- Prefer `git branch -d`. If Git refuses because it checks a different upstream
+  or current branch, use `-D` only after independently proving ancestry to the
+  intended retained ref. Never force-delete unique or uncertain history.
+- Do not detach, switch, remove or overwrite another active task's checkout.
+  Keep local branches needed by running GUI instances: changing their branch
+  breaks the ownership check. Record the retained branch and reason, then finish
+  cleanup when that task's instance is retired. A branch-only cleanup does not
+  authorize stopping a GUI requested for review.
+- For an inactive, clean worktree owned by the task, detaching at its exact current
+  commit permits deleting the merged branch while preserving files. Check nested
+  submodules and untracked/ignored outputs before any worktree removal. Do not
+  use forced worktree removal or blanket `git clean` as branch cleanup.
+- Audit submodule repositories separately. Preserve any branch needed to keep a
+  parent repository's pinned gitlink reachable remotely. Publish a retained ref
+  containing that commit before deleting its last remote branch; never assume a
+  parent merge also merged the submodule's feature branch.
+- Delete only the audited branch names, prune stale tracking refs, then verify
+  the remote refs and local status. Report removed branches and any retained
+  exceptions. Leave unrelated files, settings, builds and test results intact.
+
 ## 1. Architectural Rules for Agents
 
 ### A. Do Not Use QDrag for Touchscreen Drag-and-Drop
