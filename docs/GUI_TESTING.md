@@ -6,6 +6,66 @@ Use this workflow to **quickly test and verify changes before deploying to hardw
 
 ---
 
+## Independent Branch Instances
+
+Create a feature worktree from the agreed, existing semver integration branch:
+
+```bash
+git worktree add ../bitedj-my-feature -b codex/my-feature codex/v0.0.7
+cd ../bitedj-my-feature
+./docker-build.sh --platform linux/arm64
+./run-gui-test.sh
+```
+
+Use the actual agreed base if the next semver branch has not been created yet.
+The launcher chooses a worktree-specific container and free localhost ports.
+It prints the noVNC, audio and VNC endpoints. Another worktree can run the same
+commands concurrently; its writable build, install, settings and results stay separate.
+
+For stable endpoints, choose an unused port set:
+
+```bash
+BITEDJ_TEST_INSTANCE=bitedj-xsploit-gui \
+BITEDJ_TEST_WEB_PORT=6081 \
+BITEDJ_TEST_AUDIO_PORT=8001 \
+BITEDJ_TEST_VNC_PORT=5901 ./run-gui-test.sh
+```
+
+The launcher remembers the instance in `test-config/active-instance`. Settings
+live in `test-config/<instance>/`, results in `test-results/<instance>/`.
+The FX and preview scripts select that instance and discover its mapped ports.
+Container ownership labels prevent either launching or testing against another
+worktree/branch by mistake. The legacy instance on port 6080 is left alone.
+
+To inspect or restart only your instance:
+
+```bash
+source ./gui-test-settings.sh
+verify_test_instance_owner
+docker port "$CONTAINER_NAME"
+docker exec "$CONTAINER_NAME" pkill -9 mixxx
+# Relaunch with the same explicit port variables to retain fixed endpoints:
+BITEDJ_TEST_WEB_PORT=6081 BITEDJ_TEST_AUDIO_PORT=8001 \
+BITEDJ_TEST_VNC_PORT=5901 ./run-gui-test.sh
+```
+
+Restarting replaces only the owned container and preserves its settings directory.
+Default automatic ports may change on restart. Use a separate worktree for each
+branch; do not switch a checkout underneath a running test instance. No host USB
+volume is mounted by default. Set `BITEDJ_TEST_USB_DIR=/path/to/export` to mount
+a chosen export read-only at `/media/TestUSB`. Rebuild the shared GUI image when required with
+`BITEDJ_TEST_REBUILD_IMAGE=1`; already-running containers retain their images.
+
+The examples below describe the historical fixed-port setup. Substitute the
+owned `$CONTAINER_NAME` and printed endpoints. This checkout provides
+`test-gui-fx.sh` and `test-gui-preview.sh`; references below to
+`test-gui-automated.sh` describe the older workflow, whose script is absent here.
+Their coordinate-based checks need review against the current skin; screenshot
+capture and HTTP checks alone do not prove correct DSP. Use the native
+`EffectSlotTest` for control-to-audio verification.
+
+---
+
 ## 1. Architecture Overview
 
 ```
@@ -148,27 +208,38 @@ When writing tests or automating UI interactions in `bitedj-gui-test-instance`:
 | **Skin Updates** | Edit `res/skins/` and copy to `dist-linux/share/mixxx/skins/` | Modifying `/dist-linux` inside container (read-only mount) |
 
 ### B. Exact 1024x600 Coordinate Grid
-- **Main Tabs (`topbar.xml`)**: `y=30`
+- **Main Tabs (`topbar.xml`)**: `y=20`
   - `PLAY` (Overview): `x=100`
   - `BROWSE` (Library): `x=300`
   - `SAMPLER`: `x=500`
   - `LEVELS`: `x=700`
   - `SETTINGS`: `x=950`
-- **Settings Sub-Tabs**: `y=85`
-  - `GENERAL`: `x=100`, `LIBRARY`: `x=300`, `DEVICE`: `x=500`, `AUDIO`: `x=700`, `SYSTEM`: `x=900`
-- **Settings Grid (`settings.xml`)**:
-  - Left Column: `x=0..512` | Right Column: `x=512..1024`
-  - Row Height: `52px` starting at `y=100` (`y_center = 124 + row_index * 52`)
-  - Row Centers:
-    - Row 0 (`y=124`): `CROSSFADER` / `VINYL BRAKE`
-    - Row 1 (`y=176`): `KEY` / `WAVE`
-    - Row 2 (`y=228`): `DECK 1` / `APPLY WAVEFORM EQ`
-    - Row 3 (`y=280`): `DECK 2` / `EQ MODE`
-    - Row 4 (`y=332`): `JOG` / `CLEAR`
-    - Row 5 (`y=384`): `HOT CUE` / `PLAYED`
-  - 2-Segment Button Group (`168f` width): Left button center `x=876`, Right button center `x=960`
-  - 3-Segment Button Group (`168f` width): Left `x=856`, Center `x=912`, Right `x=968`
-  - Levels Page Master EQ: `FLAT (x=845, y=240)`, `MODE (x=940, y=240)`
+- **Settings Sub-Tabs**: `y=60` (bar `y=40..80`)
+  - `GENERAL`: `x=73`, `LIBRARY`: `x=219`, **`PAD FX`: `x=366`**, `DEVICE`: `x=512`, `AUDIO`: `x=658`, `SYSTEM`: `x=805`, `INFO`: `x=951`
+  - PAD FX is the third visible option. Named triggers preserve the existing saved WidgetStack indices. Its editor uses the bottom area with 16px outer horizontal and 12px bottom padding; the deck footer is hidden only on this tab.
+- **General Settings (`settings.xml`)**: mixer/playback on the left; display and cleanup on the right.
+
+| Row | Center y | Left | Right |
+| --- | --- | --- | --- |
+| 0 | 104 | Crossfader | Wave |
+| 1 | 156 | Deck 1 assignment | Apply Waveform EQ |
+| 2 | 208 | Deck 2 assignment | Palette |
+| 3 | 260 | EQ Mode | Key |
+| 4 | 312 | Jog | Grid |
+| 5 | 364 | Vinyl Brake | Clear |
+| 6 | 416 | Hot Cue | Played |
+| 7 | 470 | Track Load | Return to Play |
+
+Two-button centers: left `374, 458`; right `886, 970`. Three-button centers:
+left `360, 416, 472`; right `872, 928, 984`. Track Load: `290, 350, 410, 470`.
+Phrases toggle: `788,104` (default On); click twice to verify Off then On, including paused decks and restart persistence. Return to Play: Off `886,470`, On `970,470` (default Off).
+Played reset: `932`. See [the canonical option/control map](../AGENTS.md#d-settings---general-options-x73-y60)
+for each button's value and key. Standard rows are 52px; Track Load is 58px.
+The General footer starts at `y=520`; PAD FX alone hides it.
+
+Update this guide, the root mapping and affected automation in the same commit
+whenever UI options change. Remeasure after layout changes; these positions
+are for the current 1024×600 skin.
 
 ### C. Zero-Dependency Pixel Scanning Recipe
 Dump a screenshot to PPM and scan raw RGB values in standard Python to find exact widget bounds before issuing `xdotool` clicks:
@@ -182,3 +253,23 @@ with open('/tmp/screen.ppm', 'rb') as f:
 # Scan pixel buffer data[(y * w + x) * 3]
 "
 ```
+
+General Settings typography: labels 12px, segment/action text 11px; button
+geometry and the coordinate mappings above are unchanged. This leaves clearance
+for “3 Band” on the 1024×600 display.
+
+### Rekordbox and Prepare fixtures
+
+Use the [synthetic fixture generator and procedure](../tests/rekordbox/README.md). Browse root rows are Prepare `y=52`, Computer `75`, History `99`, Rekordbox `121`; the expanded fixture child is `143`. Add tracks with **Add to Prepare** in their context menu. In Prepare, use **Move Up**, **Move Down**, or **Remove**; verify order after restarting. Loading retains queue entries and never starts playback automatically.
+
+Overview previews show A–H for hot cues and 1–8 for memories; the Play waveform keeps full names. Keep memory numbers above the optional 10px phrase strip. Check both views with Phrases Off/On and Day/Night. Store generated media, screenshots, recordings, statistics and reports only in ignored test-results paths.
+
+Compact overview cue labels retain the cue color as a small badge with contrasting text. Verify both hot-cue letters and memory numbers in Day/Night, with phrases enabled and disabled. Fixtures include distinct cue colors to make regressions visible.
+
+For top-tab automation, move to the measured button center, wait briefly for the fullscreen menu to settle, then click. Capture again if the menu bar shifts the layout; do not reuse coordinates from a shifted screenshot.
+
+Bottom-preview cue priority: use 2px colored marker lines with a contrasting border, painted above the countdown watermark. Keep cue letters/numbers and phrase labels at 8px. Verify hot cues and memories remain distinct with phrases On/Off and in Day/Night.
+
+The main `cue_point` is shown as an orange **CUE** marker in both bottom previews, matching Play (`#ff6000`). It remains visible when the playhead is exactly on the cue. Verify this separately from hot-cue letters and memory-cue numbers, with phrases On/Off.
+
+At overlapping positions, the orange main **CUE** line and label paint last, above hot cues and memory cues. Keep the CUE label unabridged; cue metadata and existing edit targets are unchanged. Test exact overlaps with a hot cue and a memory cue separately.

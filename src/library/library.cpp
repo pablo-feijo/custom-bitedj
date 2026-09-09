@@ -38,6 +38,7 @@
 #include "library/trackset/crate/cratefeature.h"
 #include "library/trackset/playlistfeature.h"
 #include "library/trackset/setlogfeature.h"
+#include "library/trackset/preparefeature.h"
 #include "library/traktor/traktorfeature.h"
 #include "mixer/playermanager.h"
 #include "moc_library.cpp"
@@ -185,6 +186,8 @@ Library::Library(
 #endif
 
     addFeature(new AutoDJFeature(this, m_pConfig, pPlayerManager));
+    m_pPrepareFeature = new PrepareFeature(this, m_pConfig);
+    addFeature(m_pPrepareFeature);
 
     m_pPlaylistFeature = new PlaylistFeature(this, UserSettingsPointer(m_pConfig));
     addFeature(m_pPlaylistFeature);
@@ -329,13 +332,9 @@ Library::Library(
         }
     }
 
-    // gridLayout is already read at line 151
-    if (gridLayout == 1) {
-        m_iTrackTableRowHeight = 46;
-    } else {
-        m_iTrackTableRowHeight = m_pConfig->getValue(
-                ConfigKey(kConfigGroup, "RowHeight"), kDefaultRowHeightPx);
-    }
+    m_iTrackTableRowHeight = m_pConfig->getValue(
+            ConfigKey(kConfigGroup, "RowHeight"),
+            gridLayout == 1 ? 46 : kDefaultRowHeightPx);
     QString fontStr =
             m_pConfig->getValueString(ConfigKey(kConfigGroup, "Font"));
     if (!fontStr.isEmpty()) {
@@ -827,6 +826,8 @@ void Library::setFont(const QFont& font) {
     double newFontHeight = newMetrics.height();
 
     m_trackTableFont = font;
+    m_pConfig->setValue(
+            ConfigKey(kConfigGroup, "Font"), m_trackTableFont.toString());
     emit setTrackTableFont(font);
 
     // adapt the previous font height/row height ratio
@@ -837,6 +838,8 @@ void Library::setFont(const QFont& font) {
 
 void Library::setRowHeight(int rowHeight) {
     m_iTrackTableRowHeight = rowHeight;
+    m_pConfig->setValue(
+            ConfigKey(kConfigGroup, "RowHeight"), m_iTrackTableRowHeight);
     emit setTrackTableRowHeight(rowHeight);
 }
 
@@ -1172,4 +1175,8 @@ LibraryTableModel* Library::trackTableModel() const {
     }
 
     return m_pMixxxLibraryFeature->trackTableModel();
+}
+
+void Library::addToPrepare(const TrackPointerList& tracks) {
+    m_pPrepareFeature->add(tracks);
 }

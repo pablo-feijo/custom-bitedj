@@ -5,9 +5,8 @@
 
 set -euo pipefail
 
-CONTAINER_NAME="bitedj-gui-test-instance"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RESULTS_DIR="${SCRIPT_DIR}/test-results"
+source "${SCRIPT_DIR}/gui-test-settings.sh"
 
 mkdir -p "${RESULTS_DIR}"
 
@@ -34,6 +33,10 @@ if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
     "${SCRIPT_DIR}/run-gui-test.sh"
     sleep 5
 fi
+
+verify_test_instance_owner
+WEB_URL="http://localhost:$(test_host_port 6080)"
+AUDIO_URL="http://localhost:$(test_host_port 8000)"
 
 # 2. Test Preview
 log_step "2. Testing Library Preview & Analysis"

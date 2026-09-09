@@ -1,4 +1,5 @@
 #include "woverview.h"
+#include "waveform/renderers/phrasestrip.h"
 
 #include <QBrush>
 #include <QColor>
@@ -105,6 +106,9 @@ WOverview::WOverview(
             this);
     m_pTypeControl->connectValueChanged(this, &WOverview::slotTypeControlChanged);
     slotTypeControlChanged(m_pTypeControl->get());
+    m_pShowPhrasesControl = make_parented<ControlProxy>(ConfigKey("[BiteDJ]", "show_phrases"), this);
+    m_pShowPhrasesControl->connectValueChanged(this, [this](double) { update(); });
+
 
     // Update immediately when the normalize option or the visual gain have been
     // changed in the preferences.
@@ -271,6 +275,7 @@ void WOverview::setup(const QDomNode& node, const SkinContext& context) {
     }
 
     m_bShowCueTimes = context.selectBool(node, "ShowCueTimes", true);
+    m_compactCueLabels = context.selectBool(node, "CompactCueLabels", false);
 
     // qDebug() << "WOverview : std::as_const(m_marks)" << m_marks.size();
     // qDebug() << "WOverview : m_markRanges" << m_markRanges.size();
@@ -399,6 +404,8 @@ void WOverview::slotLoadingTrack(TrackPointer pNewTrack, TrackPointer pOldTrack)
     //qDebug() << this << "WOverview::slotLoadingTrack" << pNewTrack.get() << pOldTrack.get();
     DEBUG_ASSERT(m_pCurrentTrack == pOldTrack);
     if (m_pCurrentTrack != nullptr) {
+        disconnect(m_pCurrentTrack.get(), &Track::phrasesUpdated, this,
+                QOverload<>::of(&WOverview::update));
         disconnect(m_pCurrentTrack.get(),
                 &Track::waveformSummaryUpdated,
                 this,
@@ -429,6 +436,8 @@ void WOverview::slotLoadingTrack(TrackPointer pNewTrack, TrackPointer pOldTrack)
                 this,
                 &WOverview::slotWaveformSummaryUpdated);
         slotWaveformSummaryUpdated();
+        connect(pNewTrack.get(), &Track::phrasesUpdated, this,
+                QOverload<>::of(&WOverview::update));
         connect(pNewTrack.get(), &Track::cuesUpdated, this, &WOverview::receiveCuesUpdated);
     } else {
         m_pCurrentTrack.reset();
@@ -514,7 +523,15 @@ void WOverview::updateCues(const QList<CuePointer> &loadedCues) {
                     hotcueNumber != Cue::kNoHotCue) {
                 // Prepend the hotcue number to hotcues' labels
                 QString newLabel = currentCue->getLabel();
-                if (newLabel.isEmpty()) {
+                if (m_compactCueLabels) {
+                    if (hotcueNumber >= 16 && hotcueNumber < 24) {
+                        newLabel = QString::number(hotcueNumber - 16 + 1);
+                    } else if (hotcueNumber >= 0 && hotcueNumber < 8) {
+                        newLabel = QString(QChar('A' + hotcueNumber));
+                    } else {
+                        newLabel = QString::number(hotcueNumber + 1);
+                    }
+                } else if (newLabel.isEmpty()) {
                     newLabel = QString::number(hotcueNumber + 1);
                 } else {
                     newLabel = QString("%1: %2").arg(hotcueNumber + 1).arg(newLabel);
@@ -720,9 +737,19 @@ void WOverview::paintEvent(QPaintEvent* pEvent) {
         drawAxis(&painter);
         drawWaveformPixmap(&painter);
         drawPlayedOverlay(&painter);
+        // BiteDJ clips the summary widget vertically. Anchor the read-only
+        // phrase strip to its visible area, keeping layout and cue hit targets.
+        mixxx::paintPhraseStrip(painter, m_pCurrentTrack->getPhrases(),
+                visibleRegion().boundingRect(), m_orientation, 0,
+                m_pCurrentTrack->getDuration(), m_scaleFactor);
         drawPlayPosition(&painter);
         drawEndOfTrackFrame(&painter);
         drawAnalyzerProgress(&painter);
+
+        // Compact previews prioritize cue markers over the countdown watermark.
+        if (m_compactCueLabels) {
+            drawTimeRemaining(&painter);
+        }
 
         double trackSamples = getTrackSamples();
         if (trackSamples > 0) {
@@ -731,13 +758,19 @@ void WOverview::paintEvent(QPaintEvent* pEvent) {
                     static_cast<CSAMPLE_GAIN>(trackSamples);
 
             drawRangeMarks(&painter, offset, gain);
+            if (m_compactCueLabels) {
+                drawPickupPosition(&painter);
+            }
             drawMarks(&painter, offset, gain);
-            drawPickupPosition(&painter);
+            if (!m_compactCueLabels) {
+                drawPickupPosition(&painter);
+            }
             drawTimeRuler(&painter);
             drawMarkLabels(&painter, offset, gain);
         }
-        // Last, so the watermark sits over every other layer.
-        drawTimeRemaining(&painter);
+        if (!m_compactCueLabels) {
+            drawTimeRemaining(&painter);
+        }
     }
 
     if (m_bPassthroughEnabled) {
@@ -949,6 +982,11 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
     QFont markerFont = pPainter->font();
     markerFont.setPixelSize(static_cast<int>(m_iLabelFontSize * m_scaleFactor));
     QFontMetricsF fontMetrics(markerFont);
+    const QRectF visible = visibleRegion().boundingRect();
+    const double phraseClearance = mixxx::showWaveformPhrases() && m_pCurrentTrack &&
+                    !m_pCurrentTrack->getPhrases().isEmpty()
+            ? std::min(10 * m_scaleFactor, visible.height() / 3) : 0;
+
 
     // Text labels are rendered so they do not overlap with other WaveformMarks'
     // labels. If the text would be too wide, it is elided. However, the user
@@ -1000,17 +1038,26 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
             }
         }
 
-        pPainter->setPen(pMark->borderColor());
-        pPainter->drawLine(bgLine);
-
-        pPainter->setPen(pMark->fillColor());
-        pPainter->drawLine(line);
-
         if (rect.isValid()) {
             QColor loopColor = pMark->fillColor();
             loopColor.setAlphaF(0.5f);
             pPainter->fillRect(rect, loopColor);
         }
+
+        const bool prominentCue = m_compactCueLabels &&
+                (pMark->getHotCue() != Cue::kNoHotCue ||
+                        pMark->getItem() == QStringLiteral("cue_point"));
+        if (prominentCue) {
+            pPainter->setPen(QPen(pMark->borderColor(), 4 * m_scaleFactor));
+            pPainter->drawLine(line);
+        } else {
+            pPainter->setPen(pMark->borderColor());
+            pPainter->drawLine(bgLine);
+        }
+
+        pPainter->setPen(QPen(pMark->fillColor(),
+                prominentCue ? 2 * m_scaleFactor : 1));
+        pPainter->drawLine(line);
 
         if (!pMark->m_text.isEmpty()) {
             Qt::Alignment halign = pMark->m_align & Qt::AlignHorizontal_Mask;
@@ -1023,7 +1070,8 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
             // label, but do not elide it if the next mark's label is not at the
             // same vertical position.
 
-            if (pMark != m_pHoveredMark) {
+            if (pMark != m_pHoveredMark &&
+                    !(m_compactCueLabels && pMark->getItem() == QStringLiteral("cue_point"))) {
                 float nextMarkPosition = -1.0f;
                 for (auto m = std::next(it); m != m_marks.cend(); ++m) {
                     const WaveformMarkPointer& otherMark = *m;
@@ -1065,7 +1113,7 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
                 } else if (valign == Qt::AlignVCenter) {
                     textPoint.setY((textRect.height() + height()) / 2);
                 } else { // AlignBottom
-                    textPoint.setY(float(height()) - 0.5f);
+                    textPoint.setY(visible.bottom() - phraseClearance - 0.5);
                 }
             } else { // Vertical
                 if (halign == Qt::AlignLeft) {
@@ -1089,8 +1137,8 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
                     QPixmap(),
                     text,
                     markerFont,
-                    m_labelTextColor,
-                    m_labelBackgroundColor,
+                    prominentCue ? pMark->labelColor() : m_labelTextColor,
+                    prominentCue ? pMark->fillColor() : m_labelBackgroundColor,
                     width(),
                     devicePixelRatioF());
         }
@@ -1344,6 +1392,26 @@ void WOverview::drawMarkLabels(QPainter* pPainter, const float offset, const flo
             if (!(markRange.m_durationLabel.intersects(m_cuePositionLabel) || markRange.m_durationLabel.intersects(m_cueTimeDistanceLabel) || markRange.m_durationLabel.intersects(m_timeRulerPositionLabel) || markRange.m_durationLabel.intersects(m_timeRulerDistanceLabel))) {
                 markRange.m_durationLabel.draw(pPainter);
             }
+        }
+    }
+    // The main CUE remains identifiable even at the exact position of a
+    // hot cue, memory cue, loop or playhead. Keep the shared mark ordering
+    // (and cue editing targets) intact; this is a compact-preview paint priority.
+    if (m_compactCueLabels) {
+        PainterScope painterScope(pPainter);
+        for (const auto& pMark : std::as_const(m_marks)) {
+            if (pMark->getItem() != QStringLiteral("cue_point")) {
+                continue;
+            }
+            const double position = pMark->m_linePosition;
+            const QLineF line = m_orientation == Qt::Horizontal
+                    ? QLineF(position, 0, position, height())
+                    : QLineF(0, position, width(), position);
+            pPainter->setPen(QPen(pMark->borderColor(), 4 * m_scaleFactor));
+            pPainter->drawLine(line);
+            pPainter->setPen(QPen(pMark->fillColor(), 2 * m_scaleFactor));
+            pPainter->drawLine(line);
+            pMark->m_label.draw(pPainter);
         }
     }
 }

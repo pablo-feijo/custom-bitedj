@@ -70,3 +70,6 @@ dist-linux/
 test-config/
 test-music/
 test-results/
+
+# Native test analysis cache (generated locally, never a fixture).
+/.bitedj/

@@ -14,9 +14,8 @@
 
 set -euo pipefail
 
-CONTAINER_NAME="bitedj-gui-test-instance"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RESULTS_DIR="${SCRIPT_DIR}/test-results"
+source "${SCRIPT_DIR}/gui-test-settings.sh"
 
 mkdir -p "${RESULTS_DIR}"
 
@@ -50,11 +49,15 @@ else
     log_fail "Failed to start container '${CONTAINER_NAME}'."
 fi
 
+verify_test_instance_owner
+WEB_URL="http://localhost:$(test_host_port 6080)"
+AUDIO_URL="http://localhost:$(test_host_port 8000)"
+
 # 2. Verify Web & Audio Endpoints
 log_step "2. Verifying Network Endpoints"
 
 # Test noVNC Web UI
-HTTP_VNC=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:6080/vnc.html || echo "000")
+HTTP_VNC=$(curl -s -o /dev/null -w "%{http_code}" "${WEB_URL}/vnc.html" || echo "000")
 if [ "${HTTP_VNC}" = "200" ]; then
     log_pass "noVNC endpoint responding (HTTP 200 at :6080/vnc.html)"
 else
@@ -62,7 +65,7 @@ else
 fi
 
 # Test noVNC rfb.js module load
-HTTP_RFB=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:6080/core/rfb.js || echo "000")
+HTTP_RFB=$(curl -s -o /dev/null -w "%{http_code}" "${WEB_URL}/core/rfb.js" || echo "000")
 if [ "${HTTP_RFB}" = "200" ]; then
     log_pass "noVNC ES module core/rfb.js reachable (HTTP 200)"
 else
@@ -70,7 +73,7 @@ else
 fi
 
 # Test Live Audio UI
-HTTP_AUDIO=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/ || echo "000")
+HTTP_AUDIO=$(curl -s -o /dev/null -w "%{http_code}" "${AUDIO_URL}/" || echo "000")
 if [ "${HTTP_AUDIO}" = "200" ]; then
     log_pass "Live Audio web interface responding (HTTP 200 at :8000/)"
 else
@@ -78,7 +81,7 @@ else
 fi
 
 # Test Live MP3 Stream throughput (consume 32KB of stream)
-STREAM_BYTES=$( (curl -s -N http://localhost:8000/stream.mp3 | head -c 32768 | wc -c || true) | tr -d '[:space:]')
+STREAM_BYTES=$( (curl -s -N "${AUDIO_URL}/stream.mp3" | head -c 32768 | wc -c || true) | tr -d '[:space:]')
 if [ -n "${STREAM_BYTES}" ] && [ "${STREAM_BYTES}" -ge 30000 ]; then
     log_pass "Live MP3 stream producing audio data (${STREAM_BYTES} bytes verified)"
 else
@@ -144,7 +147,7 @@ docker exec -e DISPLAY=:99 "${CONTAINER_NAME}" bash -c "
     xdotool key d
 "
 sleep 2
-curl -s -N http://localhost:8000/stream.mp3 | head -c 32768 > /tmp/baseline.mp3
+curl -s -N "${AUDIO_URL}/stream.mp3" | head -c 32768 > "${RESULTS_DIR}/baseline.mp3"
 docker exec -e DISPLAY=:99 "${CONTAINER_NAME}" bash -c "xdotool key d" # stop
 
 log_step "7. Verifying FX Audio Modulation"
@@ -157,9 +160,9 @@ docker exec -e DISPLAY=:99 "${CONTAINER_NAME}" bash -c "
     xdotool key d
 "
 sleep 2
-curl -s -N http://localhost:8000/stream.mp3 | head -c 32768 > /tmp/fx_audio.mp3
+curl -s -N "${AUDIO_URL}/stream.mp3" | head -c 32768 > "${RESULTS_DIR}/fx_audio.mp3"
 
-if cmp -s /tmp/baseline.mp3 /tmp/fx_audio.mp3; then
+if cmp -s "${RESULTS_DIR}/baseline.mp3" "${RESULTS_DIR}/fx_audio.mp3"; then
     log_fail "Audio stream did not change after applying FX! Effect DSP is failing."
 else
     log_pass "Audio stream modulated successfully by FX chain!"

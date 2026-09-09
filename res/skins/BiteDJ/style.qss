@@ -121,12 +121,14 @@ WPushButton[value="1"]:hover {
 
 #DeckTitle {
   color: #cccccc;
+  qproperty-scrollColor: #cccccc;
   font-size: 16px;
   font-weight: bold;
   padding-left: 0px;
 }
 
 #DeckTitlePlaying {
+  qproperty-scrollColor: #c9372c;
   font-size: 16px;
   font-weight: bold;
   color: #c9372c;
@@ -134,6 +136,7 @@ WPushButton[value="1"]:hover {
 }
 
 #DeckArtist {
+  qproperty-scrollColor: #9a9b9c;
   font-size: 16px;
   color: #9a9b9c;
   padding-left: 4px;
@@ -1169,16 +1172,16 @@ WBeatSpinBox::up-button {
 }
 
 #SettingsSubtabBar {
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
 }
 
 #SettingsSubtabBar WPushButton {
   background-color: transparent;
-  border: 2px solid #32323c;
+  border: 1px solid #32323c;
   color: #a7a9ac;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
-  margin: 0 4px;
+  margin: 0 6px;
   text-transform: uppercase;
 }
 
@@ -1206,18 +1209,18 @@ WBeatSpinBox::up-button {
 }
 
 #GeneralCol #SettingsRowLabel {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 #GeneralCol #SettingsSegmentLeft,
 #GeneralCol #SettingsSegmentMid,
 #GeneralCol #SettingsSegmentRight {
   min-width: 40px;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 #GeneralCol #SettingsActionButton {
-  font-size: 12px;
+  font-size: 11px;
 }
 
 #LibraryColumnsCol {
@@ -1842,3 +1845,8 @@ WBeatSpinBox::up-button {
 #LinkedZoomTitle { font-size: 9px; color: #9999a8; qproperty-alignment: 'AlignCenter'; }
 #LinkedZoom QPushButton { font-size: 12px; color: #c5c5d0; background: #1a1a24; border: 1px solid #383846; border-radius: 3px; }
 #LinkedZoom QPushButton:pressed { background: #8058a0; }
+
+/* Four load-policy choices fit one 512px General column. */
+#LoadPolicySegmented #SettingsSegmentLeft,
+#LoadPolicySegmented #SettingsSegmentMid,
+#LoadPolicySegmented #SettingsSegmentRight { min-width: 52px; }

@@ -157,6 +157,7 @@ PioneerDDJ400.toggleLight = function(midiIn, active) {
 //
 
 PioneerDDJ400.init = function() {
+    PiFlexPadFx.init(2);
     engine.setValue("[EffectRack1_EffectUnit1]", "show_focus", 1);
 
     engine.makeUnbufferedConnection("[Channel1]", "vu_meter", PioneerDDJ400.vuMeterUpdate);
@@ -326,7 +327,6 @@ PioneerDDJ400.focusedFxGroup = function() {
 
 PioneerDDJ400.beatFxLevelDepthRotate = function(_channel, _control, value) {
     // Ignore physical knob if Pad FX is currently being held!
-    if (PioneerDDJ400.padFxActiveCount > 0) return;
 
     // Map Level/Depth to Beat FX MIX knob (both with and without Shift)
     // so Shift + Filter (Super) and Level/Depth (Mix) can be tweaked simultaneously.
@@ -865,6 +865,7 @@ PioneerDDJ400.quickJumpBack = function(_channel, _control, value, _status, group
 //
 
 PioneerDDJ400.shutdown = function() {
+    PiFlexPadFx.shutdown();
     // reset vumeter
     PioneerDDJ400.toggleLight(PioneerDDJ400.lights.deck1.vuMeter, false);
     PioneerDDJ400.toggleLight(PioneerDDJ400.lights.deck2.vuMeter, false);
@@ -900,78 +901,11 @@ PioneerDDJ400.shutdown = function() {
 
 
 
-// 1-indexed loaded_effect values (assuming standard alphabetical list)
-// 9: Echo, 11: Flanger, 21: Reverb, 12: Glitch, 19: Phaser, 20: PitchShift
-PioneerDDJ400.padFxPresets = [
-    { effect: 15, beats: 0.25 },  // Pad 1: Echo 1/2 beat (approx)
-    { effect: 15, beats: 0.5 },   // Pad 2: Echo 1 beat (approx)
-    { effect: 15, beats: 0.75 },  // Pad 3: Echo 2 beats (approx)
-    { effect: 15, beats: 1.0 },   // Pad 4: Echo 4 beats (approx)
-    { effect: 13, beats: 0.25 },  // Pad 5: Flanger
-    { effect: 13, beats: 0.5 },   // Pad 6: Flanger
-    { effect: 13, beats: 1.0 },   // Pad 7: Flanger
-    { effect: 3, beats: 0 }       // Pad 8: Reverb
-];
-PioneerDDJ400.padFxActiveCount = 0;
-PioneerDDJ400.padFxSavedState = {};
-
-PioneerDDJ400.padFxPressed = function(_channel, control, value, status, group) {
-    let padIndex = -1;
-    if (control >= 0x60 && control <= 0x67) {
-        padIndex = control - 0x60;
-    } else if (control >= 0x10 && control <= 0x17) {
-        padIndex = control - 0x10;
-    }
-    if (padIndex < 0 || padIndex > 7) return;
-
-    // VINYL BRAKE on Pad 8 (padIndex 7)
-    if (padIndex === 7) {
-        var deck = (_channel === 7 || _channel === 8) ? 1 : 2;
-        if (value > 0) {
-            engine.setValue("[Channel" + deck + "]", "brake", 1);
-        } else {
-            engine.setValue("[Channel" + deck + "]", "brake", 0);
-        }
-        return;
-    }
-
-    const fxGroup = "[EffectRack1_EffectUnit1_Effect1]";
-    const unitGroup = "[EffectRack1_EffectUnit1]";
-
-    if (value > 0) {
-        if (PioneerDDJ400.padFxActiveCount === 0) {
-            PioneerDDJ400.padFxSavedState = {
-                enabled: engine.getValue(fxGroup, "enabled"),
-                mix: engine.getValue(unitGroup, "mix"),
-                meta: engine.getValue(fxGroup, "meta")
-            };
-        }
-        PioneerDDJ400.padFxActiveCount++;
-
-        const preset = PioneerDDJ400.padFxPresets[padIndex];
-        engine.setValue(fxGroup, "loaded_effect", preset.effect);
-
-        engine.beginTimer(20, function() {
-            const paramIndex = PioneerDDJ400.findBeatsParameter(fxGroup);
-            if (paramIndex !== -1 && preset.beats > 0) {
-                engine.setValue(fxGroup, "parameter" + paramIndex + "_value", preset.beats);
-            }
-            engine.setValue(unitGroup, "mix", 1.0);
-            engine.setValue(fxGroup, "meta", 1.0);
-            engine.setValue(fxGroup, "enabled", 1);
-        }, true);
-        
-    } else {
-        if (PioneerDDJ400.padFxActiveCount > 0) {
-            PioneerDDJ400.padFxActiveCount--;
-        }
-        if (PioneerDDJ400.padFxActiveCount === 0 && Object.keys(PioneerDDJ400.padFxSavedState).length > 0) {
-            engine.setValue(unitGroup, "mix", PioneerDDJ400.padFxSavedState.mix);
-            engine.setValue(fxGroup, "meta", PioneerDDJ400.padFxSavedState.meta);
-            engine.setValue(fxGroup, "enabled", PioneerDDJ400.padFxSavedState.enabled);
-            PioneerDDJ400.padFxSavedState = {};
-        }
-    }
+// Private, configurable Pad FX lanes; MIDI channel parity selects Normal/Shift.
+PioneerDDJ400.padFxPressed = function(channel, control, value, status, group) {
+    const note = control >= 0x60 && control <= 0x67 ? control - 0x50 : control;
+    const deck = (channel === 7 || channel === 8) ? "[Channel1]" : "[Channel2]";
+    PiFlexPadFx.press(note, value, status, deck, control);
 };
 
 PioneerDDJ400.crossfaderMoved = function(channel, control, value, status, group) {

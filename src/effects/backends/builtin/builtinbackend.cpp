@@ -64,6 +64,7 @@ BuiltInBackend::BuiltInBackend() {
     registerEffect<DistortionEffect>();
     registerEffect<GlitchEffect>();
     registerEffect<CompressorEffect>();
+    registerEffect<PadEchoEffect>();
 }
 
 std::unique_ptr<EffectProcessor> BuiltInBackend::createProcessor(

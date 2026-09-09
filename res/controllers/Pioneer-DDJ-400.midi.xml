@@ -9,6 +9,7 @@
     </info>
     <controller id="DDJ-400">
         <scriptfiles>
+            <file filename="piflex-padfx.js"/>
             <file functionprefix="PioneerDDJ400" filename="Pioneer-DDJ-400-script.js"/>
         </scriptfiles>
         <controls>

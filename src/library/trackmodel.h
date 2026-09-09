@@ -224,6 +224,15 @@ class TrackModel {
     /*non-virtual*/ bool hasCapabilities(Capabilities caps) const {
         return (getCapabilities() & caps) == caps;
     }
+    virtual const QString& settingsNamespace() const {
+        return m_settingsNamespace;
+    }
+
+    // Identity in this model's row map, which may use external database IDs.
+    virtual TrackId getTrackRowIdentity(const QModelIndex& index) const {
+        return getTrackId(index);
+    }
+
     virtual QString getModelSetting(const QString& name) {
         SettingsDAO settings(m_db);
         QString key = m_settingsNamespace + "." + name;

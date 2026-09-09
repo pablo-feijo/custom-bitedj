@@ -20,6 +20,7 @@
 #include "library/dlgtrackmetadataexport.h"
 #include "library/externaltrackcollection.h"
 #include "library/library.h"
+#include "library/trackset/preparefeature.h"
 #include "library/trackcollection.h"
 #include "library/trackcollectionmanager.h"
 #include "library/trackmodel.h"
@@ -30,6 +31,7 @@
 #include "library/trackset/crate/cratesummary.h"
 #include "mixer/playerinfo.h"
 #include "mixer/playermanager.h"
+#include "mixer/deckloadpolicy.h"
 #include "moc_wtrackmenu.cpp"
 #include "preferences/colorpalettesettings.h"
 #include "preferences/configobject.h"
@@ -578,6 +580,13 @@ void WTrackMenu::createActions() {
 }
 
 void WTrackMenu::setupActions() {
+    if (auto* prepare = dynamic_cast<PrepareModel*>(m_pTrackModel)) {
+        addAction(tr("Move up in Prepare"), this, [this, prepare] { prepare->moveSelection(m_trackIndexList, -1); });
+        addAction(tr("Move down in Prepare"), this, [this, prepare] { prepare->moveSelection(m_trackIndexList, 1); });
+    } else if (featureIsEnabled(Feature::LoadTo) || featureIsEnabled(Feature::Playlist)) {
+        addAction(tr("Add to Prepare"), this, [this] { m_pLibrary->addToPrepare(getTrackPointers()); });
+    }
+
     if (featureIsEnabled(Feature::SearchRelated)) {
         addMenu(m_pSearchRelatedMenu);
     }
@@ -938,28 +947,8 @@ void WTrackMenu::updateMenus() {
             for (int i = 1; i <= iNumDecks; ++i) {
                 // PlayerManager::groupForDeck is 0-indexed.
                 QString deckGroup = PlayerManager::groupForDeck(i - 1);
-                bool deckPlaying = ControlObject::get(
-                                           ConfigKey(deckGroup, "play")) > 0.0;
-                bool allowLoadTrackIntoPlayingDeck = false;
-                if (m_pConfig->exists(kConfigKeyLoadWhenDeckPlaying)) {
-                    int loadWhenDeckPlaying =
-                            m_pConfig->getValueString(kConfigKeyLoadWhenDeckPlaying).toInt();
-                    switch (static_cast<LoadWhenDeckPlaying>(loadWhenDeckPlaying)) {
-                    case LoadWhenDeckPlaying::Allow:
-                    case LoadWhenDeckPlaying::AllowButStopDeck:
-                        allowLoadTrackIntoPlayingDeck = true;
-                        break;
-                    case LoadWhenDeckPlaying::Reject:
-                        break;
-                    }
-                } else {
-                    // support older version of this flag
-                    allowLoadTrackIntoPlayingDeck = m_pConfig->getValue<bool>(
-                            ConfigKey("[Controls]", "AllowTrackLoadToPlayingDeck"));
-                }
-                bool deckEnabled =
-                        (!deckPlaying || allowLoadTrackIntoPlayingDeck) &&
-                        singleTrackSelected;
+                const bool deckEnabled = singleTrackSelected &&
+                        mixxx::deckload::allowed(deckGroup, m_pConfig);
                 auto pAction = make_parented<QAction>(tr("Deck %1").arg(i), this);
                 pAction->setEnabled(deckEnabled);
                 m_pDeckMenu->addAction(pAction);

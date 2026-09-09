@@ -131,7 +131,7 @@
                 <TooltipId>track_artist</TooltipId>
                 <SizePolicy>e,18f</SizePolicy>
                 <Property>artist</Property>
-                <Elide>right</Elide>
+                <Elide>scroll</Elide>
                 <Channel><Variable name="channel"/></Channel>
               </TrackProperty>
               <Label>
@@ -204,7 +204,7 @@
                             <Size>0me,0me</Size>
                             <Property>trackNumber</Property>
                             <Channel><Variable name="channel"/></Channel>
-                            <Elide>right</Elide>
+                            <Elide>scroll</Elide>
                           </TrackProperty>
                           <Label>
                             <Size>0me,0me</Size>
@@ -445,6 +445,8 @@
         <Size>0me,38f</Size>
         <Children>
           <Overview>
+            <LabelFontSize>8</LabelFontSize>
+            <CompactCueLabels>true</CompactCueLabels>
             <BiteDJPalette>true</BiteDJPalette>
             <ObjectName>DeckOverview</ObjectName>
             <Size>0me,38f</Size>
@@ -463,7 +465,10 @@
             <TimeRemainingScale>0.57</TimeRemainingScale>
             <Mark>
               <Control>cue_point</Control>
-              <Color>#eb870f</Color>
+              <Text>CUE</Text>
+              <Color>#ff6000</Color>
+              <TextColor>#ff6000</TextColor>
+              <Align>bottom</Align>
             </Mark>
             <!-- Hot cue bank (slots 1-8 = rekordbox pads A-H, and the eight
                  pads a controller maps). Declaring <Hotcue> rather than a
@@ -619,7 +624,7 @@
           </Overview>
         </Children>
       </WidgetGroup>
-      <OverviewRuler><ObjectName>OverviewRuler</ObjectName><Size>0me,12f</Size><Channel><Variable name="channel"/></Channel></OverviewRuler>
+      <OverviewRuler><ObjectName>OverviewRuler</ObjectName><Size>0me,9f</Size><Channel><Variable name="channel"/></Channel></OverviewRuler>
     </Children>
   </WidgetGroup>
 </Template>

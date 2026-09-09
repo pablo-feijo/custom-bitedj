@@ -102,7 +102,7 @@ set(MIXXX_VERSION_PRERELEASE "") # set to "alpha" "beta" or ""
 # The Bite DJ fork version. This is the product version displayed in the UI and
 # reported by `bitedj --version`; it moves independently of the Mixxx base
 # version above.
-set(BITEDJ_VERSION "0.0.6")
+set(BITEDJ_VERSION "0.0.7")
 set(BITEDJ_VERSION_PRERELEASE "") # set to "alpha" "beta" or ""
 if(NOT BITEDJ_VERSION MATCHES "^[0-9]+(\\.[0-9]+)*$")
   message(FATAL_ERROR "BITEDJ_VERSION must be a dot-separated numeric version, got '${BITEDJ_VERSION}'")
@@ -461,6 +461,8 @@ add_library(mixxx-lib STATIC EXCLUDE_FROM_ALL
   src/controllers/softtakeoverindicator.cpp
   src/coreservices.cpp
   src/notifications/notifications.cpp
+  src/preferences/padfxsettings.cpp
+  src/effects/chains/padeffectchain.cpp
   src/preferences/audiodevicesettings.cpp
   src/preferences/controllersettings.cpp
   src/database/mixxxdb.cpp
@@ -705,6 +707,7 @@ add_library(mixxx-lib STATIC EXCLUDE_FROM_ALL
   src/library/trackset/crate/cratestorage.cpp
   src/library/trackset/crate/cratetablemodel.cpp
   src/library/trackset/playlistfeature.cpp
+  src/library/trackset/preparefeature.cpp
   src/library/trackset/setlogfeature.cpp
   src/library/trackset/tracksettablemodel.cpp
   src/library/traktor/traktorfeature.cpp
@@ -1614,6 +1617,15 @@ if(BUILD_TESTING)
     src/test/queryutiltest.cpp
     src/test/rangelist_test.cpp
     src/test/readaheadmanager_test.cpp
+    src/test/textscroll_test.cpp
+    src/test/deckloadpolicy_test.cpp
+    src/test/padecho_test.cpp
+    src/test/padfxeditor_test.cpp
+    src/test/padfxsettings_test.cpp
+    src/test/padfxrouting_test.cpp
+    src/test/effectslot_test.cpp
+    src/test/prepare_test.cpp
+    src/test/rekordboxdisplay_test.cpp
     src/test/rekordboxanlz_test.cpp
     src/test/replaygaintest.cpp
     src/test/rescalertest.cpp
@@ -1671,7 +1683,7 @@ if(BUILD_TESTING)
 
   target_precompile_headers(mixxx-test REUSE_FROM mixxx-lib)
   set_target_properties(mixxx-test PROPERTIES AUTOMOC ON)
-  target_link_libraries(mixxx-test PRIVATE mixxx-lib mixxx-gitinfostore GTest::gtest GTest::gmock)
+  target_link_libraries(mixxx-test PRIVATE mixxx-lib mixxx-gitinfostore GTest::gtest GTest::gmock rekordbox_metadata Kaitai)
 
   if(BUILD_BENCH)
     add_compile_definitions(USE_BENCH)
