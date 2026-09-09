@@ -107,7 +107,7 @@ WOverview::WOverview(
     m_pTypeControl->connectValueChanged(this, &WOverview::slotTypeControlChanged);
     slotTypeControlChanged(m_pTypeControl->get());
     m_pShowPhrasesControl = make_parented<ControlProxy>(ConfigKey("[BiteDJ]", "show_phrases"), this);
-    connect(m_pShowPhrasesControl.get(), &ControlProxy::valueChanged, this, [this](double) { update(); });
+    m_pShowPhrasesControl->connectValueChanged(this, [this](double) { update(); });
 
 
     // Update immediately when the normalize option or the visual gain have been

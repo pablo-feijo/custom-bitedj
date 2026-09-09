@@ -39,7 +39,10 @@ fixture must warn once and still allow audio and native waveform generation.
 2. Check RGB and 3 Band modes, linked/unlinked zoom, and Day/Night at 1024×600.
    Phrase and ruler strips should be discreet; cue targets must remain usable.
 3. Toggle General → Phrases Off/On. Both overview and scrolling strips update;
-   beats, cues and playback must not change. Check persistence after restart.
+   beats, cues and playback must not change. With both decks paused, stay on
+   General and verify both bottom previews change immediately, without changing
+   tabs, moving the playheads, or hovering over the previews. Check persistence
+   after restart.
 4. Play both decks. Capture audio from `auto_null.monitor` in the owned ARM64
    instance, and inspect RMS, peaks and underrun logs. Repeat with fallback tracks.
 5. For timing, launch with `--developer --logLevel debug` and
