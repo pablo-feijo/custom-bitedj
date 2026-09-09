@@ -233,16 +233,16 @@ test('Beat Jump pads in all three banks, bank limits, loop scale, quick jump and
     }
 });
 
-test('Settings vinyl mode controls scratching; jog bend, search and loop adjustment on both decks',()=>{
+test('Settings vinyl mode controls scratching; jog bend, grid alignment and loop adjustment on both decks',()=>{
     const h=createHarness();h.seed('[BiteDJ]','vinyl_mode',0);h.m.init();h.clear();
     for(const deck of [1,2]) {
         const s=0x8f+deck,g=`[Channel${deck}]`;
-        for(const touch of [0x36,0x67]) {
+        for(const touch of [0x36]) {
             h.set('[BiteDJ]','vinyl_mode',0);h.send(s,touch,127);
-            assert.deepEqual(h.calls.at(-1),['scratchDisable',deck]);
+            assert.deepEqual(h.calls.at(-1),['scratchDisable',deck,false]);
             h.set('[BiteDJ]','vinyl_mode',1);h.send(s,touch,127);
             assert.equal(h.calls.at(-1)[0],'scratchEnable');assert.equal(h.calls.at(-1)[1],deck);
-            h.send(s,touch,0);assert.deepEqual(h.calls.at(-1),['scratchDisable',deck]);
+            h.send(s,touch,0);assert.deepEqual(h.calls.at(-1),['scratchDisable',deck,false]);
         }
         for(const jog of [0x21,0x22,0x23]) {
             for(const value of [63,64,65]) {
@@ -251,7 +251,7 @@ test('Settings vinyl mode controls scratching; jog bend, search and loop adjustm
             h.seed(g,'test_scratching',1);h.send(s+0x20,jog,66);
             assert.deepEqual(h.calls.at(-1),['scratchTick',deck,2]);h.seed(g,'test_scratching',0);
         }
-        h.send(s+0x20,0x29,63);assert.equal(h.get(g,'jog'),-150);
+        h.send(s+0x20,0x29,63);assert.equal(h.get(g,'beats_translate_move'),-1);
         h.seed(g,'loop_enabled',1);h.seed(g,'loop_start_position',100);h.seed(g,'loop_end_position',500);
         h.send(s,0x4c,127);h.send(s,0x4c,0);h.send(s+0x20,0x22,65);
         assert.equal(h.get(g,'loop_start_position'),150);assert.equal(h.get(g,'loop_end_position'),500);
@@ -329,6 +329,102 @@ test('Native hotcue, loop, transport and mixer bindings retain their targets',()
     }
     expect(0x96,0x41,'[Library]','MoveFocusForward');
     for(const [note,key] of [[0x2c,'headMix'],[0x0c,'headMix'],[0x2d,'headGain'],[0x0d,'headGain']])expect(0xb6,note,'[Master]',key);
+});
+
+test('Shift jog only translates grid, including shifted touch and mid-touch Shift',()=>{
+    for (const deck of [1,2]) {
+        const h=createHarness(), s=0x8f+deck, g=`[Channel${deck}]`;
+        h.m.vinylMode=true;
+        h.send(s,0x67,127); assert.deepEqual(h.calls,[]);
+        h.send(s,0x67,0); assert.deepEqual(h.calls,[['scratchDisable',deck,false]]);
+        for (const playing of [0,1]) {
+            h.seed(g,'play',playing); h.clear();
+            h.send(s,0x36,127);
+            h.send(s,0x3f,127);
+            assert.ok(h.calls.some(c=>c[0]==='scratchDisable' && c[2]===false));
+            h.clear();
+            for (const note of [0x21,0x22,0x23,0x29]) {
+                h.send(s+0x20,note,63); h.send(s+0x20,note,64); h.send(s+0x20,note,66);
+            }
+            assert.deepEqual(h.writes,Array.from({length:4},()=>[
+                [g,'beats_translate_move',-1],[g,'beats_translate_move',2]]).flat());
+            assert.deepEqual(h.calls,[]);
+            h.send(s,0x67,0); h.send(s,0x3f,0);
+            assert.equal(h.get(g,'play'),playing);
+        }
+    }
+});
+
+test('Jog release resumes playing decks immediately and leaves paused decks paused',()=>{
+    for (const deck of [1,2]) for (const playing of [0,1]) {
+        const h=createHarness(), s=0x8f+deck, g=`[Channel${deck}]`;
+        h.m.vinylMode=true; h.seed(g,'play',playing);
+        h.send(s,0x36,127);
+        // A loop adjustment starting during touch must never swallow release.
+        h.m.loopAdjustIn[deck-1]=true; h.clear(); h.send(s,0x36,0);
+        assert.deepEqual(h.calls,[['scratchDisable',deck,false]]);
+        assert.deepEqual(h.writes,playing?[[g,'play',1]]:[]);
+    }
+});
+
+test('Shift Browse zoom and focused FX follow either deck Shift and all three slots',()=>{
+    const h=createHarness(), unit='[EffectRack1_EffectUnit1]'; h.m.init();
+    for (const shift of [0x90,0x91]) {
+        h.seed('[Tab]','current',1); h.send(shift,0x3f,127); h.clear();
+        h.send(0xb6,0x40,127);
+        assert.deepEqual(h.calls,[['triggerControl','[Channel1]','waveform_zoom_up',100]]);
+        for (let slot=1;slot<=3;slot++) h.seed(`[EffectRack1_EffectUnit1_Effect${slot}]`,'enabled',1);
+        h.m.beatFxOnOffPressed(4,0,127);
+        for (let slot=1;slot<=3;slot++) assert.equal(h.get(`[EffectRack1_EffectUnit1_Effect${slot}]`,'enabled'),0);
+        h.send(shift,0x3f,0);
+    }
+    for (const slot of [1,2,3]) {
+        const g=`[EffectRack1_EffectUnit1_Effect${slot}]`;
+        h.set(unit,'focused_effect',slot); h.seed(g,'enabled',0); h.clear();
+        h.m.beatFxOnOffPressed(4,0,127); assert.equal(h.get(g,'enabled'),true);
+        h.seed(g,'parameter1_loaded',1);h.seed(g,'parameter1_units',1);h.seed(g,'parameter1_beat_period',1);
+        h.m.beatFxRightPressed(4,0,127); assert.equal(h.get(g,'parameter1_beat_period'),2);
+        h.m.beatFxLeftPressed(4,0,127); assert.equal(h.get(g,'parameter1_beat_period'),1);
+    }
+});
+
+test('Active-loop jog resizes in measured steps without scratch or pitch bend',()=>{
+    for (const deck of [1,2]) for (const playing of [0,1]) {
+        const h=createHarness(), status=0x8f+deck, g=`[Channel${deck}]`;
+        h.m.init(); h.m.vinylMode=true; h.seed(g,'play',playing); h.set(g,'loop_enabled',1);
+        h.clear(); h.send(status,0x36,127); assert.deepEqual(h.calls,[]);
+        for (const note of [0x21,0x22,0x23]) {
+            h.m.loopJogTicks[deck-1]=0; h.clear();
+            h.send(status+0x20,note,95); assert.deepEqual(h.writes,[]);
+            h.send(status+0x20,note,65); assert.deepEqual(h.writes,[[g,'loop_scale',2]]);
+            h.send(status+0x20,note,32); assert.deepEqual(h.writes.at(-1),[g,'loop_scale',0.5]);
+            assert.deepEqual(h.calls,[]);
+        }
+        // Reversing direction discards the partial turn in the old direction.
+        h.clear();h.send(status+0x20,0x22,95);h.send(status+0x20,0x22,32);
+        assert.deepEqual(h.writes,[[g,'loop_scale',0.5]]);
+        h.send(status,0x3f,127);h.clear();h.send(status+0x20,0x29,96);
+        assert.deepEqual(h.writes,[[g,'beats_translate_move',32]]);
+        h.send(status,0x3f,0);h.set(g,'loop_enabled',0);h.clear();
+        h.send(status+0x20,0x22,65);assert.deepEqual(h.writes,[[g,'jog',0.8]]);
+        assert.equal(h.get(g,'play'),playing);
+        const other=deck===1?1:0;assert.equal(h.m.loopJogTicks[other],0);
+    }
+});
+
+test('Enabling a loop during scratch releases immediately and invalid loop edit is ignored',()=>{
+    const h=createHarness();h.m.init();h.m.vinylMode=true;
+    for (const deck of [1,2]) {
+        const status=0x8f+deck,g=`[Channel${deck}]`;
+        h.seed(g,'loop_enabled',0);h.seed(g,'play',1);
+        h.send(status,0x4c,127);h.send(status,0x4e,127);
+        assert.equal(h.m.loopAdjustIn[deck-1],false);assert.equal(h.m.loopAdjustOut[deck-1],false);
+        h.send(status,0x36,127);h.clear();h.set(g,'loop_enabled',1);
+        assert.ok(h.calls.some(c=>c[0]==='scratchDisable' && c[1]===deck && c[2]===false));
+        assert.equal(h.get(g,'play'),1);h.clear();
+        h.send(status+0x20,0x22,95);h.send(status,0x36,0);h.clear();
+        h.send(status+0x20,0x22,65);assert.deepEqual(h.writes,[]);
+    }
 });
 
 test('Mapping audit: unique MIDI inputs, resolvable callbacks and every script binding exercised',()=>{

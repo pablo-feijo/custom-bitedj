@@ -147,3 +147,12 @@ use the summary's own width before engine duration controls catch up.
 Native rendering/delegate/cache regressions and paused GPU E2E checks accompany
 these fixes. The controller pad drawer dependency from `5a84488ae3` also gains
 explicit previous/next touch navigation and balanced padding in this task.
+
+### Jog filter preferences (0.0.7)
+
+`RateControl` reads `[Controls] JogWheelFilterLength` (6, clamped 1–64).
+Deck service preferences Apply publishes the length atomically; audio callbacks
+reset their own preallocated Rotary buffer when the setting changes. Rotary
+capacity is 64 while its general default remains 50; length changes clear stale
+samples and reset the cursor. No allocation or configuration lookup occurs in
+the audio callback. DDJ-400 behavior is documented in [the mapping](DDJ400_MAPPING.md#jog-alignment-release-and-service-smoothing).

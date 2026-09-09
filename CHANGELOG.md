@@ -13,6 +13,11 @@ UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 
 ### Fixed
 
+- DDJ-400 Shift + jog aligns the beatgrid without seeking/scratching; jog release
+  resumes playing decks immediately. Shift + Browse retains linked zoom.
+- Beat FX period and ON/OFF controls follow the focused effect; either Shift
+  disables all three slots. Next/previous preset selection is retained.
+
 - Browse table headers use smaller text and balanced padding; folder navigation
   has 44px touch rows and expansion areas that keep the tree open.
 - Beat FX selection stays inside the right panel in two columns with seven compact
@@ -21,6 +26,13 @@ UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 - noVNC preview startup: repair malformed and duplicate WebCodecs exports in fresh and cached GUI images.
 
 ### Added
+
+- Active-loop jog rotation halves/doubles the loop in measured steps; Shift + jog
+  continues to align the beatgrid.
+
+- Service Deck preferences offer jog-wheel smoothing (default 6, range 1–64),
+  persisted as `JogWheelFilterLength` and applied live
+  ([service preferences preview](docs/UI_SCREENSHOTS.md#service-decks)).
 
 - DDJ-400: three Shift presses within 1.2 seconds on either side close the pad
   drawer and restore the bottom waveform previews.

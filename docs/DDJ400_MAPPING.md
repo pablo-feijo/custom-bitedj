@@ -187,7 +187,7 @@ therefore require coverage. This is a binding/behavior audit, not a claim of
 | Filter and mixer | Independent 14-bit filters, either Shift to Super, simultaneous Mix/Super/Sync while Pad FX is held, crossfader disable/re-enable |
 | Beat FX | Relative selection, routing to either/both decks, enable LEDs, panic, first loaded Beats parameter, all buckets, endpoints, off-grid values and releases |
 | Browse and load | Play waveform zoom, signed library scrolling, Shift tab switch, per-deck loading, Instant Doubles before/at 500 ms, source play/sync state |
-| Deck controls | Sync short/long presses, tempo ranges/sliders, live Vinyl/CDJ setting, jog bend/scratch/search, loop adjustment, quick jumps and quantize |
+| Deck controls | Sync short/long presses, tempo ranges/sliders, live Vinyl/CDJ setting, jog bend/scratch/grid alignment, loop adjustment, quick jumps and quantize |
 | Performance pads | Every Pad FX pad/bank/deck, real and zero-velocity note-offs, duplicate presses, Shift changes while held, LED identity, Beat Jump banks/limits |
 | Drawer | All supported/unsupported mode notes, deck isolation, Shift state and triple-Shift waveform return; timeout/held/release cases in the existing drawer suite |
 | Samplers and lifecycle | All 16 load/play/stop/eject pads, paired Shift LEDs, startup query, track/VU feedback, pending/active loop blink and Pad FX cleanup |
@@ -196,3 +196,41 @@ therefore require coverage. This is a binding/behavior audit, not a claim of
 Engine controls, time, timers and MIDI output are simulated. Native control
 semantics, DSP/audio, device firmware messages and physical LED behavior still
 need native tests or a connected DDJ-400; this suite does not emulate them.
+
+## Jog alignment, release and service smoothing
+
+Shift + jog translates the beatgrid through `beats_translate_move` (signed jog
+steps), without seeking or enabling scratch. This takes priority over loop-point
+adjustment. Dedicated shifted rotation/touch notes work even without a Shift
+press message; pressing Shift during an active scratch releases scratch immediately.
+Shift + Browse rotation zooms from any page through the existing linked waveform
+zoom path; Shift + Browse press continues to toggle Play/Browse.
+
+Jog release uses `scratchDisable(deck, false)`, restoring `play` only if that
+scratch began on a playing deck. Paused decks stay paused. Release is handled even
+if loop adjustment was enabled during touch.
+
+Service Preferences → Decks → Deck options → Jog-wheel smoothing saves
+`[Controls] JogWheelFilterLength`: default 6, minimum 1, maximum 64. Apply updates
+all decks on their next audio callback; Cancel leaves the running filter alone,
+and Reset restores 6 when applied. This controls pitch-bend smoothing, not the
+controller scratch tick resolution. Saved out-of-range integers are clamped.
+
+SELECT / Shift + SELECT retain next/previous preset selection. BEAT left/right
+steps the focused slot's first Beats-typed parameter shorter/longer. ON/OFF toggles
+the focused slot (Effect1 when no slot is focused), and its LEDs follow focus.
+Either deck's Shift + ON/OFF disables all three slots, including when the controller
+sends the normal ON/OFF note. The dedicated shifted note retains the same action.
+
+### Active-loop jog resizing
+
+While a loop is active, normal jog rotation halves its length counterclockwise
+and doubles it clockwise. One resize requires 32 cumulative jog ticks (about
+16° at the mapping's 720 ticks/revolution). Reversing direction discards the
+partial turn; releasing touch, changing loop state or using Shift clears it.
+Each deck accumulates independently. Native `loop_scale` keeps the start point
+and enforces the minimum audible length and track-end limit. Playing decks keep
+playing; paused decks remain paused. Leaving the loop restores jog pitch bend
+and Vinyl-mode scratching. Shift + jog always takes priority for grid alignment.
+Explicit Shift + LOOP IN/OUT boundary-edit modes retain fine adjustment after
+releasing Shift; toggle the mode off to return to automatic half/double resizing.

@@ -30,6 +30,16 @@ RateControl::RampMode RateControl::m_eRateRampMode;
 const double RateControl::kWheelMultiplier = 40.0;
 const double RateControl::kPausedJogMultiplier = 18.0;
 
+std::atomic<int> RateControl::m_iJogWheelFilterLength(kDefaultJogWheelFilterLength);
+
+void RateControl::setJogWheelFilterLength(int length) {
+    m_iJogWheelFilterLength.store(qBound(1, length, 64), std::memory_order_relaxed);
+}
+
+int RateControl::getJogWheelFilterLength() {
+    return m_iJogWheelFilterLength.load(std::memory_order_relaxed);
+}
+
 RateControl::RateControl(const QString& group, UserSettingsPointer pConfig)
         : EngineControl(group, pConfig),
           m_pBpmControl(nullptr),
@@ -197,7 +207,9 @@ RateControl::RateControl(const QString& group, UserSettingsPointer pConfig)
     m_pScratch2Scratching->set(1.0);
 
     // FIXME: This should be dependent on sample rate/block size or something
-    m_pJogFilter->setFilterLength(25);
+    setJogWheelFilterLength(pConfig->getValue(
+            ConfigKey("[Controls]", "JogWheelFilterLength"), kDefaultJogWheelFilterLength));
+    m_pJogFilter->setFilterLength(getJogWheelFilterLength());
 
 //     // Update Internal Settings
 //     // Set Pitchbend Mode
@@ -376,6 +388,11 @@ double RateControl::getJogFactor() const {
         m_pJog->set(0.);
     }
 
+    const int filterLength = getJogWheelFilterLength();
+    if (m_pJogFilter->getFilterLength() != filterLength) {
+        // The fixed-capacity buffer is changed only on the audio thread.
+        m_pJogFilter->setFilterLength(filterLength);
+    }
     double jogValueFiltered = m_pJogFilter->filter(jogValue);
     double jogFactor = jogValueFiltered * jogSensitivity;
 

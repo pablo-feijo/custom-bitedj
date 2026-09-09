@@ -325,7 +325,7 @@
                 </options>
             </control>
             <control>
-                <description>JOG DIAL PLATTER +SHIFT (DECK1) - rotate - Search (Fast Pitch bend)</description>
+                <description>JOG DIAL PLATTER +SHIFT (DECK1) - rotate - Adjust beatgrid alignment</description>
                 <group>[Channel1]</group>
                 <key>PioneerDDJ400.jogSearch</key>
                 <status>0xB0</status>
@@ -347,8 +347,7 @@
                 </options>
             </control>
             <control>
-                <description>JOG DIAL PLATTER +SHIFT (DECK1) - touch - enable (on touch) / disable (on release) highspeed
-                    Pitch bend
+                <description>JOG DIAL PLATTER +SHIFT (DECK1) - touch - Adjust beatgrid without scratching
                 </description>
                 <group>[Channel1]</group>
                 <key>PioneerDDJ400.jogTouch</key>
@@ -390,7 +389,7 @@
                 </options>
             </control>
             <control>
-                <description>JOG DIAL PLATTER +SHIFT (DECK2) - rotate - Search (Fast Pitch bend)</description>
+                <description>JOG DIAL PLATTER +SHIFT (DECK2) - rotate - Adjust beatgrid alignment</description>
                 <group>[Channel2]</group>
                 <key>PioneerDDJ400.jogSearch</key>
                 <status>0xB1</status>
@@ -412,8 +411,7 @@
                 </options>
             </control>
             <control>
-                <description>JOG DIAL PLATTER +SHIFT (DECK2) - touch - enable (on touch) / disable (on release) highspeed
-                    Pitch bend
+                <description>JOG DIAL PLATTER +SHIFT (DECK2) - touch - Adjust beatgrid without scratching
                 </description>
                 <group>[Channel2]</group>
                 <key>PioneerDDJ400.jogTouch</key>

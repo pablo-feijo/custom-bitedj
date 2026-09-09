@@ -424,3 +424,11 @@ and Saved remain labeled tabs; the 9px page counter reads `1 / 2`.
   the completed task's own preview when it is no longer needed for review; never
   stop another task's container or remove a bind-mounted folder. Report remaining
   folders with specific reasons, sizes and the next cleanup action.
+
+## Service Deck Jog Smoothing
+
+Service Preferences → Decks → Deck options adds Jog-wheel smoothing after
+Clone deck (eighth row), stored as `[Controls] JogWheelFilterLength` (6, 1–64).
+At 1024×600 with the native service window maximized, the spin box is `(600,302)`;
+Apply is `(974,577)`. Full option order, verified coordinates and persistence
+checks are in [GUI testing](docs/GUI_TESTING.md#service-deck-preferences-jog-smoothing).

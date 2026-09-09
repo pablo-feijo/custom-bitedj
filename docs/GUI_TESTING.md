@@ -503,3 +503,28 @@ tap Music's label to verify that a folder with children can still open tracks.
 Compact FX actions: eraser = Clear FX, × = Close, left/right chevrons =
 Prev/Next. Tooltips and accessible names retain the action labels. Standard
 and Saved remain labeled tabs; the 9px page counter reads `1 / 2`.
+
+## Service Deck preferences: jog smoothing
+
+In the owned test instance, open service preferences with Ctrl+P, select Decks,
+and maximize its window before using these verified 1024×600 coordinates.
+The service dialog uses the native Fusion style independently of skin Day/Night.
+Decks navigation is `(75,166)`; Deck options order is Cue mode, Intro start,
+Track time display, Time Format, Track load point, Loading a track when deck is
+playing, Clone deck, Jog-wheel smoothing. The new spin box is `(600,302)`, with
+step arrows at `(965,298)` / `(965,307)`. Apply `(974,577)`, Cancel `(887,577)`,
+OK `(800,577)`, Restore Defaults `(232,577)`.
+
+`[Controls] JogWheelFilterLength` defaults to 6 and is bounded to 1–64. Check
+that Up at 64 and Down at 1 do not exceed these bounds. Apply 64; edit 1 and
+Cancel; reopening must retain 64. Save 17, quit normally to flush settings,
+restart the owned binary, and verify 17. Restore Defaults must display 6;
+Cancel reverts it until applied. Return the isolated test setting to 6 afterward.
+The audio callback picks up an applied change without reopening tracks.
+
+See the [service screenshot](UI_SCREENSHOTS.md#service-decks) and
+[controller workflow](DDJ400_MAPPING.md#active-loop-jog-resizing). Hardware checks:
+loop-active jog halves/doubles after 32 ticks, Shift jog only translates the grid,
+and scratch release immediately resumes decks that were playing before touch.
+Automated MIDI tests cover both decks and transition cases; real wheel feel and
+physical controller timing still need hardware verification.

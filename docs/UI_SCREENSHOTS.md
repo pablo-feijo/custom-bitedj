@@ -163,3 +163,14 @@ are stored here. Preserve this gallery once 0.0.7 is released.
 Compact FX actions: eraser = Clear FX, × = Close, left/right chevrons =
 Prev/Next. Tooltips and accessible names retain the action labels. Standard
 and Saved remain labeled tabs; the 9px page counter reads `1 / 2`.
+
+<a id="service-decks"></a>
+
+## Service preferences: Decks
+
+Advanced Settings → Decks adds **Jog-wheel smoothing** after Clone deck.
+Default 6; range 1–64 audio callbacks. Lower values respond faster; larger values
+smooth pitch-bend movement. Apply changes both decks live. Captured at 1024×600
+with the service window maximized, binary `0.0.7-codex-xsploit-jog-beatfx.1`.
+
+![Deck service preferences with jog-wheel smoothing at its default of 6.](images/ui/0.0.7/service-decks.png)

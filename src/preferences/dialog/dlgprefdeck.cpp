@@ -435,6 +435,7 @@ DlgPrefDeck::~DlgPrefDeck() {
 }
 
 void DlgPrefDeck::slotUpdate() {
+    spinBoxJogWheelFilterLength->setValue(RateControl::getJogWheelFilterLength());
     checkBoxIntroStartMove->setChecked(m_pConfig->getValue(
             ConfigKey(kControlsGroup, QStringLiteral("SetIntroStartAtMainCue")), false));
 
@@ -517,6 +518,7 @@ void DlgPrefDeck::slotUpdate() {
 }
 
 void DlgPrefDeck::slotResetToDefaults() {
+    spinBoxJogWheelFilterLength->setValue(RateControl::kDefaultJogWheelFilterLength);
     // Track time display mode
     slotSetTrackTimeDisplay(kDefaultPositionDisplayType);
 
@@ -689,6 +691,9 @@ void DlgPrefDeck::slotLoadWhenDeckPlayingIndexChanged(int comboboxIndex) {
 }
 
 void DlgPrefDeck::slotApply() {
+    RateControl::setJogWheelFilterLength(spinBoxJogWheelFilterLength->value());
+    m_pConfig->setValue(ConfigKey(kControlsGroup, QStringLiteral("JogWheelFilterLength")),
+            RateControl::getJogWheelFilterLength());
     m_pConfig->set(ConfigKey(kControlsGroup, QStringLiteral("SetIntroStartAtMainCue")),
             ConfigValue(m_bSetIntroStartAtMainCue));
 

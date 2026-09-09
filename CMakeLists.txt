@@ -103,7 +103,7 @@ set(MIXXX_VERSION_PRERELEASE "") # set to "alpha" "beta" or ""
 # reported by `bitedj --version`; it moves independently of the Mixxx base
 # version above.
 set(BITEDJ_VERSION "0.0.7")
-set(BITEDJ_VERSION_PRERELEASE "codex-v0-0-7.2") # Development integration version
+set(BITEDJ_VERSION_PRERELEASE "codex-v0-0-7.3") # Development integration version
 if(NOT BITEDJ_VERSION MATCHES "^[0-9]+(\\.[0-9]+)*$")
   message(FATAL_ERROR "BITEDJ_VERSION must be a dot-separated numeric version, got '${BITEDJ_VERSION}'")
 endif()
@@ -1566,6 +1566,7 @@ if(BUILD_TESTING)
     #TODO: write useful tests for refactored effects system
     #src/test/effectchainslottest.cpp
     src/test/enginebufferscalelineartest.cpp
+    src/test/rotarytest.cpp
     src/test/enginebuffertest.cpp
     src/test/enginefilterbiquadtest.cpp
     src/test/enginemixertest.cpp
