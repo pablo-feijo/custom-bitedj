@@ -3,6 +3,7 @@ import math
 import struct
 import wave
 import os
+from pathlib import Path
 
 SAMPLE_RATE = 44100
 
@@ -111,7 +112,7 @@ def synthesize_track(filename, bpm=128, bars=32):
     max_amp = max(max(abs(s) for s in samples_l), max(abs(s) for s in samples_r), 1.0)
     norm = 0.92 / max_amp
     
-    with wave.open(filename, 'wb') as wav:
+    with wave.open(str(filename), 'wb') as wav:
         wav.setnchannels(2)
         wav.setsampwidth(2)
         wav.setframerate(SAMPLE_RATE)
@@ -125,6 +126,7 @@ def synthesize_track(filename, bpm=128, bars=32):
     print(f"Generated {filename} successfully ({os.path.getsize(filename)} bytes).")
 
 if __name__ == '__main__':
-    os.makedirs('test-music', exist_ok=True)
-    synthesize_track('test-music/BiteDJ_Test_Groove_128BPM.wav', bpm=128, bars=32)
-    synthesize_track('test-music/BiteDJ_Test_Techno_124BPM.wav', bpm=124, bars=32)
+    output_dir = Path(__file__).resolve().parents[2] / 'test-music'
+    output_dir.mkdir(exist_ok=True)
+    synthesize_track(output_dir / 'BiteDJ_Test_Groove_128BPM.wav', bpm=128, bars=32)
+    synthesize_track(output_dir / 'BiteDJ_Test_Techno_124BPM.wav', bpm=124, bars=32)

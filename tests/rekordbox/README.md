@@ -3,7 +3,7 @@
 Generate all media locally with the Python standard library:
 
 ```sh
-source ./gui-test-settings.sh
+source ./scripts/test/gui-test-settings.sh
 verify_test_instance_owner
 python3 tests/rekordbox/make_fixture.py "$RESULTS_DIR/RekordboxFixture"
 docker cp "$RESULTS_DIR/RekordboxFixture" "$CONTAINER_NAME:/media/"

@@ -4,6 +4,20 @@ A two-deck DJ appliance for Raspberry Pi, with a **1024×600 touchscreen**,
 USB-centered music browsing, and a custom **Pioneer DDJ-400** workflow.
 The working integration branch is **`codex/v0.0.7`**.
 
+## Interface previews
+
+**Play** — two decks, scrolling waveforms and FX controls.
+
+[![BiteDJ Play with two loaded decks](docs/images/ui/0.0.7/play.png)](docs/UI_SCREENSHOTS.md#play)
+
+**Browse** — waveform previews in the library and both deck overviews.
+
+[![BiteDJ Browse with the waveform Preview column](docs/images/ui/0.0.7/browse-preview.png)](docs/UI_SCREENSHOTS.md#browse-preview)
+
+See [all seven Settings screens](docs/UI_SCREENSHOTS.md#settings-general)
+in the [0.0.7 UI gallery](docs/UI_SCREENSHOTS.md) and the
+[corresponding changelog](CHANGELOG.md#007--unreleased).
+
 ## Features
 
 - Compact deck displays, scrolling titles, and Day/Night modes.
@@ -23,12 +37,13 @@ See the [DDJ-400 guide](docs/DDJ400_MAPPING.md) for controls and the
 Build the ARM64 application with:
 
 ```sh
-./docker-build.sh --platform linux/arm64
+./scripts/build/docker-build.sh --platform linux/arm64
 ```
 
-Launch an isolated local GUI/audio test instance with `./run-gui-test.sh`.
+Launch an isolated local GUI/audio test instance with `./scripts/test/run-gui-test.sh`.
 Each feature branch uses its own worktree, settings, build, and VNC ports.
 
+- [Repository layout and script locations](docs/REPOSITORY_LAYOUT.md)
 - [Build and deploy](docs/BUILD_AND_DEPLOY.md)
 - [GUI and audio testing](docs/GUI_TESTING.md)
 - [Architecture](docs/INFRASTRUCTURE.md)

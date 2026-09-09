@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 TASK_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-source "$TASK_ROOT/gui-test-settings.sh"
+source "$TASK_ROOT/scripts/test/gui-test-settings.sh"
 verify_test_instance_owner
 mkdir -p "$RESULTS_DIR"
 # Deliberately no hardware passthrough or host-visible MIDI listener.

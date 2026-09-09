@@ -5,9 +5,9 @@ Unlike upstream Mixxx which is distributed as a standard desktop application, Bi
 ## 1. Cross-Compilation Engine
 Upstream Mixxx relies on standard native `CMake` builds for Windows, macOS, and Linux. 
 BiteDJ utilizes a Dockerized cross-compilation pipeline to build ARM64 binaries from any host machine (macOS/x86_64).
-- **`Dockerfile`**: Provides a reproducible Debian Trixie (13) environment pre-loaded with an ARM64 cross-compiler (`aarch64-linux-gnu-g++`).
-- **`docker-build.sh`**: Automates the invocation of the Docker container, mounting the local source tree, and compiling the binary into the `dist-linux/` folder.
-- **Dependency Fetching**: The scripts `get_libs.sh` and `get_libs2.sh` manually download and extract Debian ARM64 package headers directly from `deb.debian.org` (e.g., `libasound2-dev`, `libqt6waylandclient6`). This eliminates the need for a massive, complex sysroot.
+- **`docker/build.Dockerfile`**: Provides a reproducible Debian Trixie (13) environment pre-loaded with an ARM64 cross-compiler (`aarch64-linux-gnu-g++`).
+- **`scripts/build/docker-build.sh`**: Automates the invocation of the Docker container, mounting the local source tree, and compiling the binary into the `dist-linux/` folder.
+- **Legacy library extraction**: `scripts/legacy/get_libs.sh` and `scripts/legacy/get_libs2.sh` retain the older Ubuntu ARM64 runtime-library extraction workflow. They write archives under ignored `test-results/legacy-libs/` and are not used by the current build.
 
 ## 2. OS Image Generation (`mixxx-pi-gen`)
 BiteDJ ships as a complete, flashable `.img` file. We use a heavily customized git submodule fork of `pi-gen` (the official tool used to build Raspberry Pi OS).

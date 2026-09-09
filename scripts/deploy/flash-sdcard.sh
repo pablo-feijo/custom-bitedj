@@ -3,12 +3,12 @@ set -euo pipefail
 
 TARGET_DISK="/dev/disk7"
 RAW_DISK="/dev/rdisk7"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 # Follow the pinned image-builder config instead of hard-coding a release.
-source "${SCRIPT_DIR}/mixxx-pi-gen/config"
+source "${REPO_DIR}/mixxx-pi-gen/config"
 IMAGE_DATE="${BITEDJ_IMAGE_DATE:-$(date +%Y-%m-%d)}"
-ZIP_FILE="${SCRIPT_DIR}/mixxx-pi-gen/deploy/image_${IMAGE_DATE}-${IMG_NAME}.zip"
-IMG_FILE="${SCRIPT_DIR}/mixxx-pi-gen/deploy/${IMAGE_DATE}-${IMG_NAME}.img"
+ZIP_FILE="${REPO_DIR}/mixxx-pi-gen/deploy/image_${IMAGE_DATE}-${IMG_NAME}.zip"
+IMG_FILE="${REPO_DIR}/mixxx-pi-gen/deploy/${IMAGE_DATE}-${IMG_NAME}.img"
 
 echo "============================================================"
 echo "  BiteDJ SD Card Flasher (macOS Terminal)"
@@ -30,7 +30,7 @@ diskutil info "${TARGET_DISK}" | grep -E "Device / Media Name|Disk Size|Content"
 echo ""
 echo "1. Unzipping image file..."
 if [ ! -f "${IMG_FILE}" ]; then
-    unzip -o "${ZIP_FILE}" -d "${SCRIPT_DIR}/mixxx-pi-gen/deploy/"
+    unzip -o "${ZIP_FILE}" -d "${REPO_DIR}/mixxx-pi-gen/deploy/"
 fi
 
 echo "2. Unmounting ${TARGET_DISK}..."

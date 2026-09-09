@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y \
     && echo '<!DOCTYPE html><html><head><meta http-equiv=\"refresh\" content=\"0; url=/vnc.html?autoconnect=true&resize=scale&v=20260906_audio\"></head><body><a href=\"/vnc.html?autoconnect=true&resize=scale&v=20260906_audio\">BiteDJ Web UI</a></body></html>' > /usr/share/novnc/index.html \
     && rm -rf /var/lib/apt/lists/*
 
-COPY novnc_audio_snippet.html /tmp/novnc_audio_snippet.html
+COPY scripts/test/novnc_audio_snippet.html /tmp/novnc_audio_snippet.html
 RUN python3 -c "with open('/usr/share/novnc/vnc.html', 'r') as f: c = f.read(); s = open('/tmp/novnc_audio_snippet.html', 'r').read(); open('/usr/share/novnc/vnc.html', 'w').write(c.replace('</body>', s + '\n</body>'))" && rm /tmp/novnc_audio_snippet.html
 
 
