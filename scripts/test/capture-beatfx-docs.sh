@@ -19,20 +19,20 @@ capture() {
 }
 # Canonical positions: docs/GUI_TESTING.md, Beat FX picker.
 click 100 20
-click 878 70
-click 934 122
-click 894 119  # Standard, page 1
-click 974 194 # Echo; standard selection starts Off
+click 850 70
+click 922 116
+click 876 119  # Standard, page 1
+click 968 194 # Echo; standard selection starts Off
 capture play
-click 934 122
+click 922 116
 capture beat-fx-page-1
-click 974 538
+click 968 538
 capture beat-fx-page-2
-click 974 119
+click 968 119
 capture beat-fx-saved-1
-click 974 538
+click 968 538
 capture beat-fx-saved-2
-click 974 153
+click 968 153
 {
     git -C "${REPO_DIR}" describe --always --dirty
     shasum -a 256 "${REPO_DIR}/dist-linux/bin/mixxx"

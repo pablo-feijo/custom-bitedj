@@ -33,9 +33,9 @@ touchscreen does not send controller steps.
 The order below is the Standard picker and default controller order. Level/Depth
 controls the chain mix. Shift + Filter controls Super; Pitch's linked pitch
 parameter can therefore be swept with Super. Time controls display periods in
-beats and convert Tremolo's cycles/beat internally. Unsupported values clamp
-to the backend range (for example Echo's 4-beat request becomes 2 beats and the
-2-beat button is highlighted). Raw parameter IDs and saved values do not change.
+beats and convert Tremolo's cycles/beat internally. The touch grid and controller Beat left/right buttons offer supported values
+from 1/8, 1/4, 1/2, 1, 2 and 4 beats. Unsupported touch buttons are hidden
+(for example Echo supports up to 2 beats, while Phaser starts at 1/4 beat). Native writes still clamp truthfully. Raw parameter IDs and saved values do not change.
 
 | # | Effect | Native chain | Difference from Rekordbox |
 | --- | --- | --- | --- |
@@ -110,3 +110,35 @@ The standard list is pinned to the Rekordbox 7 single-mode catalogue, rather
 than inferred from a particular hardware mixer's shorter FX list. Native audio
 checks verify valid parameters, finite output and grouped activation; they do
 not establish perceptual equivalence with Rekordbox or Raspberry Pi CPU capacity.
+
+## Touch parameters
+
+The FX panel keeps deck 1/2 assignment, activation, Mix (wet/dry) and Super
+visible. Beats parameters appear first. Its parameter area scrolls through the first effect's loaded knob and
+button parameters. Beats parameters use the period grid; other parameters use
+native knobs or state buttons. Read-only `parameterN_beat_period_min` and
+`parameterN_beat_period_max` expose the range in periods, including reciprocal
+conversion for rate parameters. Touch and DDJ-400 Beat buttons share
+`parameterN_beat_period`; controller stepping uses the first loaded Beats slot.
+
+## Availability review
+
+Only loaded parameters are shown. Clearing FX leaves the effect selector and
+hides routing, activation, parameters and Mix/Super. Super is visible only when
+at least one loaded knob in the chain is linked to it; changing those links
+updates its visibility. Effects without Beats metadata retain their native
+continuous controls. The parameter viewport returns to the top when an effect
+loads and supports touch scrolling.
+
+The selector omits presets whose effects are missing from the installed
+backends, and controller next/previous skips them. Their saved files and stored
+indices are preserved. The 25 standard presets are checked against the loaded
+backend manifests. Minimum delay and Phaser period buttons use the native
+minimum-period encoding, including quantization. Glitch retains its literal
+1/8-beat value so it also works without track BPM; triplet modifiers remain
+separate native controls.
+
+The compact FX layout uses 32px selector and routing rows, 28px Beat buttons,
+30px continuous controls, and 30px state buttons. Echo’s Beats, Feedback,
+Ping-Pong, Send, Quantize and Triplets fit together in the 236px parameter area.
+Mix and linked Super remain in a compact bottom row; longer lists can scroll.

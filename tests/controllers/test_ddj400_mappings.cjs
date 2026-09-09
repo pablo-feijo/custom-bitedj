@@ -47,14 +47,14 @@ test('Beat FX bucket navigation selects loaded Beats parameter, clamps and ignor
     h.seed(slot,'parameter1_loaded',1);h.seed(slot,'parameter1_units',0);
     h.seed(slot,'parameter2_units',1); // Not loaded: must skip.
     h.seed(slot,'parameter16_loaded',1);h.seed(slot,'parameter16_units',1);
-    const key='parameter16_beat_period';h.seed(slot,key,.125);
+    const key='parameter16_beat_period';h.seed(slot,key,.125);h.seed(slot,key+'_min',.125);h.seed(slot,key+'_max',4);
     for(const v of [.25,.5,1,2,4]) {h.send(0x94,0x4b,127);assert.equal(h.get(slot,key),v);}
     h.clear();h.send(0x94,0x4b,127);assert.deepEqual(h.writes,[]);
     for(const v of [2,1,.5,.25,.125]) {h.send(0x94,0x4a,127);assert.equal(h.get(slot,key),v);}
     h.clear();h.send(0x94,0x4a,127);h.send(0x94,0x4a,0);h.send(0x94,0x4b,0);
     assert.deepEqual(h.writes,[]);
     h.seed(slot,key,.7);h.send(0x94,0x4b,127);assert.equal(h.get(slot,key),1);
-    h.seed(slot,'parameter2_loaded',1);h.seed(slot,'parameter2_beat_period',1);
+    h.seed(slot,'parameter2_loaded',1);h.seed(slot,'parameter2_beat_period',1);h.seed(slot,'parameter2_beat_period_min',.125);h.seed(slot,'parameter2_beat_period_max',4);
     h.send(0x94,0x4a,127);assert.equal(h.get(slot,'parameter2_beat_period'),.5);
     assert.equal(h.get(slot,key),1); // First matching parameter only.
 });
@@ -382,7 +382,7 @@ test('Shift Browse zoom and focused FX follow either deck Shift and all three sl
         const g=`[EffectRack1_EffectUnit1_Effect${slot}]`;
         h.set(unit,'focused_effect',slot); h.seed(g,'enabled',0); h.clear();
         h.m.beatFxOnOffPressed(4,0,127); assert.equal(h.get(g,'enabled'),true);
-        h.seed(g,'parameter1_loaded',1);h.seed(g,'parameter1_units',1);h.seed(g,'parameter1_beat_period',1);
+        h.seed(g,'parameter1_loaded',1);h.seed(g,'parameter1_units',1);h.seed(g,'parameter1_beat_period',1);h.seed(g,'parameter1_beat_period_min',.125);h.seed(g,'parameter1_beat_period_max',4);
         h.m.beatFxRightPressed(4,0,127); assert.equal(h.get(g,'parameter1_beat_period'),2);
         h.m.beatFxLeftPressed(4,0,127); assert.equal(h.get(g,'parameter1_beat_period'),1);
     }

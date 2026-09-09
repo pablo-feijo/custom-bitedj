@@ -39,6 +39,8 @@ class EffectChainPresetManager : public QObject {
         return m_quickEffectChainPresetsSorted;
     }
 
+    bool isPresetAvailable(const EffectChainPresetPointer& preset) const;
+
     int numPresets() const {
         return m_effectChainPresetsSorted.size();
     }

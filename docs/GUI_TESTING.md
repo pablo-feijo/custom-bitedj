@@ -379,14 +379,13 @@ correct worktree and use its freshly printed endpoints.
 
 ### Beat FX picker
 
-At 1024×600, Play's FX tab is `(878,70)`, selector `(934,122)`, Deck 1/2
-routing `(891,174)` / `(977,174)`, and activation `(934,226)`. The picker
-stays inside `x=852..1015, y=100..599`. Its two effect columns have centers
-`x=894,974`; seven row centers are `y=194,242,290,338,386,434,482`. Effect targets are
-76px wide and 44px tall with 10px labels, with 4px gaps and outside padding.
-Standard/Saved: `(894,119)` / `(974,119)`; Clear FX/Close: `(894,153)` /
-`(974,153)`; Prev/Next: `(894,538)` / `(974,538)`. Header/footer targets
-are 30px tall; the page counter is 9px at `(934,514)`. Leaving FX closes the picker, including a skin reload.
+At 1024×600, Play's FX tab is `(850,70)`, selector `(922,116)`, Deck 1/2
+routing `(858,152)` / `(922,152)`, and activation `(986,152)`. The picker
+stays inside `x=828..1015, y=100..599`. Its two effect columns have centers
+`x=876,968`; seven row centers are `y=194,242,290,338,386,434,482`. Effect targets are
+88px wide and 44px tall with 10px labels, with 4px gaps and outside padding.
+Standard/Saved: `(876,119)` / `(968,119)`; Erase/Close: `(876,153)` / `(968,153)`; Prev/Next: `(876,538)` / `(968,538)`. Header/footer targets
+are 30px tall; the page counter is 9px at `(922,514)`. Leaving FX closes the picker, including a skin reload.
 
 Standard order is row-major, entries 1–14, then 15–25, listed in
 [Beat FX](BEAT_FX.md). Saved holds legacy/custom entries. Native persisted IDs
@@ -424,6 +423,11 @@ not close it. Other modes close only their own deck's visible drawer.
 Runtime controls (not saved): `[PadFX],dN_mode` = 0 Hot Cue, 1 Pad FX,
 2 Beat Jump, 3 Beat Loop, 4 Memory; `dN_shift` = 0/1; `dN_jump_bank` = 0/1/2 for
 1/16, 1, 16 multipliers. The existing mapping shares jump sizes across decks.
+
+The header has separate 48×44px Previous/Next buttons and a read-only mode
+label. A bounded 92px bank area holds two 44px pad rows and a 4px gap.
+Navigation coordinates and mode mappings are listed below.
+See [controller drawer screenshots](UI_SCREENSHOTS.md#controller-pad-drawer).
 
 The legend follows saved Normal/Shift assignments, timing overrides, strength
 and toggle settings. Beat Loop shows four held rolls and four toggle loops;
@@ -500,9 +504,10 @@ and `(198,283)` for Music, Touch navigation and Nested. Drag from `(300,459)`
 to `(300,239)`; the tree must scroll and remain open. Restore the scroll and
 tap Music's label to verify that a folder with children can still open tracks.
 
-Compact FX actions: eraser = Clear FX, × = Close, left/right chevrons =
-Prev/Next. Tooltips and accessible names retain the action labels. Standard
-and Saved remain labeled tabs; the 9px page counter reads `1 / 2`.
+Picker actions use 10px text: Erase, Close, Prev and Next. Erase and Close
+share the second header row. Erase clears the current FX without deleting its
+saved preset; the reserved `---` entry stays hidden. Standard/Saved
+remain labeled tabs; the 9px page counter reads `1 / 2`. Saved has 14/8 entries.
 
 ## Service Deck preferences: jog smoothing
 
@@ -540,7 +545,7 @@ Any active waveform drag is released on a mode change or when its page hides.
 
 Each deck has a separate 168px block: deck label, Earlier/Later, Set grid here,
 then BPM −/+. All action buttons are 44px high with 4px spacing and 11px labels;
-tab labels use 10px. The overview waveforms, deck footer and top bar stay in place.
+tab labels use 10px. The combined FX layout uses a 204px side panel; recheck Grid clearance.
 
 | Label | `[ChannelN]` native control | Action |
 | --- | --- | --- |
@@ -557,8 +562,61 @@ grid, not the playback-rate slider. No controller mapping changes are required.
 Grid deck headers display `[ChannelN],file_bpm` to two decimal places so each
 0.01 BPM adjustment is visible without changing the deck playback rate.
 
-Verified 1024×600 centers: right tabs FX `(871,70)`, Key `(913,70)`,
-Jump `(955,70)`, Grid `(997,70)`. Grid Deck 1: Earlier `(892,146)`,
-Later `(976,146)`, Set grid here `(934,194)`, BPM − `(892,242)`,
-BPM + `(976,242)`. Deck 2 uses the same x coordinates at y=314, 362, 410.
+Grid coordinates must be reverified for the combined 204px side panel.
 The Grid panel and waveforms retain their geometry when the cue drawer opens.
+
+Touch mode transition regression: banks share a stacked layout so overlapping
+visibility notifications cannot add their heights or move the header. Cycle
+all five modes repeatedly on both decks, including a held arrow press and
+release; verify one advance per press, stable header/waveform geometry, and no
+flash when entering or leaving Memory/Hot Cues. Mode IDs remain unchanged. Verify both arrows and the read-only mode label.
+
+For a frame-level check in the prepared virtual-controller instance, record
+`capture_touch_cycle.py` with `ffmpeg -f x11grab -draw_mouse 0 -framerate 60
+-video_size 1024x600 -i :99 -c:v ffv1 /tmp/touch-cycle.mkv` (Night theme).
+Stop the recording after the script completes, then run
+`python3 tests/padfx/check_touch_cycle_frames.py /tmp/touch-cycle.mkv` inside
+the owned container (copy the checker there first). It fails if the header
+leaves its verified y=456–497 border after the drawer appears. Keep the
+recording and JSON report under the task's ignored `test-results/` directory.
+
+## Play Grid, Key and FX controls
+
+The side panel preserves FX=0, Key=1, Jump=2 and Grid=3.
+Key reads `visual_key`, uses ±2 semitone native commands, `sync_key` for harmonic
+Match and `reset_key` for file-key reset. FX retains deck routing, enable and
+wet/dry Mix, with a scrollable area for the first effect's loaded parameters.
+Beat period buttons and controller Beat left/right share the native period and
+range metadata. Pad mode labels are 12px; arrow touch targets remain 48×44px.
+
+Key −2/+2 use
+(873/970,158) and y=306; Match/Reset use (873/970,210) and y=358.
+Compact FX selector is (922,116); routing 1/2 and activation share y=152
+at x=858/922/986. Echo’s Beat buttons use x=858/922/986, y=204/236.
+Feedback/Ping Pong/Send knobs are (1001,265/295/325), Quantize/Triplets
+(986,356/388), and Mix/Super knobs (902/1000,424). The viewport is y=168..404;
+Echo fits without scrolling. With a scrollbar, parameter controls shift left
+by its 14px width; longer effect lists retain scrolling.
+The side panel is 204px wide and the waveform area is 820px.
+
+### Available FX controls
+
+On the FX page, review Echo (1/8–2 beats), Phaser (1/4–4 beats), and Trans
+(all six periods). Unsupported periods must be absent. Scroll to parameter
+buttons, then select another effect: its parameter list must start at the top.
+Select Enigma Jet to verify that Super is absent when no native parameter is
+linked. The native clear-control test verifies that routing, enable, parameters
+and Mix/Super hide for an unloaded chain while the selector remains available. Repeat in Night and Day. Saved presets
+with missing backends remain on disk but are omitted from touch and controller
+selection. Native tests cover all 25 standard presets and missing-backend files.
+
+The compact FX list omits internal `mix` / `dry_wet` parameter rows using
+read-only `parameterN_is_mix` metadata. Unit Mix remains visible; saved native
+values and Super linkage are preserved. Check all available Standard/Saved
+presets and backend manifests, including Flanger and White Noise, after changes.
+
+Keep `#BeatFX_ParameterList` top-aligned within its 236px viewport. At 1024×600,
+Flanger's first knob center is `(1000,183)`, with subsequent rows 30px apart;
+Mix stays at y=424. For scroll checks use the label area `(835,340)`, not a
+knob (wheel events over knobs adjust values). Phaser's Stereo row must remain
+reachable and selecting Echo must restore the top of the parameter list.

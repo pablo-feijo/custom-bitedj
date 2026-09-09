@@ -21,20 +21,31 @@ def capture(name):
     time.sleep(.2)
     subprocess.run(['scrot', str(target)], env=env, check=True)
 
-def tap_header():
-    # Verified separate Next button: x=920..967, y=454..497.
-    subprocess.run(['xdotool', 'mousemove', '944', '476', 'click', '1'], env=env, check=True)
+def tap_next():
+    # Separate Next button, restored from the integration layout.
+    subprocess.run(['xdotool', 'mousemove', '944', '477', 'click', '1'], env=env, check=True)
 
 for deck in (1, 2):
     select(deck, 0x1b)
     capture(f'deck-{deck}-hot-cues')
     for mode in ('memory', 'beat-jump', 'pad-fx', 'beat-loop', 'hot-cues-return'):
-        tap_header()
+        tap_next()
         capture(f'deck-{deck}-{mode}')
 select(1, 0x1e)
-tap_header()
+tap_next()
 capture('controller-fx-then-touch-loop')
+# A held touch must advance once, and release must leave Memory selected.
+select(1, 0x1b)
+subprocess.run(['xdotool', 'mousemove', '944', '477', 'mousedown', '1'], env=env, check=True)
+time.sleep(.6)
+capture('held-memory')
+subprocess.run(['xdotool', 'mouseup', '1'], env=env, check=True)
+capture('released-memory')
+tap_next()
+capture('next-beat-jump')
+for deck in (1, 2):
+    select(deck, 0x1b)
+    for mode in ('beat-loop', 'pad-fx', 'beat-jump', 'memory', 'hot-cues'):
+        subprocess.run(['xdotool', 'mousemove', '116', '477', 'click', '1'], env=env, check=True)
+        capture(f'deck-{deck}-previous-{mode}')
 print(out)
-
-subprocess.run(['xdotool', 'mousemove', '116', '476', 'click', '1'], env=env, check=True)
-capture('touch-previous-back-to-fx')

@@ -71,6 +71,8 @@ EffectChain::EffectChain(const QString& group,
             this,
             &EffectChain::sendParameterUpdate);
 
+    m_pControlSuperAvailable = std::make_unique<ControlObject>(ConfigKey(m_group, "super1_available"));
+    m_pControlSuperAvailable->setReadOnly();
     m_pControlChainSuperParameter = std::make_unique<ControlPotmeter>(
             ConfigKey(m_group, "super1"), 0.0, 1.0);
     // QObject::connect cannot connect to slots with optional parameters using function
@@ -299,6 +301,13 @@ EffectSlotPointer EffectChain::addEffectSlot(const QString& group) {
             m_pEngineEffectChain));
 
     m_effectSlots.append(pEffectSlot);
+    connect(pEffectSlot.data(), &EffectSlot::effectChanged, this, &EffectChain::refreshSuperAvailability);
+    connect(pEffectSlot.data(), &EffectSlot::parametersChanged, this, &EffectChain::refreshSuperAvailability);
+    const int parameterSlots = static_cast<int>(ControlObject::get(ConfigKey(group, "num_parameterslots")));
+    for (int parameter = 1; parameter <= parameterSlots; ++parameter) {
+        auto* link = new ControlProxy(group, QString("parameter%1_link_type").arg(parameter), this);
+        link->connectValueChanged(this, [this](double) { refreshSuperAvailability(); });
+    }
     if (m_effectSlots.size() == 1) {
         auto* enabled = new ControlProxy(group, QStringLiteral("enabled"), this);
         enabled->connectValueChanged(this, [this](double value) {
@@ -316,6 +325,23 @@ EffectSlotPointer EffectChain::addEffectSlot(const QString& group) {
     m_pControlNumEffectSlots->forceSet(numEffectSlots);
     m_pControlChainFocusedEffect->setStates(numEffectSlots);
     return pEffectSlot;
+}
+
+void EffectChain::refreshSuperAvailability() {
+    for (const auto& slot : std::as_const(m_effectSlots)) {
+        if (!slot->isLoaded()) continue;
+        const auto group = slot->getGroup();
+        const int count = static_cast<int>(ControlObject::get(ConfigKey(group, "num_parameterslots")));
+        for (int parameter = 1; parameter <= count; ++parameter) {
+            const auto prefix = QString("parameter%1").arg(parameter);
+            if (ControlObject::get(ConfigKey(group, prefix + "_loaded")) > 0 &&
+                    ControlObject::get(ConfigKey(group, prefix + "_link_type")) > 0) {
+                m_pControlSuperAvailable->forceSet(1);
+                return;
+            }
+        }
+    }
+    m_pControlSuperAvailable->forceSet(0);
 }
 
 int EffectChain::numPresets() const {
@@ -371,16 +397,19 @@ void EffectChain::slotControlChainSuperParameter(double v, bool force) {
 }
 
 void EffectChain::slotControlChainPresetSelector(double value) {
+    if (value == 0 || numPresets() == 0) return;
+    const int direction = value > 0 ? 1 : -1;
     int index = presetIndex();
-    if (value > 0) {
-        index++;
-    } else if (value < 0) {
-        index--;
-    } else {
-        // Do not reload the current preset when set to 0.
-        return;
+    if (index < 0) index = direction > 0 ? -1 : 0;
+    // Preserve saved indices/files, but never offer a partially available chain.
+    for (int checked = 0; checked < numPresets(); ++checked) {
+        index = (index + direction + numPresets()) % numPresets();
+        const auto preset = presetAtIndex(index);
+        if (m_pChainPresetManager->isPresetAvailable(preset)) {
+            loadChainPreset(preset);
+            return;
+        }
     }
-    loadChainPreset(presetAtIndex(index));
 }
 
 void EffectChain::slotControlLoadedChainPresetRequest(double value) {

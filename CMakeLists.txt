@@ -103,7 +103,7 @@ set(MIXXX_VERSION_PRERELEASE "") # set to "alpha" "beta" or ""
 # reported by `bitedj --version`; it moves independently of the Mixxx base
 # version above.
 set(BITEDJ_VERSION "0.0.7")
-set(BITEDJ_VERSION_PRERELEASE "codex-v0-0-7.4") # Development integration version
+set(BITEDJ_VERSION_PRERELEASE "codex-v0-0-7.6") # Combined integration preview
 if(NOT BITEDJ_VERSION MATCHES "^[0-9]+(\\.[0-9]+)*$")
   message(FATAL_ERROR "BITEDJ_VERSION must be a dot-separated numeric version, got '${BITEDJ_VERSION}'")
 endif()

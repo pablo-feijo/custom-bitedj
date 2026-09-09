@@ -59,6 +59,18 @@ EffectChainPresetManager::EffectChainPresetManager(UserSettingsPointer pConfig,
           m_pBackendManager(pBackendManager) {
 }
 
+bool EffectChainPresetManager::isPresetAvailable(const EffectChainPresetPointer& preset) const {
+    if (!preset) return false;
+    if (preset->name() == kNoEffectString) return true;
+    bool hasEffect = false;
+    for (const auto& effect : preset->effectPresets()) {
+        if (!effect || effect->isEmpty()) continue;
+        hasEffect = true;
+        if (!m_pBackendManager->getManifest(effect)) return false;
+    }
+    return hasEffect;
+}
+
 int EffectChainPresetManager::presetIndex(const QString& presetName) const {
     if (m_effectChainPresets.contains(presetName)) {
         EffectChainPresetPointer pPreset =

@@ -115,6 +115,7 @@ class EffectChain : public QObject {
     EffectsMessengerPointer m_pMessenger;
     std::unique_ptr<ControlObject> m_pControlChainMix;
     std::unique_ptr<ControlObject> m_pControlChainSuperParameter;
+    std::unique_ptr<ControlObject> m_pControlSuperAvailable;
     std::unique_ptr<ControlObject> m_pControlNumChainPresets;
     QList<EffectSlotPointer> m_effectSlots;
 
@@ -134,6 +135,7 @@ class EffectChain : public QObject {
         return QString("EffectChain(%1)").arg(m_group);
     }
 
+    void refreshSuperAvailability();
     void addToEngine();
     void removeFromEngine();
 

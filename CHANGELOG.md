@@ -25,6 +25,18 @@ UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 - Beat FX selection stays inside the right panel in two columns with seven compact
   rows per page, 10px labels, and smaller action icons ([picker preview](docs/UI_SCREENSHOTS.md#beat-fx-picker)).
 
+- Compact the FX controls so Echo’s parameter options fit together, with smaller routing, Beat and state buttons and a larger parameter area. See the [FX gallery](docs/UI_SCREENSHOTS.md#fx-controls).
+
+- FX now hides unsupported Beat values, unloaded controls and unassigned Super
+  knobs. Presets requiring missing backends are hidden and skipped by controller
+  navigation without deleting saved files. Minimum delay/Phaser periods now use
+  the native quantizer's minimum value.
+
+- Restore separate Previous/Next touch buttons and the read-only pad mode label
+  while preserving the fixed drawer height ([drawer preview](docs/UI_SCREENSHOTS.md#controller-pad-drawer)).
+- Keep the pad drawer height stable while switching modes by touch, preventing
+  intermediate bank visibility updates from flashing or shifting the layout.
+
 - noVNC preview startup: repair malformed and duplicate WebCodecs exports in fresh and cached GUI images.
 
 ### Added
@@ -39,13 +51,19 @@ UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 - DDJ-400: three Shift presses within 1.2 seconds on either side close the pad
   drawer and restore the bottom waveform previews.
 
+- Grid controls for each deck, with 350ms hold delay and 80ms repeat for grid
+  shifts and BPM edits; Set applies once. Key adds harmonic Match beside Reset
+  ([Grid and Key previews](docs/UI_SCREENSHOTS.md#grid-key-controls)).
+- Scrollable FX parameters and supported Beat period buttons shared with the
+  controller. Pad-mode labels use a smaller 12px font.
+
 - Two-column, paged Beat FX picker with large touch targets and separate Standard
   and Saved sections ([picker preview](docs/UI_SCREENSHOTS.md#beat-fx-picker)).
 - The 25 Rekordbox 7 single-mode standard names using documented native
   approximations; versioned factory updates preserve saved/legacy presets
   ([implementation differences](docs/BEAT_FX.md)).
 
-- Touch the cue drawer header to cycle Hot Cues, Memory, Beat Jump, Pad FX and Beat Loop independently per deck.
+- Use the cue drawer Previous/Next buttons to cycle Hot Cues, Memory, Beat Jump, Pad FX and Beat Loop independently per deck.
 
 - Controller-selected Pad FX, Beat Jump and Beat Loop legends in the cue drawer,
   independently for each deck. See [controller drawer screenshots](docs/UI_SCREENSHOTS.md#controller-pad-drawer).

@@ -234,12 +234,12 @@ WPushButton[value="1"]:hover {
 
 #BeatFX_Header {
   qproperty-layoutAlignment: 'AlignTop';
-  qproperty-layoutSpacing: 8;
-  padding-bottom: 8px;
+  qproperty-layoutSpacing: 4;
+  padding-bottom: 0px;
 }
 
 /* FX / KEY / JUMP / GRID page tabs. Same select-only bar as the Settings sub-tabs, sized
- * down to fit the 180px panel. */
+ * down to fit the 204px panel. */
 #FxPanel_TabBar {
   margin: 0 0 6px 0;
   qproperty-layoutSpacing: 4;
@@ -313,7 +313,7 @@ WPushButton[value="1"]:hover {
   border: 2px solid #32323c;
   border-radius: 2px;
   color: #a7a9ac;
-  font-size: 15px;
+  font-size: 12px;
   font-weight: bold;
   text-transform: uppercase;
 }
@@ -394,13 +394,19 @@ WPushButton[value="1"]:hover {
   border: 2px solid #c9372c;
 }
 
+/* Keep short parameter lists below the routing row. Long lists retain their
+ * natural height and scroll within the same fixed viewport. */
+#BeatFX_ParameterList {
+  qproperty-layoutAlignment: 'AlignTop';
+}
+
 #BeatFX_ParamRow {
-  padding: 2px 0px;
+  padding: 0px;
 }
 
 #BeatFX_ParamLabel {
   color: #a7a9ac;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: bold;
   text-transform: uppercase;
   padding-right: 4px;
@@ -443,7 +449,7 @@ WPushButton[value="1"]:hover {
  * the deck badges used in the sampler view so the FX panel and the deck
  * strips agree on which color means which deck. */
 #BeatFX_DeckRouting {
-  qproperty-layoutSpacing: 8;
+  qproperty-layoutSpacing: 4;
 }
 
 #BeatFX_DeckAssign1,
@@ -526,6 +532,7 @@ WPushButton[value="1"]:hover {
 
 #KeyFX_Down,
 #KeyFX_Up,
+#KeyFX_Match,
 #KeyFX_Reset {
   background-color: #1a1a1a;
   border: 1px solid #3a3a3a;
@@ -535,6 +542,7 @@ WPushButton[value="1"]:hover {
   font-weight: bold;
 }
 
+#KeyFX_Match,
 #KeyFX_Reset {
   font-size: 13px;
   text-transform: uppercase;
@@ -542,6 +550,7 @@ WPushButton[value="1"]:hover {
 
 #KeyFX_Down:pressed,
 #KeyFX_Up:pressed,
+#KeyFX_Match:pressed,
 #KeyFX_Reset:pressed {
   border-color: #c9372c;
   color: #c9372c;
@@ -1854,7 +1863,7 @@ WBeatSpinBox::up-button {
 #JumpSizeButton { font-size: 18px; }
 #JumpSizeButton:pressed, #JumpActionButton:pressed { background-color: #8058a0; color: #ffffff; }
 
-#BeatFX_BottomKnobs { padding-top: 8px; qproperty-layoutSpacing: 8; }
+#BeatFX_BottomKnobs { padding-top: 4px; qproperty-layoutSpacing: 8; }
 
 #LinkedZoomTitle { font-size: 9px; color: #9999a8; qproperty-alignment: 'AlignCenter'; }
 #LinkedZoom QPushButton { font-size: 12px; color: #c5c5d0; background: #1a1a24; border: 1px solid #383846; border-radius: 3px; }
@@ -1880,3 +1889,19 @@ WBeatSpinBox::up-button {
 }
 #GridAction:pressed { background-color: #855ea7; color: #e7e8e9; }
 #GridBpm { font-size: 12px; color: #a7a9ac; qproperty-alignment: 'AlignRight | AlignVCenter'; }
+#BeatFX_PeriodRow { qproperty-layoutSpacing: 2; }
+#BeatFX_Parameters QScrollBar:vertical { background: #1a1a1a; width: 14px; margin: 0; }
+#BeatFX_Parameters QScrollBar::handle:vertical { background: #565b6b; min-height: 44px; }
+#BeatFX_Parameters QScrollBar::add-line:vertical,
+#BeatFX_Parameters QScrollBar::sub-line:vertical { height: 0; }
+#BeatFX_Parameters QScrollBar::add-page:vertical,
+#BeatFX_Parameters QScrollBar::sub-page:vertical { background: #1a1a1a; }
+
+#BeatFX_ParamButton { background-color: #1a1a1a; color: #a7a9ac; border: 1px solid #3a3a3a; border-radius: 3px; font-size: 12px; font-weight: bold; }
+#BeatFX_ParamButton[displayValue="1"] { background-color: #855ea7; color: #e7e8e9; }
+
+/* Compact FX controls keep the full Echo parameter list visible. */
+#BeatFX_DeckAssign1, #BeatFX_DeckAssign2 { font-size: 16px; }
+#BeatFX_ActiveToggle { font-size: 11px; }
+
+#BeatFX_BeatsLabel { color: #a7a9ac; font-size: 12px; font-weight: bold; padding: 0; qproperty-alignment: 'AlignCenter'; }

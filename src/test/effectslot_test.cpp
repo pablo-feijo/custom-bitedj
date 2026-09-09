@@ -8,6 +8,7 @@
 #include <QTimer>
 #include <QSet>
 #include "widget/weffectchainpresetselector.h"
+#include "widget/wbeatperiodpicker.h"
 #include "skin/legacy/skincontext.h"
 #include <cmath>
 #include <vector>
@@ -217,14 +218,59 @@ TEST_F(EffectSlotTest, BeatPeriodAliasMatchesEchoAndTremoloAndClampsTruthfully) 
         }
         ASSERT_GT(beatSlot, 0);
         const auto prefix = QString("parameter%1").arg(beatSlot);
+        QDomDocument pickerDoc;
+        ASSERT_TRUE(pickerDoc.setContent(QString("<BeatPeriodPicker><EffectGroup>%1</EffectGroup><Parameter>%2</Parameter></BeatPeriodPicker>").arg(group).arg(beatSlot)));
+        SkinContext pickerContext(config(), "test");
+        WBeatPeriodPicker picker;
+        picker.setup(pickerDoc.documentElement(), pickerContext);
+        auto* quarter = picker.findChild<QPushButton*>("BeatPeriod1");
+        auto* four = picker.findChild<QPushButton*>("BeatPeriod5");
+        ASSERT_TRUE(quarter);
+        ASSERT_TRUE(four);
+        EXPECT_EQ(name.endsWith("TRANS"), four->isEnabled());
+        EXPECT_EQ(!name.endsWith("TRANS"), four->isHidden());
+        quarter->click();
+        EXPECT_DOUBLE_EQ(0.25, ControlObject::get(ConfigKey(group, prefix + "_beat_period")));
+        EXPECT_TRUE(quarter->isChecked());
+
+        EXPECT_LE(ControlObject::get(ConfigKey(group, prefix + "_beat_period_min")), 0.125);
+        EXPECT_GE(ControlObject::get(ConfigKey(group, prefix + "_beat_period_max")),
+                name.endsWith("TRANS") ? 4.0 : 2.0);
         ControlObject::set(ConfigKey(group, prefix + "_beat_period"), 0.125);
         EXPECT_DOUBLE_EQ(ControlObject::get(ConfigKey(group, prefix + "_value")),
-                name.endsWith("TRANS") ? 8.0 : 0.125);
+                name.endsWith("TRANS") ? 8.0 : 0.0);
         EXPECT_DOUBLE_EQ(ControlObject::get(ConfigKey(group, prefix + "_beat_period")), 0.125);
         ControlObject::set(ConfigKey(group, prefix + "_beat_period"), 4.0);
         EXPECT_DOUBLE_EQ(ControlObject::get(ConfigKey(group, prefix + "_beat_period")),
                 name.endsWith("TRANS") ? 4.0 : 2.0);
     }
+}
+
+TEST_F(EffectSlotTest, GlitchMinimumKeepsItsNativeEighthBeatValue) {
+    auto factory = std::make_shared<ChannelHandleFactory>();
+    EffectsManager manager(config(), factory);
+    ChannelHandleAndGroup output(factory->getOrCreateHandle("[MasterOutput]"), "[MasterOutput]");
+    ChannelHandleAndGroup deck(factory->getOrCreateHandle("[Channel1]"), "[Channel1]");
+    manager.registerOutputChannel(output);
+    manager.registerInputChannel(output);
+    manager.registerInputChannel(deck);
+    manager.setup();
+    auto slot = manager.getStandardEffectChain(0)->getEffectSlot(0);
+    const auto manifest = manager.getBackendManager()->getManifest(
+            QStringLiteral("org.mixxx.effects.glitch"), EffectBackendType::BuiltIn);
+    ASSERT_TRUE(manifest);
+    slot->loadEffectWithDefaults(manifest);
+    const auto group = slot->getGroup();
+    bool found = false;
+    for (int parameter = 1; parameter <= 16; ++parameter) {
+        const auto prefix = QString("parameter%1").arg(parameter);
+        if (ControlObject::get(ConfigKey(group, prefix + "_units")) != 1) continue;
+        found = true;
+        ControlObject::set(ConfigKey(group, prefix + "_beat_period"), 0.125);
+        EXPECT_DOUBLE_EQ(0.125, ControlObject::get(ConfigKey(group, prefix + "_value")));
+        EXPECT_DOUBLE_EQ(0.125, ControlObject::get(ConfigKey(group, prefix + "_beat_period")));
+    }
+    EXPECT_TRUE(found);
 }
 
 TEST_F(EffectSlotTest, CatalogueUpgradePreservesSavedFilesAndReplacesStaleFactoryCopy) {
@@ -305,6 +351,8 @@ TEST_F(EffectSlotTest, StandardPickerPopulatesAndOpensTwoColumnDialog) {
     selector.setup(doc.documentElement(), context);
     ASSERT_GT(selector.count(), 25);
     EXPECT_EQ(selector.itemText(1), QStringLiteral("DELAY"));
+    manager.getStandardEffectChain(0)->loadChainPreset(
+            manager.getChainPresetManager()->getPreset("[RB7] ECHO"));
     bool opened = false;
     QTimer::singleShot(50, &selector, [&]() {
         auto* dialog = window.findChild<QDialog*>(QStringLiteral("BeatFxPicker"));
@@ -315,6 +363,7 @@ TEST_F(EffectSlotTest, StandardPickerPopulatesAndOpensTwoColumnDialog) {
             int entries = 0;
             QSet<int> columns, rows;
             QPushButton* next = nullptr;
+            QPushButton* erase = nullptr;
             for (auto* button : dialog->findChildren<QPushButton*>()) {
                 if (button->property("presetIndex").isValid()) {
                     ++entries;
@@ -324,11 +373,11 @@ TEST_F(EffectSlotTest, StandardPickerPopulatesAndOpensTwoColumnDialog) {
                 } else {
                     EXPECT_EQ(button->height(), 30);
                     if (!button->accessibleName().isEmpty()) {
-                        EXPECT_FALSE(button->icon().isNull());
-                        EXPECT_TRUE(button->text().isEmpty());
-                        EXPECT_EQ(button->toolTip(), button->accessibleName());
+                        EXPECT_TRUE(button->icon().isNull());
+                        EXPECT_EQ(button->text(), button->accessibleName());
                     }
                 }
+                if (button->text() == QStringLiteral("Erase")) erase = button;
                 if (button->accessibleName() == QStringLiteral("Next")) {
                     next = button;
                 }
@@ -346,6 +395,12 @@ TEST_F(EffectSlotTest, StandardPickerPopulatesAndOpensTwoColumnDialog) {
                     break;
                 }
             }
+            for (auto* button : dialog->findChildren<QPushButton*>()) {
+                if (button->isVisible() && button->property("presetIndex").isValid()) {
+                    EXPECT_NE(selector.itemData(button->property("presetIndex").toInt()).toString(), kNoEffectString);
+                    EXPECT_NE(button->text(), kNoEffectString);
+                }
+            }
             const int reverseRoll = selector.findText(QStringLiteral("7. REV ROLL"));
             ASSERT_GE(reverseRoll, 0);
             bool foundReverseRoll = false;
@@ -357,10 +412,199 @@ TEST_F(EffectSlotTest, StandardPickerPopulatesAndOpensTwoColumnDialog) {
                 }
             }
             EXPECT_TRUE(foundReverseRoll);
-            selector.hide();
+            next->click();
+            int savedPageTwoEntries = 0;
+            for (auto* button : dialog->findChildren<QPushButton*>()) {
+                if (button->isVisible() && button->property("presetIndex").isValid()) {
+                    ++savedPageTwoEntries;
+                    EXPECT_NE(selector.itemData(button->property("presetIndex").toInt()).toString(), kNoEffectString);
+                }
+            }
+            EXPECT_EQ(savedPageTwoEntries, 8);
+            EXPECT_EQ(manager.getStandardEffectChain(0)->presetName(), before);
+            ASSERT_TRUE(erase);
+            erase->click();
             EXPECT_FALSE(dialog->isVisible());
+            EXPECT_FALSE(manager.getStandardEffectChain(0)->getEffectSlot(0)->isLoaded());
+            EXPECT_EQ(manager.getStandardEffectChain(0)->presetName(), kNoEffectString);
+            EXPECT_TRUE(manager.getChainPresetManager()->getPreset("[RB7] ECHO"));
         }
     });
     selector.showPopup();
     EXPECT_TRUE(opened);
+}
+
+TEST_F(EffectSlotTest, AvailableBeatButtonsFollowAllStandardPresetsAndClear) {
+    auto factory = std::make_shared<ChannelHandleFactory>();
+    EffectsManager manager(config(), factory);
+    ChannelHandleAndGroup output(factory->getOrCreateHandle("[MasterOutput]"), "[MasterOutput]");
+    ChannelHandleAndGroup deck(factory->getOrCreateHandle("[Channel1]"), "[Channel1]");
+    manager.registerOutputChannel(output);
+    manager.registerInputChannel(output);
+    manager.registerInputChannel(deck);
+    manager.setup();
+    auto chain = manager.getStandardEffectChain(0);
+    const auto group = chain->getEffectSlot(0)->getGroup();
+    SkinContext context(config(), "test");
+    std::vector<std::unique_ptr<WBeatPeriodPicker>> pickers;
+    for (int parameter = 1; parameter <= 16; ++parameter) {
+        QDomDocument doc;
+        ASSERT_TRUE(doc.setContent(QString("<BeatPeriodPicker><EffectGroup>%1</EffectGroup><Parameter>%2</Parameter></BeatPeriodPicker>").arg(group).arg(parameter)));
+        auto picker = std::make_unique<WBeatPeriodPicker>();
+        picker->setup(doc.documentElement(), context);
+        pickers.push_back(std::move(picker));
+    }
+    int reviewed = 0;
+    for (const auto& preset : manager.getChainPresetManager()->getPresetsSorted()) {
+        if (!preset->name().startsWith("[RB7] ")) continue;
+        SCOPED_TRACE(preset->name().toStdString());
+        chain->loadChainPreset(preset);
+        QCoreApplication::processEvents();
+        const auto id = chain->getEffectSlot(0)->getManifest()->id();
+        const int expected = id.endsWith(".echo") || id.endsWith(".phaser") ? 5 :
+                id.endsWith(".tremolo") ? 6 : 0;
+        int visible = 0;
+        for (int slot = 0; slot < 16; ++slot) {
+            const auto prefix = QString("parameter%1").arg(slot + 1);
+            for (int index = 0; index < 6; ++index) {
+                auto* button = pickers[slot]->findChild<QPushButton*>(QString("BeatPeriod%1").arg(index));
+                ASSERT_TRUE(button);
+                if (button->isHidden()) continue;
+                ++visible;
+                EXPECT_TRUE(button->isEnabled());
+                EXPECT_EQ(1, ControlObject::get(ConfigKey(group, prefix + "_loaded")));
+                EXPECT_EQ(1, ControlObject::get(ConfigKey(group, prefix + "_units")));
+                button->click();
+                constexpr double periods[] = {0.125, 0.25, 0.5, 1, 2, 4};
+                const double period = periods[index];
+                const double raw = ControlObject::get(ConfigKey(group, prefix + "_value"));
+                EXPECT_DOUBLE_EQ(period, ControlObject::get(ConfigKey(group, prefix + "_beat_period")));
+                // Apply the actual native quantizer rules for these presets.
+                const double nativePeriod = id.endsWith(".echo") ? std::max(std::round(raw * 4) / 4, 0.125) :
+                        id.endsWith(".phaser") ? std::max(std::round(raw * 2) / 2, 0.25) : 1 / raw;
+                EXPECT_DOUBLE_EQ(period, nativePeriod);
+            }
+        }
+        EXPECT_EQ(expected, visible);
+        bool hasLinkedKnob = false;
+        for (const auto& effect : preset->effectPresets()) {
+            for (const auto& parameter : effect->getParameterPresets()) {
+                hasLinkedKnob |= parameter.linkType() != EffectManifestParameter::LinkType::None && !parameter.hidden();
+            }
+        }
+        EXPECT_EQ(hasLinkedKnob ? 1 : 0, ControlObject::get(ConfigKey(chain->group(), "super1_available")));
+        ++reviewed;
+    }
+    EXPECT_EQ(25, reviewed);
+    chain->loadChainPreset(manager.getChainPresetManager()->getPreset("[RB7] ECHO"));
+    for (int parameter = 1; parameter <= 16; ++parameter) {
+        if (ControlObject::get(ConfigKey(group, QString("parameter%1_loaded").arg(parameter))) > 0) {
+            ControlObject::set(ConfigKey(group, QString("parameter%1_link_type").arg(parameter)), 0);
+        }
+    }
+    EXPECT_EQ(0, ControlObject::get(ConfigKey(chain->group(), "super1_available")));
+    ControlObject::set(ConfigKey(group, "parameter1_link_type"), 1);
+    EXPECT_EQ(1, ControlObject::get(ConfigKey(chain->group(), "super1_available")));
+    ControlObject::set(ConfigKey(chain->group(), "clear"), 1);
+    QCoreApplication::processEvents();
+    EXPECT_EQ(0, ControlObject::get(ConfigKey(chain->group(), "super1_available")));
+    for (const auto& picker : pickers) {
+        for (auto* button : picker->findChildren<QPushButton*>()) {
+            EXPECT_TRUE(button->isHidden());
+            EXPECT_FALSE(button->isEnabled());
+        }
+    }
+}
+
+TEST_F(EffectSlotTest, MissingBackendPresetsAreHiddenAndSkippedWithoutDeletingFiles) {
+    const QString directory = QDir(config()->getSettingsPath()).filePath("effects/chains");
+    ASSERT_TRUE(QDir().mkpath(directory));
+    const QString fileName = QDir(directory).filePath("Missing Backend Test.xml");
+    QFile file(fileName);
+    ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+    const QByteArray xml = "<EffectChain><Name>Missing Backend Test</Name><MixMode>DRY/WET</MixMode>"
+            "<Effects><Effect><Id>org.mixxx.effects.echo</Id><BackendType>Built-In</BackendType></Effect>"
+            "<Effect><Id>org.example.not-installed</Id><BackendType>Built-In</BackendType></Effect>"
+            "</Effects></EffectChain>";
+    file.write(xml);
+    file.close();
+    auto factory = std::make_shared<ChannelHandleFactory>();
+    EffectsManager manager(config(), factory);
+    ChannelHandleAndGroup output(factory->getOrCreateHandle("[MasterOutput]"), "[MasterOutput]");
+    ChannelHandleAndGroup deck(factory->getOrCreateHandle("[Channel1]"), "[Channel1]");
+    manager.registerOutputChannel(output);
+    manager.registerInputChannel(output);
+    manager.registerInputChannel(deck);
+    manager.setup();
+    auto presets = manager.getChainPresetManager();
+    auto unavailable = presets->getPreset("Missing Backend Test");
+    ASSERT_TRUE(unavailable);
+    EXPECT_FALSE(presets->isPresetAvailable(unavailable));
+    WEffectChainPresetSelector selector(nullptr, &manager);
+    QDomDocument doc;
+    ASSERT_TRUE(doc.setContent(QStringLiteral("<EffectChainPresetSelector><EffectUnitGroup>[EffectRack1_EffectUnit1]</EffectUnitGroup></EffectChainPresetSelector>")));
+    SkinContext context(config(), "test");
+    selector.setup(doc.documentElement(), context);
+    EXPECT_EQ(-1, selector.findData(QStringLiteral("Missing Backend Test")));
+    auto chain = manager.getStandardEffectChain(0);
+    for (int direction : {1, -1}) {
+        QSet<QString> visited;
+        for (int step = 0; step < presets->numPresets(); ++step) {
+            ControlObject::set(ConfigKey(chain->group(), "chain_selector"), direction);
+            EXPECT_NE(QStringLiteral("Missing Backend Test"), chain->presetName());
+            visited.insert(chain->presetName());
+        }
+        EXPECT_EQ(presets->numPresets() - 1, visited.size());
+    }
+    ASSERT_TRUE(file.open(QIODevice::ReadOnly));
+    EXPECT_EQ(xml, file.readAll());
+}
+
+// Every available Standard/Saved preset uses the same metadata, including
+// reordered parameter slots. Clearing/replacing an effect must clear the flag.
+TEST_F(EffectSlotTest, InternalMixMetadataFollowsAllAvailablePresets) {
+    auto factory = std::make_shared<ChannelHandleFactory>();
+    EffectsManager manager(config(), factory);
+    ChannelHandleAndGroup output(factory->getOrCreateHandle("[MasterOutput]"), "[MasterOutput]");
+    ChannelHandleAndGroup deck(factory->getOrCreateHandle("[Channel1]"), "[Channel1]");
+    manager.registerOutputChannel(output);
+    manager.registerInputChannel(output);
+    manager.registerInputChannel(deck);
+    manager.setup();
+    auto chain = manager.getStandardEffectChain(0);
+    auto effect = chain->getEffectSlot(0);
+    const auto group = effect->getGroup();
+    int mixParameters = 0;
+    auto checkSlots = [&] {
+        manager.getEngineEffectsManager()->onCallbackStart();
+        QCoreApplication::processEvents();
+        for (int index = 0; index < 16; ++index) {
+            auto slot = effect->getEffectParameterSlot(EffectParameterType::Knob, index);
+            ASSERT_TRUE(slot);
+            const auto manifest = slot->getManifest();
+            const bool isMix = manifest && (manifest->id() == "mix" || manifest->id() == "dry_wet");
+            EXPECT_EQ(isMix ? 1 : 0, ControlObject::get(ConfigKey(group,
+                    QString("parameter%1_is_mix").arg(index + 1))));
+            mixParameters += isMix;
+        }
+    };
+    // Include available backends beyond the Standard catalogue (White Noise,
+    // for example), then exercise saved ordering and effect replacement.
+    for (const auto& manifest : manager.getBackendManager()->getManifests()) {
+        SCOPED_TRACE(manifest->id().toStdString());
+        effect->loadEffectWithDefaults(manifest);
+        checkSlots();
+    }
+    for (const auto& preset : manager.getChainPresetManager()->getPresetsSorted()) {
+        if (!manager.getChainPresetManager()->isPresetAvailable(preset)) continue;
+        SCOPED_TRACE(preset->name().toStdString());
+        chain->loadChainPreset(preset);
+        checkSlots();
+    }
+    EXPECT_GT(mixParameters, 0);
+    ControlObject::set(ConfigKey(chain->group(), "clear"), 1);
+    for (int index = 1; index <= 16; ++index) {
+        EXPECT_EQ(0, ControlObject::get(ConfigKey(group,
+                QString("parameter%1_is_mix").arg(index))));
+    }
 }

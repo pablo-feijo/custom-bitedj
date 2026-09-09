@@ -94,6 +94,7 @@ def main():
                 )
         else:
             if suite == "fast":
+                subprocess.run(["node", str(ROOT / "tests/controllers/test_ddj400_beat_period.cjs")], check=True, timeout=30, cwd=ROOT)
                 subprocess.run(
                     ["node", str(ROOT / "tests/controllers/test_ddj400_mappings.cjs")],
                     check=True, timeout=30,

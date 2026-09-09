@@ -26,6 +26,7 @@ class WEffectPushButton : public WPushButton {
     void slotActionChosen(QAction* action);
 
   private:
+    bool m_showParameterValue = false;
     EffectsManager* m_pEffectsManager;
     EffectParameterSlotBasePointer m_pEffectParameterSlot;
     QMenu* m_pButtonMenu;

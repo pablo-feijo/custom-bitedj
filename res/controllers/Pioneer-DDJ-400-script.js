@@ -367,8 +367,11 @@ PioneerDDJ400.stepBeatFxBucket = function(direction) {
     const paramIndex = PioneerDDJ400.findBeatsParameter(group);
     if (paramIndex === -1) { return; }
 
-    const buckets = PioneerDDJ400.beatFxBuckets;
     const valueKey = "parameter" + paramIndex + "_beat_period";
+    const minimum = engine.getValue(group, valueKey + "_min");
+    const maximum = engine.getValue(group, valueKey + "_max");
+    const buckets = PioneerDDJ400.beatFxBuckets.filter(period => period >= minimum && period <= maximum);
+    if (buckets.length === 0) { return; }
     const current = engine.getValue(group, valueKey);
 
     // Snap to nearest bucket, then step. Off-bucket values (rare —

@@ -6,14 +6,11 @@ This guide describes [Custom Bite DJ](../README.md), an independent fork of
 [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on Mixxx.
 
 Native **1024×600** screenshots using synthetic music in isolated ARM64 Docker
-instances. Grid, Play, Beat FX and drawer images are refreshed on
-`codex/grid-deck-controls`: Grid Night is verified on the rebased
-`0.0.7-codex-grid-deck-controls.2` binary. Other refreshed images show the
-visually identical .1 layout.
-Browse images retain the `codex/browse-fx-touch-ui` captures; Settings retains
-`codex/waveform-preview-fixes.2`. All use generated Groove 128 BPM and Techno
-124 BPM fixtures. No physical MIDI controller or USB drive is attached;
-runtime statistics describe the container.
+instances. Play, Grid, Key, FX controls and drawers are from the touch-pad task.
+The rebased build incorporates the panel-contained FX picker and Browse updates
+from `codex/browse-fx-touch-ui`, plus the integrated waveform fixes. Captures use
+synthetic Groove 128 BPM and Techno 124 BPM tracks. No physical MIDI controller
+or USB drive is attached. Night and Day are shown below.
 
 See the [0.0.7 changelog](../CHANGELOG.md#007--unreleased) for the changes behind
 these screens, or [return to the README](../README.md).
@@ -24,25 +21,47 @@ these screens, or [return to the README](../README.md).
 
 ## Play
 
-Two loaded decks with synchronized waveform type/palette rendering, deck overviews and the FX panel. The KEY, JUMP and GRID tabs share the right-hand panel.
+Two loaded decks with scrolling waveforms, deck overviews and the FX panel. KEY, JUMP and GRID share the 204px right-hand panel. Beats appear first in the scrolling parameter area; Echo shows only its supported periods, from 1/8 to 2 beats.
 
-![Play: Two loaded decks with synchronized waveform type/palette rendering, deck overviews and the FX panel. The KEY, JUMP and GRID tabs share the right-hand panel.](images/ui/0.0.7/play.png)
+![Play: Two loaded decks with scrolling waveforms, deck overviews and the FX panel. KEY, JUMP and GRID share the 204px right-hand panel. Beats appear first in the scrolling parameter area; Echo shows only its supported periods, from 1/8 to 2 beats.](images/ui/0.0.7/play.png)
 
-<a id="grid"></a>
+## FX controls
 
-## Grid
+For a loaded effect, deck assignment and activation share a compact row.
+Smaller controls give the parameter area enough room to show all Echo options.
+Parameter lists begin directly below the assignment row; longer lists still scroll.
+Mix appears once in the bottom row; native Mix/Dry-Wet rows are hidden without changing their saved values or Super links; longer parameter lists can scroll. Super appears only when a parameter is linked. Loaded continuous controls and native parameter buttons
+are exposed below the Beats grid. Unavailable periods and unloaded controls are hidden.
 
-Grid is the fourth right-panel tab. Each deck has an independent grid BPM
-readout, Earlier/Later, Set grid here and BPM −/+ controls. Selecting Grid
-brightens beat lines and enables waveform dragging to position the playhead.
-Leaving Grid restores normal waveform interaction. Buttons retain 44px height
-and the existing waveform/footer geometry, including with the cue drawer open.
+![FX assigned to both decks and enabled.](images/ui/0.0.7/fx-routing.png)
+![All Echo parameters and native state buttons fit without scrolling.](images/ui/0.0.7/fx-parameters.png)
+![Flanger parameters start at the top, with one Mix control.](images/ui/0.0.7/fx-flanger.png)
+![Flanger in Day mode, with the same top alignment.](images/ui/0.0.7/fx-flanger-day.png)
+![Noise shows one Mix control and its native Super link.](images/ui/0.0.7/fx-noise.png)
+![Enigma Jet in Day mode has no Super assignment.](images/ui/0.0.7/fx-no-super.png)
+![An unloaded FX chain shows only the selector.](images/ui/0.0.7/fx-empty.png)
 
-![Grid editing in Night mode.](images/ui/0.0.7/grid.png)
+<a id="grid-key-controls"></a>
 
-![Grid editing in Day mode.](images/ui/0.0.7/grid-day.png)
+## Grid and Key
 
-![Grid editing with the cue drawer open.](images/ui/0.0.7/grid-drawer.png)
+Grid retains the manually validated per-deck template controls, with single
+press/release actions and waveform grid-edit interaction. Key shows each deck's
+current key, ±2 semitones, native harmonic Match and Reset to the file key.
+
+Grid images retain the Grid task captures; combined-panel captures are pending.
+
+![Per-deck Grid controls.](images/ui/0.0.7/grid.png)
+![Per-deck Key controls.](images/ui/0.0.7/key.png)
+
+<details><summary>Day mode</summary>
+
+![Grid in Day mode.](images/ui/0.0.7/grid-day.png)
+![Key in Day mode.](images/ui/0.0.7/key-day.png)
+![Echo in Day mode: centered Beats heading and all parameters visible.](images/ui/0.0.7/fx-echo-day.png)
+![FX in Day mode: Trans supports all six periods.](images/ui/0.0.7/fx-controls-day.png)
+
+</details>
 
 <a id="beat-fx-picker"></a>
 
@@ -53,10 +72,10 @@ Every entry is a documented [native approximation](BEAT_FX.md), with differences
 from Rekordbox explained in the catalogue. Selecting an effect closes the picker
 and leaves FX Off until activated. Page navigation and Close preserve selection.
 
-The picker stays inside the right FX panel. Two columns provide 76px-wide
+The picker stays inside the right FX panel. Two columns provide 88px-wide
 effect buttons with 44px height, 10px labels and a 4px gutter. ECHO is selected
 here. Seven rows fit per page; both pages keep the same spacing and long names
-wrap inside their cells. Standard, Saved, Clear FX, Close, Prev and Next use
+wrap inside their cells. Standard, Saved, Erase, Close, Prev and Next use
 30px controls; the page counter uses 9px text. The counter and arrows sit
 immediately below the options, with remaining panel space beneath them.
 
@@ -75,6 +94,8 @@ labels now display as COLOR FILTER and RHYTHMIC FILTER.
 ![Saved presets, page 1, including COLOR FILTER.](images/ui/0.0.7/beat-fx-saved-1.png)
 
 ![Saved presets, page 2, including RHYTHMIC FILTER.](images/ui/0.0.7/beat-fx-saved-2.png)
+
+![Saved presets in Day mode with small text actions and no empty entry.](images/ui/0.0.7/beat-fx-saved-day.png)
 
 </details>
 
@@ -169,6 +190,11 @@ interactive cue pads. [Coordinates and mappings](../AGENTS.md#touch-drawer-navig
 
 ![Pad FX drawer in Day mode.](images/ui/0.0.7/controller-pad-fx-day.png)
 
+![Shift follows the alternate saved Pad FX bank.](images/ui/0.0.7/controller-pad-fx-shift.png)
+
+Pad mode labels use 12px text. The fixed bank area prevents the drawer from
+changing height during touch navigation.
+
 ## Refreshing these images
 
 Follow the [capture and review procedure](GUI_TESTING.md#documentation-screenshots)
@@ -177,9 +203,10 @@ screens affected by UI changes in the same commit and link their sections from
 the changelog. Raw captures remain ignored; only reviewed publication images
 are stored here. Preserve this gallery once 0.0.7 is released.
 
-Compact FX actions: eraser = Clear FX, × = Close, left/right chevrons =
-Prev/Next. Tooltips and accessible names retain the action labels. Standard
-and Saved remain labeled tabs; the 9px page counter reads `1 / 2`.
+Picker actions use 10px text: Erase, Close, Prev and Next. Erase and Close
+share the second header row. Erase clears the current FX without deleting its
+saved preset; the reserved `---` entry stays hidden. Standard/Saved
+remain labeled tabs; the 9px page counter reads `1 / 2`. Saved has 14/8 entries.
 
 <a id="service-decks"></a>
 

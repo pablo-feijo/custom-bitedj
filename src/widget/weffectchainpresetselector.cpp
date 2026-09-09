@@ -5,8 +5,6 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
-#include <QPainter>
-#include <QPolygonF>
 #include <QVBoxLayout>
 #include <array>
 #include <algorithm>
@@ -24,45 +22,6 @@
 class QPaintEvent;
 
 namespace {
-enum class PickerAction { Clear, Close, Previous, Next };
-
-void setPickerAction(QPushButton* button, PickerAction action) {
-    button->setAccessibleName(button->text());
-    button->setToolTip(button->text());
-    button->setText(QString());
-    constexpr int size = 20;
-    const qreal scale = button->devicePixelRatioF();
-    QPixmap pixmap(qRound(size * scale), qRound(size * scale));
-    pixmap.setDevicePixelRatio(scale);
-    pixmap.fill(Qt::transparent);
-    QPainter painter(&pixmap);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setPen(QPen(HighContrast::mapColor(QColor("#dddddd")),
-            1.6, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-    switch (action) {
-    case PickerAction::Clear:
-        // Eraser: unload the current chain, without deleting its preset.
-        painter.drawPolygon(QPolygonF{QPointF(3, 11), QPointF(11, 3),
-                QPointF(17, 9), QPointF(9, 17), QPointF(6, 17)});
-        painter.drawLine(QPointF(6, 8), QPointF(12, 14));
-        painter.drawLine(QPointF(9, 17), QPointF(18, 17));
-        break;
-    case PickerAction::Close:
-        painter.drawLine(QPointF(5, 5), QPointF(15, 15));
-        painter.drawLine(QPointF(15, 5), QPointF(5, 15));
-        break;
-    case PickerAction::Previous:
-        painter.drawPolyline(QPolygonF{QPointF(13, 4), QPointF(7, 10), QPointF(13, 16)});
-        break;
-    case PickerAction::Next:
-        painter.drawPolyline(QPolygonF{QPointF(7, 4), QPointF(13, 10), QPointF(7, 16)});
-        break;
-    }
-    painter.end();
-    button->setIcon(QIcon(pixmap));
-    button->setIconSize(QSize(size, size));
-}
-
 class PanelEffectPicker : public QDialog {
   public:
     explicit PanelEffectPicker(QWidget* parent) : QDialog(parent) {
@@ -148,6 +107,7 @@ void WEffectChainPresetSelector::populate() {
     QStringList effectNames;
     for (int i = 0; i < presetList.size(); i++) {
         auto pChainPreset = presetList.at(i);
+        if (!m_pChainPresetManager->isPresetAvailable(pChainPreset)) continue;
         QString elidedDisplayName = pChainPreset->displayName();
         addItem(elidedDisplayName, QVariant(pChainPreset->name()));
         QString tooltip =
@@ -168,7 +128,7 @@ void WEffectChainPresetSelector::populate() {
             tooltip.append(effectNames.join("<br/>"));
         }
         effectNames.clear();
-        setItemData(i, tooltip, Qt::ToolTipRole);
+        setItemData(count() - 1, tooltip, Qt::ToolTipRole);
     }
 
     slotChainPresetChanged(m_pChain->presetName());
@@ -204,19 +164,20 @@ void WEffectChainPresetSelector::showPopup() {
     header->setSpacing(4);
     auto* standard = new QPushButton(tr("Standard"), &picker);
     auto* saved = new QPushButton(tr("Saved"), &picker);
-    auto* clear = new QPushButton(tr("Clear FX"), &picker);
+    auto* erase = new QPushButton(tr("Erase"), &picker);
     auto* close = new QPushButton(tr("Close"), &picker);
-    for (auto* button : {standard, saved, clear, close}) {
+    for (auto* button : {standard, saved, erase, close}) {
         button->setMinimumSize(0, 30);
         button->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
         button->setAutoDefault(false);
     }
     header->addWidget(standard, 0, 0);
     header->addWidget(saved, 0, 1);
-    header->addWidget(clear, 1, 0);
+    header->addWidget(erase, 1, 0);
     header->addWidget(close, 1, 1);
-    setPickerAction(clear, PickerAction::Clear);
-    setPickerAction(close, PickerAction::Close);
+    erase->setAccessibleName(erase->text());
+    erase->setToolTip(tr("Clear the current FX without deleting its preset"));
+    close->setAccessibleName(close->text());
     standard->setCheckable(true);
     saved->setCheckable(true);
     layout->addLayout(header);
@@ -249,8 +210,8 @@ void WEffectChainPresetSelector::showPopup() {
         button->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
         button->setAutoDefault(false);
     }
-    setPickerAction(previous, PickerAction::Previous);
-    setPickerAction(next, PickerAction::Next);
+    previous->setAccessibleName(previous->text());
+    next->setAccessibleName(next->text());
     navigation->addWidget(previous);
     navigation->addWidget(next);
     layout->addWidget(pageLabel);
@@ -260,7 +221,7 @@ void WEffectChainPresetSelector::showPopup() {
     QList<int> standardItems, savedItems;
     for (int i = 0; i < count(); ++i) {
         auto preset = m_pChainPresetManager->getPreset(itemData(i).toString());
-        if (!preset || preset->isEmpty()) {
+        if (!preset || preset->name() == kNoEffectString || preset->isEmpty()) {
             continue;
         }
         (preset->isRekordbox7() ? standardItems : savedItems).append(i);
@@ -326,7 +287,7 @@ void WEffectChainPresetSelector::showPopup() {
     connect(standard, &QPushButton::clicked, &picker, [&]() { showSaved = false; page = 0; refresh(); });
     connect(saved, &QPushButton::clicked, &picker, [&]() { showSaved = true; page = 0; refresh(); });
     connect(close, &QPushButton::clicked, &picker, &QDialog::reject);
-    connect(clear, &QPushButton::clicked, &picker, [&]() {
+    connect(erase, &QPushButton::clicked, &picker, [&]() {
         setCurrentIndex(findData(kNoEffectString));
         slotEffectChainPresetSelected(currentIndex());
         picker.accept();

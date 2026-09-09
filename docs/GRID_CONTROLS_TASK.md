@@ -52,3 +52,6 @@ looping-control test; retry uses one worker and the existing object/cache files.
 The single-worker retry completed successfully: all four focused native tests pass.
 Local squash integration is authorized; publication is not requested. The feature
 branch and build-source recovery ref preserve provenance after checkout retirement.
+
+Combined integration retains the user-validated Grid template and waveform interaction.
+The FX task widens the side panel to 204px; combined geometry checks are pending.

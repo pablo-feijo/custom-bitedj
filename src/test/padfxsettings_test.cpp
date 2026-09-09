@@ -1,5 +1,14 @@
 // Standalone integration test: real ConfigObject + real ControlObjects, no mock.
 #include <QCoreApplication>
+#include <QDomDocument>
+#include <QFile>
+#include <QLayout>
+#include <QTest>
+#include "widget/wbeatgridcontrols.h"
+#include "skin/legacy/skincontext.h"
+#include "widget/wwidgetgroup.h"
+#include "widget/wcontrollerpaddisplay.h"
+#include <array>
 #include "test/mixxxtest.h"
 #include <QTemporaryDir>
 #include <iostream>
@@ -109,4 +118,112 @@ TEST_F(PadFxSettingsTest, TouchPreviousIsInverseAndWrapsIndependentlyForBothDeck
         set(key + "previous", 1); set(key + "previous", 0);
         require(get(key + "mode") == 3, "previous wraps to Beat Loop");
     }
+}
+
+
+TEST_F(PadFxSettingsTest, TouchBankTransitionsKeepDrawerHeightStable) {
+    // Exercise the actual skin's layout with every intermediate visibility
+    // combination. Separate control notifications can expose two banks or none
+    // before the selected bank settles; neither may resize the drawer.
+    QFile file(ConfigObject<ConfigValue>::computeResourcePath() +
+            "skins/BiteDJ/templates/cue_deck_page.xml");
+    ASSERT_TRUE(file.open(QIODevice::ReadOnly));
+    QDomDocument xml;
+    ASSERT_TRUE(xml.setContent(&file));
+    const auto page = xml.documentElement().firstChildElement("WidgetGroup");
+    auto bankLayout = page;
+    const auto groups = page.elementsByTagName("WidgetGroup");
+    for (int i = 0; i < groups.size(); ++i) {
+        const auto group = groups.at(i).toElement();
+        if (group.firstChildElement("ObjectName").text() == "CuePanel_Banks") {
+            bankLayout = group;
+            break;
+        }
+    }
+    PadFxSettings settings(config());
+    SkinContext context(config(), "test");
+    WWidgetGroup banks;
+    banks.setup(bankLayout, context);
+    // WWidgetGroup::setup handles Layout; the skin parser applies fixed Size.
+    const QString height = bankLayout.firstChildElement("Size").text().section(',', 1);
+    if (height.endsWith('f')) {
+        banks.setFixedHeight(height.chopped(1).toInt());
+    }
+    std::array<QWidget*, 3> pages{};
+    for (int i = 0; i < 2; ++i) {
+        pages[i] = new QWidget(&banks);
+        pages[i]->setMinimumSize(480, 92); // Two 44px cue rows and their 4px gap.
+        banks.layout()->addWidget(pages[i]);
+    }
+    auto* legend = new WControllerPadDisplay(&banks);
+    QDomDocument legendXml;
+    ASSERT_TRUE(legendXml.setContent(QStringLiteral(
+            "<ControllerPadDisplay><Channel>1</Channel></ControllerPadDisplay>")));
+    legend->setup(legendXml.documentElement(), context);
+    pages[2] = legend;
+    banks.layout()->addWidget(legend);
+    banks.show();
+    // Real word-wrapped legend labels matter: placeholder rectangles alone
+    // cannot detect their height-for-width interaction with the stacked layout.
+    for (int width : {480, 1024}) {
+        banks.resize(width, 92);
+        for (int mode : {0, 4, 2, 1, 3, 0}) {
+            set("d1_mode", mode);
+            for (int mask = 0; mask < 8; ++mask) {
+                for (int bank = 0; bank < 3; ++bank) {
+                    pages[bank]->setVisible(mask & (1 << bank));
+                }
+                banks.layout()->activate();
+                QCoreApplication::processEvents();
+                EXPECT_EQ(banks.height(), 92)
+                        << "width " << width << " mode " << mode << " mask " << mask;
+                if (mask & 4) {
+                    EXPECT_EQ(legend->height(), 92);
+                }
+            }
+        }
+    }
+}
+
+TEST_F(PadFxSettingsTest, GridHoldRepeatAndCancellation) {
+    ControlObject earlier(ConfigKey("[Channel1]", "beats_translate_earlier"));
+    ControlObject setGrid(ConfigKey("[Channel1]", "beats_translate_curpos"));
+    ControlObject otherDeck(ConfigKey("[Channel2]", "beats_translate_earlier"));
+    int presses = 0;
+    QObject::connect(&earlier, &ControlObject::valueChanged, [&presses](double v) { if (v == 1) ++presses; });
+    QDomDocument doc;
+    ASSERT_TRUE(doc.setContent(QStringLiteral("<BeatGridControls><Channel>1</Channel></BeatGridControls>")));
+    SkinContext context(config(), "test");
+    WBeatGridControls widget;
+    widget.setup(doc.documentElement(), context);
+    widget.resize(204, 148);
+    widget.show();
+    QCoreApplication::processEvents();
+    auto* button = widget.findChild<QPushButton*>("beats_translate_earlier");
+    ASSERT_TRUE(button);
+    EXPECT_EQ(350, button->autoRepeatDelay());
+    EXPECT_EQ(80, button->autoRepeatInterval());
+    QTest::mousePress(button, Qt::LeftButton);
+    EXPECT_EQ(1, presses);
+    QTest::qWait(250);
+    EXPECT_EQ(1, presses);
+    QTest::qWait(300);
+    EXPECT_GE(presses, 3);
+    EXPECT_DOUBLE_EQ(0, otherDeck.get());
+    widget.hide();
+    const int stopped = presses;
+    QTest::qWait(200);
+    EXPECT_EQ(stopped, presses);
+    EXPECT_DOUBLE_EQ(0, earlier.get());
+    widget.show();
+    auto* setButton = widget.findChild<QPushButton*>("beats_translate_curpos");
+    ASSERT_TRUE(setButton);
+    EXPECT_FALSE(setButton->autoRepeat());
+    int sets = 0;
+    QObject::connect(&setGrid, &ControlObject::valueChanged, [&sets](double v) { if (v == 1) ++sets; });
+    QTest::mousePress(setButton, Qt::LeftButton);
+    QTest::qWait(550);
+    QTest::mouseRelease(setButton, Qt::LeftButton);
+    EXPECT_EQ(1, sets);
+    EXPECT_DOUBLE_EQ(0, setGrid.get());
 }

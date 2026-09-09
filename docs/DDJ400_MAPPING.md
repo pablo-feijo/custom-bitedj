@@ -141,6 +141,11 @@ Runtime controls (not saved): `[PadFX],dN_mode` = 0 Hot Cue, 1 Pad FX,
 2 Beat Jump, 3 Beat Loop, 4 Memory; `dN_shift` = 0/1; `dN_jump_bank` = 0/1/2 for
 1/16, 1, 16 multipliers. The existing mapping shares jump sizes across decks.
 
+The header has separate 48×44px Previous/Next buttons and a read-only mode
+label. A bounded 92px bank area holds two 44px pad rows and a 4px gap.
+Navigation coordinates and mode mappings are listed below.
+See [controller drawer screenshots](UI_SCREENSHOTS.md#controller-pad-drawer).
+
 The legend follows saved Normal/Shift assignments, timing overrides, strength
 and toggle settings. Beat Loop shows four held rolls and four toggle loops;
 holding Shift shows its mapped shifted Pad FX assignments. Beat Jump's Shift
@@ -234,3 +239,26 @@ playing; paused decks remain paused. Leaving the loop restores jog pitch bend
 and Vinyl-mode scratching. Shift + jog always takes priority for grid alignment.
 Explicit Shift + LOOP IN/OUT boundary-edit modes retain fine adjustment after
 releasing Shift; toggle the mode off to return to automatic half/double resizing.
+
+Touch drawer navigation (1024×600): Previous `(116,477)`, Next `(944,477)`,
+mode label `(530,477)`, Close `(994,477)`. Previous sends `[PadFX],dN_previous`;
+Next sends `dN_cycle`. Both advance on press only; the label is read-only.
+Forward order is Hot Cues=0 → Memory=4 → Beat Jump=2 → Pad FX=1 → Beat Loop=3;
+Previous reverses and wraps. Each deck keeps an independent selection.
+Controller and touch navigation share `dN_mode`. Performance legend cells
+remain read-only; use the physical controller pads to perform.
+
+The period stepper filters those values using the loaded parameter's native
+`_beat_period_min`/`_beat_period_max` range. Touch and controller share the same
+applied period; unsupported periods are hidden on screen and skipped by Beat
+left/right. The FX parameter viewport also exposes continuous and button values.
+
+Play's appended Grid page uses native `beats_translate_earlier`,
+`beats_translate_curpos`, `beats_translate_later`, `beats_adjust_slower`, and
+`beats_adjust_faster` per deck. Adjustment holds repeat after 350ms every 80ms;
+Set fires once. Key's Match uses `sync_key`, alongside `pitch_down_2`,
+`pitch_up_2`, `reset_key` and the `visual_key` readout.
+
+FX Select and Shift + FX Select skip presets that require missing effect
+backends, matching the touchscreen's available preset list. Saved preset files
+and numeric indices are retained; the skip happens during navigation.

@@ -13,6 +13,6 @@ class WScrollable : public QScrollArea, public WBaseWidget {
   public:
     WScrollable(QWidget* pParent);
 
-    /// WScrollable supports the following attributes: HorizontalScrollBarPolicy, VerticalScrollBarPolicy
+    /// Supports scrollbar policies, optional TouchScroll and ResetOnEffectChange group.
     void setup(const QDomNode& node, const SkinContext& context);
 };
