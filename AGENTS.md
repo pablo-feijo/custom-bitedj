@@ -30,6 +30,19 @@ architecture, versioning, branch isolation, testing and Conventional Commits rul
   assignment editor, minimum 44px touch controls, no extra overview tabs.
   Hide the Settings deck footer only on PAD FX; preserve outer and card padding.
 
+## UI Change Documentation
+
+- Whenever adding, removing, renaming, moving or resizing a UI option, update
+  its option order, verified coordinates and control/value mappings in this guide
+  and [docs/GUI_TESTING.md](docs/GUI_TESTING.md) in the same commit.
+- Update affected automation coordinates, controller documentation and screenshots
+  when their targets or behavior change. Prefer links to the canonical mapping
+  above instead of maintaining contradictory copies; never reuse stale coordinates.
+- Preserve control keys, enum values and persisted WidgetStack indices for layout-only
+  changes. If behavior changes, document the new mapping and any settings migration.
+- Verify the changed page in the owned VNC instance at 1024×600, including labels,
+  touch targets, padding and footer visibility; check Day/Night when styles change.
+
 ## UI Layout
 - Overview Panel: Keep **FX**, **KEY**, and **JUMP** tabs. Beat-jump size and actions belong in JUMP, not the left waveform sidebar.
 - This build targets two decks. Keep Deck 1/2 UI and controller routing; do not
@@ -107,22 +120,28 @@ buttons by their named triggers; keep stack order stable to preserve saved tabs.
 PAD FX fills the remaining screen and hides the deck footer; other tabs retain it.
 
 #### D. Settings -> General Options (`x=73, y=60`)
-Split into two 512px columns. Row height: 52px each, starting at `y=80` (`y_center = 104 + (row_index * 52)`).
-- **Left Column (`x=0..512`)**:
-  - Row 0 (`y=104`) `CROSSFADER`: `OFF (x=366)`, `ON (x=446)`
-  - Row 1 (`y=156`) `KEY`: `CAMELOT (x=366)`, `TRAD (x=446)`
-  - Row 2 (`y=208`) `DECK 1`: `A (x=350)`, `NONE (x=406)`, `B (x=462)`
-  - Row 3 (`y=260`) `DECK 2`: `A (x=350)`, `NONE (x=406)`, `B (x=462)`
-  - Row 4 (`y=312`) `JOG`: `VINYL (x=366)`, `CDJ (x=446)`
-  - Row 5 (`y=364`) `HOT CUE`: `UNGATED (x=366)`, `GATED (x=446)`
-  - Row 6 (`y=416`) `GRID`: `COMPACT (x=366)`, `DETAIL (x=446)`
-- **Right Column (`x=512..1024`)**:
-  - Row 0 (`y=104`) `VINYL BRAKE`: `OFF (x=852)`, `SHORT (x=908)`, `LONG (x=964)`
-  - Row 1 (`y=156`) `WAVE`: `RGB (x=852)`, `FILT (x=908)`, `STACK (x=964)`
-  - Row 2 (`y=208`) `APPLY WAVEFORM EQ`: `ON (x=866)`, `OFF (x=946)`
-  - Row 3 (`y=260`) `EQ MODE`: `EQ (x=866)`, `ISO (x=946)`
-  - Row 4 (`y=312`) `CLEAR`: `CACHE (x=852)`, `CUES (x=908)`, `META (x=964)`
-  - Row 5 (`y=364`) `PLAYED`: `RESET (x=910)`
+
+Verified at 1024×600. Left: mixer and playback. Right: waveform/display and
+cleanup. Standard row centers are `104 + 52 * row`; Track Load uses a 58px
+row with center `y=470`. All rows fit above the deck footer at `y=520`.
+
+| Column | Option | y | Button centers x (left to right) | Control mapping |
+| --- | --- | --- | --- | --- |
+| Left | Crossfader | 104 | Off 374, On 458 | `[BiteDJ],crossfader_enabled`: Off=0, On=1 |
+| Left | Deck 1 | 156 | A 360, None 416, B 472 | `[Channel1],orientation`: A=0, None=1, B=2 |
+| Left | Deck 2 | 208 | A 360, None 416, B 472 | `[Channel2],orientation`: A=0, None=1, B=2 |
+| Left | EQ Mode | 260 | EQ 374, ISO 458 | `[BiteDJ],eq_mode`: EQ=0, ISO=1 |
+| Left | Jog | 312 | Vinyl 374, CDJ 458 | `[BiteDJ],vinyl_mode`: Vinyl=1, CDJ=0 |
+| Left | Vinyl Brake | 364 | Off 360, Short 416, Long 472 | `[BiteDJ],vinyl_brake`: Off=0, Short=1.8, Long=3.6 |
+| Left | Hot Cue | 416 | Ungated 374, Gated 458 | `[Controls],HotcueActivatePlays`: Ungated=1, Gated=0 |
+| Left | Track Load | 470 | Lock 290, Fader 350, Stop 410, Live 470 | `[BiteDJ],track_load_policy`: Lock=0, Fader=3, Stop=2, Live=1 |
+| Right | Wave | 104 | RGB 872, Filt 928, 3 Band 984 | `[Waveform],waveform_type`: RGB=17, Filt=19, 3 Band=25 |
+| Right | Apply Waveform EQ | 156 | On 886, Off 970 | `[Waveform],apply_eq_to_waveform`: On=1, Off=0 |
+| Right | Palette | 208 | BiteDJ 886, Amber 970 | `[BiteDJ],waveform_palette`: BiteDJ=0, Amber=1 |
+| Right | Key | 260 | Camelot 886, Trad 970 | `[Library],key_notation`: Camelot=3, Trad=4 |
+| Right | Grid | 312 | Compact 886, Detail 970 | `[Library],grid_layout`: Compact=0, Detail=1 |
+| Right | Clear | 364 | Cache 872, Cues 928, Meta 984 | Cache: `[Library],clear_cached_waveforms`; Cues: `[Library],clear_cue_overrides`; Meta: `[Library],clear_meta_overrides` |
+| Right | Played | 416 | Reset 932 | Reset: `[Library],reset_played_tracks` |
 
 #### E. Settings -> Library Options (`x=219, y=60`)
 Configures visible columns and column widths (`OFF | XS | S | M | L`).

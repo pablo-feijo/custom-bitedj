@@ -96,38 +96,6 @@
                     <Children>
                       <Label>
                         <ObjectName>SettingsRowLabel</ObjectName>
-                        <Text>Key</Text>
-                        <Size>0me,0me</Size>
-                      </Label>
-                      <WidgetGroup>
-                        <ObjectName>SettingsSegmented</ObjectName>
-                        <Layout>horizontal</Layout>
-                        <Size>168f,40f</Size>
-                        <Children>
-                          <Template src="skin:templates/setting_segment_button.xml">
-                            <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
-                            <SetVariable name="Text">Camelot</SetVariable>
-                            <SetVariable name="ConfigKey">[Library],key_notation</SetVariable>
-                            <SetVariable name="Value">3</SetVariable>
-                          </Template>
-                          <Template src="skin:templates/setting_segment_button.xml">
-                            <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
-                            <SetVariable name="Text">Trad</SetVariable>
-                            <SetVariable name="ConfigKey">[Library],key_notation</SetVariable>
-                            <SetVariable name="Value">4</SetVariable>
-                          </Template>
-                        </Children>
-                      </WidgetGroup>
-                    </Children>
-                  </WidgetGroup>
-
-                  <WidgetGroup>
-                    <ObjectName>SettingsRow</ObjectName>
-                    <Layout>horizontal</Layout>
-                    <Size>0me,52f</Size>
-                    <Children>
-                      <Label>
-                        <ObjectName>SettingsRowLabel</ObjectName>
                         <Text>Deck 1</Text>
                         <Size>0me,0me</Size>
                       </Label>
@@ -204,6 +172,38 @@
                     <Children>
                       <Label>
                         <ObjectName>SettingsRowLabel</ObjectName>
+                        <Text>EQ Mode</Text>
+                        <Size>0me,0me</Size>
+                      </Label>
+                      <WidgetGroup>
+                        <ObjectName>SettingsSegmented</ObjectName>
+                        <Layout>horizontal</Layout>
+                        <Size>168f,40f</Size>
+                        <Children>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
+                            <SetVariable name="Text">EQ</SetVariable>
+                            <SetVariable name="ConfigKey">[BiteDJ],eq_mode</SetVariable>
+                            <SetVariable name="Value">0</SetVariable>
+                          </Template>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
+                            <SetVariable name="Text">ISO</SetVariable>
+                            <SetVariable name="ConfigKey">[BiteDJ],eq_mode</SetVariable>
+                            <SetVariable name="Value">1</SetVariable>
+                          </Template>
+                        </Children>
+                      </WidgetGroup>
+                    </Children>
+                  </WidgetGroup>
+
+                  <WidgetGroup>
+                    <ObjectName>SettingsRow</ObjectName>
+                    <Layout>horizontal</Layout>
+                    <Size>0me,52f</Size>
+                    <Children>
+                      <Label>
+                        <ObjectName>SettingsRowLabel</ObjectName>
                         <Text>Jog</Text>
                         <Size>0me,0me</Size>
                       </Label>
@@ -229,106 +229,6 @@
                     </Children>
                   </WidgetGroup>
 
-                  <!-- Ungated: a hotcue press jumps to the cue and plays on
-                       from there, even on a paused deck. Gated: the deck only
-                       plays for as long as the pad is held, then seeks back
-                       and stops. Owned by SystemSettings, which writes the CO
-                       back to the same config key CueControl reads. -->
-                  <WidgetGroup>
-                    <ObjectName>SettingsRow</ObjectName>
-                    <Layout>horizontal</Layout>
-                    <Size>0me,52f</Size>
-                    <Children>
-                      <Label>
-                        <ObjectName>SettingsRowLabel</ObjectName>
-                        <Text>Hot Cue</Text>
-                        <Size>0me,0me</Size>
-                      </Label>
-                      <WidgetGroup>
-                        <ObjectName>SettingsSegmented</ObjectName>
-                        <Layout>horizontal</Layout>
-                        <Size>168f,40f</Size>
-                        <Children>
-                          <Template src="skin:templates/setting_segment_button.xml">
-                            <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
-                            <SetVariable name="Text">Ungated</SetVariable>
-                            <SetVariable name="ConfigKey">[Controls],HotcueActivatePlays</SetVariable>
-                            <SetVariable name="Value">1</SetVariable>
-                          </Template>
-                          <Template src="skin:templates/setting_segment_button.xml">
-                            <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
-                            <SetVariable name="Text">Gated</SetVariable>
-                            <SetVariable name="ConfigKey">[Controls],HotcueActivatePlays</SetVariable>
-                            <SetVariable name="Value">0</SetVariable>
-                          </Template>
-                        </Children>
-                      </WidgetGroup>
-                    </Children>
-                  </WidgetGroup>
-
-                  <WidgetGroup>
-                    <ObjectName>SettingsRow</ObjectName>
-                    <Layout>horizontal</Layout>
-                    <Size>0me,52f</Size>
-                    <Children>
-                      <Label>
-                        <ObjectName>SettingsRowLabel</ObjectName>
-                        <Text>Grid</Text>
-                        <Size>0me,0me</Size>
-                      </Label>
-                      <WidgetGroup>
-                        <ObjectName>SettingsSegmented</ObjectName>
-                        <Layout>horizontal</Layout>
-                        <Size>168f,40f</Size>
-                        <Children>
-                          <Template src="skin:templates/setting_segment_button.xml">
-                            <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
-                            <SetVariable name="Text">Compact</SetVariable>
-                            <SetVariable name="ConfigKey">[Library],grid_layout</SetVariable>
-                            <SetVariable name="Value">0</SetVariable>
-                          </Template>
-                          <Template src="skin:templates/setting_segment_button.xml">
-                            <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
-                            <SetVariable name="Text">Detail</SetVariable>
-                            <SetVariable name="ConfigKey">[Library],grid_layout</SetVariable>
-                            <SetVariable name="Value">1</SetVariable>
-                          </Template>
-                        </Children>
-                      </WidgetGroup>
-                    </Children>
-                  </WidgetGroup>
-
-                  <WidgetGroup>
-                    <ObjectName>SettingsSpacer</ObjectName>
-                    <Size>0me,0me</Size>
-                  </WidgetGroup>
-
-                </Children>
-              </WidgetGroup>
-
-              <WidgetGroup>
-                <ObjectName>GeneralCol</ObjectName>
-                <Layout>vertical</Layout>
-                <SizePolicy>me,me</SizePolicy>
-                <Children>
-
-                  <!-- How long a thrown jog wheel keeps spinning after the DJ
-                       lets go: Off snaps the platter straight back (stock
-                       Mixxx), Short is a quick dab of brake, Long is a
-                       Technics-like brake. The value is the seconds a wheel
-                       released at normal speed takes to reach a standstill.
-                       Belongs beside Jog in the left column, but that column
-                       is already at its five-row height budget at the 420px
-                       floor, so it opens the right one.
-
-                       Only a released *scratch* can coast, so the brake does
-                       nothing in CDJ jog mode, where the platter pitch-bends
-                       and never scratches. Bind the whole row's enabled to
-                       [BiteDJ],vinyl_mode: Qt propagates enabled down the
-                       widget tree, so one connection greys the label and all
-                       three segments, and a disabled WWidget never synthesizes
-                       touch -> mouse, so the row also stops taking taps that
-                       could not have any effect. -->
                   <WidgetGroup>
                     <ObjectName>SettingsRow</ObjectName>
                     <Layout>horizontal</Layout>
@@ -371,6 +271,85 @@
                       <BindProperty>enabled</BindProperty>
                     </Connection>
                   </WidgetGroup>
+
+                  <WidgetGroup>
+                    <ObjectName>SettingsRow</ObjectName>
+                    <Layout>horizontal</Layout>
+                    <Size>0me,52f</Size>
+                    <Children>
+                      <Label>
+                        <ObjectName>SettingsRowLabel</ObjectName>
+                        <Text>Hot Cue</Text>
+                        <Size>0me,0me</Size>
+                      </Label>
+                      <WidgetGroup>
+                        <ObjectName>SettingsSegmented</ObjectName>
+                        <Layout>horizontal</Layout>
+                        <Size>168f,40f</Size>
+                        <Children>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
+                            <SetVariable name="Text">Ungated</SetVariable>
+                            <SetVariable name="ConfigKey">[Controls],HotcueActivatePlays</SetVariable>
+                            <SetVariable name="Value">1</SetVariable>
+                          </Template>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
+                            <SetVariable name="Text">Gated</SetVariable>
+                            <SetVariable name="ConfigKey">[Controls],HotcueActivatePlays</SetVariable>
+                            <SetVariable name="Value">0</SetVariable>
+                          </Template>
+                        </Children>
+                      </WidgetGroup>
+                    </Children>
+                  </WidgetGroup>
+
+                  <WidgetGroup>
+                    <ObjectName>SettingsRow</ObjectName>
+                    <Layout>horizontal</Layout><Size>0me,58f</Size>
+                    <Children>
+                      <Label><ObjectName>SettingsRowLabel</ObjectName><Text>Track Load</Text></Label>
+                      <WidgetGroup><ObjectName>LoadPolicySegmented</ObjectName><Size>240f,44f</Size><Layout>horizontal</Layout><Children>
+                        <Template src="skin:templates/setting_segment_button.xml">
+                          <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
+                          <SetVariable name="Text">Lock</SetVariable>
+                          <SetVariable name="ConfigKey">[BiteDJ],track_load_policy</SetVariable>
+                          <SetVariable name="Value">0</SetVariable>
+                        </Template>
+                        <Template src="skin:templates/setting_segment_button.xml">
+                          <SetVariable name="ObjectName">SettingsSegmentMid</SetVariable>
+                          <SetVariable name="Text">Fader</SetVariable>
+                          <SetVariable name="ConfigKey">[BiteDJ],track_load_policy</SetVariable>
+                          <SetVariable name="Value">3</SetVariable>
+                        </Template>
+                        <Template src="skin:templates/setting_segment_button.xml">
+                          <SetVariable name="ObjectName">SettingsSegmentMid</SetVariable>
+                          <SetVariable name="Text">Stop</SetVariable>
+                          <SetVariable name="ConfigKey">[BiteDJ],track_load_policy</SetVariable>
+                          <SetVariable name="Value">2</SetVariable>
+                        </Template>
+                        <Template src="skin:templates/setting_segment_button.xml">
+                          <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
+                          <SetVariable name="Text">Live</SetVariable>
+                          <SetVariable name="ConfigKey">[BiteDJ],track_load_policy</SetVariable>
+                          <SetVariable name="Value">1</SetVariable>
+                        </Template>
+                      </Children></WidgetGroup>
+                    </Children>
+                  </WidgetGroup>
+                  <WidgetGroup>
+                    <ObjectName>SettingsSpacer</ObjectName>
+                    <Size>0me,0me</Size>
+                  </WidgetGroup>
+
+                </Children>
+              </WidgetGroup>
+
+              <WidgetGroup>
+                <ObjectName>GeneralCol</ObjectName>
+                <Layout>vertical</Layout>
+                <SizePolicy>me,me</SizePolicy>
+                <Children>
 
                   <WidgetGroup>
                     <ObjectName>SettingsRow</ObjectName>
@@ -442,6 +421,14 @@
                     </Children>
                   </WidgetGroup>
 
+                  <WidgetGroup><ObjectName>SettingsRow</ObjectName><Layout>horizontal</Layout><Size>0me,52f</Size><Children>
+                    <Label><ObjectName>SettingsRowLabel</ObjectName><Text>Palette</Text><Size>0me,0me</Size></Label>
+                    <WidgetGroup><ObjectName>SettingsSegmented</ObjectName><Layout>horizontal</Layout><Size>168f,40f</Size><Children>
+                      <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable><SetVariable name="Text">BiteDJ</SetVariable><SetVariable name="ConfigKey">[BiteDJ],waveform_palette</SetVariable><SetVariable name="Value">0</SetVariable></Template>
+                      <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentRight</SetVariable><SetVariable name="Text">Amber</SetVariable><SetVariable name="ConfigKey">[BiteDJ],waveform_palette</SetVariable><SetVariable name="Value">1</SetVariable></Template>
+                    </Children></WidgetGroup>
+                  </Children></WidgetGroup>
+
                   <WidgetGroup>
                     <ObjectName>SettingsRow</ObjectName>
                     <Layout>horizontal</Layout>
@@ -449,7 +436,7 @@
                     <Children>
                       <Label>
                         <ObjectName>SettingsRowLabel</ObjectName>
-                        <Text>EQ Mode</Text>
+                        <Text>Key</Text>
                         <Size>0me,0me</Size>
                       </Label>
                       <WidgetGroup>
@@ -459,14 +446,46 @@
                         <Children>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
-                            <SetVariable name="Text">EQ</SetVariable>
-                            <SetVariable name="ConfigKey">[BiteDJ],eq_mode</SetVariable>
+                            <SetVariable name="Text">Camelot</SetVariable>
+                            <SetVariable name="ConfigKey">[Library],key_notation</SetVariable>
+                            <SetVariable name="Value">3</SetVariable>
+                          </Template>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
+                            <SetVariable name="Text">Trad</SetVariable>
+                            <SetVariable name="ConfigKey">[Library],key_notation</SetVariable>
+                            <SetVariable name="Value">4</SetVariable>
+                          </Template>
+                        </Children>
+                      </WidgetGroup>
+                    </Children>
+                  </WidgetGroup>
+
+                  <WidgetGroup>
+                    <ObjectName>SettingsRow</ObjectName>
+                    <Layout>horizontal</Layout>
+                    <Size>0me,52f</Size>
+                    <Children>
+                      <Label>
+                        <ObjectName>SettingsRowLabel</ObjectName>
+                        <Text>Grid</Text>
+                        <Size>0me,0me</Size>
+                      </Label>
+                      <WidgetGroup>
+                        <ObjectName>SettingsSegmented</ObjectName>
+                        <Layout>horizontal</Layout>
+                        <Size>168f,40f</Size>
+                        <Children>
+                          <Template src="skin:templates/setting_segment_button.xml">
+                            <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
+                            <SetVariable name="Text">Compact</SetVariable>
+                            <SetVariable name="ConfigKey">[Library],grid_layout</SetVariable>
                             <SetVariable name="Value">0</SetVariable>
                           </Template>
                           <Template src="skin:templates/setting_segment_button.xml">
                             <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
-                            <SetVariable name="Text">ISO</SetVariable>
-                            <SetVariable name="ConfigKey">[BiteDJ],eq_mode</SetVariable>
+                            <SetVariable name="Text">Detail</SetVariable>
+                            <SetVariable name="ConfigKey">[Library],grid_layout</SetVariable>
                             <SetVariable name="Value">1</SetVariable>
                           </Template>
                         </Children>
@@ -474,20 +493,6 @@
                     </Children>
                   </WidgetGroup>
 
-                  <!-- All three destructive actions share one row: the column
-                       is at its five-row height budget at the 420px floor, and
-                       they read as one group anyway — each throws away
-                       something this unit wrote to every connected drive.
-                       Cache drops the analysis (waveform, beatgrid, key);
-                       Cues drops the hot cues and memory cues saved back to
-                       the drive, handing those tracks to their rekordbox cues
-                       again; Meta drops the star ratings saved back to the
-                       drive, handing them to their rekordbox DJ Rating again.
-                       Widening the group is not an option — the half-column is
-                       ~200px and the label needs its share — so the third
-                       button comes out of the other two: 3 x 48f is the same
-                       144f the pair took, and 12px caps ("CACHE" is the
-                       longest at five) still clear the borders. -->
                   <WidgetGroup>
                     <ObjectName>SettingsRow</ObjectName>
                     <Layout>horizontal</Layout>
@@ -570,47 +575,6 @@
                           <EmitOnDownPress>true</EmitOnDownPress>
                         </Connection>
                       </PushButton>
-                    </Children>
-                  </WidgetGroup>
-
-                  <WidgetGroup><ObjectName>SettingsRow</ObjectName><Layout>horizontal</Layout><Size>0me,52f</Size><Children>
-                    <Label><ObjectName>SettingsRowLabel</ObjectName><Text>Palette</Text><Size>0me,0me</Size></Label>
-                    <WidgetGroup><ObjectName>SettingsSegmented</ObjectName><Layout>horizontal</Layout><Size>168f,40f</Size><Children>
-                      <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable><SetVariable name="Text">BiteDJ</SetVariable><SetVariable name="ConfigKey">[BiteDJ],waveform_palette</SetVariable><SetVariable name="Value">0</SetVariable></Template>
-                      <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentRight</SetVariable><SetVariable name="Text">Amber</SetVariable><SetVariable name="ConfigKey">[BiteDJ],waveform_palette</SetVariable><SetVariable name="Value">1</SetVariable></Template>
-                    </Children></WidgetGroup>
-                  </Children></WidgetGroup>
-                  <WidgetGroup>
-                    <ObjectName>SettingsRow</ObjectName>
-                    <Layout>horizontal</Layout><Size>0me,58f</Size>
-                    <Children>
-                      <Label><ObjectName>SettingsRowLabel</ObjectName><Text>Track Load</Text></Label>
-                      <WidgetGroup><ObjectName>LoadPolicySegmented</ObjectName><Size>240f,44f</Size><Layout>horizontal</Layout><Children>
-                        <Template src="skin:templates/setting_segment_button.xml">
-                          <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
-                          <SetVariable name="Text">Lock</SetVariable>
-                          <SetVariable name="ConfigKey">[BiteDJ],track_load_policy</SetVariable>
-                          <SetVariable name="Value">0</SetVariable>
-                        </Template>
-                        <Template src="skin:templates/setting_segment_button.xml">
-                          <SetVariable name="ObjectName">SettingsSegmentMid</SetVariable>
-                          <SetVariable name="Text">Fader</SetVariable>
-                          <SetVariable name="ConfigKey">[BiteDJ],track_load_policy</SetVariable>
-                          <SetVariable name="Value">3</SetVariable>
-                        </Template>
-                        <Template src="skin:templates/setting_segment_button.xml">
-                          <SetVariable name="ObjectName">SettingsSegmentMid</SetVariable>
-                          <SetVariable name="Text">Stop</SetVariable>
-                          <SetVariable name="ConfigKey">[BiteDJ],track_load_policy</SetVariable>
-                          <SetVariable name="Value">2</SetVariable>
-                        </Template>
-                        <Template src="skin:templates/setting_segment_button.xml">
-                          <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
-                          <SetVariable name="Text">Live</SetVariable>
-                          <SetVariable name="ConfigKey">[BiteDJ],track_load_policy</SetVariable>
-                          <SetVariable name="Value">1</SetVariable>
-                        </Template>
-                      </Children></WidgetGroup>
                     </Children>
                   </WidgetGroup>
                   <WidgetGroup>

@@ -217,19 +217,28 @@ When writing tests or automating UI interactions in `bitedj-gui-test-instance`:
 - **Settings Sub-Tabs**: `y=60` (bar `y=40..80`)
   - `GENERAL`: `x=73`, `LIBRARY`: `x=219`, **`PAD FX`: `x=366`**, `DEVICE`: `x=512`, `AUDIO`: `x=658`, `SYSTEM`: `x=805`, `INFO`: `x=951`
   - PAD FX is the third visible option. Named triggers preserve the existing saved WidgetStack indices. Its editor uses the bottom area with 16px outer horizontal and 12px bottom padding; the deck footer is hidden only on this tab.
-- **Settings Grid (`settings.xml`)**:
-  - Left Column: `x=0..512` | Right Column: `x=512..1024`
-  - Row Height: `52px` starting at `y=80` (`y_center = 104 + row_index * 52`)
-  - Row Centers:
-    - Row 0 (`y=104`): `CROSSFADER` / `VINYL BRAKE`
-    - Row 1 (`y=156`): `KEY` / `WAVE`
-    - Row 2 (`y=208`): `DECK 1` / `APPLY WAVEFORM EQ`
-    - Row 3 (`y=260`): `DECK 2` / `EQ MODE`
-    - Row 4 (`y=312`): `JOG` / `CLEAR`
-    - Row 5 (`y=364`): `HOT CUE` / `PLAYED`
-  - 2-Segment Button Group (`168f` width): Left button center `x=876`, Right button center `x=960`
-  - 3-Segment Button Group (`168f` width): Left `x=856`, Center `x=912`, Right `x=968`
-  - Levels Page Master EQ: `FLAT (x=845, y=240)`, `MODE (x=940, y=240)`
+- **General Settings (`settings.xml`)**: mixer/playback on the left; display and cleanup on the right.
+
+| Row | Center y | Left | Right |
+| --- | --- | --- | --- |
+| 0 | 104 | Crossfader | Wave |
+| 1 | 156 | Deck 1 assignment | Apply Waveform EQ |
+| 2 | 208 | Deck 2 assignment | Palette |
+| 3 | 260 | EQ Mode | Key |
+| 4 | 312 | Jog | Grid |
+| 5 | 364 | Vinyl Brake | Clear |
+| 6 | 416 | Hot Cue | Played |
+| 7 | 470 | Track Load | — |
+
+Two-button centers: left `374, 458`; right `886, 970`. Three-button centers:
+left `360, 416, 472`; right `872, 928, 984`. Track Load: `290, 350, 410, 470`.
+Played reset: `932`. See [the canonical option/control map](../AGENTS.md#d-settings---general-options-x73-y60)
+for each button's value and key. Standard rows are 52px; Track Load is 58px.
+The General footer starts at `y=520`; PAD FX alone hides it.
+
+Update this guide, the root mapping and affected automation in the same commit
+whenever UI options change. Remeasure after layout changes; these positions
+are for the current 1024×600 skin.
 
 ### C. Zero-Dependency Pixel Scanning Recipe
 Dump a screenshot to PPM and scan raw RGB values in standard Python to find exact widget bounds before issuing `xdotool` clicks:
