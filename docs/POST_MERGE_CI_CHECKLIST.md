@@ -25,5 +25,11 @@
   early compiler-cache saving, two build workers and an E2E runtime cache.
 - [x] Fast cache regressions cover asset/docs hits, source/config/toolchain and
   embedded-resource invalidation, shared-library links and stale-asset removal.
+- [x] Follow-up build tuning: Ninja and up to four compiler workers, bounded by
+  actual CPU count and 3 GiB RAM per worker. Keep existing compile flags and
+  serial native tests. User prioritized immediate publication over waiting for
+  the previous run; other active work is asked to hold integration pushes.
+- [x] Replace Node 20 Actions with verified Node 24 releases: checkout/setup-node
+  v7, cache v6, upload-artifact v7. Register a local GCC matcher without a Node action.
 - [ ] Validate the cache strategy remotely, including a second compatible run
   that skips compilation and still passes all native/removable/E2E checks.
