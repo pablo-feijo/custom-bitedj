@@ -48,3 +48,8 @@ After validation, remove temporary Pi test profiles/media and demo playlists
 without deleting music referenced by those playlists. Keep the previous release
 artifact until the replacement binary and image hashes and embedded versions
 have passed verification.
+
+For an authorized final release on the matching `codex/v0.0.7` branch, set
+`BITEDJ_RELEASE_BUILD=1` when running the application build, artifact verification
+and image wrapper. This permits the empty prerelease suffix only on the matching
+semver branch; development branches still require their own build suffix.

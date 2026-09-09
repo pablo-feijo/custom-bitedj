@@ -116,6 +116,20 @@ class BuildSupport(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'before building'):
             build.source_state()
 
+    def test_final_release_requires_opt_in_and_matching_semver_branch(self):
+        self.write('CMakeLists.txt', 'set(BITEDJ_VERSION "0.0.7")\nset(BITEDJ_VERSION_PRERELEASE "")\n')
+        with patch.dict(os.environ, {'BITEDJ_RELEASE_BUILD': '1'}):
+            with self.assertRaisesRegex(ValueError, 'before building'):
+                build.source_state()
+            self.git('switch', '-c', 'codex/v0.0.8')
+            with self.assertRaisesRegex(ValueError, 'before building'):
+                build.source_state()
+            self.git('switch', '-c', 'codex/v0.0.7')
+            self.assertEqual(build.source_state()['version'], '0.0.7')
+        with patch.dict(os.environ, {'BITEDJ_RELEASE_BUILD': '0'}):
+            with self.assertRaisesRegex(ValueError, 'before building'):
+                build.source_state()
+
     def test_shell_stages_install_and_preserves_previous_output_on_failure(self):
         repo = Path(__file__).resolve().parents[2]
         for name in ('scripts/build/docker-build.sh', 'scripts/build/build-support.py', 'scripts/build/generate-pi-image.sh', 'docker/build.Dockerfile', 'tools/debian_buildenv.sh'):

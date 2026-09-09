@@ -120,3 +120,8 @@ BuildKit may refresh an OCI index ID when only attestations change. The helper
 compares rootfs layer digests and runtime configuration for cache compatibility,
 while keeping the exact resolved image ID in binary provenance. A prior image-ID
 marker is migrated only if its pinned image remains inspectable and equivalent.
+
+For an authorized final release on the matching `codex/v0.0.7` branch, set
+`BITEDJ_RELEASE_BUILD=1` when running the application build, artifact verification
+and image wrapper. This permits the empty prerelease suffix only on the matching
+semver branch; development branches still require their own build suffix.

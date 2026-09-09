@@ -52,7 +52,9 @@ def source_state():
     slug = re.sub('[^a-z0-9]+', '-', branch.lower()).strip('-')
     if slug.isdigit():
         slug = 'branch-' + slug
-    if branch.startswith('codex/') and not re.fullmatch(re.escape(slug) + r'\.[1-9]\d*', pre):
+    final_release = (not pre and branch == 'codex/v' + core
+                     and os.environ.get('BITEDJ_RELEASE_BUILD') == '1')
+    if branch.startswith('codex/') and not final_release and not re.fullmatch(re.escape(slug) + r'\.[1-9]\d*', pre):
         raise ValueError('Set BITEDJ_VERSION_PRERELEASE to ' + slug + '.<build-number> before building')
     return dict(source_commit=git('rev-parse', 'HEAD'), source_branch=branch,
                 source_hash=hashlib.sha256(json.dumps(entries, sort_keys=True).encode()).hexdigest(),
