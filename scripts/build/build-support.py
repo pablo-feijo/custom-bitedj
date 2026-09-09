@@ -21,6 +21,13 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def builder_key(details):
+    # OCI index IDs may change solely because BuildKit refreshes attestations.
+    # Runtime configuration and content-addressed rootfs layers define the toolchain.
+    stable = {key: details[key] for key in ('Architecture', 'Os', 'RootFS', 'Config')}
+    return 'content-' + hashlib.sha256(json.dumps(stable, sort_keys=True).encode()).hexdigest()
+
+
 def source_state():
     paths = subprocess.check_output(['git', '-C', str(ROOT), 'ls-files', '-z', '--cached', '--others', '--exclude-standard']).decode().split('\0')
     entries = {}
@@ -80,12 +87,16 @@ def workers(cpu_count, memory_bytes, limits=()):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=['state', 'seal', 'verify', 'jobs'])
+    parser.add_argument('action', choices=['state', 'seal', 'verify', 'jobs', 'builder-key'])
     parser.add_argument('--directory', type=Path, default=ROOT / 'dist-linux')
     parser.add_argument('--platform', default='linux/arm64')
     parser.add_argument('--image')
     parser.add_argument('--state', type=Path)
     args = parser.parse_args()
+    if args.action == 'builder-key':
+        details = json.loads(subprocess.check_output(['docker', 'image', 'inspect', args.image]))[0]
+        print(builder_key(details))
+        return
     if args.action == 'jobs':
         mem = int(re.search(r'MemTotal:\s+(\d+)', Path('/proc/meminfo').read_text())[1]) * 1024
         limits = [p.read_text().strip() for p in (Path('/sys/fs/cgroup/memory.max'), Path('/sys/fs/cgroup/memory/memory.limit_in_bytes')) if p.exists()]

@@ -125,10 +125,16 @@ class BuildSupport(unittest.TestCase):
         with (self.root / '.gitignore').open('a') as stream:
             stream.write('build-linux/\ntest-results/\ndist-linux-staging.*/\n.bitedj-build-lock/\nmixxx-pi-gen/\n')
         self.write('fake-bin/docker', r'''#!/usr/bin/env python3
-import os, pathlib, sys
+import json, os, pathlib, sys
 args = sys.argv[1:]
 if args[:2] == ['image', 'inspect']:
-    print('sha256:fixture')
+    identity = os.environ.get('FAKE_IMAGE_ID', 'sha256:fixture')
+    if '--format' in args:
+        print(identity)
+    else:
+        print(json.dumps([{'Id': identity, 'Architecture': 'arm64', 'Os': 'linux',
+            'RootFS': {'Layers': [os.environ.get('FAKE_LAYER', 'layer-one')]},
+            'Config': {'WorkingDir': '/src'}}]))
 elif args[0] == 'run' and args[-1] == '--version':
     print('BiteDJ ' + os.environ.get('FAKE_VERSION', '0.0.7-codex-build-test.1'))
 elif args[0] == 'run':
@@ -166,6 +172,15 @@ elif args[0] == 'run':
         image = subprocess.run(image_command, cwd='/', env=env, capture_output=True, text=True)
         self.assertEqual(image.returncode, 0, image.stdout + image.stderr)
         self.assertTrue((self.root / 'mixxx-pi-gen/image-started').exists())
+        refreshed = subprocess.run(command, cwd='/', env=dict(env, FAKE_IMAGE_ID='sha256:refreshed'), capture_output=True, text=True)
+        self.assertEqual(refreshed.returncode, 0, refreshed.stdout + refreshed.stderr)
+        self.assertEqual(json.loads((self.dist / 'build-provenance.json').read_text())['builder_image'], 'sha256:refreshed')
+        (self.root / 'build-linux/.bitedj-builder').write_text('linux/arm64 sha256:fixture Ninja\n')
+        migrated = subprocess.run(command, cwd='/', env=env, capture_output=True, text=True)
+        self.assertEqual(migrated.returncode, 0, migrated.stdout + migrated.stderr)
+        changed = subprocess.run(command, cwd='/', env=dict(env, FAKE_LAYER='new-toolchain'), capture_output=True, text=True)
+        self.assertNotEqual(changed.returncode, 0)
+        self.assertIn('--clean', changed.stderr)
         manifest = (self.dist / 'build-provenance.json').read_bytes()
         failed = subprocess.run(command, cwd='/', env=dict(env, FAKE_VERSION='wrong'), capture_output=True, text=True)
         self.assertNotEqual(failed.returncode, 0)
@@ -176,6 +191,15 @@ elif args[0] == 'run':
         legacy = subprocess.run(command, cwd='/', env=env, capture_output=True, text=True)
         self.assertNotEqual(legacy.returncode, 0)
         self.assertIn('--clean', legacy.stderr)
+
+    def test_builder_identity_ignores_attestations_but_tracks_toolchain(self):
+        details = dict(Id='first-index', Architecture='arm64', Os='linux',
+                       RootFS={'Layers': ['compiler-layer']}, Config={'Env': ['CC=gcc']})
+        before = build.builder_key(details)
+        self.assertEqual(before, build.builder_key(dict(details, Id='new-index', Metadata={'attestation': 'new'})))
+        for changed in (dict(RootFS={'Layers': ['updated-compiler']}),
+                        dict(Config={'Env': ['CC=clang']}), dict(Architecture='amd64')):
+            self.assertNotEqual(before, build.builder_key(dict(details, **changed)))
 
     def test_memory_limits(self):
         gib = 1024**3

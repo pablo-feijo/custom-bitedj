@@ -507,3 +507,8 @@ Flanger's first knob center is `(1000,183)`, with subsequent rows 30px apart;
 Mix stays at y=424. For scroll checks use the label area `(835,340)`, not a
 knob (wheel events over knobs adjust values). Phaser's Stereo row must remain
 reachable and selecting Echo must restore the top of the parameter list.
+
+For authorized cleanup of older branch containers, follow [the audited preview
+cleanup procedure](docs/DOCKER_MAINTENANCE.md#older-branch-previews-and-running-containers).
+Check host and Docker disk usage, retire obsolete previews by exact ID, and keep
+current review instances, active builds, bind-mounted data and named caches.

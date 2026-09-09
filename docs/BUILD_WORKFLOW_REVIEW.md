@@ -149,3 +149,23 @@ these are not claimed as a real application build. No new speedup is claimed.
   checks passed. Previous integration commit CI completed successfully.
 - Squash integration uses `0.0.7-codex-v0-0-7.7`. The ARM64 branch build and
   exact published-commit CI remain pending until their completion is recorded.
+
+- Published squash `c9d915cc187c2c539677808bcdc8e689247c9493` passed
+  [CI run 34355902985](https://github.com/pablo-feijo/custom-bitedj/actions/runs/34355902985):
+  1,043 native, 42 removable store, 12 removable sampler and five desktop tests.
+- User additionally authorized removal of older branch Docker containers and
+  requested the cleanup guide update. Retired six audited obsolete previews,
+  removing 377,073,664 writable-layer bytes. Kept current SemVer/pad-touch
+  previews, active builds, bind-mounted data and the named compiler cache.
+- Actual unchanged-recipe retry exposed BuildKit attestation churn: different
+  OCI image IDs had identical rootfs/config fingerprints. Cache compatibility
+  now uses the latter, with a verified migration of the initial image-ID marker.
+- Validation build `.1` was intentionally interrupted to resume after preview
+  cleanup with four workers. Builder-marker rejection occurred before further
+  compilation; no binary was published. The repaired build uses
+  `0.0.7-codex-build-workflow-review.2` and reuses proven-compatible objects.
+
+- Repair validation: 19 Python fast tests and the controller/effect/noVNC checks
+  pass. A real Docker retry migrated the old marker and resumed compatible
+  objects successfully with four workers. Integration repair version is
+  `0.0.7-codex-v0-0-7.8`; final ARM64 install and post-repair CI remain pending.

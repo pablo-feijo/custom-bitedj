@@ -119,7 +119,19 @@ IMAGE_ID="$(docker image inspect --format '{{.Id}}' "$FULL_IMAGE_NAME")"
 docker tag "$IMAGE_ID" "${IMAGE_NAME}-${PLATFORM//\//-}:latest"
 
 if [[ "$CLEAN" = true ]]; then rm -rf "$BUILD_DIR"; fi
-IDENTITY="$PLATFORM $IMAGE_ID Ninja"
+BUILDER_KEY="$(python3 "$REPO_DIR/scripts/build/build-support.py" builder-key --image "$IMAGE_ID")"
+IDENTITY="$PLATFORM $BUILDER_KEY Ninja"
+# Migrate a marker written by the initial image-ID implementation only when the
+# old pinned image is still available and has identical toolchain contents.
+if [[ -f "$BUILD_DIR/.bitedj-builder" ]]; then
+    read -r old_platform old_image old_generator < "$BUILD_DIR/.bitedj-builder"
+    if [[ "$old_platform" = "$PLATFORM" && "$old_generator" = Ninja && "$old_image" = sha256:* ]]; then
+        old_key="$(python3 "$REPO_DIR/scripts/build/build-support.py" builder-key --image "$old_image" 2>/dev/null || true)"
+        if [[ "$old_key" = "$BUILDER_KEY" ]]; then
+            printf '%s\n' "$IDENTITY" > "$BUILD_DIR/.bitedj-builder"
+        fi
+    fi
+fi
 if [[ -f "$BUILD_DIR/CMakeCache.txt" ]]; then
     if [[ ! -f "$BUILD_DIR/.bitedj-builder" ]] || [[ "$(cat "$BUILD_DIR/.bitedj-builder")" != "$IDENTITY" ]]; then
         echo "ERROR: Existing build uses a different or legacy toolchain/generator. Rerun with --clean (compiler cache is retained)." >&2

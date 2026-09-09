@@ -74,7 +74,7 @@ with `--jobs 2` or `BITEDJ_BUILD_JOBS=2` when needed. It prints ccache statistic
 and preserves the shared compiler cache across worktrees and `--clean` builds.
 
 Builder recipes are checked through Docker's layer cache on every build.
-Recipe/platform tags identify inputs, and the resolved image ID, platform and
+Recipe/platform tags identify inputs, and the runtime configuration/rootfs content fingerprint, platform and
 Ninja generator are recorded in `build-linux/.bitedj-builder`. Existing Makefile
 builds, a different architecture, or a changed builder require one explicit
 `--clean` migration. This removes only this worktree's build directory, retaining
@@ -109,3 +109,8 @@ including the prerelease suffix. Initialize the pinned submodule with
 `git submodule update --init mixxx-pi-gen` if it is absent; do not substitute an
 unrelated image-generator checkout. GUI and hardware testing requirements in
 [the agent guide](AGENTS.md) still apply before delivery.
+
+BuildKit may refresh an OCI index ID when only attestations change. The helper
+compares rootfs layer digests and runtime configuration for cache compatibility,
+while keeping the exact resolved image ID in binary provenance. A prior image-ID
+marker is migrated only if its pinned image remains inspectable and equivalent.

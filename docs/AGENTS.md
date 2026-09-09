@@ -300,3 +300,8 @@ instance ownership and regenerate assets instead of copying personal music.
 
 Right-panel Grid mappings and waveform editing behavior are maintained in the
 [root Grid guide](../AGENTS.md#right-panel-grid-editor).
+
+For authorized cleanup of older branch containers, follow [the audited preview
+cleanup procedure](DOCKER_MAINTENANCE.md#older-branch-previews-and-running-containers).
+Check host and Docker disk usage, retire obsolete previews by exact ID, and keep
+current review instances, active builds, bind-mounted data and named caches.
