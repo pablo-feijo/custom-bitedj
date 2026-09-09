@@ -252,3 +252,7 @@ with open('/tmp/screen.ppm', 'rb') as f:
 # Scan pixel buffer data[(y * w + x) * 3]
 "
 ```
+
+General Settings typography: labels 12px, segment/action text 11px; button
+geometry and the coordinate mappings above are unchanged. This leaves clearance
+for “3 Band” on the 1024×600 display.

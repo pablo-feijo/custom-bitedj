@@ -202,3 +202,7 @@ Convert screenshot to PPM (`ffmpeg -i screen.png screen.ppm`) and parse raw RGB 
   uses bottom-origin image coordinates and must not get the symmetric translation.
 - Current compact Browse table: breadcrumb y=40..72, header y=72..94,
   fixture row centers y=104 and y=126. Top-menu centers now use y=20.
+
+General Settings typography: labels 12px, segment/action text 11px; button
+geometry and the coordinate mappings above are unchanged. This leaves clearance
+for “3 Band” on the 1024×600 display.

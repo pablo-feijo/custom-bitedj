@@ -1172,16 +1172,16 @@ WBeatSpinBox::up-button {
 }
 
 #SettingsSubtabBar {
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
 }
 
 #SettingsSubtabBar WPushButton {
   background-color: transparent;
-  border: 2px solid #32323c;
+  border: 1px solid #32323c;
   color: #a7a9ac;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
-  margin: 0 4px;
+  margin: 0 6px;
   text-transform: uppercase;
 }
 
@@ -1209,18 +1209,18 @@ WBeatSpinBox::up-button {
 }
 
 #GeneralCol #SettingsRowLabel {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 #GeneralCol #SettingsSegmentLeft,
 #GeneralCol #SettingsSegmentMid,
 #GeneralCol #SettingsSegmentRight {
   min-width: 40px;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 #GeneralCol #SettingsActionButton {
-  font-size: 12px;
+  font-size: 11px;
 }
 
 #LibraryColumnsCol {
