@@ -1,5 +1,10 @@
 # BiteDJ 0.0.7 UI gallery
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+This guide describes [Custom Bite DJ](../README.md), an independent fork of
+[Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on Mixxx.
+
 Native **1024×600** screenshots of the 0.0.7 working interface, using synthetic
 music in an isolated ARM64 Docker instance and the Night theme.
 UI source revision: `8f87aa338f` on `codex/v0.0.7`.

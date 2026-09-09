@@ -1,5 +1,7 @@
 # Agent Instructions
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
 ## Commit Messages
 - Use Conventional Commits for every commit: `type(scope): description` (scope is optional).
 - Use appropriate types such as `feat`, `fix`, `docs`, `refactor`, `test`, `build`, or `chore`.
@@ -22,6 +24,18 @@ architecture, versioning, branch isolation, testing and Conventional Commits rul
   instance. See [GUI testing](docs/GUI_TESTING.md) for the full recipe.
 - Use Conventional Commits for every new or amended commit. Merge into the
   agreed semver branch later when requested; synchronize versions for the release.
+
+## Branch Hygiene
+
+- After authorized integration and publication, clean up fully merged task
+  branches locally and on the user's remote using the
+  [canonical branch cleanup procedure](docs/AGENTS.md#branch-cleanup-after-integration).
+- Keep semver/release branches, `main`, the remote default branch, tags and all
+  unmerged work. Preserve active worktrees and branches backing live GUI instances;
+  report deferred cleanup rather than disrupting another task.
+- Verify ancestry and remote reachability, including pinned submodule commits,
+  before deleting branches. Keep generated files in ignored runtime directories;
+  do not combine branch cleanup with destructive filesystem cleanup.
 
 ## Pad FX Architecture
 - System settings own Pad FX defaults, saved overrides and reset commands.
@@ -58,6 +72,14 @@ architecture, versioning, branch isolation, testing and Conventional Commits rul
 - Refresh the current unreleased version's gallery in place. When starting a new
   release, retain released images and use a new version directory and gallery so
   historical changelog links continue to show their release's UI.
+
+## Fork Attribution
+
+Identify this repository as Custom Bite DJ, an independent fork of Team
+Deckshark's BiteDJ, based on Mixxx. Preserve upstream copyright and license
+notices; follow the [attribution rules](docs/AGENTS.md#attribution-and-licensing)
+and [licensing notes](docs/LICENSING.md). Never claim upstream endorsement or
+replace technical identifiers and historical credits as a branding cleanup.
 
 ## Repository Organization
 

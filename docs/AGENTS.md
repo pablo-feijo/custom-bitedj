@@ -1,8 +1,10 @@
 # AI Agent Instructions
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
 Hello! If you are an AI assistant or autonomous agent (like Antigravity, Claude, or GitHub Copilot) working on this codebase, **read this document before making changes.**
 
-BiteDJ is a highly-customized fork of Mixxx, specifically engineered to run as a headless **Raspberry Pi OS Appliance** using the **Sway/Wayland compositor** and a multi-touch screen.
+Custom Bite DJ is an independent fork of [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), itself based on [Mixxx](https://github.com/mixxxdj/mixxx), specifically engineered to run as a headless **Raspberry Pi OS Appliance** using the **Sway/Wayland compositor** and a multi-touch screen.
 
 ## Branch and Test Isolation — Required for Every New Task
 
@@ -44,6 +46,45 @@ BiteDJ is a highly-customized fork of Mixxx, specifically engineered to run as a
 See [GUI_TESTING.md](GUI_TESTING.md) for reproducible commands. Historical
 fixed-name commands later in this document describe the old single-instance
 setup; replace their target with the verified owned `$CONTAINER_NAME`.
+
+## Branch Cleanup After Integration
+
+- Include branch hygiene in task completion. After an authorized merge and push,
+  remove the task's fully merged feature branches locally and on the user's
+  remote when the checks below pass. A cleanup request authorizes this routine
+  cleanup; do not repeatedly ask for confirmation. Cleanup does not authorize
+  additional merges, pushes of unrelated work, or discarding unmerged commits.
+- Preserve `main`, the remote default branch, all semver/release branches
+  (including `codex/v0.0.7` and `v0.0.2-effects`), and all tags. Preserve unmerged
+  branches regardless of their age or name. Do not delete branches on third-party
+  upstream remotes; identify the user's remote from its URL, not its name alone.
+- Fetch and prune the user's remote before auditing. Inspect local and remote
+  refs, working-tree status, `git worktree list`, and live test-instance ownership.
+  Use full ref names to avoid branch/tag ambiguity and exclude symbolic refs
+  such as `origin/HEAD` from deletion candidates.
+- Prove each candidate tip is an ancestor of a retained integration/release ref
+  with `git merge-base --is-ancestor`. For remote deletion, also prove the tip is
+  reachable from a retained, published remote ref. Matching filenames, similar
+  commit messages, or an apparently equivalent squash are not ancestry proof.
+- Prefer `git branch -d`. If Git refuses because it checks a different upstream
+  or current branch, use `-D` only after independently proving ancestry to the
+  intended retained ref. Never force-delete unique or uncertain history.
+- Do not detach, switch, remove or overwrite another active task's checkout.
+  Keep local branches needed by running GUI instances: changing their branch
+  breaks the ownership check. Record the retained branch and reason, then finish
+  cleanup when that task's instance is retired. A branch-only cleanup does not
+  authorize stopping a GUI requested for review.
+- For an inactive, clean worktree owned by the task, detaching at its exact current
+  commit permits deleting the merged branch while preserving files. Check nested
+  submodules and untracked/ignored outputs before any worktree removal. Do not
+  use forced worktree removal or blanket `git clean` as branch cleanup.
+- Audit submodule repositories separately. Preserve any branch needed to keep a
+  parent repository's pinned gitlink reachable remotely. Publish a retained ref
+  containing that commit before deleting its last remote branch; never assume a
+  parent merge also merged the submodule's feature branch.
+- Delete only the audited branch names, prune stale tracking refs, then verify
+  the remote refs and local status. Report removed branches and any retained
+  exceptions. Leave unrelated files, settings, builds and test results intact.
 
 ## 1. Architectural Rules for Agents
 
@@ -94,6 +135,20 @@ values and saved page indices for layout-only changes. Verify labels, touch
 clearance, padding and footer visibility in the owned VNC instance; include
 Day/Night checks when styling changes. Prefer a canonical mapping link over
 stale duplicate coordinates.
+
+## Attribution and Licensing
+
+- Identify this project as **Custom Bite DJ**, an independent fork of Team
+  Deckshark's BiteDJ, based on Mixxx. Link upstream and distinguish inherited
+  work, adaptations and local changes; do not imply endorsement or upstream support.
+- Preserve copyright notices, author credits and license texts. Keep source
+  identifiers, paths and historical documents accurate; never globally replace
+  “BiteDJ” or “Mixxx” inside notices, code keys or third-party material.
+- Follow [LICENSING.md](LICENSING.md) when changing attribution or preparing
+  distribution. The program and skin have distinct license notices. Document
+  upstream paths/revisions and dated modifications when adapting material.
+- Recheck component terms before importing code or artwork. Credits alone are
+  not permission, and a documentation review is not a complete release audit.
 
 ## Repository Organization
 

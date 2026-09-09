@@ -1,5 +1,9 @@
 # Pad FX: implementation and local validation
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
+
 Branch `codex/rekordbox-padfx-display`; eventual integration `codex/v0.0.7`.
 The feature inherits the completed first batch, not another task's checkout.
 

@@ -8,6 +8,10 @@ type: Feature
 
 ---
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+This tracker is for Custom Bite DJ, the independently maintained BiteDJ fork.
+
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
 

@@ -1,5 +1,7 @@
 # Changelog
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
 Notable changes to Custom BiteDJ are recorded here. Versions use Semantic
 Versioning; commit messages follow Conventional Commits.
 
@@ -65,6 +67,10 @@ UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 - Drops outside a visible deck no longer load a track into an unintended deck.
 
 ### Documentation and validation
+
+- Clarify the independent fork identity, upstream authorship and component
+  licensing in the README, COPYING, NOTICE and [licensing notes](docs/LICENSING.md).
+  Remove automatic upstream issue assignment and official-effect wording.
 
 - Organize helper scripts under `scripts/build/`, `scripts/deploy/`, `scripts/test/`
   and `scripts/legacy/`, and Docker recipes under `docker/`. Update callers and

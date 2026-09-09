@@ -1,5 +1,9 @@
 # Rekordbox display integration
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
+
 Target: two-deck BiteDJ, eventual merge into `codex/v0.0.7`.
 Source: xsploit/bitedj `4c1dfec590f98851159fe7a64e3348e8aad306a5`.
 
