@@ -5,7 +5,9 @@ Initial base: completed first batch `180ab1bb60` (inherited `v0.0.6`).
 Rebased onto local `codex/v0.0.7` at `b840bf1327`, including the other task's
 deck presentation, JUMP, Info and compact-menu changes. The user subsequently
 authorized working version `0.0.7`: app metadata and pi-gen image naming are
-synchronized, with pi-gen `codex/v0.0.7` pinned at `700feeed508a`.
+synchronized on feature branches. Pi-gen work lives on
+`codex/v007-custom-defaults`, pinned by the parent gitlink; `codex/v0.0.7`
+remains the later merge target in both repositories.
 Eventual merge target: `codex/v0.0.7`.
 The parent feature branch remains unmerged; no release tag or OS image was created.
 Source review pinned to xsploit/bitedj `4c1dfec590f98851159fe7a64e3348e8aad306a5`.

@@ -109,8 +109,10 @@ When preparing a new release or branch (e.g., `v0.0.4`), agents must explicitly 
 2. **OS Image output**: Ensure `IMG_NAME` in `mixxx-pi-gen/config` includes the semver suffix (e.g., `IMG_NAME="bitedj-pi-v0.0.4"`).
 3. **Flashing Scripts**: Update `flash-sdcard.sh` dynamically or explicitly so `ZIP_FILE` and `IMG_FILE` point to the freshly versioned output targets.
 
-For the 0.0.7 working release, pi-gen also uses `codex/v0.0.7`. Commit changes
-there first, publish that branch, then commit the parent `mixxx-pi-gen` gitlink.
+For the 0.0.7 working release, pi-gen uses `codex/v007-custom-defaults`;
+`codex/v0.0.7` is only the later merge target in both repositories. Commit on
+the feature branch, publish it, then commit the parent `mixxx-pi-gen` gitlink.
+Do not advance either semver branch without an explicit merge request.
 Keep `.gitmodules` URL/branch valid so a recursive clone resolves the pinned
 commit. The flasher derives IMG_NAME from the pinned config; use
 `BITEDJ_IMAGE_DATE=YYYY-MM-DD` to select a build from a different day.
