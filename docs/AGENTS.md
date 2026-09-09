@@ -297,3 +297,6 @@ instance ownership and regenerate assets instead of copying personal music.
   the completed task's own preview when it is no longer needed for review; never
   stop another task's container or remove a bind-mounted folder. Report remaining
   folders with specific reasons, sizes and the next cleanup action.
+
+Right-panel Grid mappings and waveform editing behavior are maintained in the
+[root Grid guide](../AGENTS.md#right-panel-grid-editor).

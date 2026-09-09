@@ -33,7 +33,7 @@ class SkinContracts(unittest.TestCase):
         stack = root.find(".//WidgetStack[@currentpage='[FxPanel],current']")
         self.assertIsNotNone(stack)
         self.assertEqual(
-            ["[FxPanel],fx", "[FxPanel],key", "[FxPanel],jump"],
+            ["[FxPanel],fx", "[FxPanel],key", "[FxPanel],jump", "[FxPanel],grid"],
             [page.get("trigger") for page in stack.find("Children")],
         )
 

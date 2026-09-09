@@ -65,6 +65,14 @@
               <EmitOnDownPress>true</EmitOnDownPress>
             </Connection>
           </PushButton>
+          <PushButton>
+            <ObjectName>FxPanel_TabGrid</ObjectName><Size>0me,44f</Size>
+            <NumberStates>2</NumberStates>
+            <State><Number>0</Number><Text>Grid</Text></State>
+            <State><Number>1</Number><Text>Grid</Text></State>
+            <LeftClickIsPushButton>true</LeftClickIsPushButton>
+            <Connection><ConfigKey>[FxPanel],grid</ConfigKey><EmitOnDownPress>true</EmitOnDownPress></Connection>
+          </PushButton>
         </Children>
       </WidgetGroup>
 
@@ -297,6 +305,16 @@
               <Label><ObjectName>LinkedZoomTitle</ObjectName><Text>WAVE ZOOM · BOTH DECKS</Text><Size>0me,18f</Size></Label>
               <LinkedZoom><ObjectName>LinkedZoom</ObjectName><Size>0me,44f</Size></LinkedZoom>
               <WidgetGroup><ObjectName>BeatFX_Spacer</ObjectName><Size>0me,0me</Size></WidgetGroup>
+            </Children>
+          </WidgetGroup>
+
+          <!-- Appended to preserve FX/Key/Jump page indices. -->
+          <WidgetGroup trigger="[FxPanel],grid">
+            <ObjectName>FxPanel_Page</ObjectName><Layout>vertical</Layout><SizePolicy>me,me</SizePolicy>
+            <Children>
+              <Template src="skin:templates/grid_deck.xml"><SetVariable name="channel">1</SetVariable></Template>
+              <Template src="skin:templates/grid_deck.xml"><SetVariable name="channel">2</SetVariable></Template>
+              <WidgetGroup><Size>0me,0me</Size></WidgetGroup>
             </Children>
           </WidgetGroup>
 

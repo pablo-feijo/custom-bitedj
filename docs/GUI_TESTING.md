@@ -528,3 +528,37 @@ loop-active jog halves/doubles after 32 ticks, Shift jog only translates the gri
 and scratch release immediately resumes decks that were playing before touch.
 Automated MIDI tests cover both decks and transition cases; real wheel feel and
 physical controller timing still need hardware verification.
+
+## Right-panel Grid editor
+
+Overview right-panel order is FX, Key, Jump, Grid. Grid appends index 3 to
+`[FxPanel],current`; existing saved FX/Key/Jump indices stay unchanged.
+Selecting `[FxPanel],grid` enables `gridEditMode` on both waveforms: beat lines
+become fully opaque and waveform dragging positions the track. Leaving Grid
+restores the configured beat-line opacity and normal seek-disabled interaction.
+Any active waveform drag is released on a mode change or when its page hides.
+
+Each deck has a separate 168px block: deck label, Earlier/Later, Set grid here,
+then BPM −/+. All action buttons are 44px high with 4px spacing and 11px labels;
+tab labels use 10px. The overview waveforms, deck footer and top bar stay in place.
+
+| Label | `[ChannelN]` native control | Action |
+| --- | --- | --- |
+| Earlier | `beats_translate_earlier` | Shift grid earlier |
+| Later | `beats_translate_later` | Shift grid later |
+| Set grid here | `beats_translate_curpos` | Align nearest beat to current playhead |
+| BPM − | `beats_adjust_slower` | Reduce grid BPM by 0.01 |
+| BPM + | `beats_adjust_faster` | Increase grid BPM by 0.01 |
+
+Buttons emit momentary press/release, with no background repeat timer. Actions
+require a loaded track with an editable beat grid. BPM actions edit the track's
+grid, not the playback-rate slider. No controller mapping changes are required.
+
+Grid deck headers display `[ChannelN],file_bpm` to two decimal places so each
+0.01 BPM adjustment is visible without changing the deck playback rate.
+
+Verified 1024×600 centers: right tabs FX `(871,70)`, Key `(913,70)`,
+Jump `(955,70)`, Grid `(997,70)`. Grid Deck 1: Earlier `(892,146)`,
+Later `(976,146)`, Set grid here `(934,194)`, BPM − `(892,242)`,
+BPM + `(976,242)`. Deck 2 uses the same x coordinates at y=314, 362, 410.
+The Grid panel and waveforms retain their geometry when the cue drawer opens.

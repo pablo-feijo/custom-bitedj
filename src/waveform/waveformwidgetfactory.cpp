@@ -759,7 +759,7 @@ void WaveformWidgetFactory::setDisplayBeatGridAlpha(int alpha) {
     }
 
     for (const auto& holder : std::as_const(m_waveformWidgetHolders)) {
-        holder.m_waveformWidget->setDisplayBeatGridAlpha(m_beatGridAlpha);
+        holder.m_waveformViewer->setDisplayBeatGridAlpha(m_beatGridAlpha);
     }
 }
 

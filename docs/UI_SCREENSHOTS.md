@@ -6,26 +6,43 @@ This guide describes [Custom Bite DJ](../README.md), an independent fork of
 [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on Mixxx.
 
 Native **1024×600** screenshots using synthetic music in isolated ARM64 Docker
-instances. Play, Beat FX and Browse are refreshed on `codex/browse-fx-touch-ui`
-for the compact picker and padded browser controls (verified .8 captures;
-unchanged UI in the final .9 SemVer synchronization). Settings and drawer images
-come from `codex/waveform-preview-fixes`, binary
-`0.0.7-codex-waveform-preview-fixes.2`. The tasks use generated Groove 128 BPM
-and Techno 124 BPM fixtures. No physical MIDI controller or USB drive is
-attached; runtime statistics describe the container.
+instances. Grid, Play, Beat FX and drawer images are refreshed on
+`codex/grid-deck-controls`: Grid Night is verified on the rebased
+`0.0.7-codex-grid-deck-controls.2` binary. Other refreshed images show the
+visually identical .1 layout.
+Browse images retain the `codex/browse-fx-touch-ui` captures; Settings retains
+`codex/waveform-preview-fixes.2`. All use generated Groove 128 BPM and Techno
+124 BPM fixtures. No physical MIDI controller or USB drive is attached;
+runtime statistics describe the container.
 
 See the [0.0.7 changelog](../CHANGELOG.md#007--unreleased) for the changes behind
 these screens, or [return to the README](../README.md).
 
-[Drawer](#controller-pad-drawer) | [Play](#play) | [Beat FX picker](#beat-fx-picker) | [Browse with previews](#browse-preview) | [General](#settings-general) | [Library](#settings-library) | [Pad FX](#settings-pad-fx) | [Device](#settings-device) | [Audio](#settings-audio) | [System](#settings-system) | [Info](#settings-info)
+[Grid](#grid) | [Drawer](#controller-pad-drawer) | [Play](#play) | [Beat FX picker](#beat-fx-picker) | [Browse with previews](#browse-preview) | [General](#settings-general) | [Library](#settings-library) | [Pad FX](#settings-pad-fx) | [Device](#settings-device) | [Audio](#settings-audio) | [System](#settings-system) | [Info](#settings-info)
 
 <a id="play"></a>
 
 ## Play
 
-Two loaded decks with synchronized waveform type/palette rendering, deck overviews and the FX panel. The KEY and JUMP tabs share the right-hand panel.
+Two loaded decks with synchronized waveform type/palette rendering, deck overviews and the FX panel. The KEY, JUMP and GRID tabs share the right-hand panel.
 
-![Play: Two loaded decks with synchronized waveform type/palette rendering, deck overviews and the FX panel. The KEY and JUMP tabs share the right-hand panel.](images/ui/0.0.7/play.png)
+![Play: Two loaded decks with synchronized waveform type/palette rendering, deck overviews and the FX panel. The KEY, JUMP and GRID tabs share the right-hand panel.](images/ui/0.0.7/play.png)
+
+<a id="grid"></a>
+
+## Grid
+
+Grid is the fourth right-panel tab. Each deck has an independent grid BPM
+readout, Earlier/Later, Set grid here and BPM −/+ controls. Selecting Grid
+brightens beat lines and enables waveform dragging to position the playhead.
+Leaving Grid restores normal waveform interaction. Buttons retain 44px height
+and the existing waveform/footer geometry, including with the cue drawer open.
+
+![Grid editing in Night mode.](images/ui/0.0.7/grid.png)
+
+![Grid editing in Day mode.](images/ui/0.0.7/grid-day.png)
+
+![Grid editing with the cue drawer open.](images/ui/0.0.7/grid-drawer.png)
 
 <a id="beat-fx-picker"></a>
 

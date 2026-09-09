@@ -159,6 +159,7 @@
         <ObjectName>Waveform<Variable name="channel"/></ObjectName>
         <Channel><Variable name="channel"/></Channel>
         <DisableSeek>true</DisableSeek>
+        <Connection><ConfigKey>[FxPanel],grid</ConfigKey><BindProperty>gridEditMode</BindProperty></Connection>
         <BgColor>#000</BgColor>
         <BeatColor>#fff</BeatColor>
         <BeatDownbeatColor>#f15921</BeatDownbeatColor>

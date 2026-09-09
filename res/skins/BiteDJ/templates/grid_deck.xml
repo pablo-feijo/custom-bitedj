@@ -1,0 +1,134 @@
+<!DOCTYPE template>
+<!-- Custom Bite DJ, 2026-09-09: native per-deck momentary grid actions. -->
+<Template>
+  <WidgetGroup>
+    <ObjectName>GridDeck</ObjectName>
+    <Layout>vertical</Layout>
+    <Size>0me,168f</Size>
+    <Children>
+      <WidgetGroup>
+        <Layout>horizontal</Layout>
+        <Size>0me,20f</Size>
+        <Children>
+          <Label>
+            <ObjectName>KeyFX_DeckLabel_<Variable name="channel" /></ObjectName>
+            <Text>Deck <Variable name="channel" /></Text>
+            <Size>0me,20f</Size>
+          </Label>
+          <NumberBpm>
+            <ObjectName>GridBpm</ObjectName>
+            <Size>64f,20f</Size>
+            <NumberOfDigits>2</NumberOfDigits>
+            <Channel>
+              <Variable name="channel" />
+            </Channel>
+            <Connection>
+              <ConfigKey>[Channel<Variable name="channel" />],file_bpm</ConfigKey>
+            </Connection>
+          </NumberBpm>
+        </Children>
+      </WidgetGroup>
+      <WidgetGroup>
+        <ObjectName>GridActionRow</ObjectName>
+        <Layout>horizontal</Layout>
+        <Size>0me,44f</Size>
+        <Children>
+          <PushButton>
+            <ObjectName>GridAction</ObjectName>
+            <Size>0me,44f</Size>
+            <Tooltip>Shift this deck’s beat grid earlier.</Tooltip>
+            <NumberStates>1</NumberStates>
+            <State>
+              <Number>0</Number>
+              <Text>Earlier</Text>
+            </State>
+            <LeftClickIsPushButton>true</LeftClickIsPushButton>
+            <Connection>
+              <ConfigKey>[Channel<Variable name="channel" />],beats_translate_earlier</ConfigKey>
+              <ConnectValueToWidget>false</ConnectValueToWidget>
+              <EmitOnPressAndRelease>true</EmitOnPressAndRelease>
+            </Connection>
+          </PushButton>
+          <PushButton>
+            <ObjectName>GridAction</ObjectName>
+            <Size>0me,44f</Size>
+            <Tooltip>Shift this deck’s beat grid later.</Tooltip>
+            <NumberStates>1</NumberStates>
+            <State>
+              <Number>0</Number>
+              <Text>Later</Text>
+            </State>
+            <LeftClickIsPushButton>true</LeftClickIsPushButton>
+            <Connection>
+              <ConfigKey>[Channel<Variable name="channel" />],beats_translate_later</ConfigKey>
+              <ConnectValueToWidget>false</ConnectValueToWidget>
+              <EmitOnPressAndRelease>true</EmitOnPressAndRelease>
+            </Connection>
+          </PushButton>
+        </Children>
+      </WidgetGroup>
+      <WidgetGroup>
+        <ObjectName>GridActionRow</ObjectName>
+        <Layout>horizontal</Layout>
+        <Size>0me,44f</Size>
+        <Children>
+          <PushButton>
+            <ObjectName>GridAction</ObjectName>
+            <Size>0me,44f</Size>
+            <Tooltip>Align the nearest beat to the current playhead position.</Tooltip>
+            <NumberStates>1</NumberStates>
+            <State>
+              <Number>0</Number>
+              <Text>Set grid here</Text>
+            </State>
+            <LeftClickIsPushButton>true</LeftClickIsPushButton>
+            <Connection>
+              <ConfigKey>[Channel<Variable name="channel" />],beats_translate_curpos</ConfigKey>
+              <ConnectValueToWidget>false</ConnectValueToWidget>
+              <EmitOnPressAndRelease>true</EmitOnPressAndRelease>
+            </Connection>
+          </PushButton>
+        </Children>
+      </WidgetGroup>
+      <WidgetGroup>
+        <ObjectName>GridActionRow</ObjectName>
+        <Layout>horizontal</Layout>
+        <Size>0me,44f</Size>
+        <Children>
+          <PushButton>
+            <ObjectName>GridAction</ObjectName>
+            <Size>0me,44f</Size>
+            <Tooltip>Decrease grid BPM by 0.01.</Tooltip>
+            <NumberStates>1</NumberStates>
+            <State>
+              <Number>0</Number>
+              <Text>BPM −</Text>
+            </State>
+            <LeftClickIsPushButton>true</LeftClickIsPushButton>
+            <Connection>
+              <ConfigKey>[Channel<Variable name="channel" />],beats_adjust_slower</ConfigKey>
+              <ConnectValueToWidget>false</ConnectValueToWidget>
+              <EmitOnPressAndRelease>true</EmitOnPressAndRelease>
+            </Connection>
+          </PushButton>
+          <PushButton>
+            <ObjectName>GridAction</ObjectName>
+            <Size>0me,44f</Size>
+            <Tooltip>Increase grid BPM by 0.01.</Tooltip>
+            <NumberStates>1</NumberStates>
+            <State>
+              <Number>0</Number>
+              <Text>BPM +</Text>
+            </State>
+            <LeftClickIsPushButton>true</LeftClickIsPushButton>
+            <Connection>
+              <ConfigKey>[Channel<Variable name="channel" />],beats_adjust_faster</ConfigKey>
+              <ConnectValueToWidget>false</ConnectValueToWidget>
+              <EmitOnPressAndRelease>true</EmitOnPressAndRelease>
+            </Connection>
+          </PushButton>
+        </Children>
+      </WidgetGroup>
+    </Children>
+  </WidgetGroup>
+</Template>

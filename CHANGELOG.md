@@ -7,6 +7,8 @@ Versioning; commit messages follow Conventional Commits.
 
 ## [0.0.7] — Unreleased
 
+- Add a [Grid page](docs/UI_SCREENSHOTS.md#grid) with per-deck earlier, set-here, later and slower/faster BPM controls, a waveform editing state and compact right-panel tabs.
+
 UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 [Browse with previews](docs/UI_SCREENSHOTS.md#browse-preview), and
 [all Settings screens](docs/UI_SCREENSHOTS.md#settings-general).

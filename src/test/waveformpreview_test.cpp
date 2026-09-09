@@ -1,6 +1,10 @@
 #include <gtest/gtest.h>
 #include <QDomDocument>
 #include <QPainter>
+#include <QHideEvent>
+#include <QMouseEvent>
+#include "waveform/widgets/nonglwaveformwidgetabstract.h"
+#include "widget/wwaveformviewer.h"
 
 #include "control/controlobject.h"
 #include "library/tabledelegates/previewbuttondelegate.h"
@@ -344,4 +348,76 @@ TEST_F(PreviewDelegateTest, ColdSummaryRemainsVisibleForMetadataOnlyTrackAndLive
     EXPECT_NE(live, cleared);
     EXPECT_NE(fromDisk, cleared);
     EXPECT_EQ(cleared, paint(delegate, model));
+}
+
+// Grid mode changes interaction as well as paint: exercise the viewer with a
+// lightweight renderer, without relying on a GL context or live audio engine.
+
+class GridTestWaveform final : public NonGLWaveformWidgetAbstract {
+  public:
+    GridTestWaveform() : NonGLWaveformWidgetAbstract("[GridTest]", nullptr) {
+        m_widget = this;
+    }
+    WaveformWidgetType::Type getType() const override {
+        return WaveformWidgetType::QtRGBWaveform;
+    }
+  protected:
+    void castToQWidget() override { m_widget = this; }
+};
+
+class WaveformGridEditingTest : public MixxxTest {
+  protected:
+    void SetUp() override { WaveformWidgetFactory::createInstance(); }
+    void TearDown() override { WaveformWidgetFactory::destroy(); }
+    void attach(WWaveformViewer& viewer, GridTestWaveform& waveform) {
+        viewer.setWaveformWidget(&waveform);
+    }
+    void hide(WWaveformViewer& viewer) {
+        QHideEvent event;
+        viewer.hideEvent(&event);
+    }
+};
+
+TEST_F(WaveformGridEditingTest, GridModeEnablesDragAndRestoresOpacityAndInteraction) {
+    auto* factory = WaveformWidgetFactory::instance();
+    const int previousAlpha = factory->getBeatGridAlpha();
+    factory->setDisplayBeatGridAlpha(37);
+    ControlObject passthrough(ConfigKey("[GridTest]", "passthrough"));
+    ControlObject scratch(ConfigKey("[GridTest]", "scratch_position_enable"));
+    ControlObject position(ConfigKey("[GridTest]", "scratch_position"));
+    WWaveformViewer viewer("[GridTest]", config());
+    GridTestWaveform waveform;
+    attach(viewer, waveform);
+    viewer.setSeekDisabled(true);
+    QMouseEvent press(QEvent::MouseButtonPress, QPointF(30, 30), QPointF(30, 30),
+            Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+    viewer.mousePressEvent(&press);
+    EXPECT_EQ(0, scratch.get());
+    viewer.setGridEditMode(true);
+    EXPECT_EQ(100, waveform.getBeatGridAlpha());
+    viewer.mousePressEvent(&press);
+    EXPECT_EQ(1, scratch.get());
+    viewer.setGridEditMode(false);
+    EXPECT_EQ(0, scratch.get());
+    EXPECT_EQ(37, waveform.getBeatGridAlpha());
+    viewer.mousePressEvent(&press);
+    EXPECT_EQ(0, scratch.get());
+    factory->setDisplayBeatGridAlpha(previousAlpha);
+}
+
+TEST_F(WaveformGridEditingTest, HidingGridDuringDragReleasesScratch) {
+    ControlObject passthrough(ConfigKey("[GridTest]", "passthrough"));
+    ControlObject scratch(ConfigKey("[GridTest]", "scratch_position_enable"));
+    ControlObject position(ConfigKey("[GridTest]", "scratch_position"));
+    WWaveformViewer viewer("[GridTest]", config());
+    GridTestWaveform waveform;
+    attach(viewer, waveform);
+    viewer.setSeekDisabled(true);
+    viewer.setGridEditMode(true);
+    QMouseEvent press(QEvent::MouseButtonPress, QPointF(30, 30), QPointF(30, 30),
+            Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+    viewer.mousePressEvent(&press);
+    ASSERT_EQ(1, scratch.get());
+    hide(viewer);
+    EXPECT_EQ(0, scratch.get());
 }
