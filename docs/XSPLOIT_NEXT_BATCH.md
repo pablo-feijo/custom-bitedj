@@ -1,9 +1,13 @@
 # Selected fork integration todo
 
 Branch: `codex/rekordbox-padfx-display` in `bitedj-next-batch`.
-Base: completed first batch `180ab1bb60` (inherits `v0.0.6`).
-Eventual merge target: `codex/v0.0.7`, absent when this worktree was created.
-No release version bump or merge in this task.
+Initial base: completed first batch `180ab1bb60` (inherited `v0.0.6`).
+Rebased onto local `codex/v0.0.7` at `b840bf1327`, including the other task's
+deck presentation, JUMP, Info and compact-menu changes. The user subsequently
+authorized working version `0.0.7`: app metadata and pi-gen image naming are
+synchronized, with pi-gen `codex/v0.0.7` pinned at `700feeed508a`.
+Eventual merge target: `codex/v0.0.7`.
+The parent feature branch remains unmerged; no release tag or OS image was created.
 Source review pinned to xsploit/bitedj `4c1dfec590f98851159fe7a64e3348e8aad306a5`.
 
 - [x] 1. README identity, upstream credits, links and NOTICE (first batch).
@@ -32,7 +36,7 @@ This build targets two decks only; do not adopt the fork's four-deck layout or c
 
 Current priority order: 9 (display), 4 (track replacement), then 11 (Rekordbox).
 
-Keep FX/KEY overview tabs. PAD FX belongs under Settings. Eight pad selectors
+Keep the semver branch's FX/KEY/JUMP overview tabs. PAD FX belongs under Settings. Eight pad selectors
 and one editor preserve touch size at 1024×600. PAD FX hides the Settings deck
 footer and expands the selected editor into that space, keeping 16px outer
 horizontal / 12px vertical margins and 12px card padding. Existing VNC instances remain

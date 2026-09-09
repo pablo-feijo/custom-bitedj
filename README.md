@@ -1,85 +1,49 @@
-# BiteDJ — custom fork
+# Custom Bite DJ
 
-A community customization of [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj),
-built on [Mixxx](https://mixxx.org/), for a Raspberry Pi touchscreen DJ appliance.
-This is [pablo-feijo/custom-bitedj](https://github.com/pablo-feijo/custom-bitedj).
-Our current development version is **0.0.7**, with a **1024×600** touch interface,
-Sway/Wayland integration, USB-centered browsing, and custom DDJ-400 workflows.
+A two-deck DJ appliance for Raspberry Pi, with a **1024×600 touchscreen**,
+USB-centered music browsing, and a custom **Pioneer DDJ-400** workflow.
+Development targets **v0.0.7**.
 
-BiteDJ is the foundation of this project. Credit belongs to
-[Team Deckshark](https://github.com/TeamDeckshark),
-[Alyxx](https://github.com/alyxxxinteractive), the other BiteDJ contributors,
-and the [Mixxx developers](https://github.com/mixxxdj/mixxx).
-Original copyright notices and contributor history remain in the repository.
+## Features
 
-## What this fork changes
+- Compact deck displays, scrolling titles, and Day/Night modes.
+- Touch-friendly browsing with saved column layouts and Wayland drag-and-drop.
+- Configurable Pad FX with Normal/Shift banks, saved assignments, and independent effect lanes.
+- Safer track replacement: **Lock / Fader / Stop / Live**.
+- Rekordbox USB library and analysis integration.
+- FX, key, beat-jump, linked zoom, and deck presentation controls.
+- Appliance settings for audio, display rotation, devices, and system information.
 
-Our custom work includes:
+See the [DDJ-400 guide](docs/DDJ400_MAPPING.md) for controls and the
+[integration checklist](docs/XSPLOIT_NEXT_BATCH.md) for completed and planned work.
 
-- Touchscreen track drag-and-drop adapted for Qt 6 on Wayland.
-- Fullscreen service preferences and persistent screen rotation for the appliance.
-- Raspberry Pi cursor workarounds and custom audio-device presentation.
-- DDJ-400 Pad FX workflows and Shift + Filter control of the Beat FX Super parameter.
-- Compact deck, sampler, settings, and waveform presentation refinements.
-- Persisted browser column order and text size, with external-track selection retained when sorting.
-- Programmatic FX enable/disable state publication and more resilient Rekordbox analysis reading.
+## Build and test
 
-See the [change ledger](docs/DIFFS_FROM_BASE.md) for implementation details and
-version history, and the [DDJ-400 mapping guide](docs/DDJ400_MAPPING.md) for controls.
-The overview panel currently keeps **FX and KEY** tabs. Beat-typed effect timing
-uses the skin’s native Beats parameter grid.
+Build the ARM64 application with:
 
-## Built on BiteDJ and Mixxx
+```sh
+./docker-build.sh --platform linux/arm64
+```
 
-The audio engine, mixing, cue/loop/sync/keylock machinery and controller framework
-come from Mixxx and BiteDJ. BiteDJ adds the appliance interface, USB-based metadata
-and analysis stores, device settings, notifications, and other standalone workflows.
-These inherited capabilities are not new work by this fork.
+Launch an isolated local GUI/audio test instance with `./run-gui-test.sh`.
+Each feature branch uses its own worktree, settings, build, and VNC ports.
 
-The [preserved project description](docs/BITEDJ-UPSTREAM.md) retains the background
-that previously occupied this README. The [upstream BiteDJ repository](https://github.com/TeamDeckshark/bitedj)
-is the source for its current documentation and community development.
+- [Build and deploy](docs/BUILD_AND_DEPLOY.md)
+- [GUI and audio testing](docs/GUI_TESTING.md)
+- [Architecture](docs/INFRASTRUCTURE.md)
+- [Change history](docs/DIFFS_FROM_BASE.md)
 
-## Development and validation
+## Credits
 
-This repository contains application source and the Raspberry Pi image workflow.
-Application compilation and OS image generation are separate steps. The application
-target is Linux; macOS can host the Docker build workflow.
+Built on [BiteDJ by Team Deckshark](https://github.com/TeamDeckshark/bitedj)
+and [Mixxx](https://github.com/mixxxdj/mixxx). Thank you to Team Deckshark,
+[Alyxx](https://github.com/alyxxxinteractive), and their contributors for the foundation.
 
-- [Build and deploy](docs/BUILD_AND_DEPLOY.md): application build and deployment workflow.
-- [Infrastructure](docs/INFRASTRUCTURE.md): appliance runtime and build architecture.
-- [GUI and audio testing](docs/GUI_TESTING.md): local test environment and checks.
-- [Networking and audio](docs/BiteDJ_Networking_Audio_Docs.md): configuration notes.
+Special thanks to [xsploit](https://github.com/xsploit/bitedj) for the work behind
+our adapted Pad FX, scrolling titles, safer loading, and Rekordbox improvements;
+and to [ntamas94 and the Pioneered contributors](https://github.com/ntamas94/pioneered-by-ntamas)
+for inspiring our deck indicators, browsing, and waveform controls.
 
-The repository build entry point for ARM64 is `./docker-build.sh --platform linux/arm64`.
-OS image generation uses `./generate-pi-image.sh` and the `mixxx-pi-gen` checkout.
-Follow the linked guides for prerequisites and deployment. Documentation and source
-availability do not establish that a particular image or hardware configuration
-has passed validation.
-
-## Other forks and planned work
-
-[xsploit’s PiFlex edition](https://github.com/xsploit/bitedj) is a related BiteDJ fork
-with additional display, library, controller, Rekordbox, streaming, and download work.
-Its approach to clear upstream attribution informed this README organization.
-
-Our [fork review and feature map](docs/XSPLOIT_FORK_REVIEW.md) records the reviewed
-revision, overlap with our code, candidate changes, and validation needed before
-adoption. The [approved first batch](docs/XSPLOIT_FIRST_BATCH.md) tracks the
-selected fixes and their validation; other entries remain proposals.
-
-## Community, support, and credits
-
-Special thanks to **ntamas94** and the contributors to
-[Pioneered by ntamas](https://github.com/ntamas94/pioneered-by-ntamas) for the
-skin inspiration behind our deck indicators, compact browsing, and waveform controls.
-
-For issues specific to this custom fork, use
-[this repository’s issue tracker](https://github.com/pablo-feijo/custom-bitedj/issues).
-For the upstream community, see the
-[Deckshark blog](https://www.deckshark.us/blogs/news) and
-[BiteDJ Discord](https://discord.com/invite/WJw6vdZKwQ).
-
-See [attribution](NOTICE.md), [LICENSE](LICENSE), and [COPYING](COPYING).
-The main source is licensed under GPL-2.0-or-later as stated in `LICENSE`;
-bundled components and skins retain their individual license notices.
+Original notices and contributor history are preserved. See [NOTICE](NOTICE.md)
+for attribution and [LICENSE](LICENSE) for GPL-2.0-or-later terms; bundled
+components retain their own licenses.
