@@ -418,3 +418,7 @@ Open the owned instance in a real browser and verify a connected desktop canvas,
 not just the noVNC page shell. After changing noVNC assets, invalidate the module
 graph cache and verify a previously opened tab reconnects. Never prepend feature
 exports to upstream modules that already declare them.
+
+The interactive launcher waits for Xvfb readiness before starting Openbox,
+x11vnc and the application. Shell background jobs must not bypass this gate;
+a browser connection refusal can mean x11vnc exited before the display existed.

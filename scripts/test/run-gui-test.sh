@@ -94,20 +94,22 @@ docker run -d \
     -v "${REPO_DIR}/scripts/test/audio_stream.py:/audio_stream.py:ro" \
     "${EXTRA_DOCKER_ARGS[@]}" \
     bitedj-gui-test:latest \
-    bash -c "\
-        pulseaudio -D --exit-idle-time=-1 --system=false && \
-        python3 /audio_stream.py >/dev/null 2>&1 & \
-        Xvfb :99 -screen 0 1024x600x24 & \
-        sleep 1 && \
-        DISPLAY=:99 openbox & \
-        x11vnc -display :99 -forever -shared -nopw -bg & \
-        websockify --web /usr/share/novnc 6080 localhost:5900 & \
-        sleep 1 && \
-        DISPLAY=:99 QT_AUTO_SCREEN_SCALE_FACTOR=0 QT_ENABLE_HIGHDPI_SCALING=0 QT_SCALE_FACTOR=1.0 BITEDJ_SETTINGS_PATH=/root/.mixxx /dist-linux/bin/mixxx /music/BiteDJ_Test_Groove_128BPM.wav /music/BiteDJ_Test_Techno_124BPM.wav --resourcePath /dist-linux/share/mixxx/ --full-screen --style Fusion & \
-        sleep 3 && \
-        DISPLAY=:99 wmctrl -r Mixxx -b add,fullscreen 2>/dev/null || true && \
-        tail -f /dev/null \
-    "
+    bash -c '
+        set -e
+        pulseaudio -D --exit-idle-time=-1 --system=false
+        python3 /audio_stream.py >/dev/null 2>&1 &
+        Xvfb :99 -screen 0 1024x600x24 &
+        for attempt in {1..100}; do
+            if DISPLAY=:99 xdpyinfo >/dev/null 2>&1; then break; fi
+            sleep 0.1
+        done
+        DISPLAY=:99 xdpyinfo >/dev/null 2>&1
+        DISPLAY=:99 openbox &
+        x11vnc -display :99 -forever -shared -nopw &
+        websockify --web /usr/share/novnc 6080 localhost:5900 &
+        DISPLAY=:99 QT_AUTO_SCREEN_SCALE_FACTOR=0 QT_ENABLE_HIGHDPI_SCALING=0 QT_SCALE_FACTOR=1.0 BITEDJ_SETTINGS_PATH=/root/.mixxx /dist-linux/bin/mixxx /music/BiteDJ_Test_Groove_128BPM.wav /music/BiteDJ_Test_Techno_124BPM.wav --resourcePath /dist-linux/share/mixxx/ --full-screen --style Fusion &
+        tail -f /dev/null
+    '
 
 printf '%s\n' "${CONTAINER_NAME}" > "${REPO_DIR}/test-config/active-instance"
 WEB_PORT="$(test_host_port 6080)"
