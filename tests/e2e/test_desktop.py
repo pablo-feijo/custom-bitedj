@@ -1,6 +1,7 @@
 """Real desktop + audio smoke tests in a disposable container, with no host ports."""
 
 import array
+from collections import Counter
 import math
 import json
 import sys
@@ -472,6 +473,81 @@ class DesktopE2E(unittest.TestCase):
         restored = select(872, 886)
         for before, after in zip(original, restored):
             self.assertEqual(before, after, "Changing settings must not move or reload the track")
+
+    def test_waveform_rgb_preview_matches_play_colors(self):
+        # Constant tones give both resolutions identical frequency content.
+        # Cover all bands so a stuck green overview cannot pass accidentally.
+        self.verify_owner()
+        def restart(frequency):
+            # Mixxx is PID 1 in this disposable container. Restart the container,
+            # not a second competing app process, after replacing its test tone.
+            command("docker", "stop", "--time", "3", self.container, timeout=30)
+            samples = array.array("h", (int(8000 * math.sin(2 * math.pi * frequency * n / 44100))
+                                       for n in range(44100)))
+            if sys.byteorder != "little":
+                samples.byteswap()
+            with wave.open(str(Path(self.workspace.name) / "tone.wav"), "wb") as track:
+                track.setparams((1, 2, 44100, 0, "NONE", "not compressed"))
+                # Different duration also invalidates the previous analysis cache.
+                for _ in range(180 + frequency // 80):
+                    track.writeframesraw(samples.tobytes())
+            command("docker", "start", self.container)
+            eventually(self.window_ready, timeout=60)
+            eventually(lambda: self.inside(
+                "xdotool", "search", "--onlyvisible", "--name", "^Mixxx$",
+                "windowactivate", "--sync"), timeout=60)
+            def ready():
+                self.click(950, 20)
+                self.assert_selected_tab(4)
+            eventually(ready, timeout=60)
+            eventually(lambda: dominant_color(self.waveform_regions()[1]), timeout=60)
+
+        def dominant_color(pixels):
+            colors = Counter()
+            for offset in range(0, len(pixels), 3):
+                rgb = tuple(pixels[offset:offset + 3])
+                # Exclude background, neutral grid lines and time text.
+                if max(rgb) > 100 and max(rgb) - min(rgb) > 18:
+                    colors[tuple(value // 8 for value in rgb)] += 1
+            self.assertTrue(colors, "No colored waveform pixels")
+            color, count = colors.most_common(1)[0]
+            self.assertGreater(count, 50, "Only marker/overlay pixels were found")
+            return tuple(value * 8 + 4 for value in color)
+
+        def compare():
+            play, preview = map(dominant_color, self.waveform_regions())
+            if palette == 886:
+                expected = (80, 1000, 8000).index(frequency)
+                self.assertEqual(max(range(3), key=lambda channel: play[channel]), expected,
+                                 f"Wrong analyzed tone color: {frequency} Hz, {play}")
+            self.assertLessEqual(max(abs(a - b) for a, b in zip(play, preview)), 40,
+                                 f"RGB colors diverged: Play={play}, bottom={preview}")
+
+        def select(style, palette):
+            self.click(950, 20)
+            self.click(73, 60)
+            self.click(style, 104)
+            self.click(palette, 208)
+            def play_ready():
+                self.click(100, 20)
+                self.assert_selected_tab(0)
+            eventually(play_ready)
+
+        try:
+            for frequency in (80, 1000, 8000):
+                restart(frequency)
+                for palette in (886, 970, 886):
+                    with self.subTest(frequency=frequency, palette=palette):
+                        select(872, palette)
+                        eventually(compare, timeout=30)
+                        for other_style in (928, 984):
+                            select(other_style, palette)
+                            select(872, palette)
+                            eventually(compare)
+                        command("docker", "cp", f"{self.container}:/tmp/waveforms.png",
+                                str(self.artifacts / f"rgb-{frequency}-{palette}.png"))
+        finally:
+            restart(440)
 
     def test_novnc_modules_parse(self):
         # HTTP 200 alone does not prove the browser can execute these modules.

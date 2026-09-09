@@ -234,6 +234,14 @@ Validation on 2026-09-09:
 
 ## Preview and waveform regressions
 
+The desktop `test_waveform_rgb_preview_matches_play_colors` compares the dominant
+waveform color in the Play lane and bottom deck preview using constant bass,
+midrange and treble tones. Both resolutions therefore represent the same frequency
+content. It checks BiteDJ/Amber palette round trips and switching Filtered and
+3 Band back to RGB, rejecting a preview stuck on green. Neutral overlays are excluded and a small
+color tolerance allows for rasterization. This is a color-consistency check, not
+an assertion that an entire music-track summary matches one zoomed-in passage.
+
 `WaveformRenderingTest` checks empty/partial summaries, full-track coordinates,
 transient-preserving downsampling, palette round trips, 3 Band stacking and deck
 loading with stale duration controls. `PreviewDelegateTest` exercises actual
