@@ -44,6 +44,7 @@
 #include "util/db/dbconnectionpooler.h"
 #include "util/sandbox.h"
 #include "util/usbdevice.h"
+#include "preferences/systemsettings.h"
 #include "waveform/waveform.h"
 #include "widget/wlibrary.h"
 #include "widget/wlibrarytextbrowser.h"
@@ -129,6 +130,14 @@ bool createLibraryTable(QSqlDatabase& database, const QString& tableName) {
         return false;
     }
 
+    // Both import and playlist construction resolve every exported track by
+    // this pair. Without the index, a large export requires quadratic scans
+    // while holding the library database's writer lock.
+    if (!query.exec("CREATE INDEX IF NOT EXISTS " + tableName +
+                    "_rb_device ON " + tableName + " (rb_id, device)")) {
+        LOG_FAILED_QUERY(query);
+        return false;
+    }
     return true;
 }
 
@@ -169,6 +178,11 @@ bool createPlaylistTracksTable(QSqlDatabase& database, const QString& tableName)
         return false;
     }
 
+    if (!query.exec("CREATE INDEX IF NOT EXISTS " + tableName +
+                    "_playlist ON " + tableName + " (playlist_id, position)")) {
+        LOG_FAILED_QUERY(query);
+        return false;
+    }
     return true;
 }
 
@@ -227,30 +241,14 @@ QList<TreeItem*> findRekordboxDevices() {
         }
     }
 #elif defined(__LINUX__)
-    // To get devices on Linux, we look for directories under /media and
-    // /run/media/$USER.
     QFileInfoList devices;
-
-    // Add folders under /media to devices.
-    devices += QDir(QStringLiteral("/media")).entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot);
-
-    // The per-user mount roots only make sense when we actually know the
-    // user. When USER is unset (e.g. the appliance session running as PID 1
-    // with no exported USER), "/media/" + user is just "/media" again, so
-    // every device would be enumerated twice and appear as two identical
-    // sidebar entries whose pdb parses race each other. Same guard as
-    // browsefeature's removableDriveRootPaths().
-    const QString user = QString::fromLocal8Bit(qgetenv("USER"));
-    if (!user.isEmpty()) {
-        // Add folders under /media/$USER to devices.
-        QDir mediaUserDir(QStringLiteral("/media/") + user);
-        devices += mediaUserDir.entryInfoList(
-                QDir::AllDirs | QDir::NoDotAndDotDot);
-
-        // Add folders under /run/media/$USER to devices.
-        QDir runMediaUserDir(QStringLiteral("/run/media/") + user);
-        devices += runMediaUserDir.entryInfoList(
-                QDir::AllDirs | QDir::NoDotAndDotDot);
+    // Share the Settings roots, including /mnt and /run/media even when USER
+    // is unset. Discovery already runs off the GUI thread.
+    for (const QString& root : SystemSettings::removableRoots()) {
+        devices += QDir(root).entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot);
+    }
+    for (const auto& mount : SystemSettings::enumerateUsbMounts()) {
+        devices.append(QFileInfo(mount.mountPoint));
     }
 
     // The scan roots can still alias each other (symlinks, bind mounts), so
@@ -504,7 +502,8 @@ void buildPlaylistTree(
         QMap<uint32_t, QMap<uint32_t, uint32_t>>& playlistTreeMap,
         QMap<uint32_t, QMap<uint32_t, uint32_t>>& playlistTrackMap,
         const QString& playlistPath,
-        const QString& device);
+        const QString& device,
+        QSet<uint32_t> ancestors = {});
 
 QString parseDeviceDB(mixxx::DbConnectionPoolPtr dbConnectionPool, TreeItem* deviceItem) {
     QString device = deviceItem->getLabel();
@@ -765,11 +764,18 @@ void buildPlaylistTree(
         QMap<uint32_t, QMap<uint32_t, uint32_t>>& playlistTreeMap,
         QMap<uint32_t, QMap<uint32_t, uint32_t>>& playlistTrackMap,
         const QString& playlistPath,
-        const QString& device) {
-    for (uint32_t childIndex = 0;
-            childIndex < (uint32_t)playlistTreeMap[parentID].size();
-            childIndex++) {
-        uint32_t childID = playlistTreeMap[parentID][childIndex];
+        const QString& device,
+        QSet<uint32_t> ancestors) {
+    if (ancestors.contains(parentID) || ancestors.size() >= 128) {
+        qWarning() << "Skipping cyclic or excessively nested Rekordbox playlist" << parentID;
+        return;
+    }
+    ancestors.insert(parentID);
+    // Sort positions are keys, not dense array indices. operator[] on a gap
+    // inserts a new entry and grows the old loop's bound, potentially billions
+    // of times for a sparse/corrupt export.
+    const auto children = playlistTreeMap.value(parentID);
+    for (uint32_t childID : children) {
         if (childID == 0) {
             continue;
         }
@@ -834,10 +840,10 @@ void buildPlaylistTree(
 
         if (playlistID != kInvalidPlaylistId && playlistTrackMap.contains(childID)) {
             // Add playlist tracks for children
-            for (uint32_t trackIndex = 1; trackIndex <=
-                    static_cast<uint32_t>(playlistTrackMap[childID].size());
-                    trackIndex++) {
-                uint32_t rbTrackID = playlistTrackMap[childID][trackIndex];
+            const auto entries = playlistTrackMap.value(childID);
+            int position = 0;
+            for (uint32_t rbTrackID : entries) {
+                ++position;
 
                 int trackID = -1;
                 QSqlQuery finderQuery(database);
@@ -859,13 +865,13 @@ void buildPlaylistTree(
 
                 queryInsertIntoPlaylistTracks.bindValue(":playlist_id", playlistID);
                 queryInsertIntoPlaylistTracks.bindValue(":track_id", trackID);
-                queryInsertIntoPlaylistTracks.bindValue(":position", static_cast<int>(trackIndex));
+                queryInsertIntoPlaylistTracks.bindValue(":position", position);
 
                 if (!queryInsertIntoPlaylistTracks.exec()) {
                     LOG_FAILED_QUERY(queryInsertIntoPlaylistTracks)
                             << "playlistID:" << playlistID
                             << "trackID:" << trackID
-                            << "trackIndex:" << trackIndex;
+                            << "position:" << position;
                 }
             }
         }
@@ -880,7 +886,8 @@ void buildPlaylistTree(
                     playlistTreeMap,
                     playlistTrackMap,
                     currentPath,
-                    device);
+                    device,
+                    ancestors);
         }
     }
 }

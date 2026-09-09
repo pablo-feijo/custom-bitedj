@@ -40,7 +40,7 @@ See [licensing and distribution notes](docs/LICENSING.md).
 Project and product names identify their respective projects and owners;
 this custom fork does not imply their endorsement.
 
-### Pad FX adaptation (integrated for 0.0.7; unreleased)
+### Pad FX adaptation (integrated for 0.0.7)
 
 The Pad FX settings bridge, private effect lanes, Pad Echo DSP, controller
 helper and regression fixtures adapt xsploit/bitedj revision
@@ -48,7 +48,7 @@ helper and regression fixtures adapt xsploit/bitedj revision
 with a single selected pad; the adapter targets DDJ-400 Normal/Shift MIDI and
 preserves its shadow-note LED addresses. Original GPL licensing applies.
 
-### Display and load-policy adaptation (integrated for 0.0.7; unreleased)
+### Display and load-policy adaptation (integrated for 0.0.7)
 
 Elapsed-time scrolling labels and the shared deck-load policy adapt the same
 pinned xsploit revision. This build retains two decks and defaults to Lock;

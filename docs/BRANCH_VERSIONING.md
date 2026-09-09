@@ -1,19 +1,19 @@
 # Branch bases and binary versioning
 
-## Active unreleased release record
+## Active release record
 
 | Field | Current value |
 | --- | --- |
-| Status | Unreleased, active development |
+| Status | 0.0.7 release preparation; main PR awaits user merge |
 | Target product SemVer | `0.0.7` |
 | Integration branch | `codex/v0.0.7` |
 | Remote | `origin` |
-| Last verified remote tip | `559edc3def` on 2026-09-09 |
+| Release source | `codex/v0.0.7`; resolve the exact tip from Git |
 
 The commit above is an audit record, not a pinned starting point. Fetch the active
 branch before each new task and record the actual resolved commit. Do not start
 from an older release, a stale local integration checkout, or an arbitrary branch
-with a larger version number. The latest **active unreleased** branch is the one
+with a larger version number. The latest **active release** branch is the one
 agreed with the user. When a newer release becomes active, update this table,
 the affected release-specific guides (including screenshot paths and pi-gen
 notes under `.agents/skills/`) together; retain the transition history below.
@@ -23,7 +23,7 @@ This table is the sole active-release record; agent entry points link here.
 
 1. Read this record; inspect the working tree, branches and existing worktrees.
 2. Fetch `origin` and verify the active integration branch still exists and is
-   unreleased. Compare available SemVer branches numerically, not lexicographically.
+   the agreed release target. Compare available SemVer branches numerically, not lexicographically.
    If the record is superseded by an agreed new target, update it before proceeding.
 3. Create a separate `codex/<topic>` feature branch and worktree from the freshly
    fetched remote tip. Preserve other tasks and their uncommitted changes.

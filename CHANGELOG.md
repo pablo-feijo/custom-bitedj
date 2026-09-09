@@ -1,229 +1,68 @@
 # Changelog
 
-<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+Notable changes to Custom Bite DJ, an independent fork of Team Deckshark's
+BiteDJ based on Mixxx. Versions use Semantic Versioning.
 
-Notable changes to Custom BiteDJ are recorded here. Versions use Semantic
-Versioning; commit messages follow Conventional Commits.
-
-## [0.0.7] — Unreleased
-
-- Add compact Move Up, Move Down and Remove controls to the pending Auto DJ
-  queue, with regression coverage for order, duplicate entries and live editing.
-
-- Show a compact green AUTO PLAY ON badge on Play while automatic mixing is active.
-
-- Route BiteDJ Auto Play through visible decks 1/2 even when inherited mixer
-  settings assign them to the center. Cover this physical-Pi regression in native
-  and desktop tests; preserve other skins’ deck routing.
-
-- Confirm queue additions with added/pending track counts; explain empty
-  selections and unsupported views. Add View Queue, rename the whole-list
-  action Queue All, and expose saved playlists under Folders when present.
-  Cover saved-playlist queuing and visible feedback in desktop tests.
-
-- Auto Play mixes both loaded decks automatically when its queue is empty.
-  Explain how to load decks or queue tracks when neither source is available. Starting the last
-  queued track now routes the crossfader to its deck, preventing silent playback.
-  Add native and desktop/audio regressions for queue controls and empty queues.
-
-- Add compact Browse controls for selected-track queuing, whole-playlist queuing
-  and Auto Play on/off using the existing Auto DJ engine. Its queue appears in
-  the folder tree only when nonempty or running; tapping its label opens it.
-  The toolbar is 32px high; extra Auto DJ options appear only while Auto Play
-  is on. See [Browse](docs/UI_SCREENSHOTS.md#browse-preview).
-
-- Reduce the overview time ruler to 8px with 6px labels, preserving waveform
-  height and seek controls ([Play](docs/UI_SCREENSHOTS.md#play)).
-- Focus the System version footer on Custom Bite DJ and its full version, with
-  direct upstream BiteDJ and Mixxx reference links.
-- Refine the [Info dashboard](docs/UI_SCREENSHOTS.md#settings-info) with a tappable
-  local clock and date, region/city timezone selection with a live preview,
-  calendar date editing and automatic network time.
-  [System settings](docs/UI_SCREENSHOTS.md#settings-system) adds Raspberry Pi
-  overclock editing, firmware defaults, a recovery backup, and separate confirmed
-  actions to restart BiteDJ, restart the system or power off. Clock and boot
-  settings use noninteractive sudo when needed, keeping the GUI and library
-  under the normal user account.
-
-- Add a [Grid page](docs/UI_SCREENSHOTS.md#grid) with per-deck earlier, set-here, later and slower/faster BPM controls, a waveform editing state and compact right-panel tabs.
-
-UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
-[Browse with previews](docs/UI_SCREENSHOTS.md#browse-preview), and
-[all Settings screens](docs/UI_SCREENSHOTS.md#settings-general).
-
-### Fixed
-
-- Keep cached native waveform colors when loading Rekordbox tracks, so library
-  previews and [Play overviews](docs/UI_SCREENSHOTS.md#play) do not change from
-  red/pink to green/yellow. Import exported bands on the background worker only
-  when the native cache is missing; cover source selection and RGB consistency.
-
-- Clarify the [Key panel](docs/UI_SCREENSHOTS.md#grid-key-controls) with compact
-  deck sections and semitone labels; align key/BPM badges in the
-  [Settings deck previews](docs/UI_SCREENSHOTS.md#settings-general).
-
-- Bottom [performance pads](docs/UI_SCREENSHOTS.md#controller-pad-drawer) now
-  respond to touch in Pad FX, Beat Jump and Beat Loop, without a controller.
-  Shared FX ownership preserves overlapping MIDI/touch holds and safe release.
-  Pad FX 2 now opens its second saved bank through controller selection or touch
-  navigation, with the displayed assignments matching the active page.
-
-- DDJ-400 Shift + jog aligns the beatgrid without seeking/scratching; jog release
-  resumes playing decks immediately. Shift + Browse retains linked zoom.
-- Beat FX period and ON/OFF controls follow the focused effect; either Shift
-  disables all three slots. Next/previous preset selection is retained.
-
-- [Browse](docs/UI_SCREENSHOTS.md#browse-preview) uses a clean 18px table header
-  with vertically centered 9px labels and compact 28px folder rows, tighter
-  indentation, orange source icons and a blue selection highlight. Prepare appears
-  only when its queue contains tracks, including a restored queue.
-- Beat FX selection stays inside the right panel in two columns with seven compact
-  rows per page, 10px labels, and smaller action icons ([picker preview](docs/UI_SCREENSHOTS.md#beat-fx-picker)).
-
-- Compact the FX controls so Echo’s parameter options fit together, with smaller routing, Beat and state buttons and a larger parameter area. See the [FX gallery](docs/UI_SCREENSHOTS.md#fx-controls).
-
-- FX now hides unsupported Beat values, unloaded controls and unassigned Super
-  knobs. Presets requiring missing backends are hidden and skipped by controller
-  navigation without deleting saved files. Minimum delay/Phaser periods now use
-  the native quantizer's minimum value.
-
-- Restore separate Previous/Next touch buttons and the read-only pad mode label
-  while preserving the fixed drawer height ([drawer preview](docs/UI_SCREENSHOTS.md#controller-pad-drawer)).
-- Keep the pad drawer height stable while switching modes by touch, preventing
-  intermediate bank visibility updates from flashing or shifting the layout.
-
-- noVNC preview startup: repair malformed and duplicate WebCodecs exports in fresh and cached GUI images.
+## [0.0.7] — 2026-09-09
 
 ### Added
 
-- Active-loop jog rotation halves/doubles the loop in measured steps; Shift + jog
-  continues to align the beatgrid.
-
-- Service Deck preferences offer jog-wheel smoothing (default 6, range 1–64),
-  persisted as `JogWheelFilterLength` and applied live
-  ([service preferences preview](docs/UI_SCREENSHOTS.md#service-decks)).
-
-- DDJ-400: three Shift presses within 1.2 seconds on either side close the pad
-  drawer and restore the bottom waveform previews.
-
-- Grid controls for each deck, with 350ms hold delay and 80ms repeat for grid
-  shifts and BPM edits; Set applies once. Key adds harmonic Match beside Reset
-  ([Grid and Key previews](docs/UI_SCREENSHOTS.md#grid-key-controls)).
-- Scrollable FX parameters and supported Beat period buttons shared with the
-  controller. Pad-mode labels use a smaller 12px font.
-
-- Two-column, paged Beat FX picker with large touch targets and separate Standard
-  and Saved sections ([picker preview](docs/UI_SCREENSHOTS.md#beat-fx-picker)).
-- The 25 Rekordbox 7 single-mode standard names using documented native
-  approximations; versioned factory updates preserve saved/legacy presets
-  ([implementation differences](docs/BEAT_FX.md)).
-
-- Use the cue drawer Previous/Next buttons to cycle Hot Cues, Memory, Beat Jump, Pad FX and Beat Loop independently per deck.
-
-- Controller-selected Pad FX, Beat Jump and Beat Loop legends in the cue drawer,
-  independently for each deck. See [controller drawer screenshots](docs/UI_SCREENSHOTS.md#controller-pad-drawer).
-
-- System-owned Pad FX presets and a compact eight-pad Settings editor, with
-  independent effect lanes and DDJ-400 Normal/Shift banks
-  ([Pad FX preview](docs/UI_SCREENSHOTS.md#settings-pad-fx)).
-- Configurable Lock / Fader / Stop / Live track replacement behavior
-  ([General preview](docs/UI_SCREENSHOTS.md#settings-general)).
-- Validated Rekordbox PWV6/PWV7 waveform and PSSI phrase import, with native
-  analysis fallback and phrase alignment after beatgrid edits.
-- Persisted phrase visibility, a saved Prepare queue, and optional return to
-  Play after a successful main-deck load from Browse.
-
-- Deck source indicators for USB volumes, local files and removed media, plus a
-  compact ON badge tied to playback and main-output routing.
-- A JUMP panel with per-deck beat-jump controls and linked waveform zoom/reset.
-- Independent elapsed/remaining time selection and scrolling long track titles.
-- Settings → INFO with audio load, CPU usage, temperature, clock and output status
-  ([Info preview](docs/UI_SCREENSHOTS.md#settings-info)).
-- Deck drop-target highlighting with matching drop geometry and Escape cancellation.
-- Sparse minute rulers and an optional blue/amber/cream waveform palette.
+- Per-deck Grid editing, harmonic Key Match/Reset, beat-jump controls and linked
+  waveform zoom. Grid shift/BPM buttons support press-and-hold repetition.
+- A touch performance drawer for Hot Cues, Memory, Pad FX, Beat Jump and Beat
+  Loop, with independent deck pages and DDJ-400 mode synchronization.
+- System-owned Pad FX presets, an eight-pad editor, independent effect lanes,
+  and saved Normal/Shift banks.
+- A paged Standard/Saved Beat FX picker with 25 named native approximations,
+  focused parameter controls and controller navigation.
+- Saved Prepare and Auto DJ queues; Queue All, addition feedback, Move Up,
+  Move Down and Remove; visible-deck Auto Play with a Play-page status badge.
+- Lock/Fader/Stop/Live track replacement policies and optional return to Play
+  after loading from Browse.
+- Rekordbox PWV6/PWV7 waveforms and PSSI phrase import, native analysis fallback,
+  persisted phrase visibility and phrase alignment after beatgrid edits.
+- USB/local/missing-media deck indicators, playback/output badges, scrolling
+  titles, independent elapsed/remaining time, colored cues and waveform palettes.
+- Touch clock/date editing, automatic network time, Raspberry Pi overclock
+  settings with defaults/recovery, and confirmed app restart/reboot/power actions.
+- An Info dashboard for audio load, CPU, temperature, clock and output status.
+- Configurable jog smoothing and triple-Shift return to waveform previews.
 
 ### Changed
 
-- Distinguish legacy Color Filter and Rhythmic Filter labels, give new Ping Pong
-  stereo feedback, and replace duplicate Roll configurations with distinct,
-  explicitly documented approximations. Standard presets activate all components
-  together and select Off ([Play preview](docs/UI_SCREENSHOTS.md#play)).
-- Beat buttons and DDJ-400 BEAT controls now use periods consistently for Echo
-  and Tremolo; the displayed selection follows native range clamping.
-
-- Include the user-approved pi-gen boot overrides (`over_voltage=6`,
-  `arm_freq=2000`, `gpu_freq=750`) in the pinned 0.0.7 image generator; preserve
-  the local library visibility and compact-row settings in its reference profile.
-
-- Reduced top-menu height and button size, with wider gaps between buttons.
-- Simplified deck metadata and aligned FX, KEY and JUMP controls
-  ([Play preview](docs/UI_SCREENSHOTS.md#play)).
-- Compacted the Browse table, headers and breadcrumb to leave more room for tracks
-  ([Browse preview](docs/UI_SCREENSHOTS.md#browse-preview)).
-- Keep overview waveforms at 38px, with 9px rulers and discreet 10px phrase strips.
-- Place PAD FX third in Settings and group General options for the 1024×600 screen.
-- Use compact colored hot-cue letters and memory-cue numbers in previews;
-  retain full names in Play. The orange main CUE marker takes visual priority
-  over overlapping hot cues, memory cues, playheads and countdowns.
-- Align application and image-generator working versions at 0.0.7 and pin the
-  image generator's semver merge commit in the parent repository.
-- Adopt the Custom Bite DJ identity with concise upstream credits.
+- Compact the 1024×600 Play, Browse, FX and Settings layouts; retain Day/Night
+  modes and publish the [UI gallery](docs/UI_SCREENSHOTS.md).
+- Keep high-detail waveform rendering opt-in. Use compact preview rulers,
+  colored hot-cue/memory labels and a main CUE marker above overlapping markers.
+- Share supported Beat periods and focused FX state across touch and DDJ-400
+  controls; distinguish Color/Rhythmic Filter and document preset approximations.
+- Build the pinned ARM64 Raspberry Pi OS image on Debian 13 Trixie, using the
+  matching application and resources. Preserve the approved 0.0.7 boot overrides.
+- Add verified binary/image versions and source provenance, incremental Docker
+  builds, layered tests, semver desktop CI and isolated test instances.
+- Organize build/deploy/test tools and native agent skills; clarify independent
+  fork identity, upstream attribution and component licensing.
 
 ### Fixed
 
-- Browse previews load cached summaries in the background and retain correct
-  track positions during analysis. Their bounded cache refreshes on completion,
-  replacement and settings changes; repainting no longer imports track metadata
-  or reads/decompresses full waveform files ([Browse](docs/UI_SCREENSHOTS.md#browse-preview)).
-- Deck overviews use the new track's summary dimensions during loading and reset
-  incremental/scaled images together. Waveform type and palette changes refresh
-  Browse, Play and bottom deck previews without a full skin rebuild
-  ([Play](docs/UI_SCREENSHOTS.md#play)).
-- Touch drawer modes have separate previous/next buttons, a 44px header and
-  balanced edge/row padding ([drawer](docs/UI_SCREENSHOTS.md#controller-pad-drawer)).
-
-- DDJ-400 BEAT FX SELECT now moves backward while either deck's Shift is held,
-  including when the normal SELECT MIDI note is sent. Preserve the dedicated
-  shifted note and native preset-list navigation; see the [mapping guide](docs/DDJ400_MAPPING.md#effect-selection).
-
-- Phrase visibility now toggles both paused bottom previews immediately.
-- Stronger colored preview cue lines remain visible above waveform shading.
-- Effect enable/disable reaches the engine; library layout persistence and
-  sorted selection survive updates; Rekordbox page traversal tolerates bad data.
-
-- Clipped lower waveforms and stacked rendering outside the image boundary.
-- 3 BAND preview colors, band order and baseline now match the main waveform's
-  band mapping; full-range stereo sums fit without clipping tall peaks.
-- Palette selection now applies through a deferred skin reload.
-- Scrolling title foreground remains readable in the dark skin.
-- Drops outside a visible deck no longer load a track into an unintended deck.
-
-### Documentation and validation
-
-- Clarify the independent fork identity, upstream authorship and component
-  licensing in the README, COPYING, NOTICE and [licensing notes](docs/LICENSING.md).
-  Remove automatic upstream issue assignment and official-effect wording.
-
-- Organize helper scripts under `scripts/build/`, `scripts/deploy/`, `scripts/test/`
-  and `scripts/legacy/`, and Docker recipes under `docker/`. Update callers and
-  documentation; scripts keep outputs anchored to their worktree from any cwd.
-  See the [repository layout and agent placement rules](docs/REPOSITORY_LAYOUT.md).
-
-- Publish a [1024×600 UI gallery](docs/UI_SCREENSHOTS.md) with Play, Browse
-  waveform previews and all seven Settings tabs, plus README previews.
-- Require agents to refresh affected publication images and link their gallery
-  sections from UI changelog entries in the same commit; preserve released galleries.
-
-- Keep UI control/position maps and agent guides synchronized. Feature branches
-  have independent worktrees, builds, settings and ARM64 VNC instances.
-- Retain synthetic Rekordbox and MIDI/audio fixture generators and reproduction
-  procedures; exclude generated media, raw test screenshots, logs and test reports.
-  Curated documentation images are tracked under `docs/images/ui/`.
-- Native checks cover import, alignment, cue marks, loading and queue persistence;
-  visual procedures cover two decks, overlapping cues, phrases and Day/Night.
-- Sustained audio validation remains open because the virtual test device logged
-  underruns. Physical Pi, touch, thermal and direct-sunlight checks remain separate.
-- Integrate application and image-generator feature branches into `codex/v0.0.7`
-  with explicit merge commits. No release tag, published image or flash is included.
-
-For earlier changes, see [the differences ledger](docs/DIFFS_FROM_BASE.md).
+- Keep removable discovery and folder enumeration off the GUI thread. Batch
+  large folders, bound queued rows, cancel stale scans and preserve saved BPM/key
+  without importing every painted or sorted row into the internal library.
+- Share Linux removable roots across Settings, Browse and Rekordbox. Read kernel
+  mount metadata without waiting for a slow drive's filesystem statistics.
+- Index Rekordbox track/playlist lookups and handle sparse, cyclic or deeply
+  nested playlists without unbounded traversal.
+- Load waveform summaries in the background, bound preview caches and preserve
+  native cached colors when loading Rekordbox tracks. Refresh paused previews
+  after palette, phrase and waveform changes; correct band mapping and clipping.
+- Preserve touch/MIDI Pad FX ownership across overlapping holds, synchronize the
+  second bank, and prevent drawer layout shifts and hidden-control interaction.
+- Keep Shift+jog on beatgrid editing, resume playing decks on jog release, and
+  halve/double active loops in measured steps. Preserve shifted FX selection.
+- Route Auto Play through visible decks 1/2, preserve duplicate queue entries
+  and ordering, and leave playback running when Auto Play is disabled.
+- Preserve sorted library selection and layouts; align Wayland drag/drop targets
+  and reject drops outside visible decks.
+- Repair fresh/cached noVNC modules and retry desktop startup activation.
+- Select the documented MP3 silence reference for the actual libmad arithmetic
+  backend in native tests.

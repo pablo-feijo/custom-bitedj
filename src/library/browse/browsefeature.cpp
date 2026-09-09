@@ -1,4 +1,7 @@
 #include "library/browse/browsefeature.h"
+#include "preferences/systemsettings.h"
+#include <QFutureWatcher>
+#include <QtConcurrentRun>
 
 #include <QAction>
 #include <QFileInfo>
@@ -29,19 +32,7 @@ const ConfigKey kQuickLinksCfgKey = ConfigKey("[Browse]", "QuickLinks");
 
 #if defined(__LINUX__)
 const QStringList removableDriveRootPaths() {
-    QStringList paths;
-    paths.append(QStringLiteral("/media"));
-    // The per-user mount roots only make sense when we actually know the user.
-    // When USER is unset (e.g. running as a systemd service / root with no
-    // exported USER, as on the appliance) these would expand to "/media/" and
-    // "/run/media/" -- and "/media/" is just "/media" again, so every device
-    // under /media would get enumerated twice and appear duplicated in the
-    // sidebar. Only add them when USER is non-empty.
-    const QString user = QString::fromLocal8Bit(qgetenv("USER"));
-    if (!user.isEmpty()) {
-        paths.append(QStringLiteral("/media/") + user);
-        paths.append(QStringLiteral("/run/media/") + user);
-    }
+    const QStringList paths = SystemSettings::removableRoots();
     return paths;
 }
 #endif
@@ -317,6 +308,10 @@ void BrowseFeature::activateChild(const QModelIndex& index) {
         // Clear the tracks view
         m_browseModel.setPath({});
     } else {
+#if defined(__LINUX__)
+        emit saveModelState();
+        m_browseModel.setPathLocation(path);
+#else
         // Open a security token for this path and if we do not have access, ask
         // for it.
         auto dirInfo = mixxx::FileInfo(path);
@@ -332,6 +327,7 @@ void BrowseFeature::activateChild(const QModelIndex& index) {
         }
         emit saveModelState();
         m_browseModel.setPath(std::move(dirAccess));
+#endif
     }
     emit showTrackModel(&m_proxyModel);
     // Search is restored in Library::slotShowTrackModel, disable it where it's useless
@@ -478,33 +474,41 @@ void BrowseFeature::onLazyChildExpandation(const QModelIndex& index) {
         return;
     }
 
+    if (m_pendingExpansions.contains(path)) {
+        return;
+    }
+#if defined(__LINUX__)
+    if (path == DEVICE_NODE) {
+        m_pSidebarModel->removeChildDirsFromCache(removableDriveRootPaths());
+    }
+#endif
     // Before we populate the subtree, we need to delete old subtrees
     m_pSidebarModel->removeRows(0, pItem->childRows(), idx);
 
-    // List of subfolders or drive letters
-    std::vector<std::unique_ptr<TreeItem>> folders;
-
-    // If we are on the special device node
-    if (path == DEVICE_NODE) {
-#if defined(__LINUX__)
-        // Tell the model to remove the cached 'hasChildren' states of all sub-
-        // directories when we expand the Device node.
-        // This ensures we show the real dir tree. This is relevant when devices
-        // were unmounted, changed and mounted again.
-        m_pSidebarModel->removeChildDirsFromCache(removableDriveRootPaths());
-#endif
-        folders = createRemovableDevices();
-    } else {
-        folders = getChildDirectoryItems(path);
-    }
-
-    if (!folders.empty()) {
-        m_pSidebarModel->insertTreeItemRows(std::move(folders), 0, idx);
-    }
+    // Filesystem enumeration can block for seconds on a damaged drive. Keep
+    // the model on the GUI thread and discard results for replaced tree rows.
+    m_pendingExpansions.insert(path);
+    using Items = std::shared_ptr<std::vector<std::unique_ptr<TreeItem>>>;
+    auto* watcher = new QFutureWatcher<Items>(this);
+    connect(watcher, &QFutureWatcher<Items>::finished, this, [this, watcher, idx, path]() {
+        const auto folders = watcher->result();
+        watcher->deleteLater();
+        m_pendingExpansions.remove(path);
+        if (!idx.isValid()) {
+            return;
+        }
+        if (!folders->empty()) {
+            m_pSidebarModel->insertTreeItemRows(std::move(*folders), 0, idx);
+        }
+    });
+    watcher->setFuture(QtConcurrent::run([path]() {
+        return std::make_shared<std::vector<std::unique_ptr<TreeItem>>>(
+                path == DEVICE_NODE ? createRemovableDevices() : getChildDirectoryItems(path));
+    }));
 }
 
 std::vector<std::unique_ptr<TreeItem>> BrowseFeature::getChildDirectoryItems(
-        const QString& path) const {
+        const QString& path) {
     std::vector<std::unique_ptr<TreeItem>> items;
 
     if (path.isEmpty()) {

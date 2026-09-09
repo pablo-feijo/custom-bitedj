@@ -215,3 +215,8 @@ work with Auto Play on or off and use the existing playlist model, including its
 next-track reload signal. Removing entries preserves the source playlist and file.
 The desktop regression checks entry IDs/order, duplicates, boundaries, live
 playback, and deleting the final pending entry.
+
+Browse directory expansion is asynchronous. An expand arrow may remain visible
+while a worker checks for subfolders; existing tap and drag targets are unchanged.
+Large folders populate in bounded batches and replacing the folder discards old
+results. See the large removable libraries checks in GUI_TESTING.md.

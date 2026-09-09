@@ -77,3 +77,32 @@ The main `cue_point` is shown as an orange **CUE** marker in both bottom preview
 At overlapping positions, the orange main **CUE** line and label paint last, above hot cues and memory cues. Keep the CUE label unabridged; cue metadata and existing edit targets are unchanged. Test exact overlaps with a hot cue and a memory cue separately.
 
 To reproduce exact overlap checks, pause Deck 1, click hot cue A in its overview, then press the deck CUE button to set the main cue at 4.1 seconds. On Deck 2, click memory 1 and press CUE to set it at 8.1 seconds. Confirm the orange CUE marker stays above both markers in the previews, then toggle phrases and Day/Night. Use only the generated fixture tracks for these edits.
+
+## Large-library regression
+
+Generate a new synthetic export with 10,000 tiny PCM files and deliberately
+sparse playlist/folder sort positions:
+
+```sh
+python3 tests/rekordbox/make_large_fixture.py test-results/LargeRekordbox --tracks 10000
+BITEDJ_TEST_USB_DIR="$PWD/test-results/LargeRekordbox" ./scripts/test/run-gui-test.sh
+```
+
+The generator refuses an existing output directory. Verify 10,000 device tracks,
+one Stress Folder containing Stress Playlist, and 10,000 ordered playlist links.
+Check `EXPLAIN QUERY PLAN` for `(rb_id, device)` lookups using the composite index.
+Open Contents, sort BPM/key, change folders while loading, and switch tabs during
+population. Painting/sorting must not add these files to the internal library.
+Native BrowseThread tests also hold a WAL writer transaction while the worker
+reads saved BPM/key and exercise a 1,000-track batch import without a per-file delay.
+
+For conservative USB 2.0-era slow-media checks, compile the Linux-only test
+interposer `tests/e2e/slow-storage.c` with the ARM64 builder (`cc -shared -fPIC
+-O2 ... -o slow-storage.so -ldl`) and copy it into the owned GUI container.
+Restart only that instance's Mixxx with `LD_PRELOAD=/tmp/slow-storage.so` and
+`BITEDJ_SLOW_STORAGE_ROOT=/media/TestUSB`. The shim leaves data unchanged but
+adds 2 ms per read/stat operation plus transfer time at 8 MiB/s. Verify its
+operation counter in stderr, all 10,000 Rekordbox tracks and playlist links,
+tab response while browsing Contents, and cancellation when changing folders.
+This checks application behavior under slow I/O, not USB electrical/power,
+controller, cable or drive compatibility; those still need physical hardware.

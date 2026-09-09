@@ -61,7 +61,8 @@ class BrowseFeature : public LibraryFeature {
     QString getRootViewHtml() const;
     QString extractNameFromPath(const QString& spath);
     QStringList getDefaultQuickLinks() const;
-    std::vector<std::unique_ptr<TreeItem>> getChildDirectoryItems(const QString& path) const;
+    static std::vector<std::unique_ptr<TreeItem>> getChildDirectoryItems(const QString& path);
+    QSet<QString> m_pendingExpansions;
     void saveQuickLinks();
     void loadQuickLinks();
     QString getLastRightClickedPath() const;

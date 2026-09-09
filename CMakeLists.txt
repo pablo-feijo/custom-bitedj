@@ -103,7 +103,7 @@ set(MIXXX_VERSION_PRERELEASE "") # set to "alpha" "beta" or ""
 # reported by `bitedj --version`; it moves independently of the Mixxx base
 # version above.
 set(BITEDJ_VERSION "0.0.7")
-set(BITEDJ_VERSION_PRERELEASE "codex-system-dashboard.10")
+set(BITEDJ_VERSION_PRERELEASE "")
 if(NOT BITEDJ_VERSION MATCHES "^[0-9]+(\\.[0-9]+)*$")
   message(FATAL_ERROR "BITEDJ_VERSION must be a dot-separated numeric version, got '${BITEDJ_VERSION}'")
 endif()
@@ -1580,6 +1580,7 @@ if(BUILD_TESTING)
     src/test/eqmode_test.cpp
     src/test/fileinfo_test.cpp
     src/test/foldertreemodel_test.cpp
+    src/test/browsethread_test.cpp
     src/test/frametest.cpp
     src/test/fscueoverridestore_test.cpp
     src/test/fshistorystore_test.cpp

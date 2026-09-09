@@ -9,7 +9,8 @@ Report fork-specific issues [here](https://github.com/pablo-feijo/custom-bitedj/
 
 A two-deck DJ appliance for Raspberry Pi, with a **1024×600 touchscreen**,
 USB-centered music browsing, and a custom **Pioneer DDJ-400** workflow.
-The working integration branch is **`codex/v0.0.7`**.
+Release **0.0.7** is prepared on **`codex/v0.0.7`**; its PR to `main` is reviewed and merged separately.
+See the [release notes](docs/RELEASE_0.0.7.md).
 
 ## Interface previews
 
@@ -23,7 +24,7 @@ The working integration branch is **`codex/v0.0.7`**.
 
 See [all seven Settings screens](docs/UI_SCREENSHOTS.md#settings-general)
 in the [0.0.7 UI gallery](docs/UI_SCREENSHOTS.md) and the
-[corresponding changelog](CHANGELOG.md#007--unreleased).
+[corresponding changelog](CHANGELOG.md#007--2026-09-09).
 
 ## Features
 

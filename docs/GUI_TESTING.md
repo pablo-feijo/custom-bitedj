@@ -769,3 +769,18 @@ work with Auto Play on or off and use the existing playlist model, including its
 next-track reload signal. Removing entries preserves the source playlist and file.
 The desktop regression checks entry IDs/order, duplicates, boundaries, live
 playback, and deleting the final pending entry.
+
+### Large removable libraries
+
+Drive enumeration on Linux reads the process mount table without probing the
+filesystem. Settings, Browse and Rekordbox share `/media`, `/run/media` and
+`/mnt` roots. Folder expansion and child-directory checks run asynchronously;
+the expand arrow may appear briefly while its directory is checked. Existing
+touch targets and saved controls are unchanged.
+
+Folder rows arrive in batches of up to 100 with at most four batches queued.
+Changing folders discards stale batches. Verify a 1,000-track synthetic folder,
+rapid folder changes, BPM/key sorting without implicit track imports, and
+Rekordbox playlist selection after a large export. A noisy drive or kernel
+read/reset errors require stopping media tests; application changes cannot
+repair unreadable hardware.

@@ -38,6 +38,8 @@
 #include "recording/recordingmanager.h"
 #include "track/track.h"
 #include "util/usbdevice.h"
+#include "util/removablemounts.h"
+#include <algorithm>
 
 namespace {
 const QString kGroup = QStringLiteral("[System]");
@@ -370,6 +372,19 @@ bool SystemSettings::isOnRemovableMedia(const QString& path) {
 
 QList<SystemSettings::UsbMount> SystemSettings::enumerateUsbMounts() {
     QList<UsbMount> mounts;
+#if defined(__LINUX__)
+    QFile mountInfo(QStringLiteral("/proc/self/mountinfo"));
+    if (mountInfo.open(QIODevice::ReadOnly)) {
+        for (const auto& mount : mixxx::parseRemovableMounts(
+                     mountInfo.readAll(), removableRoots())) {
+            mounts.append({mount.device, mount.mountPoint});
+        }
+    }
+    std::sort(mounts.begin(), mounts.end(), [](const UsbMount& a, const UsbMount& b) {
+        return a.mountPoint < b.mountPoint;
+    });
+    return mounts;
+#else
     QSet<QString> seen;
 
     // Scan directories under the removable-media roots and keep the ones that
@@ -404,6 +419,7 @@ QList<SystemSettings::UsbMount> SystemSettings::enumerateUsbMounts() {
         }
     }
     return mounts;
+#endif
 }
 
 QStringList SystemSettings::usbMountPoints() {

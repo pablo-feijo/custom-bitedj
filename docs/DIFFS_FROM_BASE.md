@@ -6,6 +6,15 @@ This document tracks all divergences from upstream Mixxx, specifically formatted
 1. **Base BiteDJ (v1.0-1)**: [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), the foundational fork that optimized Mixxx for standalone hardware, focusing on audio path resilience, USB stability, and SQLite threading.
 2. **Custom BiteDJ (v0.0.6)**: Our tailored branch built on top of Base BiteDJ, specifically engineered for native Wayland integration, screen rotation persistence, DRM hardware cursor workarounds, touchscreen drag-and-drop, and club-ready DDJ-400 mappings.
 
+## 0.0.7 removable-library resilience
+
+Linux Settings reads kernel mount metadata; Browse enumerates folders and reads
+metadata on workers. Row batches have a bounded queue and generation-based
+cancellation. Sorting/painting does not import every track. Rekordbox imports use
+composite indexes and bounded traversal of sparse/cyclic playlist trees. See
+[large-library regression checks](../tests/rekordbox/README.md#large-library-regression)
+and the [release notes](RELEASE_0.0.7.md).
+
 ## Selected PiFlex adaptations
 
 Working branch `codex/xsploit-readme-feature-map`, intended target `codex/v0.0.7`.

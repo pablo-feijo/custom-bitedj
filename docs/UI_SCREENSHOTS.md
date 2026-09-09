@@ -12,7 +12,7 @@ Synthetic **1024×600** captures in Night and Day mode. The main preview is
 [Capture provenance](images/ui/0.0.7/semver-capture-provenance.json) records
 binary and image hashes.
 
-See the [0.0.7 changelog](../CHANGELOG.md#007--unreleased) for the changes behind
+See the [0.0.7 changelog](../CHANGELOG.md#007--2026-09-09) for the changes behind
 these screens, or [return to the README](../README.md).
 
 [Grid](#grid) | [Drawer](#controller-pad-drawer) | [Play](#play) | [Beat FX picker](#beat-fx-picker) | [Browse with previews](#browse-preview) | [General](#settings-general) | [Library](#settings-library) | [Pad FX](#settings-pad-fx) | [Device](#settings-device) | [Audio](#settings-audio) | [System](#settings-system) | [Info](#settings-info)
@@ -282,3 +282,14 @@ are stored here. Preserve this gallery once 0.0.7 is released.
 Advanced Settings → Decks adds **Jog-wheel smoothing** after Clone deck.
 Default 6; range 1–64 audio callbacks. Lower values respond faster; larger values
 smooth pitch-bend movement. Apply changes both decks live. Available in the service preferences window.
+
+## Large removable libraries
+
+A synthetic 10,000-track Rekordbox export opens its ordered Stress Playlist.
+Folder enumeration and metadata reads run in the background; incoming rows are
+batched and bounded so slower storage leaves navigation available.
+Capture: `0.0.7-codex-drive-library-audit.2`
+([provenance](images/ui/0.0.7/large-library-capture-provenance.json)).
+[Reproduction and slow-I/O checks](../tests/rekordbox/README.md#large-library-regression).
+
+![Synthetic 10,000-track Rekordbox playlist](images/ui/0.0.7/large-library.png)
