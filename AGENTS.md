@@ -32,6 +32,8 @@ architecture, versioning, branch isolation, testing and Conventional Commits rul
 
 ## UI Layout
 - Overview Panel: Keep **FX**, **KEY**, and **JUMP** tabs. Beat-jump size and actions belong in JUMP, not the left waveform sidebar.
+- This build targets two decks. Keep Deck 1/2 UI and controller routing; do not
+  import four-deck layouts or controls from the reviewed fork.
 - Do not attempt to add `PADS` or `CFX` tabs back to the native `WidgetStack` in `effects.xml`.
 - Effect times (e.g., Roll lengths 1/8, 1/4, 1/2, 1) are mapped natively through the skin's Beats parameter grid (which appears automatically for `_units == 1` Beats-typed parameters).
 
