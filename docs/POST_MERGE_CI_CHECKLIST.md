@@ -38,6 +38,10 @@
 - [x] Logs confirm four compiler workers. Native compilation took 26m 36s with
   939 compiler-cache misses; compiler, binary and runtime caches were all saved.
 - [x] The original Docker builder-image mismatch is resolved by successful E2E.
-- [ ] This documentation-only follow-up must restore the exact binary/runtime
-  caches, skip both compilation commands and pass all test layers. Its CI run
-  is the warm validation; record the final URL and timing in the task result.
+- [x] [Warm validation run 34350706794](https://github.com/pablo-feijo/custom-bitedj/actions/runs/34350706794)
+  for `931411065c` passed every test layer with exact binary and runtime cache
+  hits. Both compilation commands were skipped; original binary provenance was
+  preserved. Total time fell from 36m 42s to 5m 42s (about 84% faster).
+- [x] Implementation and validation are complete. Temporary test files, tooling
+  downloads and task worktrees are retired at closeout. Preserve other tasks and
+  their previews; retain the original task history only as a recovery ref.
