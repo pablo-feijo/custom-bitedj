@@ -1491,7 +1491,11 @@ bool WOverview::drawNextPixmapPart() {
     //  << "completionIncrement:" << completionIncrement;
 
     QPainter painter(&m_waveformSourceImage);
-    painter.translate(0.0, static_cast<double>(m_waveformSourceImage.height()) / 2.0);
+    // Symmetric renderers draw around zero. Stacked rendering already uses
+    // absolute image coordinates measured upward from its bottom edge.
+    if (m_type != Type::Stacked) {
+        painter.translate(0.0, static_cast<double>(m_waveformSourceImage.height()) / 2.0);
+    }
 
     if (m_type == Type::Filtered) {
         drawNextPixmapPartLMH(&painter, pWaveform, nextCompletion);

@@ -1,6 +1,6 @@
 <Template>
   <WidgetGroup>
-    <ObjectName>Deck</ObjectName>
+    <ObjectName>DeckDropTarget<Variable name="channel"/></ObjectName>
     <Layout>vertical</Layout>
     <SizePolicy>i,me</SizePolicy>
     <Children>
@@ -119,10 +119,11 @@
               </WidgetGroup>
               <TrackProperty>
                 <ObjectName>DeckTitle</ObjectName>
+                <FgColor>#cccccc</FgColor>
                 <TooltipId>track_title</TooltipId>
                 <SizePolicy>e,me</SizePolicy>
                 <Property>title</Property>
-                <Elide>right</Elide>
+                <Elide>scroll</Elide>
                 <Channel><Variable name="channel"/></Channel>
               </TrackProperty>
               <TrackProperty>
@@ -229,7 +230,7 @@
                 <State><Number>0</Number></State>
                 <State><Number>1</Number></State>
                 <Connection>
-                  <ConfigKey>[Controls],ShowDurationRemaining</ConfigKey>
+                  <ConfigKey>[Skin],deck<Variable name="channel"/>_time_mode</ConfigKey>
                   <EmitOnDownPress>true</EmitOnDownPress>
                   <ButtonState>LeftButton</ButtonState>
                 </Connection>
@@ -285,13 +286,14 @@
                       <SizeAwareStack>
                         <Children>
                           <NumberPos>
+                            <ModeConfigKey>[Skin],deck<Variable name="channel"/>_time_mode</ModeConfigKey>
                             <ObjectName>DeckTrackTimeMini</ObjectName>
                             <MaximumSize>150,-1</MaximumSize>
                             <TooltipId>track_time</TooltipId>
                             <NumberOfDigits>6</NumberOfDigits>
                             <Channel><Variable name="channel"/></Channel>
                             <Connection>
-                              <ConfigKey>[Controls],ShowDurationRemaining</ConfigKey>
+                              <ConfigKey>[Skin],deck<Variable name="channel"/>_time_mode</ConfigKey>
                               <Transform>
                                 <IsEqual>2</IsEqual>
                               </Transform>
@@ -299,13 +301,14 @@
                             </Connection>
                           </NumberPos>
                           <NumberPos>
+                            <ModeConfigKey>[Skin],deck<Variable name="channel"/>_time_mode</ModeConfigKey>
                             <ObjectName>DeckTrackTime</ObjectName>
                             <MinimumSize>150,-1</MinimumSize>
                             <TooltipId>track_time</TooltipId>
                             <NumberOfDigits>6</NumberOfDigits>
                             <Channel><Variable name="channel"/></Channel>
                             <Connection>
-                              <ConfigKey>[Controls],ShowDurationRemaining</ConfigKey>
+                              <ConfigKey>[Skin],deck<Variable name="channel"/>_time_mode</ConfigKey>
                               <Transform>
                                 <IsEqual>2</IsEqual>
                               </Transform>
@@ -439,11 +442,12 @@
       <WidgetGroup>
         <ObjectName>DeckOverviewContainer</ObjectName>
         <Layout>vertical</Layout>
-        <Size>0me,50f</Size>
+        <Size>0me,34f</Size>
         <Children>
           <Overview>
+            <BiteDJPalette>true</BiteDJPalette>
             <ObjectName>DeckOverview</ObjectName>
-            <Size>0me,100f</Size>
+            <Size>0me,34f</Size>
             <Channel><Variable name="channel"/></Channel>
             <BgColor>#000</BgColor>
             <SignalColor>#222</SignalColor>
@@ -451,18 +455,8 @@
             <SignalMidColor>#c95a00</SignalMidColor>
             <SignalHighColor>#f6e9d3</SignalHighColor>
             <PlayedOverlayColor>#40ffffff</PlayedOverlayColor>
-            <!-- Time left in the track, drawn straight onto the summary as a
-                 watermark: centred and translucent enough to read the signal
-                 through. Scale is a share of the height the summary is
-                 *visible* over, which here is the container's 50px and not the
-                 widget's own 100px above — the strip deliberately shows the top
-                 half of a double-height overview, so a scale against the widget
-                 would centre the digits on the cut edge and lose their bottom
-                 half. This strip is what the settings/browse/sampler pages show
-                 of a deck, so it is the one place the countdown has to be
-                 readable from — on the Play page the scrolling waveform and the
-                 big Time readout are both on screen, so the watermark is off
-                 there (bound below). -->
+            <!-- Fit the entire overview into the visible strip. The countdown
+                 uses that same height; minute labels have their own row below. -->
             <TimeRemainingAlign>center</TimeRemainingAlign>
             <TimeRemainingColor>#fff</TimeRemainingColor>
             <TimeRemainingOpacity>0.55</TimeRemainingOpacity>
@@ -625,6 +619,7 @@
           </Overview>
         </Children>
       </WidgetGroup>
+      <OverviewRuler><ObjectName>OverviewRuler</ObjectName><Size>0me,16f</Size><Channel><Variable name="channel"/></Channel></OverviewRuler>
     </Children>
   </WidgetGroup>
 </Template>

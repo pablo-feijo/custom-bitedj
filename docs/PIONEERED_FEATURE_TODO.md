@@ -26,6 +26,8 @@ Evidence: [validation](DECK_STATUS_VALIDATION.md),
 
 ## First: finish validation of the current features
 
+Pi hardware validation is deferred at the user’s request.
+
 - [ ] Test physical USB slot identity, unplug/replug and Pi thermal readings.
 - [ ] Run sustained two-deck playback with FX on the target Pi; record callback
   load and underruns, including source removal/recovery.
@@ -38,17 +40,18 @@ Evidence: [validation](DECK_STATUS_VALIDATION.md),
 Ordered by suggested implementation sequence. These are BiteDJ proposals based
 on the reference's deck controls and presentation, not promises of direct reuse.
 
-- [ ] **Linked waveform zoom.** Add zoom in/out/reset for both decks together.
+- [x] **Linked waveform zoom — locally verified.** Add zoom in/out/reset for both decks together.
   Put controls in a settings option or compact drawer, preserving FX/KEY/JUMP.
   Accept when both decks match after reset and controller changes remain coherent.
-- [ ] **Independent elapsed/remaining time.** BiteDJ currently uses the global
-  `ShowDurationRemaining`; introduce persisted per-deck selection.
+- [x] **Independent elapsed/remaining time — locally verified.** BiteDJ now uses persisted per-deck selection rather than the global
+  `ShowDurationRemaining` in the deck strip.
   Accept when changing Deck 1 does not alter Deck 2 or move its layout.
-- [ ] **Long-title reveal.** Evaluate a slow optional marquee or tap-to-reveal.
+- [x] **Long-title display.** Long titles scroll within their existing area;
+  full Unicode text and stable geometry have native regression coverage.
   Keep artist and badges fixed; test long Unicode titles and empty decks.
-- [ ] **Overview time ruler.** Prototype sparse minute marks below the track
-  overview. Keep only if readable without compromising the existing time display.
-- [ ] **Waveform palette comparison.** Offer a blue/amber/cream preset and compare
+- [x] **Overview time ruler.** Sparse minute marks beneath a full, unclipped
+  34px overview, with a separate 16px ruler row.
+- [x] **Waveform palette option.** Added a persisted blue/amber/cream preset. Compare
   filtered, RGB and overview rendering on identical tracks. Preserve user choice;
   do not assume a palette alone reproduces another analyser's output.
 
@@ -57,7 +60,7 @@ and [skin behavior](https://github.com/ntamas94/pioneered-by-ntamas/blob/main/do
 
 ## Improvements to investigate before scheduling
 
-- [ ] **Drop-target feedback.** Extend BiteDJ's existing touch drag behavior with
+- [x] **Drop-target feedback — locally verified.** Extend BiteDJ's existing touch drag behavior with
   a clear destination highlight. Verify using its custom drag path, not only Qt drag.
 - [ ] **Search keyboard behavior.** Audit the existing Wayland keyboard integration
   before adding anything; test focus, dismissal and library space on hardware.
@@ -65,7 +68,7 @@ and [skin behavior](https://github.com/ntamas94/pioneered-by-ntamas/blob/main/do
   warning/shortcut during playback; keep routine numbers off the main screen.
 - [ ] **Output switching UX.** Review existing Audio settings first. Design clear
   pending/applied states and device-loss recovery before adding any shortcut.
-- [ ] **Control-binding audit.** Inventory custom skin controls and their owners;
+- [x] **Control-binding audit — connection/handler review complete.** Inventory custom skin controls and their owners;
   flag misspelled or unwritten controls and verify visible effects actually work.
 
 The reference's detailed skin documentation explicitly identifies disconnected
@@ -97,3 +100,11 @@ For each selected item: inspect existing BiteDJ support, define behavior, implem
 on the feature branch, run relevant checks, deploy local VNC and inspect it, then
 commit with Conventional Commits. Hardware-dependent items remain unchecked until
 verified on the actual device. Documentation-only updates do not require a rebuild.
+
+## Current follow-up status
+
+- [x] Compact Browse styling: smaller headers, text and breadcrumb implemented.
+- [x] Connection/handler audit recorded in [CONTROL_AUDIT.md](CONTROL_AUDIT.md).
+  Hardware-dependent actions were not exercised.
+- [x] 26 targeted native regression tests pass, including independent time modes,
+  scrolling title rendering, palette isolation, telemetry, routing and touch scrolling.

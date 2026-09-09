@@ -154,6 +154,7 @@
         </Children>
       </WidgetGroup>
       <Visual>
+            <BiteDJPalette>true</BiteDJPalette>
         <TooltipId>waveform_display</TooltipId>
         <ObjectName>Waveform<Variable name="channel"/></ObjectName>
         <Channel><Variable name="channel"/></Channel>

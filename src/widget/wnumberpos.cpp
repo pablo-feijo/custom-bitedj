@@ -1,6 +1,8 @@
 #include "widget/wnumberpos.h"
+#include "preferences/dialog/dlgprefdeck.h"
 
 #include "control/controlproxy.h"
+#include "skin/legacy/skincontext.h"
 #include "moc_wnumberpos.cpp"
 #include "util/duration.h"
 
@@ -26,6 +28,22 @@ WNumberPos::WNumberPos(const QString& group, QWidget* parent)
     m_pTimeFormat->connectValueChanged(
             this, &WNumberPos::slotSetTimeFormat);
     slotSetTimeFormat(m_pTimeFormat->get());
+}
+
+void WNumberPos::setup(const QDomNode& node, const SkinContext& context) {
+    WNumber::setup(node, context);
+    const QString key = context.selectString(node, "ModeConfigKey");
+    if (!key.isEmpty()) {
+        const int comma = key.indexOf(',');
+        if (comma > 0) {
+            delete m_pShowTrackTimeRemaining;
+            m_pShowTrackTimeRemaining = new ControlProxy(
+                    key.left(comma), key.mid(comma + 1), this);
+            m_pShowTrackTimeRemaining->connectValueChanged(
+                    this, &WNumberPos::slotSetDisplayMode);
+            slotSetDisplayMode(m_pShowTrackTimeRemaining->get());
+        }
+    }
 }
 
 // Reimplementing WNumber::setValue

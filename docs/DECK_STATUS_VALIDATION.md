@@ -106,3 +106,30 @@ vertical margins from 4px to 7px, shortening the buttons within the 48px bar.
 Further menu refinement: 40px total bar height, 14px labels, 26px button
 height and explicit 10px gaps between buttons. Visually checked at 1024x600
 in the updated VNC instance; XML parsing and whitespace checks passed.
+
+
+### Deck presentation, browsing and waveform follow-up
+
+- Linked zoom uses one native zoom action with synchronization enabled; per-deck
+  time choices persist independently. JUMP retains its two deck blocks and adds
+  a shared zoom row.
+- Long titles scroll within a fixed area. Their foreground is explicit so custom
+  painting remains readable in the dark skin. Native coverage checks Unicode
+  text preservation, changing rendered pixels, stable size, and short replacement.
+- Compact Browse uses 14px rows, 12px headers and a 32px breadcrumb. The populated
+  two-track fixture was inspected at 1024x600; column preferences remain intact.
+- Custom touch drags highlight the actual destination deck. Both destinations,
+  outside drops and Escape cancellation were checked locally. The static audit
+  finds connections on 51 reachable XML buttons; hardware actions remain deferred.
+- A separate 16px minute ruler sits below the 34px overview. The overview now
+  matches its visible container instead of clipping an oversized waveform.
+- Fixed stacked overview coordinates: stacked drawing already starts at the
+  image bottom, so it must not receive the symmetric renderer's center translation.
+- The optional Amber palette is persisted and opt-in for BiteDJ waveform widgets.
+  A ControlProxy observes changes even when the skin already owns the control;
+  palette changes use the existing deferred skin-reload handshake.
+  Palette regression coverage checks all frequency colors and other-skin isolation.
+- 26 targeted native tests pass. Local ARM64 build and XML/whitespace checks pass.
+  The documented test-gui-automated.sh is absent in this checkout; VNC checks and
+  targeted native tests were used. Pi USB/thermal/touch/audio validation is deferred
+  at the user's request. No merge into codex/v0.0.7 has been performed.

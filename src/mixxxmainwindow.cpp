@@ -473,6 +473,17 @@ void MixxxMainWindow::initialize() {
         }
     });
 
+    const ConfigKey paletteKey("[BiteDJ]", "waveform_palette");
+    if (!ControlObject::exists(paletteKey)) {
+        m_pCoWaveformPalette = std::make_unique<ControlObject>(paletteKey);
+    }
+    auto* paletteProxy = new ControlProxy(paletteKey, this);
+    paletteProxy->set(pConfig->getValue<int>(paletteKey, 0));
+    paletteProxy->connectValueChanged(this, [this, pConfig](double value) {
+        pConfig->setValue(ConfigKey("[BiteDJ]", "waveform_palette"), value > 0 ? 1 : 0);
+        slotHighContrastChanged(false);
+    });
+
     m_pCoLaunchWifi = std::make_unique<ControlProxy>("[BiteDJ]", "launch_wifi", this);
     m_pCoLaunchWifi->connectValueChanged(this, [](double value) {
         if (value > 0.0) {

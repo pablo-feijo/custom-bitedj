@@ -135,3 +135,18 @@ Convert screenshot to PPM (`ffmpeg -i screen.png screen.ppm`) and parse raw RGB 
   activation `(934,246)`. Parameter-grid positions depend on the selected effect.
 - Wait for display-mode notifications to clear before clicking the main tabs;
   the notification temporarily covers the top bar.
+
+## Deck interaction additions
+- Linked waveform zoom is below the two JUMP sections. Use native zoom controls
+  and the waveform factory's synchronization; do not step both synchronized decks
+  separately, which would apply each action twice.
+- Deck time modes use persisted `[Skin],deck1_time_mode` and `deck2_time_mode`.
+- For touch library loading, begin with a horizontal move to distinguish a drag
+  from vertical scrolling. Only actual visible deck regions accept that drag;
+  Escape cancels it. Highlight geometry must match the release target geometry.
+- Overview waveform height must match its visible container (currently 34px).
+  Keep the 16px minute ruler in a separate row; do not crop a double-height widget.
+  Check RGB, FILT and 3 BAND after changing overview rendering. Stacked rendering
+  uses bottom-origin image coordinates and must not get the symmetric translation.
+- Current compact Browse table: breadcrumb y=40..72, header y=72..94,
+  fixture row centers y=104 and y=126. Top-menu centers now use y=20.

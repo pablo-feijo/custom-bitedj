@@ -294,6 +294,8 @@
               <Template src="skin:templates/beatjump_deck_row.xml">
                 <SetVariable name="channel">2</SetVariable>
               </Template>
+              <Label><ObjectName>LinkedZoomTitle</ObjectName><Text>WAVE ZOOM · BOTH DECKS</Text><Size>0me,18f</Size></Label>
+              <LinkedZoom><ObjectName>LinkedZoom</ObjectName><Size>0me,44f</Size></LinkedZoom>
               <WidgetGroup><ObjectName>BeatFX_Spacer</ObjectName><Size>0me,0me</Size></WidgetGroup>
             </Children>
           </WidgetGroup>

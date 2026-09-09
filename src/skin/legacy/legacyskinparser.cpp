@@ -79,6 +79,8 @@
 #include "widget/wsamplerdrive.h"
 #include "widget/wusblist.h"
 #include "widget/wsysteminfo.h"
+#include "widget/wlinkedzoom.h"
+#include "widget/woverviewruler.h"
 #include "widget/wversionlabel.h"
 #include "widget/wnotificationstrip.h"
 #include "widget/wsofttakeoverindicator.h"
@@ -571,6 +573,10 @@ QList<QWidget*> LegacySkinParser::parseNode(const QDomElement& node) {
         result = wrapWidget(parseStandardWidget<WSamplerDrive>(node));
     } else if (nodeName == "UsbList") {
         result = wrapWidget(parseStandardWidget<WUsbList>(node));
+    } else if (nodeName == "OverviewRuler") {
+        result = wrapWidget(parseStandardWidget<WOverviewRuler>(node));
+    } else if (nodeName == "LinkedZoom") {
+        result = wrapWidget(parseStandardWidget<WLinkedZoom>(node));
     } else if (nodeName == "SystemInfo") {
         result = wrapWidget(parseStandardWidget<WSystemInfo>(node));
     } else if (nodeName == "Display") {

@@ -53,12 +53,12 @@ WPushButton[value="1"]:hover {
 /*     Deck                                                             */
 /************************************************************************/
 
-#Deck {
+#DeckDropTarget1, #DeckDropTarget2 {
   border: 1px solid transparent;
   border-radius: 2px;
 }
 
-#Deck[highlight="1"] {
+#DeckDropTarget1[highlight="1"], #DeckDropTarget2[highlight="1"] {
   border: 1px solid #e5e6ea;
 }
 
@@ -111,7 +111,7 @@ WPushButton[value="1"]:hover {
 }
 
 #DeckOverview {
-  margin: 50% 0;
+  margin: 0;
 }
 
 #DeckTitleRow {
@@ -120,6 +120,7 @@ WPushButton[value="1"]:hover {
 }
 
 #DeckTitle {
+  color: #cccccc;
   font-size: 16px;
   font-weight: bold;
   padding-left: 0px;
@@ -635,8 +636,8 @@ WEffectChainPresetSelector QAbstractItemView {
   background-color: #32323c;
   color: #e5e6ea;
   font-weight: bold;
-  font-size: 18px;
-  margin: 2px;
+  font-size: 12px;
+  margin: 1px;
   text-transform: uppercase;
 }
 
@@ -655,9 +656,9 @@ WEffectChainPresetSelector QAbstractItemView {
   selection-background-color: #e5e6ea;
   color: white;
   selection-color: black;
-  font-size: 18px;
-  padding-top: 5px;
-  padding-bottom: 5px;
+  font-size: 14px;
+  padding-top: 0px;
+  padding-bottom: 0px;
 }
 
 #LibraryWrapper WLibrarySidebar {
@@ -666,7 +667,7 @@ WEffectChainPresetSelector QAbstractItemView {
   border-left: 4px solid gray;
   color: #e5e6ea;
   font-weight: bold;
-  font-size: 24px;
+  font-size: 18px;
   selection-color: black;
   text-transform: uppercase;
 }
@@ -702,13 +703,13 @@ WLabel {
   border: 2px solid lightgray;
   border-radius: 4px;
   color: lightgray;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: bold;
   margin: 4px;
 }
 #LibraryBreadcrumb {
   color: lightgray;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: bold;
   padding-left: 12px;
 }
@@ -1825,7 +1826,7 @@ WBeatSpinBox::up-button {
 }
 
 /* Beat-jump controls share the right panel with FX and KEY. */
-#JumpDeckBlock { padding-bottom: 16px; qproperty-layoutSpacing: 8; }
+#JumpDeckBlock { padding-bottom: 8px; qproperty-layoutSpacing: 8; }
 #JumpButtonRow { qproperty-layoutSpacing: 8; }
 #JumpSize { font-size: 17px; font-weight: bold; padding: 0; margin: 0; qproperty-alignment: 'AlignCenter'; }
 #JumpUnits { font-size: 10px; color: #9999a8; }
@@ -1837,3 +1838,7 @@ WBeatSpinBox::up-button {
 #JumpSizeButton:pressed, #JumpActionButton:pressed { background-color: #8058a0; color: #ffffff; }
 
 #BeatFX_BottomKnobs { padding-top: 8px; qproperty-layoutSpacing: 8; }
+
+#LinkedZoomTitle { font-size: 9px; color: #9999a8; qproperty-alignment: 'AlignCenter'; }
+#LinkedZoom QPushButton { font-size: 12px; color: #c5c5d0; background: #1a1a24; border: 1px solid #383846; border-radius: 3px; }
+#LinkedZoom QPushButton:pressed { background: #8058a0; }

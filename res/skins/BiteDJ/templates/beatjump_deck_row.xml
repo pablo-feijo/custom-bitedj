@@ -2,7 +2,7 @@
   <WidgetGroup>
     <ObjectName>JumpDeckBlock</ObjectName>
     <Layout>vertical</Layout>
-    <Size>0me,148f</Size>
+    <Size>0me,140f</Size>
     <Children>
       <WidgetGroup>
         <ObjectName>JumpHeader</ObjectName>
