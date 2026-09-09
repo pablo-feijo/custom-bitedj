@@ -19,6 +19,7 @@ WEffectPushButton::WEffectPushButton(QWidget* pParent, EffectsManager* pEffectsM
 void WEffectPushButton::setup(const QDomNode& node, const SkinContext& context) {
     // Setup parent class.
     WPushButton::setup(node, context);
+    m_showParameterValue = context.selectString(node, "ShowParameterValue") == "true";
 
     auto pChainSlot = EffectWidgetUtils::getEffectChainFromNode(
             node, context, m_pEffectsManager);
@@ -120,6 +121,18 @@ void WEffectPushButton::parameterUpdated() {
     }
 
     // qDebug() << " HERE IS THE OPTIONS SIZE: " << options.size() << m_pEffectParameterSlot->getManifest().name();
+    if (m_showParameterValue) {
+        setStates(options.isEmpty() ? 2 : options.size());
+        m_elideMode = Qt::ElideRight;
+        for (int i = 0; i < m_iNoStates; ++i) m_align[i] = Qt::AlignCenter;
+        if (options.isEmpty()) {
+            m_text[0] = tr("Off");
+            m_text[1] = tr("On");
+        } else {
+            for (int i = 0; i < options.size(); ++i) m_text[i] = options[i].first;
+        }
+        update();
+    }
     m_iNoStates = options.size();
     if (m_iNoStates == 0) {
         // Toggle button without a menu

@@ -1,3 +1,7 @@
-BiteDJ is Copyright (C) 2026 by its respective authors. This version
-of the program is distributed under the General Public License version 2,
-as described in the file LICENSE distributed with the program.
+Custom Bite DJ — independent fork of BiteDJ, based on Mixxx.
+Copyright (C) 2026 Pablo Feijo and contributors (fork modifications).
+Upstream copyrights and component licenses remain with their authors.
+
+The main program is GPL-2.0-or-later: use, modify and redistribute it,
+including commercially, under the GPL, without warranty. See LICENSE.
+The BiteDJ skin retains GPLv3. See NOTICE.md for upstream credits.

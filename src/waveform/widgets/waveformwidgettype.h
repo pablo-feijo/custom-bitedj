@@ -33,4 +33,28 @@ class WaveformWidgetType {
         AllShaderRGBStackedWaveform = 25, // 25 Stacked (all-shaders)
         Count_WaveformwidgetType = 26     //    Also used as invalid value
     };
+
+    // Persisted overview style shared by Browse thumbnails and deck summaries.
+    static int overviewType(Type type) {
+        switch (type) {
+        case HSVWaveform:
+        case QtHSVWaveform:
+        case AllShaderHSVWaveform:
+            return 1;
+        case RGBWaveform:
+        case GLRGBWaveform:
+        case GLSLRGBWaveform:
+        case QtRGBWaveform:
+        case AllShaderRGBWaveform:
+        case AllShaderLRRGBWaveform:
+        case AllShaderTexturedRGB:
+            return 2;
+        case GLSLRGBStackedWaveform:
+        case AllShaderTexturedStacked:
+        case AllShaderRGBStackedWaveform:
+            return 3;
+        default:
+            return 0;
+        }
+    }
 };

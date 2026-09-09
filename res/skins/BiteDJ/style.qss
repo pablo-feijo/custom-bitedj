@@ -53,12 +53,12 @@ WPushButton[value="1"]:hover {
 /*     Deck                                                             */
 /************************************************************************/
 
-#Deck {
+#DeckDropTarget1, #DeckDropTarget2 {
   border: 1px solid transparent;
   border-radius: 2px;
 }
 
-#Deck[highlight="1"] {
+#DeckDropTarget1[highlight="1"], #DeckDropTarget2[highlight="1"] {
   border: 1px solid #e5e6ea;
 }
 
@@ -111,20 +111,24 @@ WPushButton[value="1"]:hover {
 }
 
 #DeckOverview {
-  margin: 50% 0;
+  margin: 0;
 }
 
 #DeckTitleRow {
   padding-left: 6px;
+  qproperty-layoutAlignment: 'AlignVCenter';
 }
 
 #DeckTitle {
+  color: #cccccc;
+  qproperty-scrollColor: #cccccc;
   font-size: 16px;
   font-weight: bold;
   padding-left: 0px;
 }
 
 #DeckTitlePlaying {
+  qproperty-scrollColor: #c9372c;
   font-size: 16px;
   font-weight: bold;
   color: #c9372c;
@@ -132,13 +136,14 @@ WPushButton[value="1"]:hover {
 }
 
 #DeckArtist {
+  qproperty-scrollColor: #9a9b9c;
   font-size: 16px;
   color: #9a9b9c;
   padding-left: 4px;
 }
 
 #DeckKey {
-  font-size: 13px;
+  font-size: 10px;
   font-weight: bold;
   color: #38bdf8;
   background-color: rgba(8, 125, 225, 0.25);
@@ -167,36 +172,23 @@ WPushButton[value="1"]:hover {
   background-color: rgba(239, 68, 68, 0.22);
 }
 
-#DeckChannelTitle, #DeckTempoTitle,
-#DeckTrackTimeRemainLabel, #DeckTrackTimeSlashLabel, #DeckTrackTimeTimeLabel {
+/* Settings footer: equal-height metadata badges aligned with the title. */
+#Settings_Singleton #DeckKey,
+#Settings_Singleton #DeckHeaderBPM {
+  font-size: 11px;
+  margin-right: 4px;
+  border-radius: 2px;
+  qproperty-alignment: 'AlignCenter';
+}
+
+#Settings_Singleton #DeckHeaderBPMWrapper {
+  qproperty-layoutAlignment: 'AlignVCenter';
+}
+
+#DeckChannelTitle, #DeckTrackTimeTitle, #DeckTempoTitle {
   font-size: 14px;
   font-weight: bold;
   text-transform: uppercase;
-}
-
-#DeckTrackTimeRemainLabel, #DeckTrackTimeTimeLabel {
-  color: #4a4a4a;
-}
-
-#DeckTrackTimeRemainLabel[highlight="1"],
-#DeckTrackTimeTimeLabel[highlight="1"] {
-  color: #e5e6ea;
-}
-
-#DeckTrackTimeSlashLabel {
-  color: #98989a;
-  padding: 0 1px;
-}
-
-#DeckHeaderTime {
-  qproperty-layoutAlignment: 'AlignRight | AlignVCenter';
-}
-
-#DeckHeaderTimeValue {
-  font-size: 18px;
-  font-weight: bold;
-  qproperty-alignment: 'AlignRight | AlignVCenter';
-  padding-right: 1px;
 }
 
 #DeckPlayingLeft, #DeckPlayingRight {
@@ -254,11 +246,13 @@ WPushButton[value="1"]:hover {
 }
 
 #BeatFX_Header {
-  qproperty-layoutAlignment: 'AlignHCenter | AlignVCenter';
+  qproperty-layoutAlignment: 'AlignTop';
+  qproperty-layoutSpacing: 4;
+  padding-bottom: 0px;
 }
 
-/* FX / KEY page tabs. Same select-only bar as the Settings sub-tabs, sized
- * down to fit the 180px panel. */
+/* FX / KEY / JUMP / GRID page tabs. Same select-only bar as the Settings sub-tabs, sized
+ * down to fit the 204px panel. */
 #FxPanel_TabBar {
   margin: 0 0 6px 0;
   qproperty-layoutSpacing: 4;
@@ -268,7 +262,7 @@ WPushButton[value="1"]:hover {
   background-color: transparent;
   border: 2px solid #32323c;
   color: #a7a9ac;
-  font-size: 15px;
+  font-size: 10px;
   font-weight: bold;
   text-transform: uppercase;
 }
@@ -280,6 +274,7 @@ WPushButton[value="1"]:hover {
 }
 
 #FxPanel_Page {
+  padding-top: 8px;
   qproperty-layoutAlignment: 'AlignTop';
 }
 
@@ -287,14 +282,14 @@ WPushButton[value="1"]:hover {
 /* Opens the drawer on this deck; sits between the key/BPM chips and the
  * track title, so it stays narrow. */
 #DeckCueChip {
-  font-size: 13px;
+  font-size: 10px;
   font-weight: bold;
   text-transform: uppercase;
   color: #38bdf8;
   background-color: rgba(8, 125, 225, 0.25);
   border: 1px solid transparent;
   border-radius: 2px;
-  margin-right: 2px;
+  margin-right: 8px;
 }
 
 #DeckCueChip:pressed {
@@ -304,12 +299,15 @@ WPushButton[value="1"]:hover {
 
 #CuePanel {
   background-color: #151515;
-  padding: 2px;
+  qproperty-layoutContentsMargins: rect(4 2 4 2);
+}
+
+#CuePanel_Page {
+  qproperty-layoutSpacing: 4;
 }
 
 #CuePanel_Header {
   qproperty-layoutSpacing: 4;
-  margin-bottom: 4px;
 }
 
 #CuePanel_DeckLabel {
@@ -318,6 +316,7 @@ WPushButton[value="1"]:hover {
   text-transform: uppercase;
   color: #a7a9ac;
   qproperty-alignment: 'AlignLeft | AlignVCenter';
+  padding-left: 8px;
 }
 
 /* Bank toggle. Labelled with the bank on show, the same off/active
@@ -327,7 +326,7 @@ WPushButton[value="1"]:hover {
   border: 2px solid #32323c;
   border-radius: 2px;
   color: #a7a9ac;
-  font-size: 15px;
+  font-size: 12px;
   font-weight: bold;
   text-transform: uppercase;
 }
@@ -338,7 +337,7 @@ WPushButton[value="1"]:hover {
   color: #e7e8e9;
 }
 
-#CuePanel_Close {
+#CuePanel_Previous, #CuePanel_Next, #CuePanel_Close {
   background-color: transparent;
   border: 2px solid #32323c;
   border-radius: 2px;
@@ -347,7 +346,11 @@ WPushButton[value="1"]:hover {
   font-weight: bold;
 }
 
-#CuePanel_Close:pressed {
+#CuePanel_Previous, #CuePanel_Next {
+  font-size: 24px;
+}
+
+#CuePanel_Previous:pressed, #CuePanel_Next:pressed, #CuePanel_Close:pressed {
   border-color: #855ea7;
   color: #e7e8e9;
 }
@@ -404,13 +407,19 @@ WPushButton[value="1"]:hover {
   border: 2px solid #c9372c;
 }
 
+/* Keep short parameter lists below the routing row. Long lists retain their
+ * natural height and scroll within the same fixed viewport. */
+#BeatFX_ParameterList {
+  qproperty-layoutAlignment: 'AlignTop';
+}
+
 #BeatFX_ParamRow {
-  padding: 2px 0px;
+  padding: 0px;
 }
 
 #BeatFX_ParamLabel {
   color: #a7a9ac;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: bold;
   text-transform: uppercase;
   padding-right: 4px;
@@ -454,7 +463,6 @@ WPushButton[value="1"]:hover {
  * strips agree on which color means which deck. */
 #BeatFX_DeckRouting {
   qproperty-layoutSpacing: 4;
-  padding: 4px 0;
 }
 
 #BeatFX_DeckAssign1,
@@ -497,7 +505,17 @@ WPushButton[value="1"]:hover {
 
 /* KEY page: one stacked block per deck, +/-2 semitone nudges and reset. */
 #KeyFX_DeckBlock {
-  padding: 0 0 10px 0;
+  background-color: #111114;
+  border: 1px solid #303039;
+  border-radius: 4px;
+  padding: 8px;
+  qproperty-layoutSpacing: 6;
+  qproperty-layoutAlignment: 'AlignTop';
+}
+
+#KeyFX_DeckBlock #KeyFX_DeckLabel_1,
+#KeyFX_DeckBlock #KeyFX_DeckLabel_2 {
+  font-size: 11px;
 }
 
 #KeyFX_DeckHeader {
@@ -521,6 +539,9 @@ WPushButton[value="1"]:hover {
 
 /* Orange whenever the playing key differs from the file's key. */
 #KeyFX_DeckKey {
+  background-color: #24242c;
+  border: 1px solid #383842;
+  border-radius: 3px;
   color: #e7e8e9;
   font-size: 18px;
   font-weight: bold;
@@ -531,27 +552,31 @@ WPushButton[value="1"]:hover {
 }
 
 #KeyFX_ButtonRow {
-  qproperty-layoutSpacing: 4;
+  qproperty-layoutSpacing: 6;
 }
 
 #KeyFX_Down,
 #KeyFX_Up,
+#KeyFX_Match,
 #KeyFX_Reset {
   background-color: #1a1a1a;
   border: 1px solid #3a3a3a;
   border-radius: 3px;
   color: #a7a9ac;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
 }
 
+#KeyFX_Match,
 #KeyFX_Reset {
-  font-size: 13px;
+  background-color: #111114;
+  font-size: 11px;
   text-transform: uppercase;
 }
 
 #KeyFX_Down:pressed,
 #KeyFX_Up:pressed,
+#KeyFX_Match:pressed,
 #KeyFX_Reset:pressed {
   border-color: #c9372c;
   color: #c9372c;
@@ -653,12 +678,23 @@ WEffectChainPresetSelector QAbstractItemView {
   width: 0;
 }
 
-#LibraryWrapper WTrackTableViewHeader::section {
+#LibraryWrapper QHeaderView {
+  font-size: 9px;
+}
+
+#LibraryWrapper QHeaderView::section:horizontal {
+  min-height: 18px;
+  max-height: 18px;
+}
+
+#LibraryWrapper QHeaderView::section {
   background-color: #32323c;
   color: #e5e6ea;
   font-weight: bold;
-  font-size: 18px;
-  margin: 2px;
+  font-size: 9px;
+  padding: 0px 8px;
+  border: none;
+  border-right: 1px solid #555;
   text-transform: uppercase;
 }
 
@@ -677,18 +713,20 @@ WEffectChainPresetSelector QAbstractItemView {
   selection-background-color: #e5e6ea;
   color: white;
   selection-color: black;
-  font-size: 18px;
-  padding-top: 5px;
-  padding-bottom: 5px;
+  font-size: 14px;
+  padding-top: 0px;
+  padding-bottom: 0px;
 }
 
 #LibraryWrapper WLibrarySidebar {
   background-color: #111;
   selection-background-color: #9bcceb;
-  border-left: 4px solid gray;
+  border-left: 1px solid #555;
   color: #e5e6ea;
   font-weight: bold;
-  font-size: 24px;
+  font-size: 14px;
+  qproperty-indentation: 20;
+  qproperty-iconSize: 18px 18px;
   selection-color: black;
   text-transform: uppercase;
 }
@@ -724,13 +762,13 @@ WLabel {
   border: 2px solid lightgray;
   border-radius: 4px;
   color: lightgray;
-  font-size: 16px;
+  font-size: 11px;
   font-weight: bold;
-  margin: 4px;
+  margin: 2px;
 }
 #LibraryBreadcrumb {
   color: lightgray;
-  font-size: 18px;
+  font-size: 12px;
   font-weight: bold;
   padding-left: 12px;
 }
@@ -752,7 +790,43 @@ WLabel {
 
 #WaveformInfo {
   margin-right: 10px;
+  padding-left: 6px;
+  qproperty-layoutSpacing: 8;
+  qproperty-layoutAlignment: 'AlignVCenter';
 }
+
+#WaveformSourceRow { qproperty-layoutSpacing: 6; }
+#WaveformDeckNumber { font-weight: bold; font-size: 11px; color: #c49ade; background-color: #302638; border-radius: 3px; qproperty-alignment: 'AlignCenter'; }
+#WaveformSource { font-size: 11px; font-weight: bold; color: #e5e6ea; background-color: #24242c; border-radius: 3px; qproperty-alignment: 'AlignCenter'; }
+#WaveformKeyLoopRow { qproperty-layoutSpacing: 4; }
+#WaveformMetadataCell { qproperty-layoutSpacing: 0; }
+#WaveformCaption { font-size: 9px; color: #9999a8; qproperty-alignment: 'AlignCenter'; }
+#WaveformCaption[highlight="1"] { color: #b28ad0; }
+#WaveformKeyValue { font-size: 12px; font-weight: bold; color: #38bdf8; qproperty-alignment: 'AlignCenter'; }
+#WaveformKeyValue[highlight="1"] { color: #f87171; }
+#WaveformLoopValue { padding: 0px; margin: 0px; font-size: 12px; qproperty-alignment: 'AlignCenter'; }
+#WaveformStateButton, #WaveformTransportButton {
+  background-color: #1a1a24; border: 1px solid #383846; border-radius: 3px;
+  color: #c5c5d0; font-size: 12px; font-weight: bold;
+}
+#WaveformStateRow, #WaveformTransportRow { qproperty-layoutSpacing: 4; }
+#WaveformStateButton[value="1"] { background-color: #8058a0; color: #ffffff; }
+#WaveformTransportButton[value="1"] { background-color: #238751; color: #ffffff; }
+#DeckOnAir { font-size: 9px; font-weight: bold; color: #71717c; background-color: #24242c; }
+#DeckOnAir[highlight="1"] { color: #ffffff; background-color: #c9372c; }
+#InfoCard, #InfoClockCard { background-color: #17171f; border: 1px solid #30303d; border-radius: 10px; text-align: left; }
+#InfoClockCard:hover, #InfoClockCard:pressed { border-color: #b28ad0; background-color: #242031; }
+#InfoHeading { color: #aaaaba; font-size: 12px; font-weight: bold; }
+#InfoValue { color: #e5e6ea; font-size: 38px; font-weight: bold; }
+#InfoHint { color: #9999a8; font-size: 12px; }
+#InfoOutput { color: #aaaaba; font-size: 12px; padding: 8px; }
+#SystemDialog { background-color: #111118; color: #e5e6ea; font-size: 16px; }
+#SystemDialog QLabel, #SystemDialog QCheckBox { color: #c5c5d0; font-size: 16px; }
+#SystemDialog #SystemDialogTitle { color: #e5e6ea; font-size: 24px; font-weight: bold; }
+#SystemDialogButton, #ClockDateButton { background-color: #252530; color: #e5e6ea; border: 1px solid #555566; border-radius: 6px; font-size: 16px; padding: 4px 12px; }
+#SystemDialogButton:pressed, #ClockDateButton:pressed { background-color: #8058a0; }
+#SystemDialogButton:disabled, #ClockDateButton:disabled { color: #777784; border-color: #33333e; }
+#SystemDialog QSpinBox { background-color: #1b1b25; color: #e5e6ea; border: 1px solid #444453; border-radius: 4px; font-size: 18px; padding: 2px 8px; }
 
 #WaveformInfo_Header {
   background-color: #32323c;
@@ -885,16 +959,18 @@ WBeatSpinBox::up-button {
 
 #TabControls {
   background-color: #855ea7;
-  margin-bottom: 5px;
+  margin-bottom: 2px;
+  qproperty-layoutSpacing: 10;
+  padding: 0 6px;
 }
 
 /* Five tabs share the bar, so at the 480px floor each cell is ~96px. The
- * margin is a percentage (not px) and the font is small enough that the
+ * inter-button gap is explicit and the font is small enough that the
  * longest label — SETTINGS, 8 chars of monospace — still clears its cell. */
 #TabControls WPushButton {
   font-weight: bold;
-  font-size: 17px;
-  margin: 10px 3%;
+  font-size: 14px;
+  margin: 6px 0;
   max-width: 250px;
   text-transform: uppercase;
 }
@@ -1110,7 +1186,7 @@ WBeatSpinBox::up-button {
   text-transform: uppercase;
 }
 
-#SettingsActionButton {
+#SettingsActionButton, #SettingsPowerButton {
   background-color: transparent;
   border: 2px solid #855ea7;
   border-radius: 4px;
@@ -1120,14 +1196,14 @@ WBeatSpinBox::up-button {
   text-transform: uppercase;
 }
 
-#SettingsActionButton[pressed="true"] {
+#SettingsActionButton[pressed="true"], #SettingsPowerButton[pressed="true"] {
   background-color: #2d6488;
 }
 
 /* The Audio Rescan button binds `enabled` to [AudioDevices],reconfigure_enabled,
  * which drops to 0 while a deck plays — rescanning re-opens the devices and
  * would cut the music. */
-#SettingsActionButton:disabled {
+#SettingsActionButton:disabled, #SettingsPowerButton:disabled {
   border-color: #2b3f4d;
   color: #5c707d;
 }
@@ -1160,16 +1236,16 @@ WBeatSpinBox::up-button {
 }
 
 #SettingsSubtabBar {
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
 }
 
 #SettingsSubtabBar WPushButton {
   background-color: transparent;
-  border: 2px solid #32323c;
+  border: 1px solid #32323c;
   color: #a7a9ac;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
-  margin: 0 4px;
+  margin: 0 6px;
   text-transform: uppercase;
 }
 
@@ -1197,18 +1273,18 @@ WBeatSpinBox::up-button {
 }
 
 #GeneralCol #SettingsRowLabel {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 #GeneralCol #SettingsSegmentLeft,
 #GeneralCol #SettingsSegmentMid,
 #GeneralCol #SettingsSegmentRight {
   min-width: 40px;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 #GeneralCol #SettingsActionButton {
-  font-size: 12px;
+  font-size: 11px;
 }
 
 #LibraryColumnsCol {
@@ -1482,8 +1558,8 @@ WBeatSpinBox::up-button {
 }
 
 #SettingsVersionLabel {
-  color: #5c5e61;
-  font-size: 11px;
+  color: #aaaaba;
+  font-size: 12px;
 }
 
 /************************************************************************/
@@ -1816,3 +1892,100 @@ WBeatSpinBox::up-button {
   color: #ffffff;
 }
 
+/* Beat-jump controls share the right panel with FX and KEY. */
+#JumpDeckBlock { padding-bottom: 8px; qproperty-layoutSpacing: 8; }
+#JumpButtonRow { qproperty-layoutSpacing: 8; }
+#JumpSize { font-size: 17px; font-weight: bold; padding: 0; margin: 0; qproperty-alignment: 'AlignCenter'; }
+#JumpUnits { font-size: 10px; color: #9999a8; }
+#JumpSizeButton, #JumpActionButton {
+  background-color: #1a1a24; border: 1px solid #383846; border-radius: 3px;
+  color: #c5c5d0; font-size: 12px; font-weight: bold;
+}
+#JumpSizeButton { font-size: 18px; }
+#JumpSizeButton:pressed, #JumpActionButton:pressed { background-color: #8058a0; color: #ffffff; }
+
+#BeatFX_BottomKnobs { padding-top: 4px; qproperty-layoutSpacing: 8; }
+
+#LinkedZoomTitle { font-size: 9px; color: #9999a8; qproperty-alignment: 'AlignCenter'; }
+#LinkedZoom QPushButton { font-size: 12px; color: #c5c5d0; background: #1a1a24; border: 1px solid #383846; border-radius: 3px; }
+#LinkedZoom QPushButton:pressed { background: #8058a0; }
+
+/* Four load-policy choices fit one 512px General column. */
+#LoadPolicySegmented #SettingsSegmentLeft,
+#LoadPolicySegmented #SettingsSegmentMid,
+#LoadPolicySegmented #SettingsSegmentRight { min-width: 52px; }
+
+/* Compact folder rows keep nested sources easy to scan. */
+#LibraryWrapper WLibrarySidebar::item {
+  min-height: 28px;
+  padding: 0px 2px;
+}
+
+/* Grid: 44px controls with a 4px gutter inside the existing right panel. */
+#GridDeck { qproperty-layoutSpacing: 4; padding-bottom: 4px; }
+#GridActionRow { qproperty-layoutSpacing: 4; }
+#GridAction {
+  background-color: transparent; border: 1px solid #32323c; border-radius: 3px;
+  color: #a7a9ac; font-size: 11px; font-weight: bold; text-transform: uppercase;
+}
+#GridAction:pressed { background-color: #855ea7; color: #e7e8e9; }
+#GridBpm { font-size: 12px; color: #a7a9ac; qproperty-alignment: 'AlignRight | AlignVCenter'; }
+#BeatFX_PeriodRow { qproperty-layoutSpacing: 2; }
+#BeatFX_Parameters QScrollBar:vertical { background: #1a1a1a; width: 14px; margin: 0; }
+#BeatFX_Parameters QScrollBar::handle:vertical { background: #565b6b; min-height: 44px; }
+#BeatFX_Parameters QScrollBar::add-line:vertical,
+#BeatFX_Parameters QScrollBar::sub-line:vertical { height: 0; }
+#BeatFX_Parameters QScrollBar::add-page:vertical,
+#BeatFX_Parameters QScrollBar::sub-page:vertical { background: #1a1a1a; }
+
+#BeatFX_ParamButton { background-color: #1a1a1a; color: #a7a9ac; border: 1px solid #3a3a3a; border-radius: 3px; font-size: 12px; font-weight: bold; }
+#BeatFX_ParamButton[displayValue="1"] { background-color: #855ea7; color: #e7e8e9; }
+
+/* Compact FX controls keep the full Echo parameter list visible. */
+#BeatFX_DeckAssign1, #BeatFX_DeckAssign2 { font-size: 16px; }
+#BeatFX_ActiveToggle { font-size: 11px; }
+
+#BeatFX_BeatsLabel { color: #a7a9ac; font-size: 12px; font-weight: bold; padding: 0; qproperty-alignment: 'AlignCenter'; }
+
+/* Queue controls share the compact Browse toolbar. */
+#QueueRemoveButton, #QueueMoveUpButton, #QueueMoveDownButton,
+#ViewQueueButton, #QueueAddButton, #QueuePlaylistButton, #AutoPlayButton {
+  background-color: #162b3b;
+  color: #e0e0e0;
+  border: 1px solid #7294a8;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  margin: 2px 1px;
+}
+#AutoPlayButton[displayValue="1"] {
+  background-color: #167347;
+  color: #ffffff;
+}
+
+/* Compact label; retain the full 150 × 44 touch target. */
+#SettingsPowerButton { font-size: 12px; }
+
+#SystemDialog #ClockPreview { font-size: 28px; font-weight: bold; color: #e5e6ea; }
+#SystemDialog QComboBox { min-height: 48px; font-size: 18px; color: #e5e6ea; background: #252530; border: 1px solid #555566; padding: 0 12px; }
+#SystemDialog QComboBox QAbstractItemView { font-size: 18px; color: #e5e6ea; background: #252530; selection-background-color: #8058a0; }
+#SystemDialog QComboBox QAbstractItemView::item { min-height: 44px; }
+#SystemDialog QCalendarWidget { font-size: 20px; }
+#SystemDialog QCalendarWidget QToolButton { min-height: 44px; min-width: 60px; font-size: 18px; }
+
+#SystemDialog QCalendarWidget QAbstractItemView { color: #e5e6ea; background-color: #17171f; selection-background-color: #8058a0; selection-color: #ffffff; }
+
+#SystemDialog QCalendarWidget #qt_calendar_navigationbar { background-color: #252530; }
+#SystemDialog QCalendarWidget QToolButton { color: #e5e6ea; }
+
+/* Active automation is visible from every Play-side panel. */
+#PlayAutoPlayIndicator {
+  background-color: #167347;
+  color: #ffffff;
+  border: 1px solid #3ab273;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 0;
+  qproperty-alignment: 'AlignCenter';
+}

@@ -1,6 +1,11 @@
 #include "util/statsmanager.h"
 
 #include <QFile>
+#include <QElapsedTimer>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QSaveFile>
 #include <QMetaType>
 #include <QTextStream>
 #include <QtDebug>
@@ -239,6 +244,11 @@ void StatsManager::processIncomingStatReports() {
 
 void StatsManager::run() {
     qDebug() << "StatsManager thread starting up.";
+    // Opt-in developer benchmark output. StatsManager runs only in developer
+    // mode; snapshots are written here on its worker, never on the audio/UI thread.
+    const QString snapshotPath = qEnvironmentVariable("BITEDJ_TEST_STATS_PATH");
+    QElapsedTimer snapshotTimer;
+    snapshotTimer.start();
     while (true) {
         m_statsPipeLock.lock();
         m_statsPipeCondition.wait(&m_statsPipeLock);
@@ -253,6 +263,21 @@ void StatsManager::run() {
                 emit statUpdated(it.value());
             }
             m_emitAllStats = 0;
+        }
+
+        if (!snapshotPath.isEmpty() && snapshotTimer.elapsed() >= 1000) {
+            QJsonArray rows;
+            for (const auto& stat : std::as_const(m_stats)) {
+                if (!stat.m_tag.startsWith("Rekordbox::") &&
+                        !stat.m_tag.startsWith("WaveformWidgetFactory::")) continue;
+                rows.append(QJsonObject{{"tag", stat.m_tag}, {"units", stat.valueUnits()},
+                        {"count", stat.m_report_count}, {"min", stat.m_min},
+                        {"max", stat.m_max}, {"mean", stat.m_variance_mk}});
+            }
+            QSaveFile file(snapshotPath);
+            const auto data = QJsonDocument(rows).toJson();
+            if (file.open(QIODevice::WriteOnly) && file.write(data) == data.size()) file.commit();
+            snapshotTimer.restart();
         }
 
         if (m_quit.loadAcquire() == 1) {

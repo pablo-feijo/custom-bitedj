@@ -140,6 +140,26 @@ TrackPointer GlobalTrackCacheLocker::lookupTrackById(
     return m_pInstance->lookupById(trackId);
 }
 
+TrackPointer GlobalTrackCacheLocker::lookupPublishedTrackByLocation(
+        const QString& location) const {
+    DEBUG_ASSERT(m_pInstance);
+    const auto& entries = m_pInstance->m_tracksByCanonicalLocation;
+    const auto found = entries.find(location);
+    if (found != entries.end()) {
+        auto track = found->second->lock();
+        return track != m_pInstance->m_incompleteTrack ? track : TrackPointer();
+    }
+    // Aliases may differ from the canonical cache key. Compare the stored
+    // location only; do not stat/canonicalize paths on slow or unplugged USB.
+    for (const auto& entry : entries) {
+        auto track = entry.second->lock();
+        if (track && track != m_pInstance->m_incompleteTrack && track->getLocation() == location) {
+            return track;
+        }
+    }
+    return {};
+}
+
 TrackPointer GlobalTrackCacheLocker::lookupTrackByRef(
         const TrackRef& trackRef) const {
     DEBUG_ASSERT(m_pInstance);

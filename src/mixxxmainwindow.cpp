@@ -337,6 +337,23 @@ void MixxxMainWindow::initialize() {
 
     QWidget* oldWidget = m_pCentralWidget;
 
+    // Publish the palette control before parsing the first skin. ControlProxy
+    // does not subscribe retroactively when its control is created later.
+    const ConfigKey paletteKey("[BiteDJ]", "waveform_palette");
+    if (!ControlObject::exists(paletteKey)) {
+        m_pCoWaveformPalette = std::make_unique<ControlObject>(paletteKey);
+    }
+    auto* paletteProxy = new ControlProxy(paletteKey, this);
+    paletteProxy->set(pConfig->getValue<int>(paletteKey, 0));
+    paletteProxy->connectValueChanged(this, [this, pConfig](double value) {
+        pConfig->setValue(ConfigKey("[BiteDJ]", "waveform_palette"), value > 0 ? 1 : 0);
+        // Recreate only scrolling renderers after the settings tap completes.
+        // Overview and Browse refresh their own cached images from the control.
+        QTimer::singleShot(0, this, [] {
+            WaveformWidgetFactory::instance()->setWidgetTypeFromConfig();
+        });
+    });
+
     tryParseAndSetDefaultStyleSheet();
 
     if (!loadConfiguredSkin()) {

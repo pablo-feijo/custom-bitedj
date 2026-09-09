@@ -74,6 +74,11 @@ class SystemSettings : public QObject {
     // there is also reachable by the settings actions that clear it again.
     static bool isOnRemovableMedia(const QString& path);
 
+    // Uses cached mount/slot labels; no filesystem access during label repaint.
+    QString trackSourceLabel(const QString& path) const;
+    static QString classifyTrackSource(const QString& path,
+            const QStringList& mountPoints, const QStringList& labels);
+
     // Unloads every track loaded from the indexed mount, then unmounts it and
     // re-enumerates. Idempotent on out-of-range. Safe to call from the GUI
     // thread.
@@ -144,6 +149,7 @@ class SystemSettings : public QObject {
     // tick. On a real change (or when forced) it updates m_usbMounts/
     // m_usbRowLabels/the count CO and emits usbRowsChanged.
     void refresh(bool force = false);
+    QStringList m_usbSourceLabels;
     // Adds a QFileSystemWatcher watch for each removable root that currently
     // exists and is not already watched. Cheap and idempotent; re-run whenever a
     // root may have appeared (e.g. on the poll tick).
@@ -222,9 +228,14 @@ class SystemSettings : public QObject {
     std::unique_ptr<ControlObject> m_pCoUsbRefresh;
     std::unique_ptr<ControlObject> m_pCoShutdownArm;
     std::unique_ptr<ControlObject> m_pCoShutdown;
+    std::unique_ptr<ControlObject> m_pCoPowerMenu;
+    std::unique_ptr<ControlObject> m_pCoOverclock;
     // [BiteDJ],vinyl_mode — 1 = Vinyl, 0 = CDJ jog behaviour. Persisted to
     // config; read by the controller mapping to toggle jog-touch scratching.
     std::unique_ptr<ControlObject> m_pCoVinylMode;
+    std::unique_ptr<ControlObject> m_pCoTrackLoadPolicy;
+    std::unique_ptr<ControlObject> m_pCoReturnToPlay;
+    std::unique_ptr<ControlPushButton> m_pCoShowPhrases;
     // [BiteDJ],vinyl_brake — vinyl-brake time in seconds: how long a jog wheel
     // released at normal (1x) speed takes to coast to a standstill. 0 disables
     // the brake. Persisted to config; read by ControllerScriptInterfaceLegacy

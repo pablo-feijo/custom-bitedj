@@ -1,6 +1,10 @@
 #include "preferences/systemsettings.h"
+#include "mixer/deckloadpolicy.h"
+#include <cmath>
 
 #include <QCoreApplication>
+#include <QApplication>
+#include "widget/wsystemdialogs.h"
 #include <QDir>
 #include <QEventLoop>
 #include <QFile>
@@ -34,6 +38,8 @@
 #include "recording/recordingmanager.h"
 #include "track/track.h"
 #include "util/usbdevice.h"
+#include "util/removablemounts.h"
+#include <algorithm>
 
 namespace {
 const QString kGroup = QStringLiteral("[System]");
@@ -162,6 +168,19 @@ SystemSettings::SystemSettings(UserSettingsPointer pConfig,
             this,
             &SystemSettings::onShutdownRequested);
 
+    m_pCoPowerMenu = std::make_unique<ControlObject>(ConfigKey(kGroup, "power_menu"));
+    connect(m_pCoPowerMenu.get(), &ControlObject::valueChanged, this, [this](double value) {
+        if (value <= 0) return;
+        m_pCoPowerMenu->set(0);
+        mixxx::systemdialogs::power(QApplication::activeWindow());
+    });
+    m_pCoOverclock = std::make_unique<ControlObject>(ConfigKey(kGroup, "overclock"));
+    connect(m_pCoOverclock.get(), &ControlObject::valueChanged, this, [this](double value) {
+        if (value <= 0) return;
+        m_pCoOverclock->set(0);
+        mixxx::systemdialogs::overclock(QApplication::activeWindow());
+    });
+
     // Vinyl/CDJ jog mode (General settings tab). Seeded from the persisted config
     // value and written back on every change so the choice survives restarts. The
     // controller mapping (e.g. Pioneer-DDJ-400-script.js) reads and subscribes to
@@ -173,6 +192,35 @@ SystemSettings::SystemSettings(UserSettingsPointer pConfig,
             &ControlObject::valueChanged,
             this,
             &SystemSettings::onVinylModeChanged);
+
+    const ConfigKey phrasesKey("[BiteDJ]", "show_phrases");
+    m_pCoShowPhrases = std::make_unique<ControlPushButton>(phrasesKey);
+    m_pCoShowPhrases->setButtonMode(ControlPushButton::TOGGLE);
+    m_pCoShowPhrases->setStates(2);
+    m_pCoShowPhrases->set(m_pConfig->getValue(phrasesKey, true));
+    connect(m_pCoShowPhrases.get(), &ControlObject::valueChanged, this,
+            [this, phrasesKey](double value) { m_pConfig->setValue(phrasesKey, value != 0.0); });
+
+    const ConfigKey returnKey("[BiteDJ]", "return_to_play");
+    m_pCoReturnToPlay = std::make_unique<ControlObject>(returnKey);
+    m_pCoReturnToPlay->set(m_pConfig->getValue(returnKey, false));
+    connect(m_pCoReturnToPlay.get(), &ControlObject::valueChanged, this,
+            [this, returnKey](double value) {
+                m_pConfig->setValue(returnKey, value != 0.0);
+            });
+
+    // Shared native policy; the skin only edits the saved preference.
+    m_pCoTrackLoadPolicy = std::make_unique<ControlObject>(
+            ConfigKey("[BiteDJ]", "track_load_policy"));
+    m_pCoTrackLoadPolicy->set(static_cast<int>(mixxx::deckload::policy(m_pConfig)));
+    connect(m_pCoTrackLoadPolicy.get(), &ControlObject::valueChanged, this,
+            [this](double value) {
+                if (std::isfinite(value) && value == std::floor(value) && value >= 0 && value <= 3) {
+                    m_pConfig->setValue(kConfigKeyLoadWhenDeckPlaying, static_cast<int>(value));
+                } else {
+                    m_pCoTrackLoadPolicy->set(static_cast<int>(mixxx::deckload::policy(m_pConfig)));
+                }
+            });
 
     // Vinyl brake (General settings tab). Same seed-then-persist pattern as the
     // jog mode above; the scratch engine reads this CO directly rather than
@@ -324,6 +372,19 @@ bool SystemSettings::isOnRemovableMedia(const QString& path) {
 
 QList<SystemSettings::UsbMount> SystemSettings::enumerateUsbMounts() {
     QList<UsbMount> mounts;
+#if defined(__LINUX__)
+    QFile mountInfo(QStringLiteral("/proc/self/mountinfo"));
+    if (mountInfo.open(QIODevice::ReadOnly)) {
+        for (const auto& mount : mixxx::parseRemovableMounts(
+                     mountInfo.readAll(), removableRoots())) {
+            mounts.append({mount.device, mount.mountPoint});
+        }
+    }
+    std::sort(mounts.begin(), mounts.end(), [](const UsbMount& a, const UsbMount& b) {
+        return a.mountPoint < b.mountPoint;
+    });
+    return mounts;
+#else
     QSet<QString> seen;
 
     // Scan directories under the removable-media roots and keep the ones that
@@ -358,6 +419,7 @@ QList<SystemSettings::UsbMount> SystemSettings::enumerateUsbMounts() {
         }
     }
     return mounts;
+#endif
 }
 
 QStringList SystemSettings::usbMountPoints() {
@@ -445,6 +507,7 @@ void SystemSettings::refresh(bool force) {
     }
 
     m_usbRowLabels.clear();
+    m_usbSourceLabels.clear();
     for (const UsbMount& mount : std::as_const(m_usbMounts)) {
         // Show the short volume name (the mountpoint's final path component)
         // rather than the full path — it fits the small screen and leaves room
@@ -454,6 +517,16 @@ void SystemSettings::refresh(bool force) {
             name = mount.mountPoint;
         }
         m_usbRowLabels.append(name);
+        QString source = name;
+        for (int slot = 1; slot <= kNumEjectDrives; ++slot) {
+            const QString port = m_pConfig->getValueString(ConfigKey(kBiteDj,
+                    QStringLiteral("usb_drive_path_%1").arg(slot)));
+            if (!port.isEmpty() && deviceOnUsbPath(mount.device, port)) {
+                source = QStringLiteral("USB%1").arg(slot);
+                break;
+            }
+        }
+        m_usbSourceLabels.append(source);
     }
     m_pCoUsbCount->forceSet(static_cast<double>(m_usbMounts.size()));
     emit usbRowsChanged(m_usbRowLabels);
@@ -668,6 +741,37 @@ void SystemSettings::ejectRow(int index) {
                     .arg(ejected.join(QStringLiteral(", "))),
             Notifications::Severity::Info);
     refresh();
+}
+
+QString SystemSettings::classifyTrackSource(const QString& path,
+        const QStringList& mountPoints, const QStringList& labels) {
+    if (path.isEmpty()) {
+        return {};
+    }
+    const QString clean = QDir::cleanPath(path);
+    int best = -1;
+    int length = 0;
+    for (int i = 0; i < mountPoints.size(); ++i) {
+        const QString mount = QDir::cleanPath(mountPoints[i]);
+        if ((clean == mount || clean.startsWith(mount + QLatin1Char('/'))) &&
+                mount.size() > length) {
+            best = i;
+            length = mount.size();
+        }
+    }
+    if (best >= 0) {
+        return labels.value(best, QStringLiteral("USB"));
+    }
+    // A removed source must not turn into LOCAL while its track is still loaded.
+    return isOnRemovableMedia(clean) ? tr("OFFLINE") : tr("LOCAL");
+}
+
+QString SystemSettings::trackSourceLabel(const QString& path) const {
+    QStringList points;
+    for (const auto& mount : m_usbMounts) {
+        points.append(mount.mountPoint);
+    }
+    return classifyTrackSource(path, points, m_usbSourceLabels);
 }
 
 void SystemSettings::ejectDrive(int driveNumber) {

@@ -102,8 +102,8 @@ set(MIXXX_VERSION_PRERELEASE "") # set to "alpha" "beta" or ""
 # The Bite DJ fork version. This is the product version displayed in the UI and
 # reported by `bitedj --version`; it moves independently of the Mixxx base
 # version above.
-set(BITEDJ_VERSION "0.0.6")
-set(BITEDJ_VERSION_PRERELEASE "") # set to "alpha" "beta" or ""
+set(BITEDJ_VERSION "0.0.7")
+set(BITEDJ_VERSION_PRERELEASE "")
 if(NOT BITEDJ_VERSION MATCHES "^[0-9]+(\\.[0-9]+)*$")
   message(FATAL_ERROR "BITEDJ_VERSION must be a dot-separated numeric version, got '${BITEDJ_VERSION}'")
 endif()
@@ -461,6 +461,8 @@ add_library(mixxx-lib STATIC EXCLUDE_FROM_ALL
   src/controllers/softtakeoverindicator.cpp
   src/coreservices.cpp
   src/notifications/notifications.cpp
+  src/preferences/padfxsettings.cpp
+  src/effects/chains/padeffectchain.cpp
   src/preferences/audiodevicesettings.cpp
   src/preferences/controllersettings.cpp
   src/database/mixxxdb.cpp
@@ -492,7 +494,6 @@ add_library(mixxx-lib STATIC EXCLUDE_FROM_ALL
   src/effects/backends/builtin/metronomeclick.cpp
   src/effects/backends/builtin/moogladder4filtereffect.cpp
   src/effects/backends/builtin/compressoreffect.cpp
-  src/effects/backends/builtin/cfxfiltereffect.cpp
   src/effects/backends/builtin/parametriceqeffect.cpp
   src/effects/backends/builtin/phasereffect.cpp
   src/effects/backends/builtin/reverbeffect.cpp
@@ -706,6 +707,7 @@ add_library(mixxx-lib STATIC EXCLUDE_FROM_ALL
   src/library/trackset/crate/cratestorage.cpp
   src/library/trackset/crate/cratetablemodel.cpp
   src/library/trackset/playlistfeature.cpp
+  src/library/trackset/preparefeature.cpp
   src/library/trackset/setlogfeature.cpp
   src/library/trackset/tracksettablemodel.cpp
   src/library/traktor/traktorfeature.cpp
@@ -936,6 +938,7 @@ add_library(mixxx-lib STATIC EXCLUDE_FROM_ALL
   src/waveform/renderers/waveformrendermark.cpp
   src/waveform/renderers/waveformrendermarkbase.cpp
   src/waveform/renderers/waveformrendermarkrange.cpp
+  src/waveform/renderers/waveformpreviewrenderer.cpp
   src/waveform/renderers/waveformsignalcolors.cpp
   src/waveform/renderers/waveformwidgetrenderer.cpp
   src/waveform/sharedglcontext.cpp
@@ -1030,6 +1033,12 @@ add_library(mixxx-lib STATIC EXCLUDE_FROM_ALL
   src/widget/wstarrating.cpp
   src/widget/wsamplerdrive.cpp
   src/widget/wusblist.cpp
+  src/widget/woverviewruler.cpp
+  src/widget/wlinkedzoom.cpp
+  src/widget/wsysteminfo.cpp
+  src/widget/wsystemdialogs.cpp
+  src/util/bootsettings.cpp
+  src/util/systemtelemetry.cpp
   src/widget/wversionlabel.cpp
   src/widget/wstatuslight.cpp
   src/widget/wtime.cpp
@@ -1407,6 +1416,7 @@ install(
   FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE"
     "${CMAKE_CURRENT_SOURCE_DIR}/COPYING"
+    "${CMAKE_CURRENT_SOURCE_DIR}/NOTICE.md"
   DESTINATION
     "${MIXXX_INSTALL_LICENSEDIR}"
 )
@@ -1559,6 +1569,7 @@ if(BUILD_TESTING)
     #TODO: write useful tests for refactored effects system
     #src/test/effectchainslottest.cpp
     src/test/enginebufferscalelineartest.cpp
+    src/test/rotarytest.cpp
     src/test/enginebuffertest.cpp
     src/test/enginefilterbiquadtest.cpp
     src/test/enginemixertest.cpp
@@ -1569,6 +1580,7 @@ if(BUILD_TESTING)
     src/test/eqmode_test.cpp
     src/test/fileinfo_test.cpp
     src/test/foldertreemodel_test.cpp
+    src/test/browsethread_test.cpp
     src/test/frametest.cpp
     src/test/fscueoverridestore_test.cpp
     src/test/fshistorystore_test.cpp
@@ -1611,6 +1623,15 @@ if(BUILD_TESTING)
     src/test/queryutiltest.cpp
     src/test/rangelist_test.cpp
     src/test/readaheadmanager_test.cpp
+    src/test/textscroll_test.cpp
+    src/test/deckloadpolicy_test.cpp
+    src/test/padecho_test.cpp
+    src/test/padfxeditor_test.cpp
+    src/test/padfxsettings_test.cpp
+    src/test/padfxrouting_test.cpp
+    src/test/effectslot_test.cpp
+    src/test/prepare_test.cpp
+    src/test/rekordboxdisplay_test.cpp
     src/test/rekordboxanlz_test.cpp
     src/test/replaygaintest.cpp
     src/test/rescalertest.cpp
@@ -1631,6 +1652,10 @@ if(BUILD_TESTING)
     src/test/synccontroltest.cpp
     src/test/synctrackmetadatatest.cpp
     src/test/systemsettings_test.cpp
+    src/test/deckpresentation_test.cpp
+    src/test/waveformpreview_test.cpp
+    src/test/systemtelemetry_test.cpp
+    src/test/bootsettings_test.cpp
     src/test/tableview_test.cpp
     src/test/taglibtest.cpp
     src/test/touchscrollfilter_test.cpp
@@ -1666,7 +1691,7 @@ if(BUILD_TESTING)
 
   target_precompile_headers(mixxx-test REUSE_FROM mixxx-lib)
   set_target_properties(mixxx-test PROPERTIES AUTOMOC ON)
-  target_link_libraries(mixxx-test PRIVATE mixxx-lib mixxx-gitinfostore GTest::gtest GTest::gmock)
+  target_link_libraries(mixxx-test PRIVATE mixxx-lib mixxx-gitinfostore GTest::gtest GTest::gmock rekordbox_metadata Kaitai)
 
   if(BUILD_BENCH)
     add_compile_definitions(USE_BENCH)
@@ -1685,6 +1710,7 @@ if(BUILD_TESTING)
   )
 
   set_tests_properties(${testsuite} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+  include(cmake/BiteDJTests.cmake)
 
   if(BUILD_BENCH)
     # Benchmarking

@@ -645,24 +645,10 @@ bool WaveformWidgetFactory::widgetTypeSupportsUntilMark() const {
 void WaveformWidgetFactory::slotSetWidgetTypeFromControl(double value) {
     auto type = static_cast<WaveformWidgetType::Type>(static_cast<int>(value));
 
-    // Sync WaveformOverviewType
-    double overviewType = 0.0; // Filtered default
-    if (type == WaveformWidgetType::AllShaderRGBStackedWaveform ||
-        static_cast<int>(type) == 25 || static_cast<int>(type) == 26) {
-        overviewType = 3.0; // Stacked
-    } else if (type == WaveformWidgetType::AllShaderRGBWaveform ||
-               static_cast<int>(type) == 17) {
-        overviewType = 2.0; // RGB
-    }
-    
-    // Set the ControlObject AND config!
-    ControlObject::set(ConfigKey(QStringLiteral("[Waveform]"), QStringLiteral("WaveformOverviewType")), overviewType);
-    if (m_config) {
-        m_config->setValue(ConfigKey("[Waveform]", "WaveformOverviewType"), overviewType);
-    }
-
-    int handleIndex = findHandleIndexFromType(type);
+    const int handleIndex = findHandleIndexFromType(type);
     if (handleIndex < 0) {
+        // Restore the effective value; unsupported requests must not change previews.
+        m_pCOWaveformType->set(static_cast<int>(m_type));
         return;
     }
     setWidgetTypeFromHandle(handleIndex);
@@ -698,6 +684,13 @@ bool WaveformWidgetFactory::setWidgetTypeFromHandle(int handleIndex, bool force)
 
     // change the type
     setWidgetType(handle.m_type);
+    const int overviewType = WaveformWidgetType::overviewType(handle.m_type);
+    m_pCOWaveformOverviewType->set(overviewType);
+    if (m_config) {
+        m_config->setValue(ConfigKey("[Waveform]", "WaveformOverviewType"), overviewType);
+    }
+    m_pCOWaveformType->set(static_cast<int>(handle.m_type));
+
 
     m_skipRender = true;
 
@@ -766,7 +759,7 @@ void WaveformWidgetFactory::setDisplayBeatGridAlpha(int alpha) {
     }
 
     for (const auto& holder : std::as_const(m_waveformWidgetHolders)) {
-        holder.m_waveformWidget->setDisplayBeatGridAlpha(m_beatGridAlpha);
+        holder.m_waveformViewer->setDisplayBeatGridAlpha(m_beatGridAlpha);
     }
 }
 
@@ -973,7 +966,9 @@ void WaveformWidgetFactory::slotFrameSwapped() {
 WaveformWidgetType::Type WaveformWidgetFactory::autoChooseWidgetType() const {
     if (isOpenGlShaderAvailable()) {
 #ifndef MIXXX_USE_QOPENGL
-        return WaveformWidgetType::GLSLRGBWaveform;
+        // The legacy GLSL RGB renderer is the supersampled high-detail path.
+        // Keep high detail opt-in, as with the regular all-shader default below.
+        return WaveformWidgetType::GLRGBWaveform;
 #else
         return WaveformWidgetType::AllShaderRGBWaveform;
 #endif

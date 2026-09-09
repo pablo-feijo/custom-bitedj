@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <atomic>
 
 #include "control/pollingcontrolproxy.h"
 #include "engine/controls/enginecontrol.h"
@@ -23,6 +24,9 @@ class RateControl : public EngineControl {
     Q_OBJECT
 public:
   RateControl(const QString& group, UserSettingsPointer pConfig);
+  static constexpr int kDefaultJogWheelFilterLength = 6;
+  static void setJogWheelFilterLength(int length);
+  static int getJogWheelFilterLength();
 
   // Enumerations which hold the state of the pitchbend buttons.
   // These enumerations can be used like a bitmask.
@@ -171,6 +175,7 @@ private:
   static RampMode m_eRateRampMode;
   // The Rate Temp Sensitivity, the higher it is the slower it gets
   static int m_iRateRampSensitivity;
+  static std::atomic<int> m_iJogWheelFilterLength;
   // Factor applied to the deprecated "wheel" rate value.
   static const double kWheelMultiplier;
   // Factor applied to jogwheels when the track is paused to speed up seeking.

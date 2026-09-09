@@ -35,6 +35,10 @@
 #include "widget/wbattery.h"
 #include "widget/wbeatspinbox.h"
 #include "widget/wcombobox.h"
+#include "widget/wpadfxeditor.h"
+#include "widget/wcontrollerpaddisplay.h"
+#include "widget/wbeatgridcontrols.h"
+#include "widget/wbeatperiodpicker.h"
 #include "widget/wcoverart.h"
 #include "widget/wdisplay.h"
 #include "widget/weffectbuttonparametername.h"
@@ -78,6 +82,9 @@
 #include "widget/wcontrollerlist.h"
 #include "widget/wsamplerdrive.h"
 #include "widget/wusblist.h"
+#include "widget/wsysteminfo.h"
+#include "widget/wlinkedzoom.h"
+#include "widget/woverviewruler.h"
 #include "widget/wversionlabel.h"
 #include "widget/wnotificationstrip.h"
 #include "widget/wsofttakeoverindicator.h"
@@ -340,9 +347,7 @@ QWidget* LegacySkinParser::parseSkin(const QString& skinPath, QWidget* pParent) 
     m_pContext->setSkinBasePath(skinPath);
 
     if (m_pParent) {
-        qDebug()
-                << "ERROR: Somehow a parent already exists -- you are probably "
-                   "reusing a LegacySkinParser which is not advisable!";
+        qDebug() << "ERROR: Somehow a parent already exists -- you are probably re-using a LegacySkinParser which is not advisable!";
     }
     QDomElement skinDocument = openSkin(skinPath);
 
@@ -546,6 +551,14 @@ QList<QWidget*> LegacySkinParser::parseNode(const QDomElement& node) {
         result = wrapWidget(parseHotcueButton(node));
     } else if (nodeName == "ComboBox") {
         result = wrapWidget(parseStandardWidget<WComboBox>(node));
+    } else if (nodeName == "BeatGridControls") {
+        result = wrapWidget(parseStandardWidget<WBeatGridControls>(node));
+    } else if (nodeName == "BeatPeriodPicker") {
+        result = wrapWidget(parseStandardWidget<WBeatPeriodPicker>(node));
+    } else if (nodeName == "ControllerPadDisplay") {
+        result = wrapWidget(parseStandardWidget<WControllerPadDisplay>(node));
+    } else if (nodeName == "PadFxEditor") {
+        result = wrapWidget(parseStandardWidget<WPadFxEditor>(node));
     } else if (nodeName == "Overview") {
         result = wrapWidget(parseOverview(node));
     } else if (nodeName == "Visual") {
@@ -572,6 +585,12 @@ QList<QWidget*> LegacySkinParser::parseNode(const QDomElement& node) {
         result = wrapWidget(parseStandardWidget<WSamplerDrive>(node));
     } else if (nodeName == "UsbList") {
         result = wrapWidget(parseStandardWidget<WUsbList>(node));
+    } else if (nodeName == "OverviewRuler") {
+        result = wrapWidget(parseStandardWidget<WOverviewRuler>(node));
+    } else if (nodeName == "LinkedZoom") {
+        result = wrapWidget(parseStandardWidget<WLinkedZoom>(node));
+    } else if (nodeName == "SystemInfo") {
+        result = wrapWidget(parseStandardWidget<WSystemInfo>(node));
     } else if (nodeName == "Display") {
         result = wrapWidget(parseStandardWidget<WDisplay>(node));
     } else if (nodeName == "BeatSpinBox") {
@@ -997,8 +1016,6 @@ void LegacySkinParser::setupLabelWidget(const QDomElement& element, WLabel* pLab
     // effect which breaks color scheme support.
     pLabel->setup(element, *m_pContext);
     commonWidgetSetup(element, pLabel);
-    // OpenType features must be applied after the stylesheet selects the font.
-    pLabel->applyFontFeatures();
     pLabel->installEventFilter(m_pKeyboard);
     pLabel->installEventFilter(
             m_pControllerManager->getControllerLearningEventFilter());

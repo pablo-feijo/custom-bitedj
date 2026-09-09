@@ -32,12 +32,22 @@ PlaylistFeature::PlaylistFeature(Library* pLibrary, UserSettingsPointer pConfig)
     std::unique_ptr<TreeItem> pRootItem = TreeItem::newRoot(this);
     m_pSidebarModel->setRootItem(std::move(pRootItem));
     constructChildModel(kInvalidPlaylistId);
+    auto updateVisibility = [this] {
+        emit requestSidebarVisibility(this, isSidebarVisibleByDefault());
+    };
+    connect(m_pSidebarModel.get(), &QAbstractItemModel::modelReset, this, updateVisibility, Qt::QueuedConnection);
+    connect(m_pSidebarModel.get(), &QAbstractItemModel::rowsInserted, this, updateVisibility, Qt::QueuedConnection);
+    connect(m_pSidebarModel.get(), &QAbstractItemModel::rowsRemoved, this, updateVisibility, Qt::QueuedConnection);
 
     m_pShufflePlaylistAction = new QAction(tr("Shuffle Playlist"), this);
     connect(m_pShufflePlaylistAction,
             &QAction::triggered,
             this,
             &PlaylistFeature::slotShufflePlaylist);
+}
+
+bool PlaylistFeature::isSidebarVisibleByDefault() const {
+    return m_pSidebarModel->rowCount() > 0;
 }
 
 QVariant PlaylistFeature::title() {

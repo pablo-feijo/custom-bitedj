@@ -102,6 +102,7 @@ class LibraryControl : public QObject {
     void slotLoadSelectedIntoFirstStopped(double v);
     void slotAutoDjAddTop(double v);
     void slotAutoDjAddBottom(double v);
+    void slotAutoDjAddAll(double v);
     void slotAutoDjAddReplace(double v);
 
     void maybeCreateGroupController(const QString& group);
@@ -157,6 +158,7 @@ class LibraryControl : public QObject {
     // Add to Auto-Dj Queue
     std::unique_ptr<ControlObject> m_pAutoDjAddTop;
     std::unique_ptr<ControlObject> m_pAutoDjAddBottom;
+    std::unique_ptr<ControlObject> m_pAutoDjAddAll;
     std::unique_ptr<ControlObject> m_pAutoDjAddReplace;
 
     // Controls to sort the track view

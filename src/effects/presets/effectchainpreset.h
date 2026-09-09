@@ -33,6 +33,24 @@ class EffectChainPreset {
     const QString& name() const {
         return m_name;
     }
+    bool isRekordbox7() const {
+        return m_name.startsWith(QStringLiteral("[RB7] "));
+    }
+    QString displayName() const {
+        if (isRekordbox7()) {
+            return m_name.mid(6);
+        }
+        if (m_name == QStringLiteral("12. FILTER")) {
+            return QStringLiteral("12. COLOR FILTER");
+        }
+        if (m_name == QStringLiteral("15. FILTER")) {
+            return QStringLiteral("15. RHYTHMIC FILTER");
+        }
+        return m_name;
+    }
+    const QString& description() const {
+        return m_description;
+    }
     EffectChainMixMode::Type mixMode() const {
         return m_mixMode;
     }
@@ -52,6 +70,7 @@ class EffectChainPreset {
 
   private:
     QString m_name;
+    QString m_description;
     EffectChainMixMode::Type m_mixMode;
     double m_dSuper;
     QList<EffectPresetPointer> m_effectPresets;

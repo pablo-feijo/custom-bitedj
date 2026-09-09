@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QList>
+#include <memory>
 #include <QObject>
 #include <QPointer>
 #include <QUrl>
@@ -19,6 +20,8 @@ class TrackCollection;
 class AutoDJProcessor;
 class WLibrarySidebar;
 class QAction;
+class ControlPushButton;
+class ControlObject;
 class QModelIndex;
 class QPoint;
 
@@ -31,6 +34,7 @@ class AutoDJFeature : public LibraryFeature {
     virtual ~AutoDJFeature();
 
     QVariant title() override;
+    bool isSidebarVisibleByDefault() const override;
 
     void clear() override;
     void paste() override;
@@ -57,6 +61,11 @@ class AutoDJFeature : public LibraryFeature {
     void onRightClickChild(const QPoint& globalPos, const QModelIndex& index) override;
 
   private:
+    std::unique_ptr<ControlPushButton> m_showQueue;
+    std::unique_ptr<ControlObject> m_queueView;
+    std::unique_ptr<ControlPushButton> m_moveUp;
+    std::unique_ptr<ControlPushButton> m_moveDown;
+    std::unique_ptr<ControlPushButton> m_removeSelected;
     TrackCollection* const m_pTrackCollection;
 
     PlaylistDAO& m_playlistDao;

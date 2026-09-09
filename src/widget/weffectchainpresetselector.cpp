@@ -1,6 +1,13 @@
 #include "widget/weffectchainpresetselector.h"
 
 #include <QAbstractItemView>
+#include <QDialog>
+#include <QGridLayout>
+#include <QLabel>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <array>
+#include <algorithm>
 #include <QStyleOption>
 #include <QStylePainter>
 
@@ -10,8 +17,29 @@
 #include "effects/presets/effectpreset.h"
 #include "moc_weffectchainpresetselector.cpp"
 #include "widget/effectwidgetutils.h"
+#include "skin/highcontrast.h"
 
 class QPaintEvent;
+
+namespace {
+class PanelEffectPicker : public QDialog {
+  public:
+    explicit PanelEffectPicker(QWidget* parent) : QDialog(parent) {
+        setWindowFlags(Qt::Widget);
+        setAttribute(Qt::WA_StyledBackground);
+    }
+
+  protected:
+    bool eventFilter(QObject* watched, QEvent* event) override {
+        // Switching pages or reloading the skin dismisses the child picker.
+        if (event->type() == QEvent::Hide) {
+            reject();
+        }
+        return QDialog::eventFilter(watched, event);
+    }
+};
+} // namespace
+
 
 WEffectChainPresetSelector::WEffectChainPresetSelector(
         QWidget* pParent, EffectsManager* pEffectsManager)
@@ -68,8 +96,6 @@ void WEffectChainPresetSelector::populate() {
     blockSignals(true);
     clear();
 
-    QFontMetrics metrics(font());
-
     QList<EffectChainPresetPointer> presetList;
     if (m_bQuickEffectChain) {
         presetList = m_pEffectsManager->getChainPresetManager()->getQuickEffectPresetsSorted();
@@ -81,12 +107,14 @@ void WEffectChainPresetSelector::populate() {
     QStringList effectNames;
     for (int i = 0; i < presetList.size(); i++) {
         auto pChainPreset = presetList.at(i);
-        QString elidedDisplayName = metrics.elidedText(pChainPreset->name(),
-                Qt::ElideMiddle,
-                view()->width() - 2);
+        if (!m_pChainPresetManager->isPresetAvailable(pChainPreset)) continue;
+        QString elidedDisplayName = pChainPreset->displayName();
         addItem(elidedDisplayName, QVariant(pChainPreset->name()));
         QString tooltip =
-                QStringLiteral("<b>") + pChainPreset->name() + QStringLiteral("</b>");
+                QStringLiteral("<b>") + pChainPreset->displayName().toHtmlEscaped() + QStringLiteral("</b>");
+        if (!pChainPreset->description().isEmpty()) {
+            tooltip += QStringLiteral("<br/>") + pChainPreset->description().toHtmlEscaped();
+        }
         for (const auto& pEffectPreset : pChainPreset->effectPresets()) {
             if (!pEffectPreset->isEmpty()) {
                 EffectManifestPointer pManifest = pBackendManager->getManifest(pEffectPreset);
@@ -100,11 +128,178 @@ void WEffectChainPresetSelector::populate() {
             tooltip.append(effectNames.join("<br/>"));
         }
         effectNames.clear();
-        setItemData(i, tooltip, Qt::ToolTipRole);
+        setItemData(count() - 1, tooltip, Qt::ToolTipRole);
     }
 
     slotChainPresetChanged(m_pChain->presetName());
     blockSignals(false);
+}
+
+void WEffectChainPresetSelector::showPopup() {
+    if (m_bQuickEffectChain || !m_pChain) {
+        QComboBox::showPopup();
+        return;
+    }
+
+    // Embed the picker in the skin so Wayland cannot tile it as another window.
+    // Its bounds follow the selector and leave the decks visible.
+    PanelEffectPicker picker(window());
+    installEventFilter(&picker);
+    picker.setObjectName(QStringLiteral("BeatFxPicker"));
+    picker.setWindowTitle(tr("Beat FX"));
+    picker.setStyleSheet(HighContrast::mapStyleSheet(QStringLiteral(
+            "QDialog#BeatFxPicker { background: #111111; color: #dddddd; }"
+            "QDialog#BeatFxPicker QLabel { color: #dddddd; font-size: 9px; }"
+            "QDialog#BeatFxPicker QPushButton { font-size: 10px; padding: 2px;"
+            "border: 1px solid #444444; border-radius: 6px;"
+            "background: #1a1a1a; color: #dddddd; }"
+            "QDialog#BeatFxPicker QPushButton:checked { border: 2px solid #835aa0;"
+            "background: #835aa0; color: #ffffff; }"
+            "QDialog#BeatFxPicker QPushButton:focus { border: 2px solid #835aa0; }"
+            "QDialog#BeatFxPicker QPushButton:disabled { color: #666666; }")));
+    auto* layout = new QVBoxLayout(&picker);
+    layout->setContentsMargins(4, 4, 4, 4);
+    layout->setSpacing(4);
+    auto* header = new QGridLayout();
+    header->setSpacing(4);
+    auto* standard = new QPushButton(tr("Standard"), &picker);
+    auto* saved = new QPushButton(tr("Saved"), &picker);
+    auto* erase = new QPushButton(tr("Erase"), &picker);
+    auto* close = new QPushButton(tr("Close"), &picker);
+    for (auto* button : {standard, saved, erase, close}) {
+        button->setMinimumSize(0, 30);
+        button->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        button->setAutoDefault(false);
+    }
+    header->addWidget(standard, 0, 0);
+    header->addWidget(saved, 0, 1);
+    header->addWidget(erase, 1, 0);
+    header->addWidget(close, 1, 1);
+    erase->setAccessibleName(erase->text());
+    erase->setToolTip(tr("Clear the current FX without deleting its preset"));
+    close->setAccessibleName(close->text());
+    standard->setCheckable(true);
+    saved->setCheckable(true);
+    layout->addLayout(header);
+    auto* grid = new QGridLayout();
+    grid->setSpacing(4);
+    grid->setAlignment(Qt::AlignTop);
+    constexpr int kPageSize = 14;
+    std::array<QPushButton*, kPageSize> buttons;
+    for (int i = 0; i < kPageSize; ++i) {
+        auto* button = new QPushButton(&picker);
+        button->setFixedHeight(44);
+        QSizePolicy policy(QSizePolicy::Ignored, QSizePolicy::Expanding);
+        policy.setRetainSizeWhenHidden(true);
+        button->setSizePolicy(policy);
+        button->setCheckable(true);
+        button->setAutoDefault(false);
+        buttons[i] = button;
+        grid->addWidget(button, i / 2, i % 2);
+    }
+    grid->setColumnStretch(0, 1);
+    grid->setColumnStretch(1, 1);
+    layout->addLayout(grid);
+    auto* navigation = new QHBoxLayout();
+    auto* previous = new QPushButton(tr("Prev"), &picker);
+    auto* next = new QPushButton(tr("Next"), &picker);
+    auto* pageLabel = new QLabel(&picker);
+    pageLabel->setAlignment(Qt::AlignCenter);
+    for (auto* button : {previous, next}) {
+        button->setMinimumSize(0, 30);
+        button->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        button->setAutoDefault(false);
+    }
+    previous->setAccessibleName(previous->text());
+    next->setAccessibleName(next->text());
+    navigation->addWidget(previous);
+    navigation->addWidget(next);
+    layout->addWidget(pageLabel);
+    layout->addLayout(navigation);
+    layout->addStretch(1);
+
+    QList<int> standardItems, savedItems;
+    for (int i = 0; i < count(); ++i) {
+        auto preset = m_pChainPresetManager->getPreset(itemData(i).toString());
+        if (!preset || preset->name() == kNoEffectString || preset->isEmpty()) {
+            continue;
+        }
+        (preset->isRekordbox7() ? standardItems : savedItems).append(i);
+    }
+    bool showSaved = savedItems.contains(currentIndex());
+    int page = std::max(0, static_cast<int>((showSaved ? savedItems : standardItems).indexOf(currentIndex()))) / kPageSize;
+    const auto refresh = [&]() {
+        const auto& items = showSaved ? savedItems : standardItems;
+        int pages = std::max(1, (static_cast<int>(items.size()) + kPageSize - 1) / kPageSize);
+        page = std::clamp(page, 0, pages - 1);
+        standard->setChecked(!showSaved);
+        saved->setChecked(showSaved);
+        pageLabel->setText(tr("%1 / %2").arg(page + 1).arg(pages));
+        pageLabel->setAccessibleName(tr("Page %1 of %2").arg(page + 1).arg(pages));
+        previous->setEnabled(page > 0);
+        next->setEnabled(page + 1 < pages);
+        for (int i = 0; i < kPageSize; ++i) {
+            int offset = page * kPageSize + i;
+            auto* button = buttons[i];
+            int index = offset < items.size() ? items[offset] : -1;
+            button->setProperty("presetIndex", index);
+            button->setEnabled(index >= 0);
+            button->setVisible(index >= 0);
+            QString label = index >= 0 ? itemText(index) : QString();
+            // Wrap against the actual cell width, including Saved names with
+            // number prefixes. Long custom words remain identifiable by tooltip.
+            button->ensurePolished();
+            const QFontMetrics metrics(button->font());
+            const int textWidth = (width() - 12) / 2 - 8;
+            QStringList lines;
+            QString line;
+            for (const auto& word : label.split(QLatin1Char(' '))) {
+                const QString candidate = line.isEmpty() ? word : line + QLatin1Char(' ') + word;
+                if (!line.isEmpty() && (candidate.size() > 10 || metrics.horizontalAdvance(candidate) > textWidth - 2)) {
+                    lines.append(line);
+                    line = word;
+                } else {
+                    line = candidate;
+                }
+            }
+            lines.append(line);
+            for (auto& text : lines) {
+                text = metrics.elidedText(text, Qt::ElideRight, textWidth);
+            }
+            label = lines.join(QLatin1Char('\n'));
+            button->setText(label);
+            button->setChecked(index >= 0 && index == currentIndex());
+            button->setToolTip(index >= 0 ? itemData(index, Qt::ToolTipRole).toString() : QString());
+        }
+    };
+    for (auto* button : buttons) {
+        connect(button, &QPushButton::clicked, &picker, [&, button]() {
+            int index = button->property("presetIndex").toInt();
+            if (index >= 0) {
+                setCurrentIndex(index);
+                slotEffectChainPresetSelected(index);
+                picker.accept();
+            }
+        });
+    }
+    connect(previous, &QPushButton::clicked, &picker, [&]() { --page; refresh(); });
+    connect(next, &QPushButton::clicked, &picker, [&]() { ++page; refresh(); });
+    connect(standard, &QPushButton::clicked, &picker, [&]() { showSaved = false; page = 0; refresh(); });
+    connect(saved, &QPushButton::clicked, &picker, [&]() { showSaved = true; page = 0; refresh(); });
+    connect(close, &QPushButton::clicked, &picker, &QDialog::reject);
+    connect(erase, &QPushButton::clicked, &picker, [&]() {
+        setCurrentIndex(findData(kNoEffectString));
+        slotEffectChainPresetSelected(currentIndex());
+        picker.accept();
+    });
+    connect(m_pChain.data(), &EffectChain::chainPresetChanged, &picker, [&]() { refresh(); });
+    refresh();
+    const QPoint origin = mapTo(window(), QPoint(0, 0));
+    picker.setGeometry(origin.x(), origin.y(), width(), window()->height() - origin.y());
+    picker.raise();
+    picker.exec();
+    // Reset QComboBox's popup state, including keyboard activation.
+    QComboBox::hidePopup();
 }
 
 void WEffectChainPresetSelector::slotEffectChainPresetSelected(int index) {
@@ -154,7 +349,7 @@ void WEffectChainPresetSelector::paintEvent(QPaintEvent* e) {
     // Since the chain selector and the popup can differ in width,
     // elide the button text independently from the popup display name.
     buttonStyle.text = metrics.elidedText(
-            currentData().toString(),
+            currentText(),
             Qt::ElideRight,
             buttonRect.width());
     // Draw the text for the selector button. Alternative: painter.drawControl(...)

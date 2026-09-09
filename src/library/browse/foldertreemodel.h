@@ -2,6 +2,7 @@
 
 #include <QModelIndex>
 #include <QHash>
+#include <QSet>
 
 #include "library/treeitemmodel.h"
 
@@ -15,7 +16,7 @@ class FolderTreeModel : public TreeItemModel {
     FolderTreeModel(QObject *parent = 0);
     virtual ~FolderTreeModel();
     virtual bool hasChildren(const QModelIndex& parent = QModelIndex()) const;
-    bool directoryHasChildren(const QString& path) const;
+    static bool directoryHasChildren(const QString& path);
     void removeChildDirsFromCache(const QStringList& rootPaths);
 
   private:
@@ -25,4 +26,6 @@ class FolderTreeModel : public TreeItemModel {
     // be displayed and removed dirs will remain in the sidebar tree.
     // removeChildDirsFromCache() can be used to reset selected directories.
     mutable QHash<QString, bool> m_directoryCache;
+    mutable QSet<QString> m_pendingDirectories;
+    quint64 m_cacheGeneration = 0;
 };

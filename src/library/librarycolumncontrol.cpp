@@ -360,3 +360,14 @@ int LibraryColumnControl::countVisibleManaged() const {
     }
     return n;
 }
+
+QString LibraryColumnControl::headerState(const QString& modelNamespace) const {
+    return m_pConfig->getValueString(
+            ConfigKey(kLibraryGroup, "HeaderState_" + modelNamespace));
+}
+
+void LibraryColumnControl::setHeaderState(
+        const QString& modelNamespace, const QString& state) {
+    // setValue changes memory only. The existing settings lifecycle persists it.
+    m_pConfig->setValue(ConfigKey(kLibraryGroup, "HeaderState_" + modelNamespace), state);
+}

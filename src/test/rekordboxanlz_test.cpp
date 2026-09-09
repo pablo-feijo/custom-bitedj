@@ -1,4 +1,5 @@
 #include "library/rekordbox/rekordboxanlz.h"
+#include "library/rekordbox/rekordboxpagechain.h"
 
 #include <gtest/gtest.h>
 
@@ -104,6 +105,17 @@ class AnlzBuilder {
             body.append(entry);
         }
         addSection("PCO2", body);
+    }
+
+    void addBeatGrid() {
+        QByteArray body(8, '\0');
+        appendU32(&body, 8);
+        for (uint32_t beat = 0; beat < 8; ++beat) {
+            appendU16(&body, beat % 4 + 1);
+            appendU16(&body, 12000);
+            appendU32(&body, 1000 + beat * 500);
+        }
+        addSection("PQTZ", body);
     }
 
     QByteArray build() const {
@@ -501,3 +513,101 @@ TEST_F(RekordboxAnlzTest, LoopDemotedToCueChangesType) {
 }
 
 } // namespace
+
+TEST_F(RekordboxAnlzTest, DatOnlyImportsBeatsAndCues) {
+    const auto track = createTrack();
+    AnlzBuilder dat;
+    dat.addBeatGrid();
+    dat.addCueTag(kCueListTypeHotCue, {{1, kCueEntryTypeCue, 1000, 0, {}}});
+    const auto path = m_tempDir.filePath("ANLZ.DAT");
+    QFile file(path);
+    ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+    const auto data = dat.build();
+    ASSERT_EQ(file.write(data), data.size());
+    file.close();
+    EXPECT_TRUE(mixxx::rekordbox::readAnalyzeFiles(track, kSampleRate, 0, path).isEmpty());
+    ASSERT_TRUE(track->getBeats());
+    EXPECT_NEAR(track->getBpm(), 120.0, 0.01);
+    ASSERT_TRUE(findHotcue(track, 0));
+    EXPECT_EQ(findHotcue(track, 0)->getPosition(), framesForMs(1000));
+}
+
+TEST_F(RekordboxAnlzTest, ExtCuesPreferredAndCorruptionPreservesExistingCues) {
+    const auto track = createTrack();
+    AnlzBuilder dat;
+    dat.addBeatGrid();
+    dat.addCueTag(kCueListTypeHotCue, {{1, kCueEntryTypeCue, 1000, 0, {}}});
+    AnlzBuilder ext;
+    ext.addCueExtendedTag(kCueListTypeHotCue, {{1, kCueEntryTypeCue, 2500, 0, {}}});
+    const auto path = m_tempDir.filePath("ANLZ.DAT");
+    const auto extPath = m_tempDir.filePath("ANLZ.EXT");
+    for (const auto& entry : {qMakePair(path, dat.build()), qMakePair(extPath, ext.build())}) {
+        QFile file(entry.first);
+        ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+        ASSERT_EQ(file.write(entry.second), entry.second.size());
+    }
+    EXPECT_TRUE(mixxx::rekordbox::readAnalyzeFiles(track, kSampleRate, 0, path).isEmpty());
+    ASSERT_TRUE(track->getBeats());
+    const auto cue = findHotcue(track, 0);
+    ASSERT_TRUE(cue);
+    EXPECT_EQ(cue->getPosition(), framesForMs(2500));
+    QFile file(extPath);
+    ASSERT_TRUE(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    const auto truncated = ext.build().chopped(1);
+    ASSERT_EQ(file.write(truncated), truncated.size());
+    file.close();
+    EXPECT_EQ(mixxx::rekordbox::readAnalyzeFiles(track, kSampleRate, 0, path),
+            QStringList{extPath});
+    EXPECT_EQ(findHotcue(track, 0), cue);
+    EXPECT_EQ(cue->getPosition(), framesForMs(2500));
+    EXPECT_NEAR(track->getBpm(), 120.0, 0.01);
+}
+
+TEST_F(RekordboxAnlzTest, MissingAnalysisReportedOnceWithoutClearingCues) {
+    const auto track = createTrack();
+    AnlzBuilder cues;
+    cues.addCueTag(kCueListTypeHotCue, {{1, kCueEntryTypeCue, 1000, 0, {}}});
+    importCues(track, cues);
+    const auto cue = findHotcue(track, 0);
+    ASSERT_TRUE(cue);
+    const auto path = m_tempDir.filePath("MISSING.DAT");
+    EXPECT_EQ(mixxx::rekordbox::readAnalyzeFiles(track, kSampleRate, 0, path),
+            QStringList{path});
+    EXPECT_EQ(findHotcue(track, 0), cue);
+}
+
+TEST(RekordboxPageChainTest, RejectsInvalidSizesBoundsAndCycles) {
+    using mixxx::rekordbox::PageChainGuard;
+    EXPECT_THROW(PageChainGuard(0, 4096), std::runtime_error);
+    EXPECT_THROW(PageChainGuard(4096, 2048), std::runtime_error);
+    PageChainGuard guard(4096, 4 * 4096);
+    EXPECT_NO_THROW(guard.visit(1));
+    EXPECT_NO_THROW(guard.visit(3));
+    EXPECT_THROW(guard.visit(1), std::runtime_error);
+    EXPECT_THROW(guard.visit(4), std::runtime_error);
+    EXPECT_THROW(guard.visit(UINT32_MAX), std::runtime_error);
+}
+
+TEST(RekordboxPageChainTest, RetainsFull32BitPageIndices) {
+    mixxx::rekordbox::PageChainGuard guard(4096, uint64_t(70000) * 4096);
+    EXPECT_NO_THROW(guard.visit(65536));
+    EXPECT_NO_THROW(guard.visit(0));
+    EXPECT_NO_THROW(guard.visit(69999));
+    EXPECT_THROW(guard.visit(70000), std::runtime_error);
+}
+
+TEST_F(RekordboxAnlzTest, MissingDatDoesNotPreventIndependentExtCueImport) {
+    const auto track = createTrack();
+    AnlzBuilder ext;
+    ext.addCueExtendedTag(kCueListTypeHotCue, {{1, kCueEntryTypeCue, 2500, 0, {}}});
+    const auto path = m_tempDir.filePath("ANLZ.DAT");
+    QFile file(m_tempDir.filePath("ANLZ.EXT"));
+    ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+    const auto data = ext.build();
+    ASSERT_EQ(file.write(data), data.size());
+    file.close();
+    EXPECT_EQ(mixxx::rekordbox::readAnalyzeFiles(track, kSampleRate, 0, path),
+            QStringList{path});
+    ASSERT_TRUE(findHotcue(track, 0));
+    EXPECT_EQ(findHotcue(track, 0)->getPosition(), framesForMs(2500));
+}

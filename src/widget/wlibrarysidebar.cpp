@@ -1,5 +1,7 @@
 #include "widget/wlibrarysidebar.h"
 
+#include "library/browse/browsefeature.h"
+
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QUrl>
@@ -21,6 +23,8 @@ WLibrarySidebar::WLibrarySidebar(QWidget* parent)
     qRegisterMetaType<FocusWidget>("FocusWidget");
     //Set some properties
     setHeaderHidden(true);
+    setIndentation(44);
+    setExpandsOnDoubleClick(false);
     setSelectionMode(QAbstractItemView::SingleSelection);
     //Drag and drop setup
     setDragEnabled(false);
@@ -218,8 +222,7 @@ void WLibrarySidebar::toggleSelectedItem() {
 // Mirrors the leaf-tap branch of mousePressEvent for callers that don't have
 // a click position (e.g. controller wheel-press routed through LibraryControl).
 // Emits leafItemActivated so the LibraryBreadcrumb updates, and collapses the
-// sidebar via [Sidebar],sidebar_visible. Skips non-leaves and AutoDJ-style
-// feature roots that own children — same gate as mousePressEvent.
+// sidebar via [Sidebar],sidebar_visible. Group-only roots remain expanded.
 void WLibrarySidebar::activateSelectedLeaf() {
     QModelIndex idx = selectedIndex();
     if (!idx.isValid()) {
@@ -231,12 +234,14 @@ void WLibrarySidebar::activateSelectedLeaf() {
 
     // Do not collapse for top-level feature roots (e.g. "Computer", "Playlists") that have children.
     // They are just grouping containers.
-    if (isTopLevel && idx.model()->hasChildren(idx)) {
+    const auto* sidebarModel = qobject_cast<const SidebarModel*>(model());
+    if (isTopLevel && idx.model()->hasChildren(idx) &&
+            (!sidebarModel || !sidebarModel->hasTrackTable(idx))) {
         return;
     }
 
     // Do not collapse for dummy Browse nodes that just act as folders
-    if (dataStr == "QUICK_LINK_NODE" || dataStr == "DEVICE_NODE") {
+    if (dataStr == QUICK_LINK_NODE || dataStr == DEVICE_NODE) {
         return;
     }
 
@@ -401,33 +406,30 @@ void WLibrarySidebar::mousePressEvent(QMouseEvent* event) {
     if (event->buttons().testFlag(Qt::RightButton)) {
         return;
     }
-    QTreeView::mousePressEvent(event);
-
-    // Touch ergonomics: tapping a leaf row collapses the sidebar so the
-    // library view fills the screen. A "leaf" is any row with no children
-    // OR a feature root that owns its own track table (e.g. AutoDJ).
-    QModelIndex idx = indexAt(event->pos());
+    const QModelIndex idx = indexAt(event->pos());
     if (!idx.isValid()) {
+        QTreeView::mousePressEvent(event);
         return;
     }
-    
-    bool isTopLevel = !idx.parent().isValid();
-    QString dataStr = idx.data(SidebarModel::DataRole).toString();
-
-    // Do not collapse for top-level feature roots that have children.
-    if (isTopLevel && idx.model()->hasChildren(idx)) {
+    const bool hasChildren = model()->hasChildren(idx);
+    const QString data = idx.data(SidebarModel::DataRole).toString();
+    const auto* sidebarModel = qobject_cast<const SidebarModel*>(model());
+    const bool grouping = (!idx.parent().isValid() &&
+                                 (!sidebarModel || !sidebarModel->hasTrackTable(idx))) ||
+            data == QUICK_LINK_NODE || data == DEVICE_NODE;
+    // Reserve the full styled indentation cell for expansion. In particular,
+    // expanding a directory must never open its track table and hide the tree.
+    const QRect row = visualRect(idx);
+    const bool branchTap = event->pos().x() < row.left();
+    if (event->button() == Qt::LeftButton && hasChildren && (branchTap || grouping)) {
+        setExpanded(idx, !isExpanded(idx));
+        event->accept();
         return;
     }
-
-    // Do not collapse for dummy Browse nodes
-    if (dataStr == "QUICK_LINK_NODE" || dataStr == "DEVICE_NODE") {
-        return;
+    QTreeView::mousePressEvent(event);
+    if (event->button() == Qt::LeftButton) {
+        activateSelectedLeaf();
     }
-
-    emit leafItemActivated(idx.data(Qt::DisplayRole).toString());
-    ControlObject::set(ConfigKey(QStringLiteral("[Sidebar]"),
-                               QStringLiteral("sidebar_visible")),
-            0);
 }
 
 void WLibrarySidebar::focusInEvent(QFocusEvent* event) {

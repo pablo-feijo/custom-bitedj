@@ -19,21 +19,22 @@
 //
 //  Custom (Mixxx specific mappings):
 //      * BeatFX: Assigned Effect Unit 1
-//                < LEFT toggles focus between Effects 1, 2 and 3 leftward
-//                > RIGHT toggles focus between Effects 1, 2 and 3 rightward
-//                v DOWN loads next effect entry for focused Effect
-//                SHIFT + v UP loads previous effect entry for focused Effect
+//                < LEFT shortens the focused effect period
+//                > RIGHT lengthens the focused effect period
+//                FX SELECT loads the next Beat FX chain
+//                SHIFT + FX SELECT loads the previous Beat FX chain
 //                LEVEL/DEPTH controls the Mix knob of the Effect Unit
-//                SHIFT + LEVEL/DEPTH controls the Meta knob of the focused Effect
+//                SHIFT + FILTER controls Super while LEVEL/DEPTH retains Mix
 //                ON/OFF toggles focused effect slot
 //                SHIFT + ON/OFF disables all three effect slots.
-//      * Memory Cue CALL, MEMORY and DELETE (CUE/LOOP CALL arrows)
+//      * 32 beat jump forward & back (Shift + </> CUE/LOOP CALL arrows)
 //      * Toggle quantize (Shift + channel cue)
 //
 //  Not implemented (after discussion and trial attempts):
 //      * Loop Section:
 //        * -4BEAT auto loop (hacky---prefer a clean way to set a 4 beat loop
 //                            from a previous position on long press)
+//        * CUE/LOOP CALL - memory & delete (complex and not useful. Hot cues are sufficient)
 //
 //      * Secondary pad modes (trial attempts complex and too experimental)
 //        * Keyboard mode
@@ -106,18 +107,25 @@ PioneerDDJ400.vinylMode = true;
 PioneerDDJ400.alpha = 1.0/8;
 PioneerDDJ400.beta = PioneerDDJ400.alpha/32;
 
-// Multiplier for fast seek through track using SHIFT+JOGWHEEL
-PioneerDDJ400.fastSeekScale = 150;
+// Track scratch ownership and playback state separately for each deck.
+PioneerDDJ400.jogWasPlaying = [false, false];
+PioneerDDJ400.jogScratchActive = [false, false];
 PioneerDDJ400.bendScale = 0.8;
 
 PioneerDDJ400.tempoRanges = [0.06, 0.10, 0.25, 0.50, 1.00];
 
 PioneerDDJ400.shiftButtonDown = [false, false];
+PioneerDDJ400.shiftTapCount = 0;
+PioneerDDJ400.shiftTapStartedAt = 0;
+PioneerDDJ400.shiftTripleTapWindowMs = 1200;
 
 // Jog wheel loop adjust
 PioneerDDJ400.loopAdjustIn = [false, false];
 PioneerDDJ400.loopAdjustOut = [false, false];
 PioneerDDJ400.loopAdjustMultiply = 50;
+PioneerDDJ400.loopJogTicks = [0, 0];
+// About 16 degrees at 720 ticks/revolution; avoid resizing on every MIDI packet.
+PioneerDDJ400.loopJogStepTicks = 32;
 
 // Beatjump pad (beatjump_size values)
 PioneerDDJ400.beatjumpSizeForPad = {
@@ -156,6 +164,8 @@ PioneerDDJ400.toggleLight = function(midiIn, active) {
 //
 
 PioneerDDJ400.init = function() {
+    PiFlexPadFx.init(2);
+    PioneerDDJ400.resetPadDisplay();
     engine.setValue("[EffectRack1_EffectUnit1]", "show_focus", 1);
 
     engine.makeUnbufferedConnection("[Channel1]", "vu_meter", PioneerDDJ400.vuMeterUpdate);
@@ -200,6 +210,8 @@ PioneerDDJ400.init = function() {
     for (let i = 1; i <= 3; i++) {
         engine.makeConnection("[EffectRack1_EffectUnit1_Effect" + i +"]", "enabled", PioneerDDJ400.toggleFxLight);
     }
+
+    engine.makeConnection("[EffectRack1_EffectUnit1]", "focused_effect", PioneerDDJ400.toggleFxLight);
 
     // Bite DJ: jog mode is chosen in the in-skin General settings tab via the
     // [BiteDJ],vinyl_mode CO (1 = Vinyl/scratch, 0 = CDJ/pitch-bend). Subscribe
@@ -268,7 +280,8 @@ PioneerDDJ400.loadTrack = function(channel, control, value, status, group) {
 };
 
 PioneerDDJ400.browseRotate = function(midichan, control, value, status) {
-    if (engine.getValue("[Tab]", "current") === 0) {
+    if (PioneerDDJ400.shiftButtonDown[0] || PioneerDDJ400.shiftButtonDown[1] ||
+            engine.getValue("[Tab]", "current") === 0) {
         PioneerDDJ400.waveformZoom(midichan, control, value, status, "[Channel1]");
     } else {
         engine.setValue("[Library]", "MoveVertical", value > 0x40 ? value - 0x80 : value);
@@ -286,29 +299,6 @@ PioneerDDJ400.browseShiftPress = function(channel, control, value, status, group
     }
 };
 
-// From Play, BROWSE press opens the browser. On the browser and other screens
-// it retains the mapping's existing focus-forward behavior.
-PioneerDDJ400.browsePress = function(_midichan, _control, value) {
-    if (value === 0) {
-        return;
-    }
-    if (engine.getValue("[Tab]", "current") === 0) {
-        engine.setValue("[Tab]", "current", 1);
-        engine.setValue("[Tab]", "library", 1);
-        return;
-    }
-    script.triggerControl("[Library]", "MoveFocusForward", 100);
-};
-
-// SHIFT + right LOAD toggles the Browser.
-PioneerDDJ400.toggleBrowser = function(_midichan, _control, value) {
-    if (value === 0) {
-        return;
-    }
-    const browserOpen = engine.getValue("[Tab]", "current") === 1;
-    engine.setValue("[Tab]", "current", browserOpen ? 0 : 1);
-    engine.setValue("[Tab]", browserOpen ? "overview" : "library", 1);
-};
 
 //
 // Channel level lights
@@ -339,28 +329,26 @@ PioneerDDJ400.toggleFxLight = function(_value, _group, _control) {
     PioneerDDJ400.toggleLight(PioneerDDJ400.lights.shiftBeatFx, enabled);
 };
 
-// Bite DJ skin only renders one effect slot (Effect1), so all BEAT FX
-// controls operate on it directly rather than on Mixxx's per-chain
-// "focused_effect" slot-cycling mechanism.
+// Default to the visible first slot when no slot has focus.
 PioneerDDJ400.focusedFxGroup = function() {
-    return "[EffectRack1_EffectUnit1_Effect1]";
+    const focus = engine.getValue("[EffectRack1_EffectUnit1]", "focused_effect");
+    const slot = focus >= 1 && focus <= 3 ? focus : 1;
+    return "[EffectRack1_EffectUnit1_Effect" + slot + "]";
 };
 
 PioneerDDJ400.beatFxLevelDepthRotate = function(_channel, _control, value) {
     // Ignore physical knob if Pad FX is currently being held!
-    if (PioneerDDJ400.padFxActiveCount > 0) return;
 
     // Map Level/Depth to Beat FX MIX knob (both with and without Shift)
     // so Shift + Filter (Super) and Level/Depth (Mix) can be tweaked simultaneously.
     engine.setValue("[EffectRack1_EffectUnit1]", "mix", value / 0x7F);
 };
 
-// Bite DJ skin only renders one effect slot (Effect1), so the BEAT
-// LEFT/RIGHT buttons step through the on-screen bucket grid of the
-// loaded Beats-typed parameter instead of switching focused slot.
+// BEAT LEFT/RIGHT steps the focused slot through the on-screen bucket
+// periods of its first loaded Beats-typed parameter.
 // Order matches the row template's reading order
-// (⅛ → ¼ → ½ → 1 → 2 → 4), values are raw rate-in-cycles-per-beat.
-PioneerDDJ400.beatFxBuckets = [8, 4, 2, 1, 0.5, 0.25];
+// (⅛ → ¼ → ½ → 1 → 2 → 4), values are periods in beats; native code handles rate parameters.
+PioneerDDJ400.beatFxBuckets = [0.125, 0.25, 0.5, 1, 2, 4];
 
 PioneerDDJ400.findBeatsParameter = function(group) {
     for (let i = 1; i <= 16; i++) {
@@ -375,12 +363,15 @@ PioneerDDJ400.findBeatsParameter = function(group) {
 };
 
 PioneerDDJ400.stepBeatFxBucket = function(direction) {
-    const group = "[EffectRack1_EffectUnit1_Effect1]";
+    const group = PioneerDDJ400.focusedFxGroup();
     const paramIndex = PioneerDDJ400.findBeatsParameter(group);
     if (paramIndex === -1) { return; }
 
-    const buckets = PioneerDDJ400.beatFxBuckets;
-    const valueKey = "parameter" + paramIndex + "_value";
+    const valueKey = "parameter" + paramIndex + "_beat_period";
+    const minimum = engine.getValue(group, valueKey + "_min");
+    const maximum = engine.getValue(group, valueKey + "_max");
+    const buckets = PioneerDDJ400.beatFxBuckets.filter(period => period >= minimum && period <= maximum);
+    if (buckets.length === 0) { return; }
     const current = engine.getValue(group, valueKey);
 
     // Snap to nearest bucket, then step. Off-bucket values (rare —
@@ -419,47 +410,34 @@ PioneerDDJ400.beatFxRightPressed = function(_channel, _control, value) {
 PioneerDDJ400.beatFxSelectPressed = function(_channel, _control, value) {
     if (value === 0) { return; }
 
-    var unitGroup = "[EffectRack1_EffectUnit1]";
-    var current = engine.getValue(unitGroup, "chain_selector");
-    
-    // The top 6 effects are our custom common ones (1-indexed in UI, but maybe 1-indexed in chain_selector?)
-    // In Mixxx, chain_selector is 1-indexed or 0-indexed? It is 1-indexed (0 means empty/none in some versions, but 1 is first chain).
-    // Let's cycle 1 -> 6
-    if (current >= 6 || current < 1) {
-        engine.setValue(unitGroup, "chain_selector", 1);
-    } else {
-        engine.setValue(unitGroup, "chain_selector", current + 1);
+    // Also honor either deck's Shift when SELECT arrives on the normal note.
+    // The dedicated shifted SELECT note remains mapped to the reverse handler.
+    if (PioneerDDJ400.shiftButtonDown[0] || PioneerDDJ400.shiftButtonDown[1]) {
+        PioneerDDJ400.beatFxSelectShiftPressed(_channel, _control, value);
+        return;
     }
+
+    // chain_selector is a relative ControlEncoder: only its sign matters.
+    engine.setValue("[EffectRack1_EffectUnit1]", "chain_selector", 1);
 };
 
 PioneerDDJ400.beatFxSelectShiftPressed = function(_channel, _control, value) {
     if (value === 0) { return; }
 
-    var unitGroup = "[EffectRack1_EffectUnit1]";
-    var current = engine.getValue(unitGroup, "chain_selector");
-    
-    if (current <= 1 || current > 6) {
-        engine.setValue(unitGroup, "chain_selector", 6);
-    } else {
-        engine.setValue(unitGroup, "chain_selector", current - 1);
-    }
+    engine.setValue("[EffectRack1_EffectUnit1]", "chain_selector", -1);
 };
 
 PioneerDDJ400.beatFxOnOffPressed = function(_channel, _control, value) {
     if (value === 0) { return; }
 
+    if (PioneerDDJ400.shiftButtonDown[0] || PioneerDDJ400.shiftButtonDown[1]) {
+        PioneerDDJ400.beatFxOnOffShiftPressed(_channel, _control, value);
+        return;
+    }
     const toggleEnabled = !engine.getValue(PioneerDDJ400.focusedFxGroup(), "enabled");
     engine.setValue(PioneerDDJ400.focusedFxGroup(), "enabled", toggleEnabled);
 
-    // DEBUG LOGGING
-    var ch1 = engine.getValue("[EffectRack1_EffectUnit1]", "group_[Channel1]_enable");
-    var ch2 = engine.getValue("[EffectRack1_EffectUnit1]", "group_[Channel2]_enable");
-    var master = engine.getValue("[EffectRack1_EffectUnit1]", "group_[Master]_enable");
-    var mix = engine.getValue("[EffectRack1_EffectUnit1]", "mix");
-    var meta = engine.getValue(PioneerDDJ400.focusedFxGroup(), "meta");
-    var enabled = engine.getValue(PioneerDDJ400.focusedFxGroup(), "enabled");
-    
-    print("DEBUG_FX: CH1=" + ch1 + " CH2=" + ch2 + " MASTER=" + master + " MIX=" + mix + " META=" + meta + " ENABLED=" + enabled);
+
 };
 
 PioneerDDJ400.beatFxOnOffShiftPressed = function(_channel, _control, value) {
@@ -496,7 +474,7 @@ PioneerDDJ400.beatFxChannel = function(_channel, control, value, _status, group)
 //
 
 PioneerDDJ400.toggleLoopAdjustIn = function(channel, _control, value, _status, group) {
-    if (value === 0 || engine.getValue(group, "loop_enabled" === 0)) {
+    if (value === 0 || engine.getValue(group, "loop_enabled") === 0) {
         return;
     }
     PioneerDDJ400.loopAdjustIn[channel] = !PioneerDDJ400.loopAdjustIn[channel];
@@ -504,7 +482,7 @@ PioneerDDJ400.toggleLoopAdjustIn = function(channel, _control, value, _status, g
 };
 
 PioneerDDJ400.toggleLoopAdjustOut = function(channel, _control, value, _status, group) {
-    if (value === 0 || engine.getValue(group, "loop_enabled" === 0)) {
+    if (value === 0 || engine.getValue(group, "loop_enabled") === 0) {
         return;
     }
     PioneerDDJ400.loopAdjustOut[channel] = !PioneerDDJ400.loopAdjustOut[channel];
@@ -567,6 +545,10 @@ PioneerDDJ400.loopToggle = function(value, group, control) {
     const status = group === "[Channel1]" ? 0x90 : 0x91,
         channel = group === "[Channel1]" ? 0 : 1;
 
+    PioneerDDJ400.loopJogTicks[channel] = 0;
+    if (value && PioneerDDJ400.jogScratchActive[channel]) {
+        PioneerDDJ400.releaseJog(channel);
+    }
     PioneerDDJ400.setReloopLight(status, value ? 0x7F : 0x00);
 
     if (value) {
@@ -625,33 +607,13 @@ PioneerDDJ400.stopLoopInPendingBlink = function(status, group) {
 
 PioneerDDJ400.cueLoopCallLeft = function(_channel, _control, value, _status, group) {
     if (value) {
-        if (engine.getValue(group, "loop_enabled") > 0) {
-            engine.setValue(group, "loop_scale", 0.5);
-        } else {
-            engine.setValue(group, "memorycue_prev", 1);
-        }
+        engine.setValue(group, "loop_scale", 0.5);
     }
 };
 
 PioneerDDJ400.cueLoopCallRight = function(_channel, _control, value, _status, group) {
     if (value) {
-        if (engine.getValue(group, "loop_enabled") > 0) {
-            engine.setValue(group, "loop_scale", 2.0);
-        } else {
-            engine.setValue(group, "memorycue_next", 1);
-        }
-    }
-};
-
-PioneerDDJ400.memoryCueSet = function(_channel, _control, value, _status, group) {
-    if (value) {
-        engine.setValue(group, "memorycue_set", 1);
-    }
-};
-
-PioneerDDJ400.memoryCueDelete = function(_channel, _control, value, _status, group) {
-    if (value) {
-        engine.setValue(group, "memorycue_delete", 1);
+        engine.setValue(group, "loop_scale", 2.0);
     }
 };
 
@@ -696,24 +658,33 @@ PioneerDDJ400.cycleTempoRange = function(_channel, _control, value, _status, gro
 //
 
 PioneerDDJ400.jogTurn = function(channel, _control, value, _status, group) {
+    if (PioneerDDJ400.shiftButtonDown[channel]) {
+        PioneerDDJ400.jogSearch(channel, _control, value, _status, group);
+        return;
+    }
     const deckNum = channel + 1;
     // wheel center at 64; <64 rew >64 fwd
     let newVal = value - 64;
 
-    // loop_in / out adjust
-    const loopEnabled = engine.getValue(group, "loop_enabled");
-    if (loopEnabled > 0) {
+    if (engine.getValue(group, "loop_enabled") > 0) {
+        if (PioneerDDJ400.jogScratchActive[channel]) {
+            PioneerDDJ400.releaseJog(channel);
+        }
+        // Explicit IN/OUT edit modes retain precise boundary adjustment.
         if (PioneerDDJ400.loopAdjustIn[channel]) {
-            newVal = newVal * PioneerDDJ400.loopAdjustMultiply + engine.getValue(group, "loop_start_position");
-            engine.setValue(group, "loop_start_position", newVal);
+            engine.setValue(group, "loop_start_position",
+                    newVal * PioneerDDJ400.loopAdjustMultiply + engine.getValue(group, "loop_start_position"));
             return;
         }
         if (PioneerDDJ400.loopAdjustOut[channel]) {
-            newVal = newVal * PioneerDDJ400.loopAdjustMultiply + engine.getValue(group, "loop_end_position");
-            engine.setValue(group, "loop_end_position", newVal);
+            engine.setValue(group, "loop_end_position",
+                    newVal * PioneerDDJ400.loopAdjustMultiply + engine.getValue(group, "loop_end_position"));
             return;
         }
+        PioneerDDJ400.resizeLoopWithJog(channel, newVal, group);
+        return;
     }
+    PioneerDDJ400.loopJogTicks[channel] = 0;
 
     if (engine.isScratching(deckNum)) {
         engine.scratchTick(deckNum, newVal);
@@ -723,9 +694,39 @@ PioneerDDJ400.jogTurn = function(channel, _control, value, _status, group) {
 };
 
 
-PioneerDDJ400.jogSearch = function(_channel, _control, value, _status, group) {
-    const newVal = (value - 64) * PioneerDDJ400.fastSeekScale;
-    engine.setValue(group, "jog", newVal);
+PioneerDDJ400.resizeLoopWithJog = function(channel, ticks, group) {
+    if (ticks === 0) { return; }
+    let pending = PioneerDDJ400.loopJogTicks[channel];
+    if (pending * ticks < 0) { pending = 0; }
+    pending += ticks;
+    const threshold = PioneerDDJ400.loopJogStepTicks;
+    while (Math.abs(pending) >= threshold) {
+        const direction = pending > 0 ? 1 : -1;
+        engine.setValue(group, "loop_scale", direction > 0 ? 2 : 0.5);
+        pending -= direction * threshold;
+    }
+    PioneerDDJ400.loopJogTicks[channel] = pending;
+};
+
+// Dedicated shifted MIDI rotation also arrives without a preceding Shift note.
+PioneerDDJ400.jogSearch = function(channel, _control, value, _status, group) {
+    PioneerDDJ400.loopJogTicks[channel] = 0;
+    if (PioneerDDJ400.jogScratchActive[channel]) {
+        PioneerDDJ400.releaseJog(channel);
+    }
+    if (value !== 64) {
+        engine.setValue(group, "beats_translate_move", value - 64);
+    }
+};
+
+PioneerDDJ400.releaseJog = function(channel) {
+    // Disable immediately: the default ramp can hold playback at zero speed.
+    engine.scratchDisable(channel + 1, false);
+    if (PioneerDDJ400.jogScratchActive[channel] && PioneerDDJ400.jogWasPlaying[channel]) {
+        engine.setValue("[Channel" + (channel + 1) + "]", "play", 1);
+    }
+    PioneerDDJ400.jogScratchActive[channel] = false;
+    PioneerDDJ400.jogWasPlaying[channel] = false;
 };
 
 // Connection callback for [BiteDJ],vinyl_mode. Maps the CO (1 = Vinyl,
@@ -734,18 +735,26 @@ PioneerDDJ400.setVinylMode = function(value) {
     PioneerDDJ400.vinylMode = value !== 0;
 };
 
-PioneerDDJ400.jogTouch = function(channel, _control, value) {
-    const deckNum = channel + 1;
-
-    // skip while adjusting the loop points
-    if (PioneerDDJ400.loopAdjustIn[channel] || PioneerDDJ400.loopAdjustOut[channel]) {
+PioneerDDJ400.jogTouch = function(channel, control, value) {
+    if (value === 0) {
+        PioneerDDJ400.loopJogTicks[channel] = 0;
+        PioneerDDJ400.releaseJog(channel);
         return;
     }
-
-    if (value !== 0 && this.vinylMode) {
-        engine.scratchEnable(deckNum, 720, 33+1/3, this.alpha, this.beta);
+    if (engine.getValue("[Channel" + (channel + 1) + "]", "loop_enabled") > 0 ||
+            control === 0x67 || PioneerDDJ400.shiftButtonDown[channel] ||
+            PioneerDDJ400.loopAdjustIn[channel] || PioneerDDJ400.loopAdjustOut[channel]) {
+        return;
+    }
+    if (this.vinylMode) {
+        if (!PioneerDDJ400.jogScratchActive[channel]) {
+            PioneerDDJ400.jogWasPlaying[channel] =
+                    engine.getValue("[Channel" + (channel + 1) + "]", "play") !== 0;
+            PioneerDDJ400.jogScratchActive[channel] = true;
+            engine.scratchEnable(channel + 1, 720, 33+1/3, this.alpha, this.beta);
+        }
     } else {
-        engine.scratchDisable(deckNum);
+        PioneerDDJ400.releaseJog(channel);
     }
 };
 
@@ -753,8 +762,33 @@ PioneerDDJ400.jogTouch = function(channel, _control, value) {
 // Shift button
 //
 
-PioneerDDJ400.shiftPressed = function(channel, _control, value, _status, _group) {
-    PioneerDDJ400.shiftButtonDown[channel] = value === 0x7F;
+PioneerDDJ400.shiftPressed = function(channel, _control, value, status, _group) {
+    if (channel !== 0 && channel !== 1) return;
+    const down = value === 0x7F && (status & 0xF0) !== 0x80;
+    const wasDown = PioneerDDJ400.shiftButtonDown[channel];
+    PioneerDDJ400.shiftButtonDown[channel] = down;
+    engine.setValue("[PadFX]", "d" + (channel + 1) + "_shift", down ? 1 : 0);
+    if (!down || wasDown) return;
+    PioneerDDJ400.loopJogTicks[channel] = 0;
+    if (PioneerDDJ400.jogScratchActive[channel]) {
+        PioneerDDJ400.releaseJog(channel);
+    }
+
+    // Both Shift buttons share one gesture; count only new presses while open.
+    if (engine.getValue("[Skin]", "cue_panel") === 0) {
+        PioneerDDJ400.shiftTapCount = 0;
+        return;
+    }
+    const now = Date.now();
+    if (PioneerDDJ400.shiftTapCount === 0 ||
+            now - PioneerDDJ400.shiftTapStartedAt > PioneerDDJ400.shiftTripleTapWindowMs) {
+        PioneerDDJ400.shiftTapCount = 0;
+        PioneerDDJ400.shiftTapStartedAt = now;
+    }
+    if (++PioneerDDJ400.shiftTapCount === 3) {
+        engine.setValue("[Skin]", "cue_close", 1);
+        PioneerDDJ400.shiftTapCount = 0;
+    }
 };
 
 
@@ -788,7 +822,18 @@ PioneerDDJ400.tempoSliderLSB = function(channel, control, value, status, group) 
 // allow further increasing/decreasing of all the values.
 //
 
+// Touch and MIDI read the same shared jump bank in the system runtime.
+PioneerDDJ400.syncTouchJumpBank = function() {
+    if (engine.getValue("[PadFX]", "runtime_available") !== 1) return;
+    const scale = [1 / 16, 1, 16][engine.getValue("[PadFX]", "d1_jump_bank")];
+    Object.keys(PioneerDDJ400.beatjumpSizeForPad).forEach(function(pad) {
+        const index = Number(pad) - 0x20;
+        PioneerDDJ400.beatjumpSizeForPad[pad] = scale * Math.pow(2, Math.floor(index / 2)) * (index % 2 ? 1 : -1);
+    });
+};
+
 PioneerDDJ400.beatjumpPadPressed = function(_channel, control, value, _status, group) {
+    PioneerDDJ400.syncTouchJumpBank();
     if (value === 0) {
         return;
     }
@@ -797,6 +842,7 @@ PioneerDDJ400.beatjumpPadPressed = function(_channel, control, value, _status, g
 };
 
 PioneerDDJ400.increaseBeatjumpSizes = function(_channel, control, value, _status, group) {
+    PioneerDDJ400.syncTouchJumpBank();
     if (value === 0 || PioneerDDJ400.beatjumpSizeForPad[0x21] * 16 > 16) {
         return;
     }
@@ -804,9 +850,11 @@ PioneerDDJ400.increaseBeatjumpSizes = function(_channel, control, value, _status
         PioneerDDJ400.beatjumpSizeForPad[pad] = PioneerDDJ400.beatjumpSizeForPad[pad] * 16;
     });
     engine.setValue(group, "beatjump_size", PioneerDDJ400.beatjumpSizeForPad[0x21]);
+    PioneerDDJ400.updateJumpDisplay();
 };
 
 PioneerDDJ400.decreaseBeatjumpSizes = function(_channel, control, value, _status, group) {
+    PioneerDDJ400.syncTouchJumpBank();
     if (value === 0 || PioneerDDJ400.beatjumpSizeForPad[0x21] / 16 < 1/16) {
         return;
     }
@@ -814,6 +862,7 @@ PioneerDDJ400.decreaseBeatjumpSizes = function(_channel, control, value, _status
         PioneerDDJ400.beatjumpSizeForPad[pad] = PioneerDDJ400.beatjumpSizeForPad[pad] / 16;
     });
     engine.setValue(group, "beatjump_size", PioneerDDJ400.beatjumpSizeForPad[0x21]);
+    PioneerDDJ400.updateJumpDisplay();
 };
 
 //
@@ -907,6 +956,8 @@ PioneerDDJ400.quickJumpBack = function(_channel, _control, value, _status, group
 //
 
 PioneerDDJ400.shutdown = function() {
+    PiFlexPadFx.shutdown();
+    PioneerDDJ400.resetPadDisplay();
     // reset vumeter
     PioneerDDJ400.toggleLight(PioneerDDJ400.lights.deck1.vuMeter, false);
     PioneerDDJ400.toggleLight(PioneerDDJ400.lights.deck2.vuMeter, false);
@@ -942,78 +993,13 @@ PioneerDDJ400.shutdown = function() {
 
 
 
-// 1-indexed loaded_effect values (assuming standard alphabetical list)
-// 9: Echo, 11: Flanger, 21: Reverb, 12: Glitch, 19: Phaser, 20: PitchShift
-PioneerDDJ400.padFxPresets = [
-    { effect: 15, beats: 0.25 },  // Pad 1: Echo 1/2 beat (approx)
-    { effect: 15, beats: 0.5 },   // Pad 2: Echo 1 beat (approx)
-    { effect: 15, beats: 0.75 },  // Pad 3: Echo 2 beats (approx)
-    { effect: 15, beats: 1.0 },   // Pad 4: Echo 4 beats (approx)
-    { effect: 13, beats: 0.25 },  // Pad 5: Flanger
-    { effect: 13, beats: 0.5 },   // Pad 6: Flanger
-    { effect: 13, beats: 1.0 },   // Pad 7: Flanger
-    { effect: 3, beats: 0 }       // Pad 8: Reverb
-];
-PioneerDDJ400.padFxActiveCount = 0;
-PioneerDDJ400.padFxSavedState = {};
-
-PioneerDDJ400.padFxPressed = function(_channel, control, value, status, group) {
-    let padIndex = -1;
-    if (control >= 0x60 && control <= 0x67) {
-        padIndex = control - 0x60;
-    } else if (control >= 0x10 && control <= 0x17) {
-        padIndex = control - 0x10;
-    }
-    if (padIndex < 0 || padIndex > 7) return;
-
-    // VINYL BRAKE on Pad 8 (padIndex 7)
-    if (padIndex === 7) {
-        var deck = (_channel === 7 || _channel === 8) ? 1 : 2;
-        if (value > 0) {
-            engine.setValue("[Channel" + deck + "]", "brake", 1);
-        } else {
-            engine.setValue("[Channel" + deck + "]", "brake", 0);
-        }
-        return;
-    }
-
-    const fxGroup = "[EffectRack1_EffectUnit1_Effect1]";
-    const unitGroup = "[EffectRack1_EffectUnit1]";
-
-    if (value > 0) {
-        if (PioneerDDJ400.padFxActiveCount === 0) {
-            PioneerDDJ400.padFxSavedState = {
-                enabled: engine.getValue(fxGroup, "enabled"),
-                mix: engine.getValue(unitGroup, "mix"),
-                meta: engine.getValue(fxGroup, "meta")
-            };
-        }
-        PioneerDDJ400.padFxActiveCount++;
-
-        const preset = PioneerDDJ400.padFxPresets[padIndex];
-        engine.setValue(fxGroup, "loaded_effect", preset.effect);
-
-        engine.beginTimer(20, function() {
-            const paramIndex = PioneerDDJ400.findBeatsParameter(fxGroup);
-            if (paramIndex !== -1 && preset.beats > 0) {
-                engine.setValue(fxGroup, "parameter" + paramIndex + "_value", preset.beats);
-            }
-            engine.setValue(unitGroup, "mix", 1.0);
-            engine.setValue(fxGroup, "meta", 1.0);
-            engine.setValue(fxGroup, "enabled", 1);
-        }, true);
-        
-    } else {
-        if (PioneerDDJ400.padFxActiveCount > 0) {
-            PioneerDDJ400.padFxActiveCount--;
-        }
-        if (PioneerDDJ400.padFxActiveCount === 0 && Object.keys(PioneerDDJ400.padFxSavedState).length > 0) {
-            engine.setValue(unitGroup, "mix", PioneerDDJ400.padFxSavedState.mix);
-            engine.setValue(fxGroup, "meta", PioneerDDJ400.padFxSavedState.meta);
-            engine.setValue(fxGroup, "enabled", PioneerDDJ400.padFxSavedState.enabled);
-            PioneerDDJ400.padFxSavedState = {};
-        }
-    }
+// Private, configurable Pad FX lanes; MIDI channel parity selects Normal/Shift.
+PioneerDDJ400.padFxPressed = function(channel, control, value, status, group) {
+    const secondBank = control >= 0x50 && control <= 0x57;
+    const note = secondBank ? control - 0x40 : control >= 0x60 && control <= 0x67 ? control - 0x50 : control;
+    const deck = (channel === 7 || channel === 8) ? "[Channel1]" : "[Channel2]";
+    if (secondBank) PiFlexPadFx.press(note, value, status, deck, control, undefined, true);
+    else PiFlexPadFx.press(note, value, status, deck, control);
 };
 
 PioneerDDJ400.crossfaderMoved = function(channel, control, value, status, group) {
@@ -1048,5 +1034,43 @@ PioneerDDJ400.filterKnob = function(channel, control, value, status, group) {
     } else {
         // Normal Filter knob controls the channel QuickEffect (super1)
         engine.setValue(group, "super1", normVal);
+    }
+};
+
+// DDJ-400 MIDI message list v1.00, page 3: mode buttons use deck channels
+// 0/1, unlike the performance pads on channels 7/8/9/10. Releases are not
+// deactivation: the hardware mode remains selected until another mode is chosen.
+PioneerDDJ400.resetPadDisplay = function() {
+    PioneerDDJ400.shiftButtonDown = [false, false];
+    PioneerDDJ400.shiftTapCount = 0;
+    for (let deck = 1; deck <= 2; ++deck) {
+        engine.setValue("[PadFX]", "d" + deck + "_mode", 0);
+        engine.setValue("[PadFX]", "d" + deck + "_shift", 0);
+    }
+    PioneerDDJ400.updateJumpDisplay();
+};
+PioneerDDJ400.updateJumpDisplay = function() {
+    const size = PioneerDDJ400.beatjumpSizeForPad[0x21];
+    const bank = size < 1 ? 0 : size > 1 ? 2 : 1;
+    // The existing mapping shares jump sizes across decks.
+    for (let deck = 1; deck <= 2; ++deck) {
+        engine.setValue("[PadFX]", "d" + deck + "_jump_bank", bank);
+    }
+};
+PioneerDDJ400.padModeSelected = function(channel, control, value, status, group) {
+    if (value === 0 || (status & 0xF0) !== 0x90 || channel < 0 || channel > 1) return;
+    const modes = {0x1B: 0, 0x1E: 1, 0x20: 2, 0x6D: 3, 0x6B: 5};
+    const deck = channel + 1;
+    // Shift used to select a mode is not part of the subsequent close gesture.
+    PioneerDDJ400.shiftTapCount = 0;
+    if (Object.prototype.hasOwnProperty.call(modes, control)) {
+        engine.setValue("[PadFX]", "d" + deck + "_mode", modes[control]);
+        engine.setValue("[Skin]", "cue_deck" + deck, 1);
+    } else if ([0x69, 0x22, 0x6F].indexOf(control) !== -1) {
+        // Unsupported/other pad modes must not leave an unrelated panel shown.
+        engine.setValue("[PadFX]", "d" + deck + "_mode", 0);
+        if (engine.getValue("[Skin]", "cue_panel") === deck) {
+            engine.setValue("[Skin]", "cue_close", 1);
+        }
     }
 };

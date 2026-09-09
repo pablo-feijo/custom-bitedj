@@ -2,7 +2,10 @@
 
 
 #include "wnumber.h"
-#include "preferences/dialog/dlgprefdeck.h"
+namespace TrackTime {
+enum class DisplayMode;
+enum class DisplayFormat;
+}
 
 class ControlProxy;
 
@@ -12,8 +15,10 @@ class WNumberPos : public WNumber {
   public:
     explicit WNumberPos(const QString& group, QWidget* parent = nullptr);
 
+    void setup(const QDomNode& node, const SkinContext& context) override;
+
   protected:
-    void mousePressEvent(QMouseEvent* pEvent) override;
+    void mousePressEvent(QMouseEvent* e) override;
 
   private slots:
     void setValue(double dValue) override;
@@ -26,6 +31,7 @@ class WNumberPos : public WNumber {
 
     TrackTime::DisplayMode m_displayMode;
     TrackTime::DisplayFormat m_displayFormat;
+
     double m_dOldTimeElapsed;
     ControlProxy* m_pTimeElapsed;
     ControlProxy* m_pTimeRemaining;

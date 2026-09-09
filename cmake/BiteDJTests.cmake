@@ -1,0 +1,21 @@
+# Keep the full upstream suite, with a focused selection for BiteDJ edits.
+# Labels select tests; they do not replace the full native CI gate.
+set(_bitedj_suites
+  "BrowseThreadTest|FolderTreeModelTest|WaveformRenderingTest|PreviewDelegateTest|DeckLoadPolicyTest|DeckPresentationTest|EffectSlotTest|PadEchoTest|PadFxEditorTest|PadFxSettingsTest|PadFxRoutingTest|PrepareTest|RekordboxDisplayTest|RekordboxImportTest|SystemTelemetryTest|BootSettingsTest|SystemDialogsTest|TextScrollTest|EqModeTest|HighContrastTest|SystemSettingsTest|LibraryColumnControlTest|ControllerLibraryColumnIDRegressionTest|FsCueOverrideStoreTest|FsMetaOverrideStoreTest|FsHistoryStoreTest|FsHistoryWorkerTest|FsSamplerBankStoreTest|SamplerDriveTest|PlayedTracksTest|RekordboxAnlzTest|MetaLinkTest|TouchScrollFilterTest|WWidgetStackTest")
+foreach(_test IN LISTS testsuite)
+  set_property(TEST "${_test}" APPEND PROPERTY LABELS native)
+  if(_test MATCHES "^(${_bitedj_suites})\\.")
+    set_property(TEST "${_test}" APPEND PROPERTY LABELS bitedj)
+  endif()
+  if(_test MATCHES "^(Fs(CueOverride|MetaOverride|History|SamplerBank)StoreTest|FsHistoryWorkerTest|SamplerDriveTest)\\.")
+    set_property(TEST "${_test}" APPEND PROPERTY LABELS removable)
+    set_property(TEST "${_test}" PROPERTY RESOURCE_LOCK bitedj_removable_mounts)
+    if(_test MATCHES "^SamplerDriveTest\\.")
+      set_property(TEST "${_test}" APPEND PROPERTY LABELS removable-samplers)
+    else()
+      set_property(TEST "${_test}" APPEND PROPERTY LABELS removable-stores)
+    endif()
+  endif()
+endforeach()
+unset(_bitedj_suites)
+unset(_test)

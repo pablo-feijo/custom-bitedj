@@ -24,6 +24,7 @@
 #include <QUrl>
 
 #include "control/controlobject.h"
+#include "notifications/notifications.h"
 #include "library/dao/trackschema.h"
 #include "library/library.h"
 #include "library/librarycolumncontrol.h"
@@ -33,6 +34,7 @@
 #include "library/trackcollection.h"
 #include "library/trackcollectionmanager.h"
 #include "mixer/playermanager.h"
+#include "mixer/deckloadpolicy.h"
 #include "moc_wtracktableview.cpp"
 #include "preferences/colorpalettesettings.h"
 #include "preferences/dialog/dlgprefdeck.h"
@@ -97,6 +99,10 @@ WTrackTableView::WTrackTableView(QWidget* pParent,
 }
 
 WTrackTableView::~WTrackTableView() {
+    delete m_dropHighlight;
+    if (m_pFakeDragLabel) {
+        m_pFakeDragLabel->close();
+    }
     WTrackTableViewHeader* pHeader =
             qobject_cast<WTrackTableViewHeader*>(horizontalHeader());
     if (pHeader) {
@@ -290,9 +296,7 @@ void WTrackTableView::loadTrackModel(QAbstractItemModel* pNewModel, bool restore
 
     setModel(pNewModel);
     setHorizontalHeader(header);
-    // Use Qt's drag reordering and the upstream per-model header state.
-    // BiteDJ's weighted widths still own resizing; Fixed permits the
-    // programmatic resizeSection() calls made by LibraryColumnControl.
+    // Persisted column order is independent of managed visibility/widths.
     const bool columnControlActive = LibraryColumnControl::tryInstance() != nullptr;
     header->setSectionsMovable(true);
     if (columnControlActive) {
@@ -306,7 +310,7 @@ void WTrackTableView::loadTrackModel(QAbstractItemModel* pNewModel, bool restore
     // even useful to indicate the focused column because all columns are highlighted.
     header->setHighlightSections(false);
     header->setSortIndicatorShown(m_sorting);
-    header->setDefaultAlignment(Qt::AlignLeft);
+    header->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
     // Initialize all column-specific things
     for (int i = 0; i < pNewModel->columnCount(); ++i) {
@@ -1185,6 +1189,18 @@ void WTrackTableView::moveSelectedTracks(QKeyEvent* event) {
 }
 
 void WTrackTableView::keyPressEvent(QKeyEvent* event) {
+    if (event->key() == Qt::Key_Escape && m_bFakeDragging) {
+        m_bFakeDragging = false;
+        m_dragStartPos = QPoint();
+        delete m_dropHighlight;
+        if (m_pFakeDragLabel) {
+            m_pFakeDragLabel->close();
+            m_pFakeDragLabel = nullptr;
+        }
+        event->accept();
+        return;
+    }
+
     switch (event->key()) {
     case kPropertiesShortcutKey: {
         // Return invokes the double-click action.
@@ -1428,31 +1444,7 @@ void WTrackTableView::loadSelectedTrackToGroup(const QString& group, bool play) 
     if (indices.isEmpty()) {
         return;
     }
-    bool allowLoadTrackIntoPlayingDeck = false;
-    if (m_pConfig->exists(kConfigKeyLoadWhenDeckPlaying)) {
-        int loadWhenDeckPlaying =
-                m_pConfig->getValueString(kConfigKeyLoadWhenDeckPlaying).toInt();
-        switch (static_cast<LoadWhenDeckPlaying>(loadWhenDeckPlaying)) {
-        case LoadWhenDeckPlaying::Allow:
-        case LoadWhenDeckPlaying::AllowButStopDeck:
-            allowLoadTrackIntoPlayingDeck = true;
-            break;
-        case LoadWhenDeckPlaying::Reject:
-            break;
-        }
-    } else {
-        // support older version of this flag
-        allowLoadTrackIntoPlayingDeck =
-                m_pConfig->getValue<bool>(kConfigKeyAllowTrackLoadToPlayingDeck);
-    }
-    // If the track load override is disabled, check to see if a track is
-    // playing before trying to load it.
-    // Always load to preview deck.
-    if (!allowLoadTrackIntoPlayingDeck &&
-            !PlayerManager::isPreviewDeckGroup(group) &&
-            ControlObject::get(ConfigKey(group, "play")) > 0.0) {
-        return;
-    }
+    if (!mixxx::deckload::allowed(group, m_pConfig)) return;
     auto index = indices.at(0);
     auto* pTrackModel = getTrackModel();
     if (!pTrackModel) {
@@ -1593,24 +1585,60 @@ bool WTrackTableView::setCurrentTrackId(const TrackId& trackId, int column, bool
 }
 
 void WTrackTableView::addToAutoDJ(PlaylistDAO::AutoDJSendLoc loc) {
+    auto notify = [](const QString& message, Notifications::Severity severity) {
+        if (auto* notifications = Notifications::tryInstance()) {
+            notifications->publish(message, severity);
+        }
+    };
     auto* pTrackModel = getTrackModel();
     if (!pTrackModel || !pTrackModel->hasCapabilities(TrackModel::Capability::AddToAutoDJ)) {
+        notify(tr("Open a playlist or music folder to add tracks to Auto DJ."),
+                Notifications::Severity::Warning);
         return;
     }
 
     const QList<TrackId> trackIds = getSelectedTrackIds();
     if (trackIds.isEmpty()) {
-        qWarning() << "No tracks selected for AutoDJ";
+        notify(tr("Select a track, then tap + Queue. Use Queue All for the whole list."),
+                Notifications::Severity::Warning);
         return;
     }
 
     PlaylistDAO& playlistDao = m_pLibrary->trackCollectionManager()
                                        ->internalCollection()
                                        ->getPlaylistDAO();
-
-    // TODO(XXX): Care whether the append succeeded.
+    const int queueId = playlistDao.getPlaylistIdFromName(QStringLiteral("Auto DJ"));
+    const int before = playlistDao.tracksInPlaylist(queueId);
     m_pLibrary->trackCollectionManager()->unhideTracks(trackIds);
     playlistDao.addTracksToAutoDJQueue(trackIds, loc);
+    const int after = playlistDao.tracksInPlaylist(queueId);
+    if (loc != PlaylistDAO::AutoDJSendLoc::REPLACE && after < before + trackIds.size()) {
+        notify(tr("Could not add all tracks. Tap View Queue to check."),
+                Notifications::Severity::Warning);
+        return;
+    }
+    notify(tr("Added %1. Queue: %2 tracks. Tap View Queue to see them.")
+                    .arg(trackIds.size()).arg(after), Notifications::Severity::Info);
+}
+
+void WTrackTableView::addAllToAutoDJ() {
+    auto* trackModel = getTrackModel();
+    if (!trackModel || !trackModel->hasCapabilities(TrackModel::Capability::AddToAutoDJ)) {
+        addToAutoDJ(PlaylistDAO::AutoDJSendLoc::BOTTOM);
+        return;
+    }
+    if (model()->rowCount() == 0) {
+        if (auto* notifications = Notifications::tryInstance()) {
+            notifications->publish(tr("This list is empty. Open a playlist or music folder first."),
+                    Notifications::Severity::Warning);
+        }
+        return;
+    }
+    // Queue the displayed playlist in its current order, preserving selection.
+    const QItemSelection previousSelection = selectionModel()->selection();
+    selectAll();
+    addToAutoDJ(PlaylistDAO::AutoDJSendLoc::BOTTOM);
+    selectionModel()->select(previousSelection, QItemSelectionModel::ClearAndSelect);
 }
 
 void WTrackTableView::addToAutoDJBottom() {
@@ -1697,7 +1725,14 @@ void WTrackTableView::doSortByColumn(int headerSection, Qt::SortOrder sortOrder)
         const QModelIndexList indices = selectionModel()->selectedRows();
         selectedTrackPositions = pTrackModel->getSelectedPositions(indices);
     } else {
-        selectedTrackIds = getSelectedTrackIds();
+        // Use model row identities, not getTrackId(): external models resolve
+        // that API to local library IDs (and may import analysis as a side effect).
+        for (const auto& index : selectionModel()->selectedRows()) {
+            const auto id = pTrackModel->getTrackRowIdentity(index);
+            if (id.isValid()) {
+                selectedTrackIds.append(id);
+            }
+        }
     }
 
     int savedHScrollBarPos = horizontalScrollBar()->value();
@@ -1915,6 +1950,20 @@ void WTrackTableView::mousePressEvent(QMouseEvent* pEvent) {
     WLibraryTableView::mousePressEvent(pEvent);
 }
 
+namespace {
+QWidget* deckDropTargetAt(const QPoint& globalPosition) {
+    for (QWidget* widget : QApplication::allWidgets()) {
+        if ((widget->objectName() == "DeckDropTarget1" ||
+                    widget->objectName() == "DeckDropTarget2") &&
+                widget->isVisible() &&
+                widget->rect().contains(widget->mapFromGlobal(globalPosition))) {
+            return widget;
+        }
+    }
+    return nullptr;
+}
+} // namespace
+
 void WTrackTableView::mouseMoveEvent(QMouseEvent* pEvent) {
     if (pEvent->buttons() & Qt::LeftButton) {
         if (!m_bFakeDragging && !m_dragStartPos.isNull() &&
@@ -1946,6 +1995,20 @@ void WTrackTableView::mouseMoveEvent(QMouseEvent* pEvent) {
             int dx = -m_pFakeDragLabel->width() / 2;
             int dy = -m_pFakeDragLabel->height() - 10;
             m_pFakeDragLabel->move(pEvent->globalPosition().toPoint() + QPoint(dx, dy));
+            QWidget* target = deckDropTargetAt(pEvent->globalPosition().toPoint());
+            if (m_dropHighlight && m_dropHighlight->parentWidget() != target) {
+                delete m_dropHighlight;
+            }
+            if (target && !m_dropHighlight) {
+                auto* highlight = new QWidget(target);
+                highlight->setAttribute(Qt::WA_TransparentForMouseEvents);
+                highlight->setStyleSheet("background-color: rgba(133,94,167,35); border: 3px solid #ba8edf;");
+                highlight->setGeometry(target->rect());
+                highlight->show();
+                highlight->raise();
+                m_dropHighlight = highlight;
+            }
+
             return;
         }
     }
@@ -1961,21 +2024,20 @@ void WTrackTableView::mouseReleaseEvent(QMouseEvent* pEvent) {
         }
         m_dragStartPos = QPoint();
         
-        int screenWidth = 1024;
-        if (QApplication::primaryScreen()) {
-            screenWidth = QApplication::primaryScreen()->size().width();
+        if (m_dropHighlight) {
+            delete m_dropHighlight;
         }
-        
-        // Check if the drop is OUTSIDE the track list view (i.e., on the decks)
-        if (!this->rect().contains(pEvent->pos())) {
-            if (pEvent->globalPosition().x() < screenWidth / 2) {
-                ControlObject::set(ConfigKey("[Channel1]", "LoadSelectedTrack"), 1.0);
-            } else {
-                ControlObject::set(ConfigKey("[Channel2]", "LoadSelectedTrack"), 1.0);
-            }
+        if (auto* target = deckDropTargetAt(pEvent->globalPosition().toPoint())) {
+            const QString group = target->objectName().endsWith('1')
+                    ? QStringLiteral("[Channel1]") : QStringLiteral("[Channel2]");
+            ControlObject::set(ConfigKey(group, "LoadSelectedTrack"), 1.0);
         }
         return;
     }
     m_dragStartPos = QPoint();
     WLibraryTableView::mouseReleaseEvent(pEvent);
+}
+
+mixxx::DbConnectionPoolPtr WTrackTableView::previewDbConnectionPool() const {
+    return m_pLibrary->dbConnectionPool();
 }

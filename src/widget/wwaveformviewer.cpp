@@ -77,12 +77,17 @@ void WWaveformViewer::showEvent(QShowEvent* event) {
     }
 }
 
+void WWaveformViewer::hideEvent(QHideEvent* event) {
+    mouseReleaseEvent(nullptr);
+    WWidget::hideEvent(event);
+}
+
 void WWaveformViewer::mousePressEvent(QMouseEvent* event) {
     if (!m_waveformWidget || m_waveformWidget->getType() == WaveformWidgetType::EmptyWaveform) {
         return;
     }
 
-    if (m_bSeekDisabled) {
+    if (m_bSeekDisabled && !m_gridEditMode) {
         return;
     }
 
@@ -137,7 +142,7 @@ void WWaveformViewer::mouseMoveEvent(QMouseEvent* event) {
         return;
     }
 
-    if (m_bSeekDisabled) {
+    if (m_bSeekDisabled && !m_gridEditMode) {
         return;
     }
 
@@ -187,7 +192,7 @@ void WWaveformViewer::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void WWaveformViewer::mouseReleaseEvent(QMouseEvent* /*event*/) {
-    if (m_bSeekDisabled) {
+    if (m_bSeekDisabled && !m_gridEditMode) {
         return;
     }
     if (m_bScratching) {
@@ -274,7 +279,20 @@ void WWaveformViewer::setZoom(double zoom) {
 
 void WWaveformViewer::setDisplayBeatGridAlpha(int alpha) {
     if (m_waveformWidget) {
-        m_waveformWidget->setDisplayBeatGridAlpha(alpha);
+        m_waveformWidget->setDisplayBeatGridAlpha(m_gridEditMode ? 100 : alpha);
+    }
+}
+
+void WWaveformViewer::setGridEditMode(bool enabled) {
+    if (m_gridEditMode == enabled) {
+        return;
+    }
+    // Finish any drag before switching back to the normal non-seeking view.
+    mouseReleaseEvent(nullptr);
+    m_gridEditMode = enabled;
+    if (m_waveformWidget) {
+        m_waveformWidget->setDisplayBeatGridAlpha(
+                enabled ? 100 : WaveformWidgetFactory::instance()->getBeatGridAlpha());
     }
 }
 

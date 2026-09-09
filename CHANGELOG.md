@@ -1,116 +1,68 @@
 # Changelog
 
-## [v0.0.6] - 2026-09-08
+Notable changes to Custom Bite DJ, an independent fork of Team Deckshark's
+BiteDJ based on Mixxx. Versions use Semantic Versioning.
 
-### Features
-- add EQ Mode toggle to General tab and update agent debugging guides (c09dd9d)
-- map Shift + Filter knobs to Beat FX Super for simultaneous dual-hand Super and Mix sweeps (4ab2372)
-- reorder effects to prioritize delay, trans, helix, spiral (0f1e019)
-- restore all effects and add explicit numbering for perfect sorting (828f8ed)
-- map shift+filter to select color fx (d61036a)
-- map shift+depth knob to super knob on DDJ-400 (3fd2512)
-- add vinyl brake preset (0296f59)
-- add spiral preset (28b3115)
-- add pioneer beat fx presets with auto beat grid (b91b8ee)
-- embed robust noVNC audio player and fix CORS headers (ba53e8b)
-- add Pioneer DJ Color FX and Beat FX chains from Pioneered-Plus (fe29808)
-- display physical hardware intercept as 'PipeWire / Bluetooth' to avoid PortAudio buffer underruns (0988e20)
-- use custom zenity GTK frontend instead of nmtui terminal for wifi scanning (3803954)
-- filter spammy ALSA sub-channels from Mixxx sound hardware list (e6ae3f9)
-- add native WiFi and Bluetooth management buttons to System settings (029e63d)
-- guarantee rootfs auto-expands on first boot (32a100e)
+## [0.0.7] — 2026-09-09
 
-### Bug Fixes
--  RGB Stacked waveform color selection (dd0603d)
--  3-Band Stacked Waveform Registration and ControlObject Initialization (19fb687)
-- reduce spacing between deck cue chip and track title (42ce65a)
-- add vertical margin-top to waveform key note for top clearance (edbeca6)
-- restore original dimensions for deck key and cue chips, align waveform key padding (c409cb1)
-- neutralize play/cue idle styling and increase contrast of Deck key note and cue chips (1176655)
-- enable software cursors and fix mouse visibility on rotated screens (23ccce3)
-- persist screen rotation across reboots and live compositor sessions (2be6ae1)
-- match STOP ALL height to row options, add text padding, and fix SOURCE label clipping (5b62e6e)
-- display shutdown confirmation row in-place on Advanced row instead of Screen row (b2cce3e)
-- lock Waveforms (844f) and BeatFX_Container (180f) to fixed widths to eliminate resizing when switching between FX and KEY tabs (2275b5b)
-- reduce CSS min-width on tight segmented rows to prevent geometry clipping under layout compression (5d23e08)
-- correctly account for Qt CSS border geometry in segment widths to prevent right-edge clipping (6da5a38)
-- add distinct border to active setting segments to fix visual flattening and remove broken max-height constraint (c721a6a)
-- standardize all General settings rows to exactly 160f width for flush alignment and revert broken CSS width override (3dbf997)
-- shrink setting segment bounding heights to prevent layout cropping and force uniform 90px min-width (40b111b)
-- increase PlayRow container height to prevent bottom cropping (c617a62)
-- sync DDJ-400 CFX indices and expand Beat FX cycle limit (5196ef7)
-- correct internal XML names for CFX 7, 8, 9 (1b9befd)
-- remove placeholder vinyl brake xml to use true deck brake mapping (19e1d74)
-- add hidden quantize parameter to roll effects to enable beat syncing (baeb181)
-- unhide parameters to restore time beat options on ui (a466fb8)
-- implement roll with freeze delay to enable beat bucket ui (115aafa)
--  python one-liner syntax in Dockerfile.gui-test (7647e1f)
-- set TRANS waveform to 0.005 to respect Mixxx parameter range bounds (fd6713f)
-- correct TRANS effect preset to use square wave and unlink rate from mix (35eb182)
-- patch noVNC browser.js to disable top-level await WebCodecs check (a281b2d)
-- properly expose pipewire virtual node and avoid bcm2835 kernel panic (af8d292)
-- explicitly allow pipewire and sysdefault strings in the BiteDJ skin's device population filter (1b5a2d6)
-- wire C++ backend to new robust GTK wrapper scripts (5124ee3)
-- disable nm-applet and wifi popups (4d515b9)
-- explicitly focus BiteDJ workspace on boot (1f4ec5a)
-- Fix silent script failures causing missing permissions (1159721)
-- Fix rpi-resize bug on new images (7f965eb)
-- Fix early boot splash installation (b920a84)
-- Commit live pi permissions and OS optimizations (b122398)
+### Added
 
-### Styling
-- decrease DeckTitle and DeckArtist font-size by 2px (to 16px) and add left padding (c0cae37)
-- dial Screen segment min-width to exactly 55px to ensure 114px flush alignment with individual buttons (12fa88c)
-- standardize System tab button widths to 114f and gaps to 4f for perfect vertical alignment and symmetry (e8dac69)
-- move POWER button from Screen to Advanced row to improve visual hierarchy and layout breathing room (d91f755)
-- enforce 36px max-height on setting segments to prevent vertical stretching layout clipping (644faea)
-- fix top/bottom border clipping on Settings segments and increase uniform min-width for General tab options (f154a92)
-- add left margin to deck buttons to prevent edge clipping (f37aa73)
-- make deck control buttons perfectly symmetric and increase padding (fc101ed)
+- Per-deck Grid editing, harmonic Key Match/Reset, beat-jump controls and linked
+  waveform zoom. Grid shift/BPM buttons support press-and-hold repetition.
+- A touch performance drawer for Hot Cues, Memory, Pad FX, Beat Jump and Beat
+  Loop, with independent deck pages and DDJ-400 mode synchronization.
+- System-owned Pad FX presets, an eight-pad editor, independent effect lanes,
+  and saved Normal/Shift banks.
+- A paged Standard/Saved Beat FX picker with 25 named native approximations,
+  focused parameter controls and controller navigation.
+- Saved Prepare and Auto DJ queues; Queue All, addition feedback, Move Up,
+  Move Down and Remove; visible-deck Auto Play with a Play-page status badge.
+- Lock/Fader/Stop/Live track replacement policies and optional return to Play
+  after loading from Browse.
+- Rekordbox PWV6/PWV7 waveforms and PSSI phrase import, native analysis fallback,
+  persisted phrase visibility and phrase alignment after beatgrid edits.
+- USB/local/missing-media deck indicators, playback/output badges, scrolling
+  titles, independent elapsed/remaining time, colored cues and waveform palettes.
+- Touch clock/date editing, automatic network time, Raspberry Pi overclock
+  settings with defaults/recovery, and confirmed app restart/reboot/power actions.
+- An Info dashboard for audio load, CPU, temperature, clock and output status.
+- Configurable jog smoothing and triple-Shift return to waveform previews.
 
-### Documentation
-- add CHANGELOG.md and reference it in README (1c9646e)
-- Document v0.0.6 RGB Stacked Waveform fixes in DIFFS_FROM_BASE.md (b55c1f0)
-- update DIFFS_FROM_BASE with v0.0.6 rotation persistence, DRM cursor, and UI polish (3edfafb)
-- document DDJ-400 physical hardware verification and macOS MIDI passthrough bridge (06b9d3e)
-- add agents.md to lock tab layout rules (ed98578)
-- note to keep only FX and KEY tabs (c53f991)
-- update infrastructure audio subsystem and environment variables (c2f5328)
-- append v0.0.5 custom PipeWire device mapping to upstream differences log (eef7097)
-- centralize all documentation in root docs folder (c291797)
-- update infrastructure guide with v0.0.5 alsa kernel panic resolution and sway workspace syntax (5cc5e51)
-- document blueman and network-manager-gnome dependencies for system network UI (4ce4f84)
-- add strict infrastructure-as-code agent rule to prevent config drift (5db594b)
-- declaratively document all key system configs (Sway, LightDM, USB, cmdline.txt) required to run the kiosk OS (437029f)
-- add comprehensive list of tricky library dependencies (FFmpeg 7, FLAC 14, Qt 6.8) required by the Trixie OS environment (c952df3)
-- formally update documentation to reflect Trixie architecture and critical pi-gen autoremove fixes (c002d59)
-- document Trixie OS requirements and autoremove fixes, update flash script for v0.0.3 (263b89d)
-- : Update infrastructure with USB voltage and driver dependencies (1c80c64)
-- Add architecture, build, and diff documentation (bb68afa)
+### Changed
 
-### Chores & Maintenance
-- Update upstreams, update UI and shaders (ca7019b)
-- v0.0.6-waveform: Fix preview waveforms, drag & drop, and empty state (fdd06b2)
-- feat(effects,controllers): prefix common chains with numbers and map beat fx select to cycle only them (a70638a)
-- revert accidental readme modification (eb90cf2)
-- UI: Add MIX and SUPER knobs to FX panel for touchscreen control (f1ad1f0)
-- bump semver to v0.0.6 and synchronize submodule pointer (a345d10)
-- sync submodule for v0.0.5 documentation update (f3b96b7)
-- sync submodule for sway workspace fix (66b8974)
-- sync submodule for audio kernel panic fix (6b0ebcc)
-- bump submodule pointer and branch to v0.0.5 (359da5b)
--  v0.0.3: Full Touchscreen & Wayland Optimization (299d52d)
+- Compact the 1024×600 Play, Browse, FX and Settings layouts; retain Day/Night
+  modes and publish the [UI gallery](docs/UI_SCREENSHOTS.md).
+- Keep high-detail waveform rendering opt-in. Use compact preview rulers,
+  colored hot-cue/memory labels and a main CUE marker above overlapping markers.
+- Share supported Beat periods and focused FX state across touch and DDJ-400
+  controls; distinguish Color/Rhythmic Filter and document preset approximations.
+- Build the pinned ARM64 Raspberry Pi OS image on Debian 13 Trixie, using the
+  matching application and resources. Preserve the approved 0.0.7 boot overrides.
+- Add verified binary/image versions and source provenance, incremental Docker
+  builds, layered tests, semver desktop CI and isolated test instances.
+- Organize build/deploy/test tools and native agent skills; clarify independent
+  fork identity, upstream attribution and component licensing.
 
-### Testing
-- verify DSP actually modulates audio stream in automated suite (d2512a1)
-- add Docker GUI testing environment with noVNC, live audio streaming, and synthesized test music (279a1f6)
-- add local NoVNC dockerfile for testing linux/arm64 UI headless (7112c8f)
+### Fixed
 
-### Build System
-- fix deploy script to push XML skins alongside the binary (6ecbdee)
-- add automated deploy-ssh.sh script with expect password handling and clean lightdm restarts (7c218e8)
-- synchronize BITEDJ_VERSION and pi-gen assets to v0.0.4 semver, document protocol for agents (1777ae0)
-
-
----
-*This changelog was generated based on Conventional Commits.*
+- Keep removable discovery and folder enumeration off the GUI thread. Batch
+  large folders, bound queued rows, cancel stale scans and preserve saved BPM/key
+  without importing every painted or sorted row into the internal library.
+- Share Linux removable roots across Settings, Browse and Rekordbox. Read kernel
+  mount metadata without waiting for a slow drive's filesystem statistics.
+- Index Rekordbox track/playlist lookups and handle sparse, cyclic or deeply
+  nested playlists without unbounded traversal.
+- Load waveform summaries in the background, bound preview caches and preserve
+  native cached colors when loading Rekordbox tracks. Refresh paused previews
+  after palette, phrase and waveform changes; correct band mapping and clipping.
+- Preserve touch/MIDI Pad FX ownership across overlapping holds, synchronize the
+  second bank, and prevent drawer layout shifts and hidden-control interaction.
+- Keep Shift+jog on beatgrid editing, resume playing decks on jog release, and
+  halve/double active loops in measured steps. Preserve shifted FX selection.
+- Route Auto Play through visible decks 1/2, preserve duplicate queue entries
+  and ordering, and leave playback running when Auto Play is disabled.
+- Preserve sorted library selection and layouts; align Wayland drag/drop targets
+  and reject drops outside visible decks.
+- Repair fresh/cached noVNC modules and retry desktop startup activation.
+- Select the documented MP3 silence reference for the actual libmad arithmetic
+  backend in native tests.

@@ -1,0 +1,43 @@
+# Two-deck display and replacement checks
+
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
+
+Use the owned worktree instance and discover its actual ports.
+
+## Behavior
+
+Long deck titles and artist text scroll at 30 logical pixels per second after
+a 1.5-second pause, pause at the end, then restart. Short labels remain static;
+hidden labels stop their timers. The existing deck layout and Day/Night palette
+remain authoritative.
+
+Settings → General → Track Load exposes the native saved policy:
+
+| Mode | Replacing a playing deck |
+| --- | --- |
+| Lock (default) | Reject the load. |
+| Fader | Allow only with channel volume at zero or main output routing off; stop the replacement. |
+| Stop | Allow replacement and stop, even if the request asks to play. |
+| Live | Allow replacement and continue playing from the load point. |
+
+Stopped decks retain ordinary load behavior. Preview and sampler behavior is
+independent. Invalid settings default to Lock. The library, menus and drag
+acceptance share the policy, with a final check before the player unloads the
+current track. The custom Wayland drag overlay is preserved.
+
+## Verification
+
+Native tests cover elapsed scrolling and hidden timers, legacy policy migration,
+invalid values, channel routing, and actual player replacement in all four modes.
+Replacement tests wait for the expected engine track, rather than any loaded
+track, to avoid observing the previous asynchronous load.
+
+Review Play, Browse, Sampler, Levels and Settings at 1024×600 in Day mode; then
+review a deliberately long title across multiple frames. Track Load controls
+reserve 44px after the General row's padding and margin. This is a software
+contrast/layout review, not a physical direct-sunlight measurement.
+
+Record evidence in the owned instance’s ignored `test-results/` directory.
+See [Pad FX checks](PAD_FX_TESTING.md) for related regression coverage.

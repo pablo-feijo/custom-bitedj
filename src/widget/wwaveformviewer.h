@@ -14,6 +14,7 @@ class SkinContext;
 
 class WWaveformViewer : public WWidget, public TrackDropTarget {
     Q_OBJECT
+    Q_PROPERTY(bool gridEditMode READ gridEditMode WRITE setGridEditMode)
   public:
     WWaveformViewer(
             const QString& group,
@@ -29,6 +30,9 @@ class WWaveformViewer : public WWidget, public TrackDropTarget {
     void setSeekDisabled(bool disabled) {
         m_bSeekDisabled = disabled;
     }
+
+    bool gridEditMode() const { return m_gridEditMode; }
+    void setGridEditMode(bool enabled);
 
     bool handleDragAndDropEventFromWindow(QEvent* pEvent) override;
 
@@ -52,6 +56,7 @@ class WWaveformViewer : public WWidget, public TrackDropTarget {
   protected:
     void showEvent(QShowEvent* event) override;
     void resizeEvent(QResizeEvent *event) override;
+    void hideEvent(QHideEvent* event) override;
     void wheelEvent(QWheelEvent *event) override;
 
   private slots:
@@ -80,6 +85,7 @@ class WWaveformViewer : public WWidget, public TrackDropTarget {
     bool m_bScratching;
     bool m_bBending;
     bool m_bSeekDisabled;
+    bool m_gridEditMode = false;
     QPoint m_mouseAnchor;
     parented_ptr<WCueMenuPopup> m_pCueMenuPopup;
     WaveformMarkPointer m_pHoveredMark;
@@ -89,6 +95,7 @@ class WWaveformViewer : public WWidget, public TrackDropTarget {
     int m_dimBrightThreshold;
 
     friend class WaveformWidgetFactory;
+    friend class WaveformGridEditingTest;
 
     CuePointer getCuePointerFromCueMark(WaveformMarkPointer pMark) const;
     void highlightMark(WaveformMarkPointer pMark);

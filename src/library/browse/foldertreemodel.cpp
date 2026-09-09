@@ -9,6 +9,9 @@
 #endif
 
 #include <QFileInfoList>
+#include <QFutureWatcher>
+#include <QPersistentModelIndex>
+#include <QtConcurrentRun>
 
 #include "library/browse/browsefeature.h"
 #include "library/browse/foldertreemodel.h"
@@ -48,14 +51,34 @@ bool FolderTreeModel::hasChildren(const QModelIndex& parent) const {
 
     // In all other cases the getData() points to a folder
     const QString path = pItem->getData().toString();
-    return directoryHasChildren(path);
+    const auto cached = m_directoryCache.constFind(path);
+    if (cached != m_directoryCache.constEnd()) {
+        return cached.value();
+    }
+    if (!m_pendingDirectories.contains(path)) {
+        auto* self = const_cast<FolderTreeModel*>(this);
+        m_pendingDirectories.insert(path);
+        const QPersistentModelIndex index(parent);
+        const quint64 generation = m_cacheGeneration;
+        auto* watcher = new QFutureWatcher<bool>(self);
+        connect(watcher, &QFutureWatcher<bool>::finished, self,
+                [self, watcher, path, index, generation]() {
+                    const bool result = watcher->result();
+                    watcher->deleteLater();
+                    self->m_pendingDirectories.remove(path);
+                    if (generation != self->m_cacheGeneration || !index.isValid()) {
+                        return;
+                    }
+                    self->m_directoryCache.insert(path, result);
+                    emit self->dataChanged(index, index);
+                });
+        watcher->setFuture(QtConcurrent::run([path]() { return directoryHasChildren(path); }));
+    }
+    // Optimistic arrow while the worker probes; tapping still opens the folder.
+    return true;
 }
 
-bool FolderTreeModel::directoryHasChildren(const QString& path) const {
-    auto it = m_directoryCache.constFind(path);
-    if (it != m_directoryCache.constEnd()) {
-        return it.value();
-    }
+bool FolderTreeModel::directoryHasChildren(const QString& path) {
 
     // Acquire a security token for the path.
     const auto dirAccess = mixxx::FileAccess(mixxx::FileInfo(path));
@@ -135,12 +158,11 @@ bool FolderTreeModel::directoryHasChildren(const QString& path) const {
     }
 #endif
 
-    // Cache and return the result
-    m_directoryCache[path] = has_children;
     return has_children;
 }
 
 void FolderTreeModel::removeChildDirsFromCache(const QStringList& rootPaths) {
+    ++m_cacheGeneration;
     // PerformanceTimer time;
     // const auto start = time.elapsed();
     if (rootPaths.isEmpty()) {

@@ -6,6 +6,7 @@
 #include <QStyleOption>
 
 #include "control/controlobject.h"
+#include "preferences/systemsettings.h"
 #include "moc_wtrackproperty.cpp"
 #include "skin/legacy/skincontext.h"
 #include "track/track.h"
@@ -54,6 +55,16 @@ void WTrackProperty::setup(const QDomNode& node, const SkinContext& context) {
     }
 
     QString property = context.selectString(node, "Property");
+    if (property == QStringLiteral("source")) {
+        m_displayProperty = property;
+        m_disableActions = true;
+        setAcceptDrops(false);
+        if (auto* settings = SystemSettings::tryInstance()) {
+            connect(settings, &SystemSettings::usbRowsChanged,
+                    this, [this]() { updateLabel(); });
+        }
+        return;
+    }
     if (property.isEmpty()) {
         return;
     }
@@ -111,6 +122,12 @@ void WTrackProperty::slotTrackChanged(TrackId trackId) {
 
 void WTrackProperty::updateLabel() {
     if (m_pCurrentTrack) {
+        if (m_displayProperty == QStringLiteral("source")) {
+            auto* settings = SystemSettings::tryInstance();
+            setText(settings ? settings->trackSourceLabel(m_pCurrentTrack->getLocation())
+                             : tr("N/A"));
+            return;
+        }
         setText(getPropertyStringFromTrack(m_displayProperty));
         return;
     }

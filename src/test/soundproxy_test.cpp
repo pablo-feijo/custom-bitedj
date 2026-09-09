@@ -869,7 +869,17 @@ TEST_F(SoundSourceProxyTest, firstSoundTest) {
 
                 const SINT firstSoundSample = AnalyzerSilence::findFirstSoundInChunk(samples);
                 if (firstSoundSample < static_cast<SINT>(samples.size())) {
-                    EXPECT_EQ(firstSoundSample, ref.firstSoundSample)
+                    // libmad's FPM_DEFAULT build has the documented rounding
+                    // difference above. Select its exact reference from the
+                    // actual decoder, rather than assuming Linux is FPM_64BIT.
+                    const auto providerName = providerRegistration.getProvider()->getDisplayName();
+                    const SINT expectedFirstSound =
+                            ref.path == QStringLiteral("cover-test-vbr.mp3") &&
+                                    providerName.startsWith(QStringLiteral("MAD:")) &&
+                                    providerName.contains(QStringLiteral("FPM_DEFAULT"))
+                            ? 3326
+                            : ref.firstSoundSample;
+                    EXPECT_EQ(firstSoundSample, expectedFirstSound)
                             << filePath.toStdString() << " "
                             << providerRegistration.getProvider()
                                        ->getDisplayName()

@@ -136,7 +136,9 @@ void ControllerScriptEngineBase::logOrThrowError(const QString& errorMessage) {
 
 void ControllerScriptEngineBase::scriptErrorDialog(
         const QString& detailedError, const QString& key, bool bFatalError) {
-    if (m_bTesting) {
+    // System-owned scripts have no physical controller or controller dialog.
+    // Their errors are already logged by showScriptExceptionDialog().
+    if (m_bTesting || !m_pController) {
         return;
     }
 

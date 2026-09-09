@@ -1,6 +1,6 @@
 <!--
   One deck's block on the KEY page of the Overview panel (effects.xml):
-  the deck's current key plus +/-2 semitone nudges and a reset.
+  the deck's current key, +/-2 semitone nudges, harmonic Match and reset.
 
   The key badge binds [Channel<N>],visual_key for the text and the
   fork-added [Channel<N>],key_shifted for `highlight`, which turns it
@@ -10,7 +10,7 @@
   as the same key doesn't light it up.
 
   Nudges are the fork-added pitch_up_2/pitch_down_2 push buttons on
-  KeyControl; reset is stock reset_key (pitch back to 0).
+  KeyControl; Match uses sync_key and reset uses reset_key (pitch back to 0).
 
   Variables:
     channel: channel number (e.g. 1, 2)
@@ -19,25 +19,25 @@
   <WidgetGroup>
     <ObjectName>KeyFX_DeckBlock</ObjectName>
     <Layout>vertical</Layout>
-    <Size>0me,74f</Size>
+    <Size>0me,148f</Size>
     <Children>
 
       <WidgetGroup>
         <ObjectName>KeyFX_DeckHeader</ObjectName>
         <Layout>horizontal</Layout>
-        <Size>0me,24f</Size>
+        <Size>0me,28f</Size>
         <Children>
           <Label>
             <ObjectName>KeyFX_DeckLabel_<Variable name="channel"/></ObjectName>
             <Text>Deck <Variable name="channel"/></Text>
-            <Size>0me,24f</Size>
+            <Size>0me,28f</Size>
             <Alignment>left</Alignment>
           </Label>
           <Key>
             <ObjectName>KeyFX_DeckKey</ObjectName>
             <TooltipId>visual_key</TooltipId>
-            <Size>56max,24f</Size>
-            <Alignment>right</Alignment>
+            <Size>56f,28f</Size>
+            <Alignment>center</Alignment>
             <Channel><Variable name="channel"/></Channel>
             <Connection>
               <ConfigKey>[Channel<Variable name="channel"/>],visual_key</ConfigKey>
@@ -58,11 +58,12 @@
 
           <PushButton>
             <ObjectName>KeyFX_Down</ObjectName>
-            <Size>46f,44f</Size>
+            <Tooltip>Lower this deck by 2 semitones.</Tooltip>
+            <Size>0me,44f</Size>
             <NumberStates>1</NumberStates>
             <State>
               <Number>0</Number>
-              <Text>&#8722;2</Text>
+              <Text>&#8722;2 st</Text>
             </State>
             <Connection>
               <ConfigKey>[Channel<Variable name="channel"/>],pitch_down_2</ConfigKey>
@@ -73,11 +74,12 @@
 
           <PushButton>
             <ObjectName>KeyFX_Up</ObjectName>
-            <Size>46f,44f</Size>
+            <Tooltip>Raise this deck by 2 semitones.</Tooltip>
+            <Size>0me,44f</Size>
             <NumberStates>1</NumberStates>
             <State>
               <Number>0</Number>
-              <Text>+2</Text>
+              <Text>+2 st</Text>
             </State>
             <Connection>
               <ConfigKey>[Channel<Variable name="channel"/>],pitch_up_2</ConfigKey>
@@ -86,23 +88,38 @@
             </Connection>
           </PushButton>
 
-          <PushButton>
-            <ObjectName>KeyFX_Reset</ObjectName>
-            <Size>0me,44f</Size>
-            <NumberStates>1</NumberStates>
-            <State>
-              <Number>0</Number>
-              <Text>Reset</Text>
-            </State>
-            <Connection>
-              <ConfigKey>[Channel<Variable name="channel"/>],reset_key</ConfigKey>
-              <ConnectValueToWidget>false</ConnectValueToWidget>
-              <EmitOnDownPress>true</EmitOnDownPress>
-            </Connection>
-          </PushButton>
+
 
         </Children>
       </WidgetGroup>
+
+<WidgetGroup><ObjectName>KeyFX_ButtonRow</ObjectName><Layout>horizontal</Layout><Size>0me,44f</Size><Children>      <PushButton>
+        <ObjectName>KeyFX_Match</ObjectName>
+        <Size>0me,44f</Size>
+        <NumberStates>1</NumberStates>
+        <State>
+          <Number>0</Number>
+          <Text>Match</Text>
+        </State>
+        <Connection>
+          <ConfigKey>[Channel<Variable name="channel"/>],sync_key</ConfigKey>
+          <ConnectValueToWidget>false</ConnectValueToWidget>
+          <EmitOnDownPress>true</EmitOnDownPress>
+        </Connection>
+      </PushButton>      <PushButton>
+        <ObjectName>KeyFX_Reset</ObjectName>
+        <Size>0me,44f</Size>
+        <NumberStates>1</NumberStates>
+        <State>
+          <Number>0</Number>
+          <Text>Reset</Text>
+        </State>
+        <Connection>
+          <ConfigKey>[Channel<Variable name="channel"/>],reset_key</ConfigKey>
+          <ConnectValueToWidget>false</ConnectValueToWidget>
+          <EmitOnDownPress>true</EmitOnDownPress>
+        </Connection>
+      </PushButton></Children></WidgetGroup>
 
     </Children>
   </WidgetGroup>

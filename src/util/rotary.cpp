@@ -1,13 +1,14 @@
 #include "util/rotary.h"
 
 #include <QtDebug>
+#include <algorithm>
 
-constexpr int kiRotaryFilterMaxLen = 50;
+constexpr int kiRotaryFilterMaxLen = 64;
 
 Rotary::Rotary()
-        : m_iFilterLength(kiRotaryFilterMaxLen),
+        : m_iFilterLength(50),
           m_iFilterPos(0),
-          m_pFilter(m_iFilterLength),
+          m_pFilter(kiRotaryFilterMaxLen),
           m_dCalibration(1.0),
           m_dLastValue(0.0),
           m_iCalibrationCount(0) {
@@ -79,6 +80,8 @@ double Rotary::getCalibration() {
 }
 
 void Rotary::setFilterLength(int i) {
+    m_iFilterPos = 0;
+    std::fill(m_pFilter.begin(), m_pFilter.end(), 0.0);
     if (i > kiRotaryFilterMaxLen) {
         m_iFilterLength = kiRotaryFilterMaxLen;
     } else if (i < 1) {

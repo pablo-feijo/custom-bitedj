@@ -8,7 +8,15 @@ on:
     branches:
       - main
       - develop
+      - 'codex/v[0-9]*.[0-9]*.[0-9]*'
+      - 'codex-v[0-9]*.[0-9]*.[0-9]*'
+      - 'v[0-9]*.[0-9]*.[0-9]*'
   workflow_dispatch:
+    inputs:
+      e2e:
+        description: Build the desktop and run isolated E2E smoke tests
+        type: boolean
+        default: false
 
 # Only keep the newest run per PR/branch alive, older ones are obsolete.
 concurrency:
@@ -19,13 +27,30 @@ permissions:
   contents: read # to fetch code (actions/checkout)
 
 jobs:
+  fast-tests:
+    name: Fast controller and resource tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - run: python3 scripts/test/run-tests.py fast
+
   unit-tests:
-    name: Unit tests
+    name: Native unit and integration tests
+    needs: fast-tests
     runs-on: ubuntu-24.04
     # A cold (ccache-less) build of mixxx-lib takes roughly an hour.
     timeout-minutes: 120
     env:
+      # Release integration branches always exercise the desktop smoke path.
+      RUN_E2E: ${{ inputs.e2e == true || (github.event_name == 'push' && (startsWith(github.ref_name, 'codex/v') || startsWith(github.ref_name, 'codex-v') || startsWith(github.ref_name, 'v'))) }}
       CCACHE_DIR: /home/runner/.cache/ccache
+      CCACHE_COMPILERCHECK: content
+      CCACHE_BASEDIR: ${{ github.workspace }}
       # Render analyzer/waveform tests to an offscreen buffer, there is no
       # display server on the runner.
       QT_QPA_PLATFORM: offscreen
@@ -34,7 +59,7 @@ jobs:
       DEBIAN_FRONTEND: noninteractive
     steps:
       - name: "Check out repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # This is necessary for making `git describe` work.
           fetch-depth: 0
@@ -42,25 +67,57 @@ jobs:
       - name: "Install build dependencies"
         # `< /dev/null` so the script never blocks on its interactive prompt
         # about the (optional) fonts-ubuntu package.
-        run: tools/debian_buildenv.sh setup < /dev/null
+        run: |
+          tools/debian_buildenv.sh setup < /dev/null
+          sudo apt-get install -y ninja-build
 
-      - name: "Set up GitHub cache for ccache"
-        uses: actions/cache@v4
+      - name: Select build parallelism from runner resources
+        run: |
+          # At least 3 GiB per compiler, at most four workers on standard runners.
+          workers=$(nproc)
+          memory_workers=$(awk '/MemTotal/ {print int($2 / 3145728)}' /proc/meminfo)
+          if [ "$workers" -gt "$memory_workers" ]; then workers=$memory_workers; fi
+          if [ "$workers" -gt 4 ]; then workers=4; fi
+          if [ "$workers" -lt 1 ]; then workers=1; fi
+          echo "CMAKE_BUILD_PARALLEL_LEVEL=$workers" >> "$GITHUB_ENV"
+          echo "Using $workers build workers ($(nproc) CPUs available)"
+
+      - name: Fingerprint compiled inputs and installed toolchain
+        id: fingerprint
+        run: |
+          mkdir -p test-results
+          dpkg-query -W -f='${Package}=${Version}\n' | LC_ALL=C sort > test-results/ci-environment.txt
+          printf '%s\n' "${ImageOS}" "$(uname -m)" >> test-results/ci-environment.txt
+          echo "key=$(python3 scripts/test/ci-build-cache.py key --environment test-results/ci-environment.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore exact compiled binaries
+        id: binaries
+        uses: actions/cache/restore@v6
+        with:
+          path: test-results/ci-native-cache
+          key: native-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.fingerprint.outputs.key }}
+          # No prefix fallback: different compiled inputs must rebuild.
+
+      - name: Restore compiler cache
+        id: ccache
+        if: steps.binaries.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v6
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ubuntu-24.04-tests-${{ github.ref }}-${{ github.run_number }}
+          key: ubuntu-24.04-tests-v2-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
+            ubuntu-24.04-tests-v2-${{ runner.arch }}-
             ubuntu-24.04-tests-${{ github.ref }}
-            ubuntu-24.04-tests-refs/heads/main
             ubuntu-24.04-tests
 
-      - name: "Set up ccache"
+      - name: Set up ccache
+        if: steps.binaries.outputs.cache-hit != 'true'
         run: |
           ccache --zero-stats
-          ccache --max-size=2G
+          ccache --max-size=4G
 
-      - name: "Create build directory"
-        run: mkdir build
+      - name: Create build directory
+        run: mkdir -p build
 
       - name: "Configure"
         # Feature flags mirror the upstream Mixxx Linux CI build so that the
@@ -69,6 +126,7 @@ jobs:
         # is missing rather than silently producing a build without tests.
         run: >-
           cmake
+          -G Ninja
           -DCMAKE_BUILD_TYPE=RelWithDebInfo
           -DBUILD_TESTING=ON
           -DQT6=ON
@@ -96,35 +154,107 @@ jobs:
         working-directory: build
 
       - name: "Set up gcc problem matcher"
-        uses: ammaraskar/gcc-problem-matcher@0.3.0
+        run: echo "::add-matcher::.github/gcc-problem-matcher.json"
 
       - name: "Build test suite"
-        run: cmake --build . --config RelWithDebInfo --target mixxx-test
+        id: native_build
+        if: steps.binaries.outputs.cache-hit != 'true'
+        run: cmake --build . --config RelWithDebInfo --target mixxx-test --parallel "$CMAKE_BUILD_PARALLEL_LEVEL"
         working-directory: build
         env:
           # GitHub Actions automatically zstd compresses caches
           CCACHE_NOCOMPRESS: true
 
-      - name: "Print ccache stats"
-        run: |
-          ccache --show-stats
-          ccache --cleanup
+      - name: Save compiler cache even if a later stage fails
+        if: ${{ always() && steps.ccache.outcome == 'success' && steps.native_build.outcome != 'skipped' }}
+        continue-on-error: true
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ steps.ccache.outputs.cache-primary-key }}
 
-      - name: "Run unit tests"
+      - name: Build desktop and install reusable CI binaries
+        id: desktop_build
+        if: steps.binaries.outputs.cache-hit != 'true'
+        run: |
+          cmake --build build --target mixxx --parallel "$CMAKE_BUILD_PARALLEL_LEVEL"
+          cmake --install build --prefix "$PWD/dist-linux"
+          python3 scripts/test/ci-build-cache.py snapshot --key "${{ steps.fingerprint.outputs.key }}"
+
+      - name: Save compiled binaries before running tests
+        if: steps.desktop_build.outcome == 'success'
+        uses: actions/cache/save@v6
+        with:
+          path: test-results/ci-native-cache
+          key: ${{ steps.binaries.outputs.cache-primary-key }}
+
+      - name: Restore binaries and refresh current runtime assets
+        id: ready
+        run: |
+          if [ "${{ steps.binaries.outputs.cache-hit }}" = true ]; then
+            python3 scripts/test/ci-build-cache.py restore --key "${{ steps.fingerprint.outputs.key }}"
+          else
+            cat test-results/ci-native-cache/provenance.json
+          fi
+
+      - name: Print ccache stats
+        if: ${{ !cancelled() && steps.native_build.outcome == 'success' }}
+        run: ccache --show-stats
+
+      - name: "Run native tests"
         # --no-tests=error guards against a configuration that registers no
         # tests at all, which ctest would otherwise report as success.
-        run: >-
-          ctest
-          --no-tests=error
-          --timeout 45
-          --parallel 1
-          --output-junit test-results.xml
-        working-directory: build
+        run: python3 scripts/test/run-tests.py native --build-dir build
+
+      - name: "Run removable-drive integration tests"
+        # Mount/unmount fixtures only in a private namespace, never the runner's /mnt.
+        run: sudo bash scripts/test/run-removable-tests.sh --build-dir build
+
+      - name: Select E2E runtime cache generation
+        id: runtime_key
+        if: ${{ !cancelled() && env.RUN_E2E == 'true' && steps.ready.outcome == 'success' }}
+        # Refresh OS packages weekly; Docker/helper changes invalidate immediately.
+        run: echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore E2E runtime image
+        id: runtime_cache
+        if: ${{ !cancelled() && steps.runtime_key.outcome == 'success' }}
+        uses: actions/cache/restore@v6
+        with:
+          path: test-results/ci-runtime/runtime.tar
+          key: runtime-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.runtime_key.outputs.week }}-${{ hashFiles('test-results/ci-environment.txt', 'docker/build.Dockerfile', 'docker/gui-test.Dockerfile', 'tools/debian_buildenv.sh', 'scripts/test/repair-novnc.py', 'scripts/test/novnc_audio_snippet.html') }}
+
+      - name: Build matching Ubuntu E2E runtime
+        id: e2e_runtime
+        if: ${{ !cancelled() && steps.runtime_cache.outcome == 'success' }}
+        run: |
+          if [ "${{ steps.runtime_cache.outputs.cache-hit }}" = true ]; then
+            docker load -i test-results/ci-runtime/runtime.tar
+          else
+            docker build --build-arg BASE_IMAGE=ubuntu:24.04 -t bitedj-builder:latest -f docker/build.Dockerfile .
+            docker build --build-arg BITEDJ_BUILDER_IMAGE=bitedj-builder:latest -t bitedj-gui-test:latest -f docker/gui-test.Dockerfile .
+            mkdir -p test-results/ci-runtime
+            docker save bitedj-gui-test:latest -o test-results/ci-runtime/runtime.tar
+          fi
+
+      - name: Save E2E runtime image
+        if: ${{ !cancelled() && steps.e2e_runtime.outcome == 'success' && steps.runtime_cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v6
+        with:
+          path: test-results/ci-runtime/runtime.tar
+          key: ${{ steps.runtime_cache.outputs.cache-primary-key }}
+
+      - name: "Run desktop E2E"
+        if: ${{ !cancelled() && env.RUN_E2E == 'true' && steps.e2e_runtime.outcome == 'success' }}
+        run: python3 scripts/test/run-tests.py e2e
 
       - name: "Upload test results"
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results
-          path: build/test-results.xml
+          path: |
+            test-results/ci-native-cache/provenance.json
+            build/*-results.xml
+            test-results/bitedj-e2e-*/
           if-no-files-found: warn

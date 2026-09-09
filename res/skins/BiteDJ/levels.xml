@@ -265,9 +265,13 @@
         <Size>0me,80max</Size>
         <Children>
           <Template src="skin:deck.xml">
+            <SetVariable name="key_badge_size">36f,16f</SetVariable>
+            <SetVariable name="bpm_badge_size">54max,20f</SetVariable>
             <SetVariable name="channel">1</SetVariable>
           </Template>
           <Template src="skin:deck.xml">
+            <SetVariable name="key_badge_size">36f,16f</SetVariable>
+            <SetVariable name="bpm_badge_size">54max,20f</SetVariable>
             <SetVariable name="channel">2</SetVariable>
           </Template>
         </Children>

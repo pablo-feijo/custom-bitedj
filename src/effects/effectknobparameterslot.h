@@ -47,6 +47,8 @@ class EffectKnobParameterSlot : public EffectParameterSlotBase {
     // Bite DJ fork additions: raw-value alias mirror.
     void slotKnobValueMirror(double v);
     void slotValueAliasFromSkin(double v);
+    void slotBeatPeriodFromSkin(double beats);
+    double beatPeriod(double raw) const;
 
   private:
     QString debugString() const {
@@ -64,6 +66,7 @@ class EffectKnobParameterSlot : public EffectParameterSlotBase {
     // pick the right widget per parameter (bucket selector for Beats,
     // ms slider for Time, plain slider otherwise) and render real units.
     ControlObject* m_pControlUnits;
+    ControlObject* m_pControlIsMix;
     ControlObject* m_pControlMin;
     ControlObject* m_pControlMax;
     ControlObject* m_pControlDefault;
@@ -77,6 +80,9 @@ class EffectKnobParameterSlot : public EffectParameterSlotBase {
     // value X to the underlying knob (clamped by behaviour). Used by
     // the BeatFX bucket picker.
     ControlObject* m_pControlValueAlias;
+    ControlObject* m_pControlBeatPeriod;
+    ControlObject* m_pControlBeatPeriodMin;
+    ControlObject* m_pControlBeatPeriodMax;
     bool m_bMirroringValueAlias;
 
     DISALLOW_COPY_AND_ASSIGN(EffectKnobParameterSlot);

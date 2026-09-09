@@ -28,6 +28,7 @@ class KeyboardEventFilter;
 class MixxxLibraryFeature;
 class PlayerManager;
 class PlaylistFeature;
+class PrepareFeature;
 class RecordingManager;
 class SidebarModel;
 class TrackCollectionManager;
@@ -120,6 +121,7 @@ class Library: public QObject {
     void slotLoadLocationToPlayer(const QString& location, const QString& group, bool play);
     void slotRefreshLibraryModels();
     void slotCreatePlaylist();
+    void addToPrepare(const TrackPointerList& tracks);
     void slotCreateCrate();
     void onSkinLoadFinished();
     void slotSaveCurrentViewState() const;
@@ -211,6 +213,7 @@ class Library: public QObject {
     WLibrary* m_pLibraryWidget;
     MixxxLibraryFeature* m_pMixxxLibraryFeature;
     PlaylistFeature* m_pPlaylistFeature;
+    PrepareFeature* m_pPrepareFeature;
     CrateFeature* m_pCrateFeature;
     AnalysisFeature* m_pAnalysisFeature;
     BrowseFeature* m_pBrowseFeature;

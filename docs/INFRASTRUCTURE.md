@@ -1,13 +1,18 @@
 # Infrastructure & Build Architecture
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+This guide describes [Custom Bite DJ](../README.md), an independent fork of
+[Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on Mixxx.
+
 Unlike upstream Mixxx which is distributed as a standard desktop application, BiteDJ is engineered as a full appliance operating system (OS) optimized for the Raspberry Pi. This requires a significantly different build and deployment infrastructure.
 
 ## 1. Cross-Compilation Engine
 Upstream Mixxx relies on standard native `CMake` builds for Windows, macOS, and Linux. 
 BiteDJ utilizes a Dockerized cross-compilation pipeline to build ARM64 binaries from any host machine (macOS/x86_64).
-- **`Dockerfile`**: Provides a reproducible Debian Trixie (13) environment pre-loaded with an ARM64 cross-compiler (`aarch64-linux-gnu-g++`).
-- **`docker-build.sh`**: Automates the invocation of the Docker container, mounting the local source tree, and compiling the binary into the `dist-linux/` folder.
-- **Dependency Fetching**: The scripts `get_libs.sh` and `get_libs2.sh` manually download and extract Debian ARM64 package headers directly from `deb.debian.org` (e.g., `libasound2-dev`, `libqt6waylandclient6`). This eliminates the need for a massive, complex sysroot.
+- **`docker/build.Dockerfile`**: Provides a reproducible Debian Trixie (13) environment pre-loaded with an ARM64 cross-compiler (`aarch64-linux-gnu-g++`).
+- **`scripts/build/docker-build.sh`**: Automates the invocation of the Docker container, mounting the local source tree, and compiling the binary into the `dist-linux/` folder.
+- **Legacy library extraction**: `scripts/legacy/get_libs.sh` and `scripts/legacy/get_libs2.sh` retain the older Ubuntu ARM64 runtime-library extraction workflow. They write archives under ignored `test-results/legacy-libs/` and are not used by the current build.
 
 ## 2. OS Image Generation (`mixxx-pi-gen`)
 BiteDJ ships as a complete, flashable `.img` file. We use a heavily customized git submodule fork of `pi-gen` (the official tool used to build Raspberry Pi OS).
@@ -137,3 +142,57 @@ workspace 1
 # 5. Auto-execute BiteDJ on compositor startup
 exec "WLR_DRM_NO_MODIFIERS=1 QT_WAYLAND_SHELL_INTEGRATION=xdg-shell /usr/bin/bitedj --resourcePath /usr/share/mixxx/ --full-screen --style Fusion"
 ```
+
+## Touch date/time, boot clocks and restart
+
+Settings → Info keeps four dashboard cards. Tap Local Time for a timezone-first
+editor: Region and City / timezone select an installed IANA zone and preview its
+local date and time. Apply calls `timedatectl set-timezone` before updating sync;
+a failed zone change stops the sequence. A timezone-only edit preserves the
+clock instant and never issues `set-time`. The dashboard updates without restart.
+
+Automatic sync uses `timedatectl set-ntp`. Turning it off reveals a calendar date
+picker and 24-hour step controls. Explicit manual edits disable sync before
+`timedatectl set-time`; nonexistent local times at daylight-saving transitions
+are rejected. Failed calls remain visible, including disabling sync without
+successfully setting time. No shell parses user values. Commands are asynchronous
+and bounded to 15 seconds. Preview selection and Cancel never alter OS settings. On Linux, non-root clock
+mutations use `sudo -n timedatectl` with structured arguments; read-only queries
+remain unprivileged. This uses the Pi image's existing passwordless sudo policy
+without installing broader permissions or waiting for a Polkit/password dialog.
+Systems without that authorization report the command failure.
+
+Settings → System → Overclock reads `/boot/firmware/config.txt`, falling back to
+`/boot/config.txt`, on Raspberry Pi 4 Model B and Pi 5 Model B. The editor shows
+saved boot overrides, which can differ from currently running clocks. CPU range
+is 1000–2400 MHz on Pi 4 and 1000–3000 MHz on Pi 5; GPU range is 400–1000 MHz;
+`over_voltage` is 0–6 (25 mV steps). These are editor bounds, not stability
+certifications. Zero removes the corresponding override and lets firmware choose.
+Firmware defaults clears all three overrides. Cooling and board-dependent
+stability remain relevant; no new preset is presented as hardware-validated.
+See [Raspberry Pi's clock documentation](https://www.raspberrypi.com/documentation/computers/config_txt.html#overclocking-options).
+
+Saving preserves unrelated boot options, places the managed overrides in `[all]`,
+and retains the first original as `config.txt.bitedj-backup`. File operations run
+on a worker; `QSaveFile` commits the replacement atomically. A stale editor refuses
+to overwrite an externally changed file. Included configurations, advanced voltage
+or forced-turbo overrides, unsupported conditional clock sections, unknown boards,
+and out-of-range existing values are refused. Recovery after boot failure is to
+restore the backup on the boot partition using another computer. Saving never
+restarts automatically; Restart system is a separate confirmed action.
+
+For the real boot paths, non-root saving invokes `sudo -n` with the same BiteDJ
+executable in `--bitedj-apply-boot-settings` mode. This headless helper exits
+before GUI/audio/library initialization, reads the fixed OS boot path again,
+checks the expected SHA-256, validates the three numeric settings, and performs
+the backup and atomic save as root. It accepts neither a destination filename
+nor arbitrary file contents. Normal user settings remain owned by the session
+user. Missing sudo authorization is reported rather than prompting for a password.
+
+System → Power / Restart offers Restart BiteDJ, Restart system and Power off.
+Application restart exits the event loop, destroys the main window and core
+services (flushing settings and recordings), then launches the same executable
+with its arguments and inherited environment. System restart/power-off use
+`systemctl reboot` / `systemctl poweroff`, with failed starts, nonzero exits and
+timeouts reported. These OS actions require the appliance's existing system
+permissions; desktop containers without systemd expose an unavailable/error state.

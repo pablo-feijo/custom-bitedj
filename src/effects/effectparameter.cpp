@@ -3,6 +3,7 @@
 #include <QtDebug>
 
 #include "effects/effectsmessenger.h"
+#include "engine/effects/engineeffect.h"
 #include "effects/presets/effectparameterpreset.h"
 
 EffectParameter::EffectParameter(EngineEffect* pEngineEffect,
@@ -27,6 +28,10 @@ EffectParameter::~EffectParameter() {
 
 EffectManifestParameterPointer EffectParameter::manifest() const {
     return m_pParameterManifest;
+}
+
+QString EffectParameter::effectId() const {
+    return m_pEngineEffect->getManifest()->id();
 }
 
 // static

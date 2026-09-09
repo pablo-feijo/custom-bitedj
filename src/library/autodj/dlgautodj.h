@@ -57,6 +57,13 @@ class DlgAutoDJ : public QWidget, public Ui::DlgAutoDJ, public LibraryView {
             void (DlgAutoDJ::*pSlot)(bool),
             const QString& fallbackText);
     void keyPressEvent(QKeyEvent* pEvent) override;
+    void showEvent(QShowEvent* event) override;
+    void hideEvent(QHideEvent* event) override;
+
+    ControlProxy m_queueView;
+    ControlProxy m_moveUp;
+    ControlProxy m_moveDown;
+    ControlProxy m_removeSelected;
 
     const UserSettingsPointer m_pConfig;
 

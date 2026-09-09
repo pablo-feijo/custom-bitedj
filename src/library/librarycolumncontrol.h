@@ -19,9 +19,8 @@ class WTrackTableViewHeader;
 // trigger is the [Library],column_visible_<name> + column_weight_<name>
 // ControlObjects set by the skin.
 //
-// WTrackTableViewHeader saves/restores column order using the upstream
-// per-model header_state_pb. This class applies visibility and weighted
-// widths after that restore, overriding the protobuf's layout dimensions.
+// Managed header order/sorting are persisted per model in mixxx.cfg.
+// Visibility and widths are always reapplied from the controls below.
 //
 // Width semantics: each visible column has an integer weight (1..4). On
 // every apply pass the visible weights are summed and each column is sized
@@ -42,6 +41,8 @@ class LibraryColumnControl : public QObject {
     // Apply current visibility + width state to a header. Safe to call
     // repeatedly. No-op if pHeader has no model or zero width.
     void applyTo(WTrackTableViewHeader* pHeader);
+    QString headerState(const QString& modelNamespace) const;
+    void setHeaderState(const QString& modelNamespace, const QString& state);
 
     // Track live headers so CO changes can re-apply across all open views.
     void registerHeader(WTrackTableViewHeader* pHeader);

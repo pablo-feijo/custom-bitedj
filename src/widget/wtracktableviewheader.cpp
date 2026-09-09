@@ -2,7 +2,6 @@
 
 #include <QCheckBox>
 #include <QContextMenuEvent>
-#include <QMouseEvent>
 #include <QScopedValueRollback>
 #include <QWidgetAction>
 
@@ -84,7 +83,7 @@ QString HeaderViewState::saveState() const {
     if(m_view_state.SerializeToArray(array.data(), size)) {
         return QString(array.toBase64());
     } else {
-        qWarning() << "Could not serialize m_view_state to QByteArray of size "
+        qWarning() << "Could not serialze m_view_state to QByteArray of size "
                    << array.size();
         return "";
     }
@@ -137,16 +136,14 @@ void HeaderViewState::restoreState(WTrackTableViewHeader* pHeaders) {
 WTrackTableViewHeader::WTrackTableViewHeader(Qt::Orientation orientation,
         QWidget* pParent)
         : QHeaderView(orientation, pParent),
-          m_menu(tr("Show or hide columns."), this),
-          m_restoringHeaderState(false) {
+          m_menu(tr("Show or hide columns."), this) {
     if (auto* pColumnControl = LibraryColumnControl::tryInstance()) {
         pColumnControl->registerHeader(this);
-        // The appliance may be powered off without the normal widget
-        // destruction path, so persist a completed Qt header drag at once.
-        connect(this,
-                &QHeaderView::sectionMoved,
-                this,
-                &WTrackTableViewHeader::slotSaveColumnOrder);
+        connect(this, &QHeaderView::sectionMoved, this, [this] {
+            if (!m_restoringHeaderState) {
+                saveHeaderState();
+            }
+        });
         // Whenever Qt re-initializes this header's sections (model reset,
         // column count change — the moments hidden-section state can be
         // dropped), re-assert the managed layout. The appliance has no
@@ -177,26 +174,6 @@ void WTrackTableViewHeader::contextMenuEvent(QContextMenuEvent* pEvent) {
     }
     pEvent->accept();
     m_menu.popup(pEvent->globalPos());
-}
-
-void WTrackTableViewHeader::mousePressEvent(QMouseEvent* event) {
-    int logical = logicalIndexAt(event->pos());
-    TrackModel* pTrackModel = getTrackModel();
-    if (pTrackModel && logical >= 0 && !pTrackModel->isColumnSortable(logical)) {
-        event->accept();
-        return;
-    }
-    QHeaderView::mousePressEvent(event);
-}
-
-void WTrackTableViewHeader::mouseReleaseEvent(QMouseEvent* event) {
-    int logical = logicalIndexAt(event->pos());
-    TrackModel* pTrackModel = getTrackModel();
-    if (pTrackModel && logical >= 0 && !pTrackModel->isColumnSortable(logical)) {
-        event->accept();
-        return;
-    }
-    QHeaderView::mouseReleaseEvent(event);
 }
 
 void WTrackTableViewHeader::resizeEvent(QResizeEvent* pEvent) {
@@ -340,8 +317,11 @@ void WTrackTableViewHeader::saveHeaderState() {
     if (!pTrackModel) {
         return;
     }
-    // Keep the upstream format for column order. BiteDJ re-applies its
-    // managed visibility and weighted widths after restoring this state.
+    if (auto* control = LibraryColumnControl::tryInstance()) {
+        HeaderViewState state(*this);
+        control->setHeaderState(pTrackModel->settingsNamespace(), state.saveState());
+        return;
+    }
     // Convert the QByteArray to a Base64 string and save it.
     HeaderViewState view_state(*this);
     pTrackModel->setModelSetting("header_state_pb", view_state.saveState());
@@ -354,9 +334,12 @@ void WTrackTableViewHeader::restoreHeaderState() {
     if (!pTrackModel) {
         return;
     }
-    const QScopedValueRollback restoringGuard(m_restoringHeaderState, true);
 
-    const QString headerStateString = pTrackModel->getModelSetting("header_state_pb");
+    const QScopedValueRollback restoringGuard(m_restoringHeaderState, true);
+    auto* control = LibraryColumnControl::tryInstance();
+    const QString headerStateString = control
+            ? control->headerState(pTrackModel->settingsNamespace())
+            : pTrackModel->getModelSetting("header_state_pb");
     if (headerStateString.isNull()) {
         loadDefaultHeaderState();
     } else {
@@ -370,15 +353,7 @@ void WTrackTableViewHeader::restoreHeaderState() {
             view_state.restoreState(this);
         }
     }
-    // Restore order first, then let BiteDJ's config override the saved
-    // pixel widths and visibility. This does not move any sections.
     slotReapplyColumnControl();
-}
-
-void WTrackTableViewHeader::slotSaveColumnOrder() {
-    if (!m_restoringHeaderState) {
-        saveHeaderState();
-    }
 }
 
 void WTrackTableViewHeader::loadDefaultHeaderState() {
@@ -416,7 +391,7 @@ void WTrackTableViewHeader::slotReapplyColumnControl() {
     if (!pColumnControl || !pTrackModel) {
         return;
     }
-    // After restoring the header state or repopulating the model, pre-hide the
+    // Mirrors the column-control branch of restoreHeaderState: pre-hide the
     // hidden-by-default columns we don't manage, then let the control apply
     // visibility, internal-column hiding and flex widths.
     for (int i = 0; i < count(); ++i) {

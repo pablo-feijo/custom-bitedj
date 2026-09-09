@@ -1,0 +1,16 @@
+{
+  "source_commit": "339ff735481aa560a932c8a52ec5c527051dc51b",
+  "source_branch": "codex/drive-library-audit",
+  "source_hash": "4244bda329d3b3c4b084a473431b602b8a2dd8d1214305eb3afa13d3a773535d",
+  "version": "0.0.7-codex-drive-library-audit.2",
+  "dirty": true,
+  "platform": "linux/arm64",
+  "builder_image": "sha256:9a92a88cdd92529a43774007a3eeda5b5df094af7989868d22c5984d5b8cd6a6",
+  "binary_version": "Bite DJ 0.0.7-codex-drive-library-audit.2",
+  "built_at": "2026-09-09T21:07:32.292116+00:00",
+  "artifact_hash": "f5bfd066821afa7cc41a0febefbc4864138713035d2b2dd1ad146e1bfcf8a548",
+  "binary_sha256": "9e19f9d16ede5d2bbcf18f5eb7206ccddd0f3a0768463b322b1f16acfd27a839",
+  "images": {
+    "large-library.png": "48858fe09dd5b5cd4f02de64123dc90331d2c6b0d1e4b2fb8c962a57ad395c8c"
+  }
+}

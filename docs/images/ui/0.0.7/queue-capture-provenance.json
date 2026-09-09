@@ -1,0 +1,19 @@
+{
+  "source_commit": "476fec93a5e071c23f82059ddecf4795df8c0d17",
+  "source_branch": "codex/browse-header-navigation",
+  "source_hash": "3850edb56b810e79e78b0a0ea1b8f1fc1cc97e259daa30b35d9508114e0d74d7",
+  "version": "0.0.7-codex-browse-header-navigation.12",
+  "dirty": true,
+  "platform": "linux/arm64",
+  "builder_image": "sha256:824adc6f35cb13eb159fe65eff363232b41df8b18fa171ca4f0eef531363f721",
+  "binary_version": "Bite DJ 0.0.7-codex-browse-header-navigation.12",
+  "built_at": "2026-09-09T17:57:57.929270+00:00",
+  "artifact_hash": "9a74e1bb297721352bd9ed3f62047ca4b5393e929c03c75743c388c1468a8fc1",
+  "binary_sha256": "d418f9656f46a43d1f799e061efe045d2fe5650932cb9702dc0e8ba8c732bd67",
+  "images": {
+    "demo-playlist.png": "675ea738e468b73e683b83f4e0a9418cf0cedba5b063b5afc4f79340325b8cdc",
+    "demo-playlist-folders.png": "eaa61b68dae95ac066018261ec99bab486e317ffac9dd535619b3bea1db1c326",
+    "queue-feedback.png": "babd893f194b58534e6fc22397aaf08c8a287499f54b397b31328908e93fd8cf",
+    "queue-view.png": "13ff1dc93f6e2d9c8c76ba7fb84e06c014116af4c4a71e1efb2afc4bc9a4e343"
+  }
+}

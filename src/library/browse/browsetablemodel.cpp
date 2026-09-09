@@ -23,6 +23,7 @@
 #include "moc_browsetablemodel.cpp"
 #include "recording/recordingmanager.h"
 #include "track/track.h"
+#include "track/globaltrackcache.h"
 #include "util/clipboard.h"
 #include "widget/wlibrarytableview.h"
 
@@ -253,6 +254,7 @@ BrowseTableModel::BrowseTableModel(QObject* parent,
     qRegisterMetaType<QList<QList<QStandardItem*>>>(
             "QList< QList<QStandardItem*>>");
     qRegisterMetaType<BrowseTableModel*>("BrowseTableModel*");
+    qRegisterMetaType<BrowseRowBatchPointer>();
 
     m_pBrowseThread = BrowseThread::getInstanceRef();
     connect(m_pBrowseThread.data(),
@@ -310,13 +312,24 @@ void BrowseTableModel::setPath(mixxx::FileAccess path) {
         return;
     }
 
-    if (path.info().hasLocation() && path.info().isDir()) {
+    // Directory validation belongs to the worker: stat() can stall on USB.
+    if (path.info().hasLocation()) {
         m_currentDirectory = path.info().location();
-        m_pBrowseThread->executePopulation(std::move(path), this);
+        m_browseGeneration = m_pBrowseThread->executePopulation(std::move(path), this,
+                m_pTrackCollectionManager->internalCollection()->database().databaseName());
     } else {
         m_currentDirectory = {};
-        m_pBrowseThread->executePopulation({}, this);
+        m_browseGeneration = m_pBrowseThread->executePopulation({}, this);
     }
+}
+
+void BrowseTableModel::setPathLocation(const QString& location) {
+    VERIFY_OR_DEBUG_ASSERT(m_pBrowseThread) {
+        return;
+    }
+    m_currentDirectory = location;
+    m_browseGeneration = m_pBrowseThread->executePopulation({}, this,
+            m_pTrackCollectionManager->internalCollection()->database().databaseName(), location);
 }
 
 TrackPointer BrowseTableModel::getTrack(const QModelIndex& index) const {
@@ -379,7 +392,11 @@ QVariant BrowseTableModel::data(const QModelIndex& index, int role) const {
                 }
             }
             if (isZero) {
-                TrackPointer pTrack = getTrack(index);
+                // Painting/sorting must never import a file or take SQLite's
+                // writer lock. Loaded tracks can supply newer analysis from
+                // the cache; other rows retain the metadata read by BrowseThread.
+                TrackPointer pTrack = GlobalTrackCacheLocker().lookupTrackByRef(
+                        TrackRef::fromFilePath(getTrackLocation(index)));
                 if (pTrack) {
                     if (index.column() == COLUMN_BPM) {
                         double bpm = pTrack->getBpm();
@@ -567,8 +584,8 @@ void BrowseTableModel::slotPlayedTracksChanged() {
             {Qt::ForegroundRole});
 }
 
-void BrowseTableModel::slotClear(BrowseTableModel* caller_object) {
-    if (caller_object == this) {
+void BrowseTableModel::slotClear(BrowseTableModel* caller_object, quint64 generation) {
+    if (caller_object == this && generation == m_browseGeneration) {
         removeRows(0, rowCount());
         // The row indices these locations referred to are gone; re-discover
         // missing files lazily on the next load attempt in the new listing.
@@ -576,16 +593,16 @@ void BrowseTableModel::slotClear(BrowseTableModel* caller_object) {
     }
 }
 
-void BrowseTableModel::slotInsert(const QList<QList<QStandardItem*>>& rows,
-        BrowseTableModel* caller_object) {
+void BrowseTableModel::slotInsert(BrowseRowBatchPointer batch,
+        BrowseTableModel* caller_object, quint64 generation) {
     // There exists more than one BrowseTableModel in Mixxx and we only want to
     // receive items this object has 'ordered' from the BrowseThread (singleton)
-    if (caller_object == this) {
+    if (caller_object == this && generation == m_browseGeneration) {
         emit saveModelState();
-        //qDebug() << "BrowseTableModel::slotInsert";
-        for (int i = 0; i < rows.size(); ++i) {
-            appendRow(rows.at(i));
+        for (const auto& row : std::as_const(batch->rows)) {
+            appendRow(row);
         }
+        batch->rows.clear(); // Items now belong to the model.
         emit restoreModelState();
     }
 }

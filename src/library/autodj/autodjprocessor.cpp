@@ -357,6 +357,35 @@ AutoDJProcessor::AutoDJError AutoDJProcessor::skipNext() {
 
 AutoDJProcessor::AutoDJError AutoDJProcessor::toggleAutoDJ(bool enable) {
     if (enable) { // Enable Auto DJ
+        // BiteDJ displays only decks 1 and 2. An inherited center assignment
+        // must not send Auto Play to the otherwise hidden decks 3 and 4.
+        const bool visibleDecks = m_pConfig->getValue(
+                ConfigKey(QStringLiteral("[Config]"), QStringLiteral("ResizableSkin")),
+                QStringLiteral("BiteDJ")) == QStringLiteral("BiteDJ");
+        if (visibleDecks && m_decks.size() >= 2) {
+            for (size_t i = 2; i < m_decks.size(); ++i) {
+                if (m_decks[i]->isPlaying()) {
+                    emitAutoDJStateChanged(m_eState);
+                    emit autoDJError(ADJ_UNUSED_DECK_PLAYING);
+                    return ADJ_UNUSED_DECK_PLAYING;
+                }
+            }
+            if (m_decks[0]->isPlaying() && m_decks[1]->isPlaying()) {
+                emitAutoDJStateChanged(m_eState);
+                emit autoDJError(ADJ_BOTH_DECKS_PLAYING);
+                return ADJ_BOTH_DECKS_PLAYING;
+            }
+            if (m_pAutoDJTableModel->rowCount() == 0 &&
+                    (!m_decks[0]->getLoadedTrack() || !m_decks[1]->getLoadedTrack())) {
+                emitAutoDJStateChanged(m_eState);
+                emit autoDJError(ADJ_QUEUE_EMPTY);
+                return ADJ_QUEUE_EMPTY;
+            }
+            ControlObject::set(ConfigKey(m_decks[0]->group, QStringLiteral("orientation")),
+                    EngineChannel::LEFT);
+            ControlObject::set(ConfigKey(m_decks[1]->group, QStringLiteral("orientation")),
+                    EngineChannel::RIGHT);
+        }
         DeckAttributes* pLeftDeck = getLeftDeck();
         DeckAttributes* pRightDeck = getRightDeck();
         if (!pLeftDeck || !pRightDeck) {
@@ -406,6 +435,20 @@ AutoDJProcessor::AutoDJError AutoDJProcessor::toggleAutoDJ(bool enable) {
                     ConfigKey(QStringLiteral("[Skin]"), QStringLiteral("show_4decks")), 1);
         }
 
+        // With no explicit queue, Auto Play mixes the tracks already on the
+        // two decks. Put the playing deck first so it is consumed as current.
+        if (m_pAutoDJTableModel->rowCount() == 0) {
+            const auto leftTrack = pLeftDeck->getLoadedTrack();
+            const auto rightTrack = pRightDeck->getLoadedTrack();
+            if (leftTrack && rightTrack && leftTrack->getId().isValid() &&
+                    rightTrack->getId().isValid()) {
+                m_pAutoDJTableModel->appendTrack(
+                        rightDeckPlaying ? rightTrack->getId() : leftTrack->getId());
+                m_pAutoDJTableModel->appendTrack(
+                        rightDeckPlaying ? leftTrack->getId() : rightTrack->getId());
+            }
+        }
+
         // Never load the same track if it is already playing
         if (leftDeckPlaying) {
             removeLoadedTrackFromTopOfQueue(*pLeftDeck);
@@ -419,10 +462,12 @@ AutoDJProcessor::AutoDJError AutoDJProcessor::toggleAutoDJ(bool enable) {
             // cue point.
             if (pLeftDeck->playPosition() < 0.66 &&
                     removeLoadedTrackFromTopOfQueue(*pLeftDeck)) {
+                setCrossfader(-1.0);
                 pLeftDeck->play();
                 leftDeckPlaying = true;
             } else if (pRightDeck->playPosition() < 0.66 &&
                     removeLoadedTrackFromTopOfQueue(*pRightDeck)) {
+                setCrossfader(1.0);
                 pRightDeck->play();
                 rightDeckPlaying = true;
             }

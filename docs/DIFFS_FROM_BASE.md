@@ -1,8 +1,35 @@
 # Differences from Upstream Mixxx & Cherry-Picking Ledger
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
 This document tracks all divergences from upstream Mixxx, specifically formatted to assist in evaluating upstream commits for cherry-picking. It is divided into two distinct layers:
-1. **Base BiteDJ (v1.0-1)**: The foundational fork that optimized Mixxx for standalone hardware, focusing on audio path resilience, USB stability, and SQLite threading.
+1. **Base BiteDJ (v1.0-1)**: [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), the foundational fork that optimized Mixxx for standalone hardware, focusing on audio path resilience, USB stability, and SQLite threading.
 2. **Custom BiteDJ (v0.0.6)**: Our tailored branch built on top of Base BiteDJ, specifically engineered for native Wayland integration, screen rotation persistence, DRM hardware cursor workarounds, touchscreen drag-and-drop, and club-ready DDJ-400 mappings.
+
+## 0.0.7 removable-library resilience
+
+Linux Settings reads kernel mount metadata; Browse enumerates folders and reads
+metadata on workers. Row batches have a bounded queue and generation-based
+cancellation. Sorting/painting does not import every track. Rekordbox imports use
+composite indexes and bounded traversal of sparse/cyclic playlist trees. See
+[large-library regression checks](../tests/rekordbox/README.md#large-library-regression)
+and the [release notes](RELEASE_0.0.7.md).
+
+## Selected PiFlex adaptations
+
+Working branch `codex/xsploit-readme-feature-map`, intended target `codex/v0.0.7`.
+Source: xsploit/bitedj `4c1dfec590f98851159fe7a64e3348e8aad306a5`.
+See [test coverage](TESTING.md) and [licensing](LICENSING.md).
+
+- Explicit engine publication for programmatic effect enable/disable.
+- Persisted browser column ordering and text size, with model/proxy identity
+  preserved during sorting. Managed widths and Wayland track dragging retained.
+- Rekordbox page-chain bounds/cycle checks and independent DAT/EXT analysis import
+  that warns on optional-data failure while retaining audio loading.
+- Worktree-owned GUI instances, independent ports/config/results, and reusable
+  branch/semver/Conventional Commits rules for agents.
+
+These are selected adaptations of xsploit/bitedj at `4c1dfec590`, not a fork merge.
 
 ---
 
@@ -108,3 +135,43 @@ When evaluating new Mixxx releases (e.g., 2.5, 2.6), prioritize reviewing the fo
 - **Preview Button Connections**: Ensured the global `[Waveform] waveform_type` ControlObject is instantiated *before* `WTrackTableView` creates `PreviewButtonDelegate`s. This resolves the bug where track library waveforms were permanently frozen on the startup setting.
 - **Overview Stack Sync**: Created a dedicated `WaveformOverviewType` property in the backend to ensure Deck `WOverview` waveforms respond natively to the 3-Band setting change.
 - **WaveformRendererFiltered Track Colors**: Updated `WaveformRendererFiltered` to correctly source dynamic RGB track colors (`m_rgbLowColor`, etc.) for `mode == 2`, fixing a major rendering bug where 3-Band stacked waveforms were drawing black due to an undefined generic skin color fallback.
+
+## Pending v0.0.7: configurable Pad FX
+
+`codex/rekordbox-padfx-display` adds system-owned assignments/reset commands,
+private native effect lanes and a compact full-height Settings editor. DDJ-400
+normal/Shift pads use the new mapping instead of swapping the main Beat FX slot.
+See [Pad FX validation](PAD_FX_TESTING.md). Implementation plans are local execution records under ignored `tasks/`.
+
+
+### 2026-09-09 — Stable colors when loading Rekordbox tracks
+
+Deck loading checks the native waveform cache before importing Rekordbox display
+envelopes. Previously the playlist import replaced cached RGB bands immediately,
+turning red/pink library and bottom previews green/yellow. The playlist now records
+a session-local export source; the analyzer worker imports it only on a native
+cache miss, retaining native audio analysis as the fallback for invalid exports.
+Cached detail and summary are published together. Regression tests cover cached
+native colors, deferred valid exports and malformed-export fallback.
+
+### 2026-09-09 — Preview loading and rendering
+
+Browse summary-only I/O now runs on a single background pool with bounded caches;
+painting uses a published-object lookup without filesystem canonicalization or
+metadata-import waits. Cached images include data identity and completion, and
+partial summaries use full-track coordinates. Shared waveform-type mapping and
+palette updates cover Browse/Play/deck overviews. Palette changes rebuild only
+scrolling waveform widgets. Deck summaries reset incremental/scaled images and
+use the summary's own width before engine duration controls catch up.
+Native rendering/delegate/cache regressions and paused GPU E2E checks accompany
+these fixes. The controller pad drawer dependency from `5a84488ae3` also gains
+explicit previous/next touch navigation and balanced padding in this task.
+
+### Jog filter preferences (0.0.7)
+
+`RateControl` reads `[Controls] JogWheelFilterLength` (6, clamped 1–64).
+Deck service preferences Apply publishes the length atomically; audio callbacks
+reset their own preallocated Rotary buffer when the setting changes. Rotary
+capacity is 64 while its general default remains 50; length changes clear stale
+samples and reset the cursor. No allocation or configuration lookup occurs in
+the audio callback. DDJ-400 behavior is documented in [the mapping](DDJ400_MAPPING.md#jog-alignment-release-and-service-smoothing).

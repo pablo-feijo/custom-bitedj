@@ -1,0 +1,85 @@
+<Template>
+  <SetVariable name="EffectGroup">[EffectRack<Variable name="rack" />_EffectUnit<Variable name="unit" />_Effect<Variable name="effect" />]</SetVariable>
+  <WidgetGroup>
+    <ObjectName>BeatFX_ParamRow</ObjectName>
+    <Layout>vertical</Layout>
+    <SizePolicy>me,min</SizePolicy>
+    <Children>
+      <WidgetGroup>
+        <Layout>horizontal</Layout>
+        <SizePolicy>me,min</SizePolicy>
+        <Children>
+          <WidgetGroup>
+            <Layout>horizontal</Layout>
+            <SizePolicy>me,min</SizePolicy>
+            <Children>
+              <EffectParameterName>
+                <ObjectName>BeatFX_ParamLabel</ObjectName>
+                <Size>0me,30f</Size>
+                <Alignment>left</Alignment>
+                <Elide>none</Elide>
+                <EffectRack>
+                  <Variable name="rack" />
+                </EffectRack>
+                <EffectUnit>
+                  <Variable name="unit" />
+                </EffectUnit>
+                <Effect>
+                  <Variable name="effect" />
+                </Effect>
+                <EffectParameter>
+                  <Variable name="param" />
+                </EffectParameter>
+              </EffectParameterName>
+              <EffectParameterKnobComposed>
+                <ObjectName>BeatFX_ParamKnob</ObjectName>
+                <Size>30f,30f</Size>
+                <Knob scalemode="STRETCH_ASPECT">icons/knob.svg</Knob>
+                <MinAngle>-230</MinAngle>
+                <MaxAngle>50</MaxAngle>
+                <EffectRack>
+                  <Variable name="rack" />
+                </EffectRack>
+                <EffectUnit>
+                  <Variable name="unit" />
+                </EffectUnit>
+                <Effect>
+                  <Variable name="effect" />
+                </Effect>
+                <EffectParameter>
+                  <Variable name="param" />
+                </EffectParameter>
+                <Connection>
+                  <ConfigKey>
+                    <Variable name="EffectGroup" />,parameter<Variable name="param" />
+                  </ConfigKey>
+                </Connection>
+              </EffectParameterKnobComposed>
+            </Children>
+            <Connection>
+              <ConfigKey>
+                <Variable name="EffectGroup" />,parameter<Variable name="param" />_units</ConfigKey>
+              <BindProperty>visible</BindProperty>
+              <Transform>
+                <IsEqual>1</IsEqual>
+                <Not />
+              </Transform>
+            </Connection>
+          </WidgetGroup>
+        </Children>
+        <!-- The unit already provides Mix; keep native mix parameters out
+             of this list without changing their saved values or Super links. -->
+        <Connection>
+          <ConfigKey><Variable name="EffectGroup" />,parameter<Variable name="param" />_is_mix</ConfigKey>
+          <BindProperty>visible</BindProperty>
+          <Transform><Not /></Transform>
+        </Connection>
+      </WidgetGroup>
+    </Children>
+    <Connection>
+      <ConfigKey>
+        <Variable name="EffectGroup" />,parameter<Variable name="param" />_loaded</ConfigKey>
+      <BindProperty>visible</BindProperty>
+    </Connection>
+  </WidgetGroup>
+</Template>

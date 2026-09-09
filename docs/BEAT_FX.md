@@ -1,0 +1,144 @@
+# Beat FX catalogue
+
+BiteDJ uses the 25-name Rekordbox 7 **single-mode standard Beat FX** list below.
+Every entry is an original configuration of Mixxx native effects: **an
+approximation, not Pioneer/AlphaTheta DSP or a promise of identical sound**.
+The table below describes each limitation.
+RMX expansion effects and Sound Color FX are outside this standard section.
+Pad FX keeps its separate saved IDs and native transport Roll.
+
+## Two-column selection
+
+Open the selector in Play → FX. Standard presents two columns, read left to
+right across each row, confined to the right FX panel. Pages contain 14
+and 11 standard effects, with seven rows of compact 44px touch targets and
+10px labels.
+Prev/Next buttons change pages without changing the loaded effect. The
+current entry is highlighted. Close or Escape cancels; Clear FX unloads the
+chain. Selecting a standard preset leaves it Off until you press the FX
+activation button. All its native processing slots activate/deactivate together.
+
+Saved contains legacy/custom presets. The two old Filter labels display as
+**12. COLOR FILTER** and **15. RHYTHMIC FILTER**; their persisted identifiers
+and files remain unchanged. The second is tremolo through a fixed filter,
+not a filter-cutoff LFO. Filter Echo remains a separate composite preset.
+
+DDJ-400 FX SELECT traverses the same underlying order: standard entries,
+then saved entries, plus the empty entry at the wrap boundary. Either deck's
+Shift + FX SELECT steps backward; releases do nothing. Page navigation on the
+touchscreen does not send controller steps.
+
+## Native implementations
+
+The order below is the Standard picker and default controller order. Level/Depth
+controls the chain mix. Shift + Filter controls Super; Pitch's linked pitch
+parameter can therefore be swept with Super. Time controls display periods in
+beats and convert Tremolo's cycles/beat internally. The touch grid and controller Beat left/right buttons offer supported values
+from 1/8, 1/4, 1/2, 1, 2 and 4 beats. Unsupported touch buttons are hidden
+(for example Echo supports up to 2 beats, while Phaser starts at 1/4 beat). Native writes still clamp truthfully. Raw parameter IDs and saved values do not change.
+
+| # | Effect | Native chain | Difference from Rekordbox |
+| --- | --- | --- | --- |
+| 1 | DELAY | echo | Single forward repeat; no swing or separate left/right delay ratio. |
+| 2 | ECHO | echo | Forward feedback delay; native feedback and tail behavior. |
+| 3 | SPIRAL | echo → phaser | Modulated echo tail; no pitch-changing feedback buffer. |
+| 4 | REVERB | reverb | Native reverb; different room and decay model. |
+| 5 | REV DELAY | echo → tremolo | Smoothly gated forward repeats; does not reverse audio. |
+| 6 | MT DELAY | echo → echo | Two serial delay taps; no independently mixed multi-tap pattern. |
+| 7 | PITCH ECHO | echo → pitchshift | Echo followed by a fixed upward pitch shift; pitch is not fed back. |
+| 8 | TRANS | tremolo | Tempo-locked amplitude chopping; native gate envelope. |
+| 9 | PAN | autopan | Tempo-derived stereo panning; native phase and smoothing. |
+| 10 | FILTER | tremolo → filter | Rhythmic amplitude modulation through a fixed band filter; no cutoff LFO. |
+| 11 | FLANGER | flanger | Native tempo-synchronized flanger; different delay and feedback model. |
+| 12 | PHASER | phaser | Native stereo phaser; different stage and sweep model. |
+| 13 | SLIP ROLL | echo → tremolo | Gated repeating live delay; no frozen slip buffer or transport slip. |
+| 14 | ROLL | echo | Long repeating live delay; continues receiving audio instead of freezing a loop. |
+| 15 | REV ROLL | echo → tremolo | Smoothly gated repeat; no reversed or frozen loop. |
+| 16 | ROBOT | bitcrusher → pitchshift | Crushed, down-pitched robotic coloration; no vocoder or robot oscillator. |
+| 17 | PITCH | pitchshift | Native pitch shifter; Pitch parameter or Super knob sweeps its bipolar range. |
+| 18 | ENIGMA JET | flanger → phaser | Slow combined flanger/phaser sweep; no endlessly rising jet illusion. |
+| 19 | MOBIUS SAW | phaser → tremolo | Resonant phaser with sinusoidal pulsing; no saw oscillator or infinite Shepard-tone rise. |
+| 20 | MOBIUS TRI | phaser → tremolo | Softer phaser with shaped pulsing; no triangle oscillator or infinite Shepard-tone rise. |
+| 21 | LOW CUT ECHO | echo → filter | High-pass-filtered echo output; filter is outside the feedback loop. |
+| 22 | PING PONG | echo | Alternating stereo feedback delay; native pan law. |
+| 23 | HELIX | echo → phaser | Short resonant modulated repeats; no captured-buffer helix operation. |
+| 24 | VINYL BRAKE | pitchshift → filter | Manual pitch sweep with dark filtering; does not slow or stop deck transport. |
+| 25 | STRETCH | echo → pitchshift → reverb | Long pitched repeats with reverb; does not time-stretch a captured buffer. |
+
+## Upgrade and maintenance
+
+Versioned factory XML lives in `res/effects/rekordbox7/` and is generated by
+`scripts/build/generate-beatfx.py`. The `[RB7] ` prefix is a reserved persisted
+factory identifier, hidden in the touch label. Installed resources win over
+stale saved factory copies on startup. Factory presets are read-only; save a
+copy under a different name to customize. Existing legacy/custom files are
+preserved, with their relative saved order after the standard section.
+No legacy DSP or Pad FX assignment is rewritten. Loaded legacy snapshots
+continue to resolve. Reset/startup restores the factory order; custom preferences
+can reorder their own list during a session.
+
+After changing this catalogue, regenerate XML and run the Python catalogue
+checks, DDJ mapping regression, and native `EffectSlotTest` regressions:
+
+```sh
+python3 -m unittest discover -s tests/effects
+node tests/controllers/test_ddj400_effect_select.cjs
+./scripts/build/docker-build.sh --platform linux/arm64 --test-filter 'EffectSlotTest\.'
+```
+
+The build helper supports a quoted CTest regex so focused native regressions do
+not require an unrelated full-suite run. Verify
+all pages, first/last entries, Clear/Close/Escape, keyboard focus, Day/Night,
+and startup from both fresh and existing settings. Update the
+[UI gallery](UI_SCREENSHOTS.md#beat-fx-picker), its Play preview and the changelog
+in the same commit. Keep generators under `scripts/build/` and test fixtures
+under `tests/effects/`; generated logs/audio/raw captures stay in `test-results/`.
+
+## References and scope
+
+- [Rekordbox 7 manual](https://cdn.rekordbox.com/files/20240509141437/rekordbox7.0.0_manual_EN.pdf)
+  describes single/multi FX operation; it does not enumerate all menu entries.
+- [Pioneer DJ's official explanation of single and multi FX](https://forums.pioneerdj.com/hc/en-us/community/posts/115000174526-Echo-effect-has-no-volume-fader-control?sort_by=votes)
+  distinguishes single-mode PITCH ECHO from multi-mode UP ECHO/DOWN ECHO.
+- [Rekordbox plans](https://rekordbox.com/pt/plan/) identifies the nine optional
+  RMX effects, excluded here: BPF ECHO, NOISE, SPIRAL UP, REVERB UP, HPF ECHO,
+  LPF ECHO, CRUSH ECHO, SPIRAL DOWN and REVERB DOWN.
+- [Attribution and pinned adaptation sources](../NOTICE.md) identify the
+  Deckshark, xsploit/PiFlex and Pioneered material used.
+
+The standard list is pinned to the Rekordbox 7 single-mode catalogue, rather
+than inferred from a particular hardware mixer's shorter FX list. Native audio
+checks verify valid parameters, finite output and grouped activation; they do
+not establish perceptual equivalence with Rekordbox or Raspberry Pi CPU capacity.
+
+## Touch parameters
+
+The FX panel keeps deck 1/2 assignment, activation, Mix (wet/dry) and Super
+visible. Beats parameters appear first. Its parameter area scrolls through the first effect's loaded knob and
+button parameters. Beats parameters use the period grid; other parameters use
+native knobs or state buttons. Read-only `parameterN_beat_period_min` and
+`parameterN_beat_period_max` expose the range in periods, including reciprocal
+conversion for rate parameters. Touch and DDJ-400 Beat buttons share
+`parameterN_beat_period`; controller stepping uses the first loaded Beats slot.
+
+## Availability review
+
+Only loaded parameters are shown. Clearing FX leaves the effect selector and
+hides routing, activation, parameters and Mix/Super. Super is visible only when
+at least one loaded knob in the chain is linked to it; changing those links
+updates its visibility. Effects without Beats metadata retain their native
+continuous controls. The parameter viewport returns to the top when an effect
+loads and supports touch scrolling.
+
+The selector omits presets whose effects are missing from the installed
+backends, and controller next/previous skips them. Their saved files and stored
+indices are preserved. The 25 standard presets are checked against the loaded
+backend manifests. Minimum delay and Phaser period buttons use the native
+minimum-period encoding, including quantization. Glitch retains its literal
+1/8-beat value so it also works without track BPM; triplet modifiers remain
+separate native controls.
+
+The compact FX layout uses 32px selector and routing rows, 28px Beat buttons,
+30px continuous controls, and 30px state buttons. Echo’s Beats, Feedback,
+Ping-Pong, Send, Quantize and Triplets fit together in the 236px parameter area.
+Mix and linked Super remain in a compact bottom row; longer lists can scroll.

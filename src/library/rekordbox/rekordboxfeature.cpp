@@ -1,18 +1,21 @@
 #include "library/rekordbox/rekordboxfeature.h"
 
 #include "library/rekordbox/rekordboxanlz.h"
+#include "library/rekordbox/rekordboxwaveform.h"
+#include "library/rekordbox/rekordboxphrases.h"
+#include "mixer/playerinfo.h"
+#include "util/timer.h"
+#include "library/rekordbox/rekordboxpagechain.h"
 
 #include <mp3guessenc.h>
 #include <rekordbox_anlz.h>
 #include <rekordbox_pdb.h>
 
-#include <QDir>
 #include <QMap>
 #include <QMessageBox>
 #include <QSet>
 #include <QSettings>
 #include <QString>
-#include <QStringList>
 #include <QTextCodec>
 #include <QtDebug>
 #include <vector>
@@ -41,6 +44,7 @@
 #include "util/db/dbconnectionpooler.h"
 #include "util/sandbox.h"
 #include "util/usbdevice.h"
+#include "preferences/systemsettings.h"
 #include "waveform/waveform.h"
 #include "widget/wlibrary.h"
 #include "widget/wlibrarytextbrowser.h"
@@ -54,28 +58,12 @@ const QString kRekordboxLibraryTable = QStringLiteral("rekordbox_library");
 const QString kRekordboxPlaylistsTable = QStringLiteral("rekordbox_playlists");
 const QString kRekordboxPlaylistTracksTable = QStringLiteral("rekordbox_playlist_tracks");
 
-// depending on the filesystem of the external media, rekordbox seems
-// to store its metadata in different paths:
-const QStringList kPdbPaths = {
-        QStringLiteral("PIONEER/rekordbox/export.pdb"),  // FAT32/exFat
-        QStringLiteral(".PIONEER/rekordbox/export.pdb"), // HFS+ media
-};
+const QString kPdbPath = QStringLiteral("PIONEER/rekordbox/export.pdb");
 const QString kPLaylistPathDelimiter = QStringLiteral("-->");
 
 // Consecutive empty background enumerations required before a device is
 // removed from the sidebar and its rows cleared.
 constexpr int kBgEmptyScansBeforeRemoval = 3;
-
-QString findRekordboxPdbPath(const QString& devicePath) {
-    const QDir deviceDir(devicePath);
-    for (const auto& pdbPath : kPdbPaths) {
-        const QFileInfo pdbFileInfo(deviceDir.filePath(pdbPath));
-        if (pdbFileInfo.exists() && pdbFileInfo.isFile()) {
-            return pdbFileInfo.filePath();
-        }
-    }
-    return {};
-}
 
 enum class IDForColor : uint8_t {
     Pink = 1,
@@ -142,6 +130,14 @@ bool createLibraryTable(QSqlDatabase& database, const QString& tableName) {
         return false;
     }
 
+    // Both import and playlist construction resolve every exported track by
+    // this pair. Without the index, a large export requires quadratic scans
+    // while holding the library database's writer lock.
+    if (!query.exec("CREATE INDEX IF NOT EXISTS " + tableName +
+                    "_rb_device ON " + tableName + " (rb_id, device)")) {
+        LOG_FAILED_QUERY(query);
+        return false;
+    }
     return true;
 }
 
@@ -182,6 +178,11 @@ bool createPlaylistTracksTable(QSqlDatabase& database, const QString& tableName)
         return false;
     }
 
+    if (!query.exec("CREATE INDEX IF NOT EXISTS " + tableName +
+                    "_playlist ON " + tableName + " (playlist_id, position)")) {
+        LOG_FAILED_QUERY(query);
+        return false;
+    }
     return true;
 }
 
@@ -223,7 +224,9 @@ QList<TreeItem*> findRekordboxDevices() {
         // drive.filePath() doesn't make any access to the filesystem and consequently
         // shorten the delay
 
-        if (!findRekordboxPdbPath(drive.filePath()).isEmpty()) {
+        QFileInfo rbDBFileInfo(drive.filePath() + kPdbPath);
+
+        if (rbDBFileInfo.exists() && rbDBFileInfo.isFile()) {
             QString displayPath = drive.filePath();
             if (displayPath.endsWith("/")) {
                 displayPath.chop(1);
@@ -238,30 +241,14 @@ QList<TreeItem*> findRekordboxDevices() {
         }
     }
 #elif defined(__LINUX__)
-    // To get devices on Linux, we look for directories under /media and
-    // /run/media/$USER.
     QFileInfoList devices;
-
-    // Add folders under /media to devices.
-    devices += QDir(QStringLiteral("/media")).entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot);
-
-    // The per-user mount roots only make sense when we actually know the
-    // user. When USER is unset (e.g. the appliance session running as PID 1
-    // with no exported USER), "/media/" + user is just "/media" again, so
-    // every device would be enumerated twice and appear as two identical
-    // sidebar entries whose pdb parses race each other. Same guard as
-    // browsefeature's removableDriveRootPaths().
-    const QString user = QString::fromLocal8Bit(qgetenv("USER"));
-    if (!user.isEmpty()) {
-        // Add folders under /media/$USER to devices.
-        QDir mediaUserDir(QStringLiteral("/media/") + user);
-        devices += mediaUserDir.entryInfoList(
-                QDir::AllDirs | QDir::NoDotAndDotDot);
-
-        // Add folders under /run/media/$USER to devices.
-        QDir runMediaUserDir(QStringLiteral("/run/media/") + user);
-        devices += runMediaUserDir.entryInfoList(
-                QDir::AllDirs | QDir::NoDotAndDotDot);
+    // Share the Settings roots, including /mnt and /run/media even when USER
+    // is unset. Discovery already runs off the GUI thread.
+    for (const QString& root : SystemSettings::removableRoots()) {
+        devices += QDir(root).entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot);
+    }
+    for (const auto& mount : SystemSettings::enumerateUsbMounts()) {
+        devices.append(QFileInfo(mount.mountPoint));
     }
 
     // The scan roots can still alias each other (symlinks, bind mounts), so
@@ -277,7 +264,9 @@ QList<TreeItem*> findRekordboxDevices() {
         }
         seenMountPoints.insert(canonicalPath);
 
-        if (!findRekordboxPdbPath(device.filePath()).isEmpty()) {
+        QFileInfo rbDBFileInfo(device.filePath() + QStringLiteral("/") + kPdbPath);
+
+        if (rbDBFileInfo.exists() && rbDBFileInfo.isFile()) {
             auto* pFoundDevice = new TreeItem(
                     device.fileName(),
                     QVariant(QList<QString>{device.filePath(), IS_RECORDBOX_DEVICE}));
@@ -288,7 +277,9 @@ QList<TreeItem*> findRekordboxDevices() {
     QFileInfoList devices = QDir(QStringLiteral("/Volumes")).entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot);
 
     foreach (QFileInfo device, devices) {
-        if (!findRekordboxPdbPath(device.filePath()).isEmpty()) {
+        QFileInfo rbDBFileInfo(device.filePath() + QStringLiteral("/") + kPdbPath);
+
+        if (rbDBFileInfo.exists() && rbDBFileInfo.isFile()) {
             QList<QString> data;
             data << device.filePath();
             data << IS_RECORDBOX_DEVICE;
@@ -511,7 +502,8 @@ void buildPlaylistTree(
         QMap<uint32_t, QMap<uint32_t, uint32_t>>& playlistTreeMap,
         QMap<uint32_t, QMap<uint32_t, uint32_t>>& playlistTrackMap,
         const QString& playlistPath,
-        const QString& device);
+        const QString& device,
+        QSet<uint32_t> ancestors = {});
 
 QString parseDeviceDB(mixxx::DbConnectionPoolPtr dbConnectionPool, TreeItem* deviceItem) {
     QString device = deviceItem->getLabel();
@@ -519,9 +511,9 @@ QString parseDeviceDB(mixxx::DbConnectionPoolPtr dbConnectionPool, TreeItem* dev
 
     qDebug() << "parseDeviceDB device: " << device << " devicePath: " << devicePath;
 
-    const QString dbPath = findRekordboxPdbPath(devicePath);
+    QString dbPath = devicePath + QStringLiteral("/") + kPdbPath;
 
-    if (dbPath.isEmpty()) {
+    if (!QFile(dbPath).exists()) {
         return devicePath;
     }
 
@@ -607,10 +599,13 @@ QString parseDeviceDB(mixxx::DbConnectionPoolPtr dbConnectionPool, TreeItem* dev
     for (int tableOrderIndex = 0; tableOrderIndex < totalTables; tableOrderIndex++) {
         for (const auto& table : *rekordboxDB.tables()) {
             if (table->type() == tableOrder[tableOrderIndex]) {
-                uint16_t lastIndex = table->last_page()->index();
+                const uint32_t lastIndex = table->last_page()->index();
+                mixxx::rekordbox::PageChainGuard pageChain(
+                        rekordboxDB.len_page(), ks.size());
                 rekordbox_pdb_t::page_ref_t* currentRef = table->first_page();
 
                 while (true) {
+                    pageChain.visit(currentRef->index());
                     rekordbox_pdb_t::page_t* page = currentRef->body();
 
                     if (page->is_data_page()) {
@@ -769,11 +764,18 @@ void buildPlaylistTree(
         QMap<uint32_t, QMap<uint32_t, uint32_t>>& playlistTreeMap,
         QMap<uint32_t, QMap<uint32_t, uint32_t>>& playlistTrackMap,
         const QString& playlistPath,
-        const QString& device) {
-    for (uint32_t childIndex = 0;
-            childIndex < (uint32_t)playlistTreeMap[parentID].size();
-            childIndex++) {
-        uint32_t childID = playlistTreeMap[parentID][childIndex];
+        const QString& device,
+        QSet<uint32_t> ancestors) {
+    if (ancestors.contains(parentID) || ancestors.size() >= 128) {
+        qWarning() << "Skipping cyclic or excessively nested Rekordbox playlist" << parentID;
+        return;
+    }
+    ancestors.insert(parentID);
+    // Sort positions are keys, not dense array indices. operator[] on a gap
+    // inserts a new entry and grows the old loop's bound, potentially billions
+    // of times for a sparse/corrupt export.
+    const auto children = playlistTreeMap.value(parentID);
+    for (uint32_t childID : children) {
         if (childID == 0) {
             continue;
         }
@@ -838,10 +840,10 @@ void buildPlaylistTree(
 
         if (playlistID != kInvalidPlaylistId && playlistTrackMap.contains(childID)) {
             // Add playlist tracks for children
-            for (uint32_t trackIndex = 1; trackIndex <=
-                    static_cast<uint32_t>(playlistTrackMap[childID].size());
-                    trackIndex++) {
-                uint32_t rbTrackID = playlistTrackMap[childID][trackIndex];
+            const auto entries = playlistTrackMap.value(childID);
+            int position = 0;
+            for (uint32_t rbTrackID : entries) {
+                ++position;
 
                 int trackID = -1;
                 QSqlQuery finderQuery(database);
@@ -863,13 +865,13 @@ void buildPlaylistTree(
 
                 queryInsertIntoPlaylistTracks.bindValue(":playlist_id", playlistID);
                 queryInsertIntoPlaylistTracks.bindValue(":track_id", trackID);
-                queryInsertIntoPlaylistTracks.bindValue(":position", static_cast<int>(trackIndex));
+                queryInsertIntoPlaylistTracks.bindValue(":position", position);
 
                 if (!queryInsertIntoPlaylistTracks.exec()) {
                     LOG_FAILED_QUERY(queryInsertIntoPlaylistTracks)
                             << "playlistID:" << playlistID
                             << "trackID:" << trackID
-                            << "trackIndex:" << trackIndex;
+                            << "position:" << position;
                 }
             }
         }
@@ -884,7 +886,8 @@ void buildPlaylistTree(
                     playlistTreeMap,
                     playlistTrackMap,
                     currentPath,
-                    device);
+                    device,
+                    ancestors);
         }
     }
 }
@@ -996,13 +999,189 @@ void setHotCue(TrackPointer track,
 namespace mixxx {
 namespace rekordbox {
 
+QString readPhrases(TrackPointer track, int timingOffset, const QString& anlzPath) {
+    ScopedTimer timer(u"Rekordbox::phraseImport");
+    const QString extPath = anlzPath.left(anlzPath.length() - 3) + "EXT";
+    if (!QFileInfo::exists(extPath)) {
+        track->setPhrases({});
+        return {};
+    }
+    try {
+        if (QFileInfo(extPath).size() > 32 * 1024 * 1024 ||
+                QFileInfo(anlzPath).size() > 32 * 1024 * 1024) {
+            throw std::runtime_error("Phrase analysis file too large");
+        }
+        std::ifstream extFile(extPath.toStdString(), std::ios::binary);
+        kaitai::kstream extStream(&extFile);
+        rekordbox_anlz_t ext(&extStream);
+        const rekordbox_anlz_t::song_structure_tag_t* phrases = nullptr;
+        for (const auto& section : *ext.sections()) {
+            if (section->fourcc() == rekordbox_anlz_t::SECTION_TAGS_SONG_STRUCTURE) {
+                if (phrases) throw std::runtime_error("Duplicate phrase analysis");
+                phrases = static_cast<rekordbox_anlz_t::song_structure_tag_t*>(section->body());
+            }
+        }
+        if (!phrases) {
+            track->setPhrases({});
+            return {};
+        }
+        std::ifstream datFile(anlzPath.toStdString(), std::ios::binary);
+        kaitai::kstream datStream(&datFile);
+        rekordbox_anlz_t dat(&datStream);
+        std::vector<double> times;
+        double finalBoundary = std::numeric_limits<double>::quiet_NaN();
+        for (const auto& section : *dat.sections()) {
+            if (section->fourcc() == rekordbox_anlz_t::SECTION_TAGS_BEAT_GRID) {
+                auto* grid = static_cast<rekordbox_anlz_t::beat_grid_tag_t*>(section->body());
+                for (const auto& beat : *grid->beats()) {
+                    times.push_back(beat->time());
+                    finalBoundary = beat->tempo() > 0 ? beat->time() + 6000000.0 / beat->tempo()
+                                                     : std::numeric_limits<double>::quiet_NaN();
+                }
+            }
+        }
+        if (times.size() < 2 || !track->getSampleRate().isValid()) {
+            throw std::runtime_error("Phrase timing requires a valid audio rate and at least two beats");
+        }
+        int ignoredFills = 0;
+        auto imported = decodePhrases(*phrases, times, track->getDuration(), timingOffset,
+                finalBoundary, &ignoredFills);
+        if (ignoredFills) qWarning() << "Ignored out-of-range Rekordbox phrase fills:" << ignoredFills << extPath;
+        // Anchor to the export, not a possibly locked/edited current grid.
+        QVector<mixxx::audio::FramePos> sourcePositions;
+        const auto sampleRate = track->getSampleRate();
+        for (double milliseconds : times) {
+            sourcePositions.append(mixxx::audio::FramePos(
+                    std::max(1.0, milliseconds - timingOffset) * sampleRate / 1000.0));
+        }
+        auto sourceBeats = mixxx::Beats::fromBeatPositions(sampleRate, sourcePositions);
+        track->setPhrases(std::move(imported), std::move(sourceBeats));
+        return {};
+    } catch (const std::exception& error) {
+        qWarning() << "Could not import Rekordbox phrases:" << extPath << error.what();
+        return extPath;
+    }
+}
+
+QString readThreeBandWaveforms(TrackPointer track,
+        mixxx::audio::SampleRate sampleRate,
+        int timingOffset,
+        const QString& anlzPath) {
+    ScopedTimer timer(u"Rekordbox::waveformImport");
+    const QString path = anlzPath.left(anlzPath.length() - 3) + "2EX";
+    const QFileInfo info(path);
+    if (!info.exists()) {
+        return {}; // Older exports legitimately have no three-band data.
+    }
+    try {
+        const double seconds = track->getDuration();
+        if (sampleRate <= 0 || !util_isfinite(seconds) || seconds <= 0 || seconds > 8 * 3600) {
+            throw std::runtime_error("Audio duration unavailable for exported waveform");
+        }
+        const QString identity = QStringLiteral("%1|%2|%3|%4|%5|%6")
+                                         .arg(path)
+                                         .arg(info.size())
+                                         .arg(info.lastModified().toMSecsSinceEpoch())
+                                         .arg(int(sampleRate))
+                                         .arg(seconds, 0, 'g', 17)
+                                         .arg(timingOffset);
+        const QString version = QStringLiteral("Rekordbox 3-band v3");
+        const auto current = track->getWaveform();
+        const auto summary = track->getWaveformSummary();
+        if (current && summary && current->getVersion() == version &&
+                summary->getVersion() == version && current->getDescription() == identity &&
+                summary->getDescription() == identity) {
+            return {};
+        }
+        if (info.size() > 32 * 1024 * 1024) throw std::runtime_error("Waveform analysis file too large");
+        std::ifstream file(path.toStdString(), std::ios::binary);
+        kaitai::kstream stream(&file);
+        rekordbox_anlz_t analysis(&stream);
+        WaveformPointer importedDetail;
+        WaveformPointer importedSummary;
+        const auto convert = [&](const std::string& bytes, uint32_t stride,
+                                     uint32_t columns, bool overview) -> WaveformPointer {
+            if (stride != 3 || columns == 0 || columns > 4320000 ||
+                    bytes.size() != uint64_t(columns) * stride) {
+                throw std::runtime_error("Unsupported Rekordbox three-band layout");
+            }
+            auto waveform = WaveformPointer(new Waveform(int(sampleRate),
+                    SINT(std::llround(seconds * sampleRate)), 150,
+                    overview ? int(columns * 2) : -1));
+            const double destinationRate = sampleRate / waveform->getAudioVisualRatio();
+            // The overview spans the whole decoded track. Use the exact
+            // allocated rate for identity mapping: rounded frame counts must
+            // not make floor() duplicate a column. Detail remains fixed 150 Hz.
+            const auto data = decodeThreeBandWaveform(bytes,
+                    overview ? destinationRate : 150.0,
+                    destinationRate,
+                    waveform->getDataSize() / 2, timingOffset, true);
+            std::copy(data.begin(), data.end(), waveform->data());
+            waveform->setCompletion(waveform->getDataSize());
+            waveform->setVersion(version);
+            waveform->setDescription(identity);
+            // These are display heights, not native RMS analysis. Do not
+            // serialize them under a native waveform-cache version.
+            waveform->setSaveState(Waveform::SaveState::Saved);
+            return waveform;
+        };
+        for (const auto& section : *analysis.sections()) {
+            if (section->fourcc() == rekordbox_anlz_t::SECTION_TAGS_WAVE_3BAND_SCROLL) {
+                auto* tag = static_cast<rekordbox_anlz_t::wave_3band_scroll_tag_t*>(section->body());
+                if (importedDetail) throw std::runtime_error("Duplicate detail waveform");
+                importedDetail = convert(tag->entries(), tag->len_entry_bytes(), tag->len_entries(), false);
+            } else if (section->fourcc() == rekordbox_anlz_t::SECTION_TAGS_WAVE_3BAND_PREVIEW) {
+                auto* tag = static_cast<rekordbox_anlz_t::wave_3band_preview_tag_t*>(section->body());
+                if (importedSummary) throw std::runtime_error("Duplicate overview waveform");
+                importedSummary = convert(tag->entries(), tag->len_entry_bytes(), tag->len_entries(), true);
+            }
+        }
+        // Publish only a complete, validated pair. Otherwise keep the existing
+        // display or allow ordinary audio waveform analysis to fill the gap.
+        if (!importedDetail || !importedSummary) {
+            throw std::runtime_error("Incomplete Rekordbox three-band waveform pair");
+        }
+        track->setWaveforms(importedDetail, importedSummary);
+        return {};
+    } catch (const std::exception& error) {
+        qWarning() << "Could not import Rekordbox waveform:" << path << error.what();
+        return path;
+    }
+}
+
+QStringList readAnalyzeFiles(TrackPointer track,
+        mixxx::audio::SampleRate sampleRate,
+        int timingOffset,
+        const QString& anlzPath) {
+    QStringList failedPaths;
+    const auto importFile = [&](const QString& filePath, bool beatsOnly) {
+        try {
+            if (!QFileInfo(filePath).isReadable()) {
+                throw std::runtime_error("Rekordbox analysis file is unavailable");
+            }
+            readAnalyze(track, sampleRate, timingOffset, beatsOnly, filePath);
+        } catch (const std::exception& error) {
+            // The generated ANLZ parser constructs all sections before the
+            // importer mutates the track, so a truncated file preserves cues.
+            qWarning() << "Could not import Rekordbox analysis:" << filePath << error.what();
+            failedPaths.append(filePath);
+        }
+    };
+    // DAT-only exports still need BOTH passes: beats first, then cues.
+    importFile(anlzPath, true);
+    const QString extPath = anlzPath.left(anlzPath.length() - 3) + "EXT";
+    importFile(QFileInfo::exists(extPath) ? extPath : anlzPath, false);
+    failedPaths.removeDuplicates();
+    return failedPaths;
+}
+
 void readAnalyze(TrackPointer track,
         mixxx::audio::SampleRate sampleRate,
         int timingOffset,
         bool ignoreCues,
         const QString& anlzPath) {
     if (!QFile(anlzPath).exists()) {
-        return;
+        throw std::runtime_error("Rekordbox analysis file disappeared");
     }
 
     qDebug() << "Rekordbox ANLZ path:" << anlzPath << " for: " << track->getTitle();
@@ -1415,6 +1594,9 @@ TrackPointer RekordboxPlaylistModel::getTrack(const QModelIndex& index) const {
         return track;
     }
 
+    // A second lookup must not rewrite a track currently used by any player.
+    if (PlayerInfo::instance().isTrackLoaded(track)) return track;
+
     // getTrack() hands back the very same Track a deck may already be playing,
     // and readAnalyze() below rewrites its cues from the ANLZ file. Store any
     // cue the DJ has set since the track was loaded before that happens, or
@@ -1475,14 +1657,19 @@ TrackPointer RekordboxPlaylistModel::getTrack(const QModelIndex& index) const {
     QString anlzPath =
             getFieldVariant(index, ColumnCache::COLUMN_REKORDBOX_ANALYZE_PATH)
                     .toString();
-    QString anlzPathExt = anlzPath.left(anlzPath.length() - 3) + "EXT";
-
-    if (QFile(anlzPathExt).exists()) {
-        // Beatgrids appear to be only correct in legacy ANLZ file
-        mixxx::rekordbox::readAnalyze(track, sampleRate, timingOffset, true, anlzPath);
-        mixxx::rekordbox::readAnalyze(track, sampleRate, timingOffset, false, anlzPathExt);
-    } else {
-        mixxx::rekordbox::readAnalyze(track, sampleRate, timingOffset, false, anlzPath);
+    auto failedPaths = mixxx::rekordbox::readAnalyzeFiles(
+            track, sampleRate, timingOffset, anlzPath);
+    const auto phrasesFailure = mixxx::rekordbox::readPhrases(track, timingOffset, anlzPath);
+    // The analyzer checks the native cache before using this export fallback.
+    // Importing here replaced the RGB preview's cached native bands on deck load.
+    track->setRekordboxWaveformSource({anlzPath, timingOffset});
+    if (!phrasesFailure.isEmpty()) failedPaths.append(phrasesFailure);
+    if (!failedPaths.isEmpty()) {
+        if (auto* notifications = Notifications::tryInstance()) {
+            notifications->publish(
+                    tr("Some Rekordbox analysis could not be read. Audio remains available."),
+                    Notifications::Severity::Warning);
+        }
     }
 
     // Cues stored on the drive by this unit are the DJ's own and outrank the

@@ -110,6 +110,9 @@ public:
     // Lookup an existing Track object in the cache
     TrackPointer lookupTrackById(
             const TrackId& trackId) const;
+    // Read only fully published live objects, without filesystem resolution or
+    // waiting for a background metadata import. Intended for GUI painting.
+    TrackPointer lookupPublishedTrackByLocation(const QString& location) const;
     TrackPointer lookupTrackByRef(
             const TrackRef& trackRef) const;
     QSet<TrackId> getCachedTrackIds() const;

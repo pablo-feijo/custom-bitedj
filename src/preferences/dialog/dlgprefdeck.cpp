@@ -9,6 +9,7 @@
 #include "engine/sync/enginesync.h"
 #include "mixer/basetrackplayer.h"
 #include "mixer/playermanager.h"
+#include "mixer/deckloadpolicy.h"
 #include "moc_dlgprefdeck.cpp"
 #include "preferences/usersettings.h"
 #include "util/duration.h"
@@ -173,17 +174,9 @@ DlgPrefDeck::DlgPrefDeck(QWidget* parent, UserSettingsPointer pConfig)
             static_cast<int>(LoadWhenDeckPlaying::AllowButStopDeck));
     comboBoxLoadWhenDeckPlaying->addItem(tr("Allow, play from load point"),
             static_cast<int>(LoadWhenDeckPlaying::Allow));
-    int loadWhenDeckPlaying;
-    if (m_pConfig->exists(kConfigKeyLoadWhenDeckPlaying)) {
-        loadWhenDeckPlaying = m_pConfig->getValueString(kConfigKeyLoadWhenDeckPlaying).toInt();
-    } else {
-        // upgrade from older versions
-        if (m_pConfig->getValue(kConfigKeyAllowTrackLoadToPlayingDeck, false)) {
-            loadWhenDeckPlaying = static_cast<int>(LoadWhenDeckPlaying::Allow);
-        } else {
-            loadWhenDeckPlaying = static_cast<int>(kDefaultLoadWhenDeckPlaying);
-        }
-    }
+    comboBoxLoadWhenDeckPlaying->addItem(tr("Allow only with channel fader down or main mix off"),
+            static_cast<int>(LoadWhenDeckPlaying::AllowIfChannelClosed));
+    int loadWhenDeckPlaying = static_cast<int>(mixxx::deckload::policy(m_pConfig));
     comboBoxLoadWhenDeckPlaying->setCurrentIndex(
             comboBoxLoadWhenDeckPlaying->findData(loadWhenDeckPlaying));
     m_loadWhenDeckPlaying = static_cast<LoadWhenDeckPlaying>(loadWhenDeckPlaying);
@@ -442,6 +435,7 @@ DlgPrefDeck::~DlgPrefDeck() {
 }
 
 void DlgPrefDeck::slotUpdate() {
+    spinBoxJogWheelFilterLength->setValue(RateControl::getJogWheelFilterLength());
     checkBoxIntroStartMove->setChecked(m_pConfig->getValue(
             ConfigKey(kControlsGroup, QStringLiteral("SetIntroStartAtMainCue")), false));
 
@@ -524,6 +518,7 @@ void DlgPrefDeck::slotUpdate() {
 }
 
 void DlgPrefDeck::slotResetToDefaults() {
+    spinBoxJogWheelFilterLength->setValue(RateControl::kDefaultJogWheelFilterLength);
     // Track time display mode
     slotSetTrackTimeDisplay(kDefaultPositionDisplayType);
 
@@ -540,7 +535,8 @@ void DlgPrefDeck::slotResetToDefaults() {
     ComboBoxCueMode->setCurrentIndex(0);
 
     // What to do if someone loads into a playing deck
-    comboBoxLoadWhenDeckPlaying->setCurrentIndex(static_cast<int>(kDefaultLoadWhenDeckPlaying));
+    comboBoxLoadWhenDeckPlaying->setCurrentIndex(
+            comboBoxLoadWhenDeckPlaying->findData(static_cast<int>(kDefaultLoadWhenDeckPlaying)));
 
     // Load at intro start
     comboBoxLoadPoint->setCurrentIndex(
@@ -695,6 +691,9 @@ void DlgPrefDeck::slotLoadWhenDeckPlayingIndexChanged(int comboboxIndex) {
 }
 
 void DlgPrefDeck::slotApply() {
+    RateControl::setJogWheelFilterLength(spinBoxJogWheelFilterLength->value());
+    m_pConfig->setValue(ConfigKey(kControlsGroup, QStringLiteral("JogWheelFilterLength")),
+            RateControl::getJogWheelFilterLength());
     m_pConfig->set(ConfigKey(kControlsGroup, QStringLiteral("SetIntroStartAtMainCue")),
             ConfigValue(m_bSetIntroStartAtMainCue));
 
@@ -715,6 +714,7 @@ void DlgPrefDeck::slotApply() {
     m_pConfig->setValue(ConfigKey(kControlsGroup, QStringLiteral("CueDefault")), m_cueMode);
 
     m_pConfig->setValue(kConfigKeyLoadWhenDeckPlaying, m_loadWhenDeckPlaying);
+    ControlObject::set(ConfigKey("[BiteDJ]", "track_load_policy"), static_cast<int>(m_loadWhenDeckPlaying));
 
     m_pConfig->setValue(ConfigKey(kControlsGroup, QStringLiteral("CueRecall")), m_seekOnLoadMode);
     m_pConfig->setValue(ConfigKey(kControlsGroup, QStringLiteral("CloneDeckOnLoadDoubleTap")),

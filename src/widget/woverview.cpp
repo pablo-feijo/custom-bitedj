@@ -1,5 +1,7 @@
 #include "woverview.h"
+#include "waveform/renderers/phrasestrip.h"
 
+#include <algorithm>
 #include <QBrush>
 #include <QColor>
 #include <QMouseEvent>
@@ -24,6 +26,7 @@
 #include "waveform/waveform.h"
 #include "waveform/waveformwidgetfactory.h"
 #include "widget/controlwidgetconnection.h"
+#include "widget/timeremainingoverlay.h"
 #include "wskincolor.h"
 
 namespace {
@@ -73,7 +76,18 @@ WOverview::WOverview(
                   QStringLiteral("track_samples")),
           m_playpositionControl(
                   m_group,
-                  QStringLiteral("playposition")) {
+                  QStringLiteral("playposition")),
+          m_timeRemainingControl(
+                  m_group,
+                  QStringLiteral("time_remaining")),
+          m_timeRemainingColor(Qt::white),
+          m_timeRemainingBackgroundColor(
+                  0, 0, 0, TimeRemainingOverlay::kDefaultBackgroundAlpha),
+          m_timeRemainingOpacity(TimeRemainingOverlay::kDefaultOpacity),
+          m_timeRemainingScale(TimeRemainingOverlay::kDefaultScale),
+          m_timeRemainingAlign(Qt::AlignHCenter | Qt::AlignVCenter),
+          m_bTimeRemainingVisible(true),
+          m_iTimeRemainingSeconds(0) {
     m_endOfTrackControl = make_parented<ControlProxy>(
             m_group, QStringLiteral("end_of_track"), this, ControlFlag::NoAssertIfMissing);
     m_endOfTrackControl->connectValueChanged(this, &WOverview::onEndOfTrackChange);
@@ -92,7 +106,18 @@ WOverview::WOverview(
             QStringLiteral("WaveformOverviewType"),
             this);
     m_pTypeControl->connectValueChanged(this, &WOverview::slotTypeControlChanged);
+    auto* palette = new ControlProxy(ConfigKey("[BiteDJ]", "waveform_palette"),
+            this, ControlFlag::NoAssertIfMissing);
+    palette->connectValueChanged(this, [this](double value) {
+        m_signalColors.applyBiteDJPalette(static_cast<int>(value));
+        resetWaveformImages();
+        drawNextPixmapPart();
+        update();
+    });
     slotTypeControlChanged(m_pTypeControl->get());
+    m_pShowPhrasesControl = make_parented<ControlProxy>(ConfigKey("[BiteDJ]", "show_phrases"), this);
+    m_pShowPhrasesControl->connectValueChanged(this, [this](double) { update(); });
+
 
     // Update immediately when the normalize option or the visual gain have been
     // changed in the preferences.
@@ -155,6 +180,36 @@ void WOverview::setup(const QDomNode& node, const SkinContext& context) {
                 context.makeSkinPath(m_backgroundPixmapPath),
                 m_scaleFactor);
     }
+
+    // Time-remaining watermark. Defaults are in timeremainingoverlay.h; a skin
+    // only needs these nodes to deviate from them.
+    const QString timeRemainingColorName =
+            context.selectString(node, "TimeRemainingColor");
+    if (!timeRemainingColorName.isEmpty()) {
+        m_timeRemainingColor =
+                WSkinColor::getCorrectColor(QColor(timeRemainingColorName));
+    }
+    const QString timeRemainingBgColorName =
+            context.selectString(node, "TimeRemainingBgColor");
+    if (!timeRemainingBgColorName.isEmpty()) {
+        // Keep the alpha the skin asked for; getCorrectColor() would drop it.
+        m_timeRemainingBackgroundColor = QColor(timeRemainingBgColorName);
+    }
+    m_timeRemainingOpacity = math_clamp(
+            context.selectDouble(node,
+                    "TimeRemainingOpacity",
+                    TimeRemainingOverlay::kDefaultOpacity),
+            0.0,
+            1.0);
+    const double timeRemainingScale = context.selectDouble(node,
+            "TimeRemainingScale",
+            TimeRemainingOverlay::kDefaultScale);
+    if (timeRemainingScale > 0.0) {
+        m_timeRemainingScale = timeRemainingScale;
+    }
+    m_timeRemainingAlign = TimeRemainingOverlay::decodeAlign(
+            context.selectString(node, "TimeRemainingAlign"),
+            Qt::AlignHCenter | Qt::AlignVCenter);
 
     m_endOfTrackColor = QColor(200, 25, 20);
     const QString endOfTrackColorName = context.selectString(node, "EndOfTrackColor");
@@ -229,6 +284,7 @@ void WOverview::setup(const QDomNode& node, const SkinContext& context) {
     }
 
     m_bShowCueTimes = context.selectBool(node, "ShowCueTimes", true);
+    m_compactCueLabels = context.selectBool(node, "CompactCueLabels", false);
 
     // qDebug() << "WOverview : std::as_const(m_marks)" << m_marks.size();
     // qDebug() << "WOverview : m_markRanges" << m_markRanges.size();
@@ -287,6 +343,15 @@ void WOverview::onConnectedControlChanged(double dParameter, double dValue) {
         redraw = true;
     }
 
+    // The time-remaining watermark shows whole seconds, and on a short overview
+    // one pixel of play marker can span several of them. Redraw on the digits
+    // changing too, or the countdown would visibly skip.
+    const int oldTimeRemainingSeconds = m_iTimeRemainingSeconds;
+    m_iTimeRemainingSeconds = static_cast<int>(std::ceil(m_timeRemainingControl.get()));
+    if (m_bTimeRemainingVisible && oldTimeRemainingSeconds != m_iTimeRemainingSeconds) {
+        redraw = true;
+    }
+
     if (redraw) {
         update();
     }
@@ -299,25 +364,13 @@ void WOverview::slotWaveformSummaryUpdated() {
     if (!pTrack) {
         return;
     }
-    m_pWaveform = pTrack->getWaveformSummary();
-    if (m_pWaveform) {
-        // If the waveform is already complete, just draw it.
-        if (m_pWaveform->getCompletion() == m_pWaveform->getDataSize()) {
-            m_actualCompletion = 0;
-            if (drawNextPixmapPart()) {
-                update();
-            }
-        }
-    } else {
-        // Null waveform pointer means waveform was cleared.
-        m_waveformSourceImage = QImage();
-        m_analyzerProgress = kAnalyzerProgressUnknown;
-        m_actualCompletion = 0;
-        m_waveformPeak = -1.0;
-        m_pixmapDone = false;
-
-        update();
+    const auto waveform = pTrack->getWaveformSummary();
+    if (waveform != m_pWaveform) {
+        resetWaveformImages();
+        m_pWaveform = waveform;
     }
+    drawNextPixmapPart();
+    update();
 }
 
 void WOverview::onTrackAnalyzerProgress(TrackId trackId, AnalyzerProgress analyzerProgress) {
@@ -348,6 +401,8 @@ void WOverview::slotLoadingTrack(TrackPointer pNewTrack, TrackPointer pOldTrack)
     //qDebug() << this << "WOverview::slotLoadingTrack" << pNewTrack.get() << pOldTrack.get();
     DEBUG_ASSERT(m_pCurrentTrack == pOldTrack);
     if (m_pCurrentTrack != nullptr) {
+        disconnect(m_pCurrentTrack.get(), &Track::phrasesUpdated, this,
+                QOverload<>::of(&WOverview::update));
         disconnect(m_pCurrentTrack.get(),
                 &Track::waveformSummaryUpdated,
                 this,
@@ -358,11 +413,8 @@ void WOverview::slotLoadingTrack(TrackPointer pNewTrack, TrackPointer pOldTrack)
                 &WOverview::receiveCuesUpdated);
     }
 
-    m_waveformSourceImage = QImage();
+    resetWaveformImages();
     m_analyzerProgress = kAnalyzerProgressUnknown;
-    m_actualCompletion = 0;
-    m_waveformPeak = -1.0;
-    m_pixmapDone = false;
     // Note: Here we already have the new track, but the engine and it's
     // Control Objects may still have the old one until the slotTrackLoaded()
     // signal has been received.
@@ -378,6 +430,8 @@ void WOverview::slotLoadingTrack(TrackPointer pNewTrack, TrackPointer pOldTrack)
                 this,
                 &WOverview::slotWaveformSummaryUpdated);
         slotWaveformSummaryUpdated();
+        connect(pNewTrack.get(), &Track::phrasesUpdated, this,
+                QOverload<>::of(&WOverview::update));
         connect(pNewTrack.get(), &Track::cuesUpdated, this, &WOverview::receiveCuesUpdated);
     } else {
         m_pCurrentTrack.reset();
@@ -437,8 +491,7 @@ void WOverview::slotTypeControlChanged(double v) {
     }
 
     m_type = type;
-    m_pWaveform.clear();
-    m_waveformSourceImage = QImage();
+    resetWaveformImages();
     slotWaveformSummaryUpdated();
 }
 
@@ -461,14 +514,20 @@ void WOverview::updateCues(const QList<CuePointer> &loadedCues) {
             if ((currentCue->getType() == mixxx::CueType::HotCue ||
                         currentCue->getType() == mixxx::CueType::Loop) &&
                     hotcueNumber != Cue::kNoHotCue) {
-                // Prepend the skin-defined hotcue prefix to hotcues' labels.
-                // This falls back to the hotcue number when no prefix is set.
+                // Prepend the hotcue number to hotcues' labels
                 QString newLabel = currentCue->getLabel();
-                if (newLabel.isEmpty()) {
-                    newLabel = pMark->hotcueLabelPrefix();
+                if (m_compactCueLabels) {
+                    if (hotcueNumber >= 16 && hotcueNumber < 24) {
+                        newLabel = QString::number(hotcueNumber - 16 + 1);
+                    } else if (hotcueNumber >= 0 && hotcueNumber < 8) {
+                        newLabel = QString(QChar('A' + hotcueNumber));
+                    } else {
+                        newLabel = QString::number(hotcueNumber + 1);
+                    }
+                } else if (newLabel.isEmpty()) {
+                    newLabel = QString::number(hotcueNumber + 1);
                 } else {
-                    newLabel = QString("%1: %2")
-                                       .arg(pMark->hotcueLabelPrefix(), newLabel);
+                    newLabel = QString("%1: %2").arg(hotcueNumber + 1).arg(newLabel);
                 }
 
                 if (pMark->m_text != newLabel) {
@@ -671,9 +730,19 @@ void WOverview::paintEvent(QPaintEvent* pEvent) {
         drawAxis(&painter);
         drawWaveformPixmap(&painter);
         drawPlayedOverlay(&painter);
+        // BiteDJ clips the summary widget vertically. Anchor the read-only
+        // phrase strip to its visible area, keeping layout and cue hit targets.
+        mixxx::paintPhraseStrip(painter, m_pCurrentTrack->getPhrases(),
+                visibleRegion().boundingRect(), m_orientation, 0,
+                m_pCurrentTrack->getDuration(), m_scaleFactor);
         drawPlayPosition(&painter);
         drawEndOfTrackFrame(&painter);
         drawAnalyzerProgress(&painter);
+
+        // Compact previews prioritize cue markers over the countdown watermark.
+        if (m_compactCueLabels) {
+            drawTimeRemaining(&painter);
+        }
 
         double trackSamples = getTrackSamples();
         if (trackSamples > 0) {
@@ -682,10 +751,18 @@ void WOverview::paintEvent(QPaintEvent* pEvent) {
                     static_cast<CSAMPLE_GAIN>(trackSamples);
 
             drawRangeMarks(&painter, offset, gain);
+            if (m_compactCueLabels) {
+                drawPickupPosition(&painter);
+            }
             drawMarks(&painter, offset, gain);
-            drawPickupPosition(&painter);
+            if (!m_compactCueLabels) {
+                drawPickupPosition(&painter);
+            }
             drawTimeRuler(&painter);
             drawMarkLabels(&painter, offset, gain);
+        }
+        if (!m_compactCueLabels) {
+            drawTimeRemaining(&painter);
         }
     }
 
@@ -711,9 +788,11 @@ void WOverview::drawAxis(QPainter* pPainter) {
     PainterScope painterScope(pPainter);
     pPainter->setPen(QPen(m_axesColor, m_scaleFactor));
     if (m_orientation == Qt::Horizontal) {
-        pPainter->drawLine(0, height() / 2, width(), height() / 2);
+        const int baseline = m_type == Type::Stacked ? height() - 1 : height() / 2;
+        pPainter->drawLine(0, baseline, width(), baseline);
     } else {
-        pPainter->drawLine(width() / 2, 0, width() / 2, height());
+        const int baseline = m_type == Type::Stacked ? width() - 1 : width() / 2;
+        pPainter->drawLine(baseline, 0, baseline, height());
     }
 }
 
@@ -735,8 +814,9 @@ void WOverview::drawWaveformPixmap(QPainter* pPainter) {
             QRect sourceRect;
             if (m_type == Type::Stacked) {
                 // Single-sided from bottom: crop empty space from the top only
-                int topCrop = m_waveformSourceImage.height() - static_cast<int>(m_waveformPeak);
-                if (topCrop < 0) topCrop = 0;
+                const int signalHeight = qBound(1, static_cast<int>(std::ceil(m_waveformPeak)),
+                        m_waveformSourceImage.height());
+                const int topCrop = m_waveformSourceImage.height() - signalHeight;
                 sourceRect = QRect(0,
                         topCrop,
                         m_waveformSourceImage.width(),
@@ -895,6 +975,11 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
     QFont markerFont = pPainter->font();
     markerFont.setPixelSize(static_cast<int>(m_iLabelFontSize * m_scaleFactor));
     QFontMetricsF fontMetrics(markerFont);
+    const QRectF visible = visibleRegion().boundingRect();
+    const double phraseClearance = mixxx::showWaveformPhrases() && m_pCurrentTrack &&
+                    !m_pCurrentTrack->getPhrases().isEmpty()
+            ? std::min(10 * m_scaleFactor, visible.height() / 3) : 0;
+
 
     // Text labels are rendered so they do not overlap with other WaveformMarks'
     // labels. If the text would be too wide, it is elided. However, the user
@@ -946,17 +1031,26 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
             }
         }
 
-        pPainter->setPen(pMark->borderColor());
-        pPainter->drawLine(bgLine);
-
-        pPainter->setPen(pMark->fillColor());
-        pPainter->drawLine(line);
-
         if (rect.isValid()) {
             QColor loopColor = pMark->fillColor();
             loopColor.setAlphaF(0.5f);
             pPainter->fillRect(rect, loopColor);
         }
+
+        const bool prominentCue = m_compactCueLabels &&
+                (pMark->getHotCue() != Cue::kNoHotCue ||
+                        pMark->getItem() == QStringLiteral("cue_point"));
+        if (prominentCue) {
+            pPainter->setPen(QPen(pMark->borderColor(), 4 * m_scaleFactor));
+            pPainter->drawLine(line);
+        } else {
+            pPainter->setPen(pMark->borderColor());
+            pPainter->drawLine(bgLine);
+        }
+
+        pPainter->setPen(QPen(pMark->fillColor(),
+                prominentCue ? 2 * m_scaleFactor : 1));
+        pPainter->drawLine(line);
 
         if (!pMark->m_text.isEmpty()) {
             Qt::Alignment halign = pMark->m_align & Qt::AlignHorizontal_Mask;
@@ -969,7 +1063,8 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
             // label, but do not elide it if the next mark's label is not at the
             // same vertical position.
 
-            if (pMark != m_pHoveredMark) {
+            if (pMark != m_pHoveredMark &&
+                    !(m_compactCueLabels && pMark->getItem() == QStringLiteral("cue_point"))) {
                 float nextMarkPosition = -1.0f;
                 for (auto m = std::next(it); m != m_marks.cend(); ++m) {
                     const WaveformMarkPointer& otherMark = *m;
@@ -1011,7 +1106,7 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
                 } else if (valign == Qt::AlignVCenter) {
                     textPoint.setY((textRect.height() + height()) / 2);
                 } else { // AlignBottom
-                    textPoint.setY(float(height()) - 0.5f);
+                    textPoint.setY(visible.bottom() - phraseClearance - 0.5);
                 }
             } else { // Vertical
                 if (halign == Qt::AlignLeft) {
@@ -1035,8 +1130,8 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
                     QPixmap(),
                     text,
                     markerFont,
-                    m_labelTextColor,
-                    m_labelBackgroundColor,
+                    prominentCue ? pMark->labelColor() : m_labelTextColor,
+                    prominentCue ? pMark->fillColor() : m_labelBackgroundColor,
                     width(),
                     devicePixelRatioF());
         }
@@ -1292,6 +1387,116 @@ void WOverview::drawMarkLabels(QPainter* pPainter, const float offset, const flo
             }
         }
     }
+    // The main CUE remains identifiable even at the exact position of a
+    // hot cue, memory cue, loop or playhead. Keep the shared mark ordering
+    // (and cue editing targets) intact; this is a compact-preview paint priority.
+    if (m_compactCueLabels) {
+        PainterScope painterScope(pPainter);
+        for (const auto& pMark : std::as_const(m_marks)) {
+            if (pMark->getItem() != QStringLiteral("cue_point")) {
+                continue;
+            }
+            const double position = pMark->m_linePosition;
+            const QLineF line = m_orientation == Qt::Horizontal
+                    ? QLineF(position, 0, position, height())
+                    : QLineF(0, position, width(), position);
+            pPainter->setPen(QPen(pMark->borderColor(), 4 * m_scaleFactor));
+            pPainter->drawLine(line);
+            pPainter->setPen(QPen(pMark->fillColor(), 2 * m_scaleFactor));
+            pPainter->drawLine(line);
+            pMark->m_label.draw(pPainter);
+        }
+    }
+}
+
+void WOverview::setTimeRemainingVisible(bool visible) {
+    if (m_bTimeRemainingVisible == visible) {
+        return;
+    }
+    m_bTimeRemainingVisible = visible;
+    update();
+}
+
+/// The part of the widget an ancestor doesn't cut off, in widget coordinates.
+/// A skin may hand the overview a widget taller than the room its container
+/// leaves it — deck.xml lays the summary out at double height and shows the
+/// top half of it — so the widget's own rect is not what the DJ can see. Only
+/// ancestor geometry is taken into account, not overlapping siblings: this
+/// decides where text is laid out, and that must not move when something else
+/// happens to be drawn over the strip.
+QRect WOverview::visibleStripRect() const {
+    QRect visible = rect();
+    for (const QWidget* pAncestor = parentWidget(); pAncestor != nullptr;
+            pAncestor = pAncestor->parentWidget()) {
+        visible &= pAncestor->rect().translated(-mapTo(pAncestor, QPoint(0, 0)));
+        if (pAncestor->isWindow()) {
+            break;
+        }
+    }
+    return visible;
+}
+
+void WOverview::drawTimeRemaining(QPainter* pPainter) {
+    if (!m_bTimeRemainingVisible) {
+        return;
+    }
+
+    const double remainingSeconds = m_timeRemainingControl.get();
+    if (remainingSeconds < 0.0) {
+        return;
+    }
+
+    const QRect visible = visibleStripRect();
+    if (visible.isEmpty()) {
+        return;
+    }
+    // Sized and placed against what is on screen rather than against the whole
+    // widget, so a clipped overview keeps the digits inside the strip instead
+    // of centring them on an edge.
+    const bool horizontal = m_orientation == Qt::Horizontal;
+    const qreal visibleLength = horizontal ? visible.width() : visible.height();
+    const qreal visibleBreadth = horizontal ? visible.height() : visible.width();
+
+    const QString text = TimeRemainingOverlay::remainingTimeToString(remainingSeconds);
+    const TimeRemainingOverlay::TextLayout layout = TimeRemainingOverlay::layoutFor(
+            text, visibleBreadth, visibleLength, m_timeRemainingScale);
+    if (!layout.valid) {
+        return;
+    }
+
+    float x, y;
+    TimeRemainingOverlay::alignedPosition(m_timeRemainingAlign,
+            static_cast<float>(visibleLength),
+            static_cast<float>(visibleBreadth),
+            static_cast<float>(layout.boxWidth()),
+            static_cast<float>(layout.boxHeight()),
+            &x,
+            &y);
+
+    PainterScope painterScope(pPainter);
+    if (m_orientation == Qt::Vertical) {
+        // length()/breadth() run along the overview, not the widget. This is
+        // the same rotation the mark labels use to follow it.
+        pPainter->translate(width(), 0);
+        pPainter->rotate(90.0);
+        // In that frame the axes run from the widget's top edge and its right
+        // edge, which is where the visible strip has to be measured from too.
+        x += static_cast<float>(visible.top());
+        y += static_cast<float>(width() - visible.right() - 1);
+    } else {
+        x += static_cast<float>(visible.left());
+        y += static_cast<float>(visible.top());
+    }
+    pPainter->translate(x, y);
+    // The whole overlay is drawn at this opacity so the summary stays visible
+    // through it.
+    pPainter->setOpacity(m_timeRemainingOpacity);
+
+    TimeRemainingOverlay::paintOverlay(pPainter,
+            layout,
+            text,
+            m_timeRemainingColor,
+            m_timeRemainingBackgroundColor);
 }
 
 void WOverview::drawPassthroughOverlay(QPainter* pPainter) {
@@ -1308,9 +1513,7 @@ bool WOverview::drawNextPixmapPart() {
     }
 
     const int dataSize = pWaveform->getDataSize();
-    const double audioVisualRatio = pWaveform->getAudioVisualRatio();
-    const double trackSamples = getTrackSamples();
-    if (dataSize <= 0 || audioVisualRatio <= 0 || trackSamples <= 0) {
+    if (dataSize < 2) {
         return false;
     }
 
@@ -1319,19 +1522,19 @@ bool WOverview::drawNextPixmapPart() {
         // by total_gain
         // We keep full range waveform data to scale it on paint
         m_waveformSourceImage = QImage(
-                static_cast<int>(trackSamples / audioVisualRatio / 2) + 1,
+                dataSize / 2,
                 2 * 255,
                 QImage::Format_ARGB32_Premultiplied);
         m_waveformSourceImage.fill(QColor(0, 0, 0, 0).value());
-        if (dataSize / 2 != m_waveformSourceImage.width()) {
-            qWarning() << "Track duration has changed since last analysis"
-                       << m_waveformSourceImage.width() << "!=" << dataSize / 2;
-        }
+
     }
     DEBUG_ASSERT(!m_waveformSourceImage.isNull());
 
     // Always multiple of 2
-    const int waveformCompletion = pWaveform->getCompletion();
+    const int waveformCompletion = std::clamp(pWaveform->getCompletion(), 0, dataSize) / 2 * 2;
+    if (waveformCompletion <= m_actualCompletion) {
+        return false;
+    }
     // Test if there is some new to draw (at least of pixel width)
     const int completionIncrement = waveformCompletion - m_actualCompletion;
 
@@ -1350,7 +1553,11 @@ bool WOverview::drawNextPixmapPart() {
     //  << "completionIncrement:" << completionIncrement;
 
     QPainter painter(&m_waveformSourceImage);
-    painter.translate(0.0, static_cast<double>(m_waveformSourceImage.height()) / 2.0);
+    // Symmetric renderers draw around zero. Stacked rendering already uses
+    // absolute image coordinates measured upward from its bottom edge.
+    if (m_type != Type::Stacked) {
+        painter.translate(0.0, static_cast<double>(m_waveformSourceImage.height()) / 2.0);
+    }
 
     if (m_type == Type::Filtered) {
         drawNextPixmapPartLMH(&painter, pWaveform, nextCompletion);
@@ -1510,13 +1717,13 @@ void WOverview::drawNextPixmapPartStacked(QPainter* pPainter,
     DEBUG_ASSERT(!m_waveformSourceImage.isNull());
     ScopedTimer t(QStringLiteral("WOverview::drawNextPixmapPartStacked"));
 
-    QColor lowColor = m_signalColors.getLowColor();
+    QColor lowColor = m_signalColors.getRgbLowColor();
     QPen lowColorPen(QBrush(lowColor), 1);
 
-    QColor midColor = m_signalColors.getMidColor();
+    QColor midColor = m_signalColors.getRgbMidColor();
     QPen midColorPen(QBrush(midColor), 1);
 
-    QColor highColor = m_signalColors.getHighColor();
+    QColor highColor = m_signalColors.getRgbHighColor();
     QPen highColorPen(QBrush(highColor), 1);
 
     int currentCompletion = 0;
@@ -1528,8 +1735,9 @@ void WOverview::drawNextPixmapPartStacked(QPainter* pPainter,
         float mid = static_cast<float>(pWaveform->getMid(currentCompletion)) + static_cast<float>(pWaveform->getMid(currentCompletion + 1));
         float high = static_cast<float>(pWaveform->getHigh(currentCompletion)) + static_cast<float>(pWaveform->getHigh(currentCompletion + 1));
 
-        // Use a scale factor so that max possible sum (765) fits within the 510px height
-        const float scale = 0.6f;
+        // Two channels times three bands can sum to 1530. Fit the full
+        // range into the 510px source image before normalizing its height.
+        const float scale = 1.0f / 3.0f;
 
         low *= scale;
         mid *= scale;
@@ -1538,24 +1746,21 @@ void WOverview::drawNextPixmapPartStacked(QPainter* pPainter,
         float x = currentCompletion / 2.0f;
         float y = m_waveformSourceImage.height(); // Start drawing from the very bottom edge of the 510px image
 
-        // Draw low
-        if (low > 0) {
-            pPainter->setPen(lowColorPen);
-            pPainter->drawLine(QPointF(x, y), QPointF(x, y - low));
-            y -= low;
+        // Match the scrolling 3 BAND renderer: high at the baseline,
+        // then mid, with low forming the outside edge.
+        if (high > 0) {
+            pPainter->setPen(highColorPen);
+            pPainter->drawLine(QPointF(x, y), QPointF(x, y - high));
+            y -= high;
         }
-
-        // Draw mid
         if (mid > 0) {
             pPainter->setPen(midColorPen);
             pPainter->drawLine(QPointF(x, y), QPointF(x, y - mid));
             y -= mid;
         }
-
-        // Draw high
-        if (high > 0) {
-            pPainter->setPen(highColorPen);
-            pPainter->drawLine(QPointF(x, y), QPointF(x, y - high));
+        if (low > 0) {
+            pPainter->setPen(lowColorPen);
+            pPainter->drawLine(QPointF(x, y), QPointF(x, y - low));
         }
 
         m_waveformPeak = math_max3(
@@ -1705,4 +1910,13 @@ void WOverview::dragEnterEvent(QDragEnterEvent* pEvent) {
 
 void WOverview::dropEvent(QDropEvent* pEvent) {
     DragAndDropHelper::handleTrackDropEvent(pEvent, *this, m_group, m_pConfig);
+}
+
+void WOverview::resetWaveformImages() {
+    m_waveformSourceImage = QImage();
+    m_waveformImageScaled = QImage();
+    m_actualCompletion = 0;
+    m_waveformPeak = -1.0;
+    m_pixmapDone = false;
+    m_diffGain = 0;
 }

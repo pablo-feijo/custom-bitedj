@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='utf-8'?>
+<EffectChain>
+ <Name>[RB7] TRANS</Name>
+ <Description>Native approximation: Tempo-locked amplitude chopping; native gate envelope.</Description>
+ <MixMode>DRY/WET</MixMode>
+ <SuperParameterValue>0.5</SuperParameterValue>
+ <Effects>
+  <Effect>
+   <MetaParameterValue>0.5</MetaParameterValue>
+   <Id>org.mixxx.effects.tremolo</Id>
+   <BackendType>Built-In</BackendType>
+   <Parameters>
+    <Parameter>
+     <Id>rate</Id>
+     <Value>1</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>waveform</Id>
+     <Value>0.005</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>depth</Id>
+     <Value>0.85</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>width</Id>
+     <Value>0.5</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>phase</Id>
+     <Value>0</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>quantize</Id>
+     <Value>1</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+    <Parameter>
+     <Id>triplet</Id>
+     <Value>0</Value>
+     <LinkType>NONE</LinkType>
+     <LinkInversion>0</LinkInversion>
+     <Hidden>0</Hidden>
+    </Parameter>
+   </Parameters>
+  </Effect>
+ </Effects>
+</EffectChain>

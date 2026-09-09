@@ -1,7 +1,6 @@
 // Tests for the Bite DJ LibraryColumnControl-managed track table layout:
 // managed visibility/weights from mixxx.cfg, internal-column enforcement,
-// self-healing after model resets, upstream-compatible order persistence,
-// and the rating column's minimum width.
+// self-healing after model resets, and the rating column's minimum width.
 #include <gtest/gtest.h>
 
 #include <QApplication>
@@ -15,6 +14,7 @@
 #include "library/columncache.h"
 #include "library/dao/trackschema.h"
 #include "library/librarycolumncontrol.h"
+#include "library/proxytrackmodel.h"
 #include "library/rekordbox/rekordboxfeature.h"
 #include "library/starrating.h"
 #include "library/trackcollection.h"
@@ -155,8 +155,6 @@ TEST_F(LibraryColumnControlTest, ManagedLayoutIsAppliedAndSelfHealing) {
             model.fieldIndex(ColumnCache::COLUMN_LIBRARYTABLE_RATING);
     const int titleCol =
             model.fieldIndex(ColumnCache::COLUMN_LIBRARYTABLE_TITLE);
-    const int artistCol =
-            model.fieldIndex(ColumnCache::COLUMN_LIBRARYTABLE_ARTIST);
 
     // Managed layout per config: '#' (position), title, rating visible;
     // preview managed-invisible; internal track_id hidden.
@@ -189,24 +187,80 @@ TEST_F(LibraryColumnControlTest, ManagedLayoutIsAppliedAndSelfHealing) {
     EXPECT_TRUE(header->isSectionHidden(previewCol));
     EXPECT_FALSE(header->isSectionHidden(positionCol));
     EXPECT_GE(header->sectionSize(ratingCol), StarRating().sizeHint().width());
+}
 
-    // Column order uses the upstream per-model header state, while a restored
-    // pixel width is replaced by BiteDJ's configured weight.
-    const int artistVisualIndex = header->visualIndex(artistCol);
-    header->moveSection(header->visualIndex(titleCol), artistVisualIndex);
-    header->resizeSection(titleCol, 37);
-
-    QTableView restoredView;
-    restoredView.resize(800, 480);
-    auto* restoredHeader =
-            new WTrackTableViewHeader(Qt::Horizontal, &restoredView);
-    restoredView.setModel(&model);
-    restoredView.setHorizontalHeader(restoredHeader);
-    restoredView.show();
+TEST_F(LibraryColumnControlTest, ColumnOrderRestoresWithoutOverridingManagedWidths) {
+    createRekordboxTables();
+    LibraryColumnControl control(config());
+    auto source = createRekordboxTrackSource();
+    RekordboxPlaylistModel model(nullptr, trackCollectionManager(), source);
+    model.setPlaylist(QStringLiteral("/media/USB1"));
+    model.select();
+    ProxyTrackModel proxy(&model);
+    EXPECT_EQ(proxy.settingsNamespace(), model.settingsNamespace());
+    const int title = model.fieldIndex(ColumnCache::COLUMN_LIBRARYTABLE_TITLE);
+    const int artist = model.fieldIndex(ColumnCache::COLUMN_LIBRARYTABLE_ARTIST);
+    const int preview = model.fieldIndex(ColumnCache::COLUMN_LIBRARYTABLE_PREVIEW);
+    int movedIndex = -1;
+    QString saved;
+    {
+        QTableView view;
+        view.resize(1024, 420);
+        view.setModel(&proxy);
+        auto* header = new WTrackTableViewHeader(Qt::Horizontal, &view);
+        view.setHorizontalHeader(header);
+        header->restoreHeaderState();
+        header->moveSection(header->visualIndex(title), header->visualIndex(artist));
+        movedIndex = header->visualIndex(title);
+        saved = control.headerState(model.settingsNamespace());
+        ASSERT_FALSE(saved.isEmpty());
+        // Managed header moves must not create SQLite settings on the GUI thread.
+        EXPECT_TRUE(model.getModelSetting("header_state_pb").isNull());
+    }
+    setLibraryConfig("ColumnVisible_preview", 0);
+    // New width/visibility choices must outrank stale serialized dimensions.
+    ControlObject::set(ConfigKey("[Library]", "column_visible_preview"), 0);
+    ControlObject::set(ConfigKey("[Library]", "column_weight_title"), 4);
+    ControlObject::set(ConfigKey("[Library]", "column_weight_artist"), 1);
+    QTableView restored;
+    restored.resize(1024, 420);
+    restored.setModel(&proxy);
+    auto* header = new WTrackTableViewHeader(Qt::Horizontal, &restored);
+    restored.setHorizontalHeader(header);
+    header->restoreHeaderState();
+    restored.show();
     QApplication::processEvents();
+    EXPECT_EQ(header->visualIndex(title), movedIndex);
+    EXPECT_TRUE(header->isSectionHidden(preview));
+    EXPECT_GT(header->sectionSize(title), header->sectionSize(artist));
+    // Intermediate restore moves must not overwrite the complete saved order.
+    EXPECT_EQ(control.headerState(model.settingsNamespace()), saved);
+    EXPECT_TRUE(control.headerState("another.model").isEmpty());
+    saveAndReloadConfig();
+    EXPECT_EQ(config()->getValueString(ConfigKey("[Library]",
+                      "HeaderState_" + model.settingsNamespace())), saved);
+}
 
-    EXPECT_EQ(artistVisualIndex, restoredHeader->visualIndex(titleCol));
-    EXPECT_NE(37, restoredHeader->sectionSize(titleCol));
-    EXPECT_TRUE(restoredHeader->isSectionHidden(trackIdCol));
-    EXPECT_TRUE(restoredHeader->isSectionHidden(previewCol));
+TEST_F(LibraryColumnControlTest, ExternalSortUsesRowIdentityWithoutLoadingAudio) {
+    createRekordboxTables();
+    QSqlQuery query(internalCollection()->database());
+    ASSERT_TRUE(query.exec("INSERT INTO rekordbox_library (id, rb_id, title, bpm, location) "
+                          "VALUES (900, 102, 'Earlier', 110, '/missing/second.wav')"));
+    ASSERT_TRUE(query.exec("INSERT INTO rekordbox_playlist_tracks (playlist_id, track_id, position) "
+                          "VALUES (1, 900, 2)"));
+    auto source = createRekordboxTrackSource();
+    RekordboxPlaylistModel model(nullptr, trackCollectionManager(), source);
+    model.setPlaylist(QStringLiteral("/media/USB1"));
+    model.select();
+    const int bpm = model.fieldIndex(ColumnCache::COLUMN_LIBRARYTABLE_BPM);
+    model.sort(bpm, Qt::AscendingOrder);
+    ASSERT_EQ(model.rowCount(), 2);
+    const auto identity = model.getTrackRowIdentity(model.index(0, 0));
+    EXPECT_EQ(identity, TrackId(QVariant(900)));
+    ProxyTrackModel proxy(&model);
+    EXPECT_EQ(proxy.getTrackRowIdentity(proxy.index(0, 0)), identity);
+    model.sort(bpm, Qt::DescendingOrder);
+    EXPECT_EQ(model.getTrackRows(identity), QList<int>{1});
+    EXPECT_EQ(model.getTrackRowIdentity(model.index(1, 0)), identity);
+    EXPECT_FALSE(model.getTrackRowIdentity(QModelIndex()).isValid());
 }

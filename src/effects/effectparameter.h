@@ -27,6 +27,7 @@ class EffectParameter {
     virtual ~EffectParameter();
 
     EffectManifestParameterPointer manifest() const;
+    QString effectId() const;
 
     void setLinkType(EffectManifestParameter::LinkType type) {
         m_linkType = type;

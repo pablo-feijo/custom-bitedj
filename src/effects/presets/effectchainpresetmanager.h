@@ -39,6 +39,8 @@ class EffectChainPresetManager : public QObject {
         return m_quickEffectChainPresetsSorted;
     }
 
+    bool isPresetAvailable(const EffectChainPresetPointer& preset) const;
+
     int numPresets() const {
         return m_effectChainPresetsSorted.size();
     }
@@ -93,6 +95,7 @@ class EffectChainPresetManager : public QObject {
 
     void importUserPresets();
     void importDefaultPresets();
+    void importRekordbox7Presets();
     void generateDefaultQuickEffectPresets();
     void prependRemainingPresetsToLists();
 

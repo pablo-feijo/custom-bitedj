@@ -2,7 +2,7 @@
   <WidgetGroup>
     <ObjectName>Waveforms</ObjectName>
     <Layout>vertical</Layout>
-    <Size>844f,0me</Size>
+    <Size>820f,0me</Size>
     <Children>
       <Template src="skin:waveform.xml">
         <SetVariable name="channel">1</SetVariable>

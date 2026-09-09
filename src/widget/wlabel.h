@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QLabel>
+#include <QElapsedTimer>
+#include <QTimer>
 
 #include "widget/wbasewidget.h"
 
@@ -9,11 +11,11 @@ class SkinContext;
 
 class WLabel : public QLabel, public WBaseWidget {
     Q_OBJECT
+    Q_PROPERTY(QColor scrollColor MEMBER m_scrollColor)
   public:
     explicit WLabel(QWidget* pParent=nullptr);
 
     virtual void setup(const QDomNode& node, const SkinContext& context);
-    void applyFontFeatures();
 
     QString text() const;
     void setText(const QString& text);
@@ -34,14 +36,20 @@ class WLabel : public QLabel, public WBaseWidget {
   protected:
     bool event(QEvent* pEvent) override;
     void resizeEvent(QResizeEvent* event) override;
+    void paintEvent(QPaintEvent* event) override;
     void fillDebugTooltip(QStringList* debug) override;
     QString m_skinText;
     // Foreground and background colors.
     QColor m_qFgColor;
     QColor m_qBgColor;
-    bool m_bTabularNumbers{false};
-
   private:
+    QColor m_scrollColor;
+    void updateScrolling();
+    QRect scrollRect() const;
+    bool m_scrollText = false;
+    bool m_scrollOverflow = false;
+    QTimer m_scrollTimer;
+    QElapsedTimer m_scrollClock;
     QString m_longText;
     Qt::TextElideMode m_elideMode;
     double m_scaleFactor;

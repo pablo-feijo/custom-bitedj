@@ -4,15 +4,14 @@
     The cue drawer for one deck: a header (which deck, which bank, close) over
     a 4x2 pad grid. Instantiated once per deck by cuepanel.xml.
 
-    Two banks share the grid, each a sibling group toggled by [Skin],cue_bank.
-    A hidden WidgetGroup drops out of the layout, so only the visible bank
-    occupies the row. They are deliberately *not* an inner WidgetStack: both
-    deck pages would then key stacks off the same CO, and WWidgetStack's
-    showEvent rewrites every trigger CO from the current page, so the two
-    would fight each other on open.
+    Cue banks and performance pads share a per-deck mode; the header cycles
+    them by touch even when no controller is connected.
+    The banks share a bounded stacked layout so separate visibility updates
+    cannot add their heights or shift the header. Keep the bank area at 92px:
+    two 44px rows plus their 4px gap, below the 44px navigation header.
 
     The pad grid is sized so that all eight pads clear the 44px touch floor at
-    the 480x420 design minimum: 4 columns of ~117px, 2 rows of 56px.
+    the 480x420 design minimum: 4 columns of ~117px, 2 rows of 44px.
   Variables:
     channel: deck number.
 -->
@@ -26,37 +25,57 @@
       <WidgetGroup>
         <ObjectName>CuePanel_Header</ObjectName>
         <Layout>horizontal</Layout>
-        <Size>0me,30f</Size>
+        <Size>0me,44f</Size>
         <Children>
           <Label>
             <ObjectName>CuePanel_DeckLabel</ObjectName>
             <Text>Deck <Variable name="channel"/></Text>
-            <Size>80f,30f</Size>
+            <Size>80f,44f</Size>
           </Label>
 
-          <!-- Bank toggle. Labelled with the bank currently shown, matching
-               BeatFX_ActiveToggle's off/active convention. -->
+          <PushButton>
+            <ObjectName>CuePanel_Previous</ObjectName>
+            <Size>48f,44f</Size>
+            <NumberStates>1</NumberStates>
+            <State><Number>0</Number><Text>‹</Text></State>
+            <LeftClickIsPushButton>true</LeftClickIsPushButton>
+            <Connection>
+              <ConfigKey>[PadFX],d<Variable name="channel"/>_previous</ConfigKey>
+              <ConnectValueToWidget>false</ConnectValueToWidget>
+              <EmitOnPressAndRelease>true</EmitOnPressAndRelease>
+            </Connection>
+          </PushButton>
           <PushButton>
             <ObjectName>CuePanel_BankToggle</ObjectName>
-            <Size>0me,30f</Size>
-            <NumberStates>2</NumberStates>
-            <State>
-              <Number>0</Number>
-              <Text>Hot Cues</Text>
-            </State>
-            <State>
-              <Number>1</Number>
-              <Text>Memory</Text>
-            </State>
+            <Size>0me,44f</Size>
+            <NumberStates>6</NumberStates>
+            <State><Number>0</Number><Text>Hot Cues</Text></State>
+            <State><Number>1</Number><Text>Pad FX 1</Text></State>
+            <State><Number>2</Number><Text>Beat Jump</Text></State>
+            <State><Number>3</Number><Text>Beat Loop</Text></State>
+            <State><Number>4</Number><Text>Memory</Text></State>
+            <State><Number>5</Number><Text>Pad FX 2</Text></State>
             <Connection>
-              <ConfigKey>[Skin],cue_bank</ConfigKey>
-              <ConnectValueToWidget>true</ConnectValueToWidget>
+              <ConfigKey>[PadFX],d<Variable name="channel"/>_mode</ConfigKey>
+              <ConnectValueFromWidget>false</ConnectValueFromWidget>
+            </Connection>
+          </PushButton>
+          <PushButton>
+            <ObjectName>CuePanel_Next</ObjectName>
+            <Size>48f,44f</Size>
+            <NumberStates>1</NumberStates>
+            <State><Number>0</Number><Text>›</Text></State>
+            <LeftClickIsPushButton>true</LeftClickIsPushButton>
+            <Connection>
+              <ConfigKey>[PadFX],d<Variable name="channel"/>_cycle</ConfigKey>
+              <ConnectValueToWidget>false</ConnectValueToWidget>
+              <EmitOnPressAndRelease>true</EmitOnPressAndRelease>
             </Connection>
           </PushButton>
 
           <PushButton>
             <ObjectName>CuePanel_Close</ObjectName>
-            <Size>44f,30f</Size>
+            <Size>44f,44f</Size>
             <NumberStates>2</NumberStates>
             <State>
               <Number>0</Number>
@@ -75,152 +94,154 @@
         </Children>
       </WidgetGroup>
 
-      <!-- Hot cue bank: slots 1-8, the same pads a controller maps. -->
       <WidgetGroup>
-        <ObjectName>CuePanel_Grid</ObjectName>
-        <Layout>vertical</Layout>
-        <SizePolicy>me,me</SizePolicy>
+        <ObjectName>CuePanel_Banks</ObjectName>
+        <Layout>stacked</Layout>
+        <Size>0me,92f</Size>
         <Children>
+          <!-- Hot cue bank: slots 1-8, the same pads a controller maps. -->
           <WidgetGroup>
-            <ObjectName>CuePanel_Row</ObjectName>
-            <Layout>horizontal</Layout>
-            <Size>0me,56f</Size>
+            <ObjectName>CuePanel_Grid</ObjectName>
+            <Layout>vertical</Layout>
+            <SizePolicy>me,me</SizePolicy>
             <Children>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">1</SetVariable>
-                <SetVariable name="label">A</SetVariable>
-              </Template>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">2</SetVariable>
-                <SetVariable name="label">B</SetVariable>
-              </Template>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">3</SetVariable>
-                <SetVariable name="label">C</SetVariable>
-              </Template>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">4</SetVariable>
-                <SetVariable name="label">D</SetVariable>
-              </Template>
+              <WidgetGroup>
+                <ObjectName>CuePanel_Row</ObjectName>
+                <Layout>horizontal</Layout>
+                <Size>0me,44f</Size>
+                <Children>
+                  <Template src="skin:templates/cue_pad.xml">
+                    <SetVariable name="channel"><Variable name="channel"/></SetVariable>
+                    <SetVariable name="hotcue">1</SetVariable>
+                    <SetVariable name="label">A</SetVariable>
+                  </Template>
+                  <Template src="skin:templates/cue_pad.xml">
+                    <SetVariable name="channel"><Variable name="channel"/></SetVariable>
+                    <SetVariable name="hotcue">2</SetVariable>
+                    <SetVariable name="label">B</SetVariable>
+                  </Template>
+                  <Template src="skin:templates/cue_pad.xml">
+                    <SetVariable name="channel"><Variable name="channel"/></SetVariable>
+                    <SetVariable name="hotcue">3</SetVariable>
+                    <SetVariable name="label">C</SetVariable>
+                  </Template>
+                  <Template src="skin:templates/cue_pad.xml">
+                    <SetVariable name="channel"><Variable name="channel"/></SetVariable>
+                    <SetVariable name="hotcue">4</SetVariable>
+                    <SetVariable name="label">D</SetVariable>
+                  </Template>
+                </Children>
+              </WidgetGroup>
+              <WidgetGroup>
+                <ObjectName>CuePanel_Row</ObjectName>
+                <Layout>horizontal</Layout>
+                <Size>0me,44f</Size>
+                <Children>
+                  <Template src="skin:templates/cue_pad.xml">
+                    <SetVariable name="channel"><Variable name="channel"/></SetVariable>
+                    <SetVariable name="hotcue">5</SetVariable>
+                    <SetVariable name="label">E</SetVariable>
+                  </Template>
+                  <Template src="skin:templates/cue_pad.xml">
+                    <SetVariable name="channel"><Variable name="channel"/></SetVariable>
+                    <SetVariable name="hotcue">6</SetVariable>
+                    <SetVariable name="label">F</SetVariable>
+                  </Template>
+                  <Template src="skin:templates/cue_pad.xml">
+                    <SetVariable name="channel"><Variable name="channel"/></SetVariable>
+                    <SetVariable name="hotcue">7</SetVariable>
+                    <SetVariable name="label">G</SetVariable>
+                  </Template>
+                  <Template src="skin:templates/cue_pad.xml">
+                    <SetVariable name="channel"><Variable name="channel"/></SetVariable>
+                    <SetVariable name="hotcue">8</SetVariable>
+                    <SetVariable name="label">H</SetVariable>
+                  </Template>
+                </Children>
+              </WidgetGroup>
             </Children>
+            <Connection>
+              <ConfigKey>[PadFX],d<Variable name="channel"/>_mode</ConfigKey>
+              <BindProperty>visible</BindProperty>
+              <Transform><IsEqual>0</IsEqual></Transform>
+            </Connection>
           </WidgetGroup>
-          <WidgetGroup>
-            <ObjectName>CuePanel_Row</ObjectName>
-            <Layout>horizontal</Layout>
-            <Size>0me,56f</Size>
-            <Children>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">5</SetVariable>
-                <SetVariable name="label">E</SetVariable>
-              </Template>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">6</SetVariable>
-                <SetVariable name="label">F</SetVariable>
-              </Template>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">7</SetVariable>
-                <SetVariable name="label">G</SetVariable>
-              </Template>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">8</SetVariable>
-                <SetVariable name="label">H</SetVariable>
-              </Template>
-            </Children>
-          </WidgetGroup>
-        </Children>
-        <Connection>
-          <ConfigKey>[Skin],cue_bank</ConfigKey>
-          <BindProperty>visible</BindProperty>
-          <Transform><Not/></Transform>
-        </Connection>
-      </WidgetGroup>
 
-      <!-- Memory cue bank: slots 17-26, chronological. Keep in step with
-           kMemoryCueBankStart / kMemoryCueBankSize in cueinfo.h. -->
-      <WidgetGroup>
-        <ObjectName>CuePanel_Grid</ObjectName>
-        <Layout>vertical</Layout>
-        <SizePolicy>me,me</SizePolicy>
-        <Children>
+          <!-- Memory cue bank: slots 17-24, chronological. Keep in step with
+               kMemoryCueBankStart / kMemoryCueBankSize in cueinfo.h. -->
           <WidgetGroup>
-            <ObjectName>CuePanel_Row</ObjectName>
-            <Layout>horizontal</Layout>
-            <Size>0me,56f</Size>
+            <ObjectName>CuePanel_Grid</ObjectName>
+            <Layout>vertical</Layout>
+            <SizePolicy>me,me</SizePolicy>
             <Children>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">17</SetVariable>
-                <SetVariable name="label">M1</SetVariable>
-              </Template>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">18</SetVariable>
-                <SetVariable name="label">M2</SetVariable>
-              </Template>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">19</SetVariable>
-                <SetVariable name="label">M3</SetVariable>
-              </Template>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">20</SetVariable>
-                <SetVariable name="label">M4</SetVariable>
-              </Template>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">21</SetVariable>
-                <SetVariable name="label">M5</SetVariable>
-              </Template>
+              <WidgetGroup>
+                <ObjectName>CuePanel_Row</ObjectName>
+                <Layout>horizontal</Layout>
+                <Size>0me,44f</Size>
+                <Children>
+                  <Template src="skin:templates/cue_pad.xml">
+                    <SetVariable name="channel"><Variable name="channel"/></SetVariable>
+                    <SetVariable name="hotcue">17</SetVariable>
+                    <SetVariable name="label">M1</SetVariable>
+                  </Template>
+                  <Template src="skin:templates/cue_pad.xml">
+                    <SetVariable name="channel"><Variable name="channel"/></SetVariable>
+                    <SetVariable name="hotcue">18</SetVariable>
+                    <SetVariable name="label">M2</SetVariable>
+                  </Template>
+                  <Template src="skin:templates/cue_pad.xml">
+                    <SetVariable name="channel"><Variable name="channel"/></SetVariable>
+                    <SetVariable name="hotcue">19</SetVariable>
+                    <SetVariable name="label">M3</SetVariable>
+                  </Template>
+                  <Template src="skin:templates/cue_pad.xml">
+                    <SetVariable name="channel"><Variable name="channel"/></SetVariable>
+                    <SetVariable name="hotcue">20</SetVariable>
+                    <SetVariable name="label">M4</SetVariable>
+                  </Template>
+                </Children>
+              </WidgetGroup>
+              <WidgetGroup>
+                <ObjectName>CuePanel_Row</ObjectName>
+                <Layout>horizontal</Layout>
+                <Size>0me,44f</Size>
+                <Children>
+                  <Template src="skin:templates/cue_pad.xml">
+                    <SetVariable name="channel"><Variable name="channel"/></SetVariable>
+                    <SetVariable name="hotcue">21</SetVariable>
+                    <SetVariable name="label">M5</SetVariable>
+                  </Template>
+                  <Template src="skin:templates/cue_pad.xml">
+                    <SetVariable name="channel"><Variable name="channel"/></SetVariable>
+                    <SetVariable name="hotcue">22</SetVariable>
+                    <SetVariable name="label">M6</SetVariable>
+                  </Template>
+                  <Template src="skin:templates/cue_pad.xml">
+                    <SetVariable name="channel"><Variable name="channel"/></SetVariable>
+                    <SetVariable name="hotcue">23</SetVariable>
+                    <SetVariable name="label">M7</SetVariable>
+                  </Template>
+                  <Template src="skin:templates/cue_pad.xml">
+                    <SetVariable name="channel"><Variable name="channel"/></SetVariable>
+                    <SetVariable name="hotcue">24</SetVariable>
+                    <SetVariable name="label">M8</SetVariable>
+                  </Template>
+                </Children>
+              </WidgetGroup>
             </Children>
+            <Connection>
+              <ConfigKey>[PadFX],d<Variable name="channel"/>_mode</ConfigKey>
+              <BindProperty>visible</BindProperty>
+              <Transform><IsEqual>4</IsEqual></Transform>
+            </Connection>
           </WidgetGroup>
-          <WidgetGroup>
-            <ObjectName>CuePanel_Row</ObjectName>
-            <Layout>horizontal</Layout>
-            <Size>0me,56f</Size>
-            <Children>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">22</SetVariable>
-                <SetVariable name="label">M6</SetVariable>
-              </Template>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">23</SetVariable>
-                <SetVariable name="label">M7</SetVariable>
-              </Template>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">24</SetVariable>
-                <SetVariable name="label">M8</SetVariable>
-              </Template>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">25</SetVariable>
-                <SetVariable name="label">M9</SetVariable>
-              </Template>
-              <Template src="skin:templates/cue_pad.xml">
-                <SetVariable name="channel"><Variable name="channel"/></SetVariable>
-                <SetVariable name="hotcue">26</SetVariable>
-                <SetVariable name="label">M10</SetVariable>
-              </Template>
-            </Children>
-          </WidgetGroup>
-        </Children>
-        <Connection>
-          <ConfigKey>[Skin],cue_bank</ConfigKey>
-          <BindProperty>visible</BindProperty>
-        </Connection>
-      </WidgetGroup>
 
+          <ControllerPadDisplay>
+            <Channel><Variable name="channel"/></Channel><SizePolicy>me,me</SizePolicy>
+            <Connection><ConfigKey>[PadFX],d<Variable name="channel"/>_performance_visible</ConfigKey><BindProperty>visible</BindProperty></Connection>
+          </ControllerPadDisplay>
+        </Children>
+      </WidgetGroup>
     </Children>
   </WidgetGroup>
 </Template>

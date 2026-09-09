@@ -21,7 +21,14 @@ class QDomNode;
 class SkinContext;
 
 class WOverview : public WWidget, public TrackDropTarget {
+    friend class WaveformRenderingTest;
     Q_OBJECT
+    /// Whether the time-remaining watermark is painted. The summary only stands
+    /// in for the scrolling waveform on the pages that don't carry one, so the
+    /// skin binds this to the tab it is on rather than to anything about the
+    /// deck. Defaults to on, so a skin that never binds it is unaffected.
+    Q_PROPERTY(bool timeRemainingVisible READ timeRemainingVisible WRITE
+                    setTimeRemainingVisible)
   public:
     WOverview(
             const QString& group,
@@ -32,6 +39,10 @@ class WOverview : public WWidget, public TrackDropTarget {
     void setup(const QDomNode& node, const SkinContext& context);
     virtual void initWithTrack(TrackPointer pTrack);
 
+    bool timeRemainingVisible() const {
+        return m_bTimeRemainingVisible;
+    }
+    void setTimeRemainingVisible(bool visible);
 
     enum class Type {
         Filtered,
@@ -79,6 +90,8 @@ class WOverview : public WWidget, public TrackDropTarget {
     void slotNormalizeOrVisualGainChanged();
 
   private:
+    void resetWaveformImages();
+
     // Append the waveform overview pixmap according to available data
     // in waveform
     bool drawNextPixmapPart();
@@ -108,6 +121,8 @@ class WOverview : public WWidget, public TrackDropTarget {
     void drawPickupPosition(QPainter* pPainter);
     void drawTimeRuler(QPainter* pPainter);
     void drawMarkLabels(QPainter* pPainter, const float offset, const float gain);
+    QRect visibleStripRect() const;
+    void drawTimeRemaining(QPainter* pPainter);
     void drawPassthroughOverlay(QPainter* pPainter);
     void paintText(const QString& text, QPainter* pPainter);
     double samplePositionToSeconds(double sample);
@@ -167,6 +182,7 @@ class WOverview : public WWidget, public TrackDropTarget {
 
     parented_ptr<WCueMenuPopup> m_pCueMenuPopup;
     bool m_bShowCueTimes;
+    bool m_compactCueLabels = false;
 
     int m_iPosSeconds;
     // True if pick-up is dragged. Only used when m_bEventWhileDrag is false
@@ -204,8 +220,10 @@ class WOverview : public WWidget, public TrackDropTarget {
     PollingControlProxy m_trackSampleRateControl;
     PollingControlProxy m_trackSamplesControl;
     PollingControlProxy m_playpositionControl;
+    PollingControlProxy m_timeRemainingControl;
     parented_ptr<ControlProxy> m_pPassthroughControl;
     parented_ptr<ControlProxy> m_pTypeControl;
+    parented_ptr<ControlProxy> m_pShowPhrasesControl;
 
     QPointF m_timeRulerPos;
     WaveformMarkLabel m_timeRulerPositionLabel;
@@ -223,6 +241,15 @@ class WOverview : public WWidget, public TrackDropTarget {
     QColor m_passthroughOverlayColor;
     QColor m_playedOverlayColor;
     QColor m_lowColor;
+    QColor m_timeRemainingColor;
+    QColor m_timeRemainingBackgroundColor;
+    double m_timeRemainingOpacity;
+    double m_timeRemainingScale;
+    Qt::Alignment m_timeRemainingAlign;
+    bool m_bTimeRemainingVisible;
+    /// Whole seconds left, so paints can be forced when the digits change
+    /// rather than only when the play marker crosses a pixel.
+    int m_iTimeRemainingSeconds;
     int m_dimBrightThreshold;
     parented_ptr<QLabel> m_pPassthroughLabel;
 

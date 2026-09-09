@@ -1,8 +1,8 @@
 #include "widget/wnumberpos.h"
-
-#include <QMouseEvent>
+#include "preferences/dialog/dlgprefdeck.h"
 
 #include "control/controlproxy.h"
+#include "skin/legacy/skincontext.h"
 #include "moc_wnumberpos.cpp"
 #include "util/duration.h"
 
@@ -30,27 +30,19 @@ WNumberPos::WNumberPos(const QString& group, QWidget* parent)
     slotSetTimeFormat(m_pTimeFormat->get());
 }
 
-void WNumberPos::mousePressEvent(QMouseEvent* pEvent) {
-    bool leftClick = pEvent->buttons() & Qt::LeftButton;
-
-    if (leftClick) {
-        // Cycle through display modes
-        if (m_displayMode == TrackTime::DisplayMode::ELAPSED) {
-            m_displayMode = TrackTime::DisplayMode::REMAINING;
-        } else if (m_displayMode == TrackTime::DisplayMode::REMAINING) {
-            m_displayMode = TrackTime::DisplayMode::ELAPSED_AND_REMAINING;
-        } else if (m_displayMode == TrackTime::DisplayMode::ELAPSED_AND_REMAINING) {
-            m_displayMode = TrackTime::DisplayMode::ELAPSED;
+void WNumberPos::setup(const QDomNode& node, const SkinContext& context) {
+    WNumber::setup(node, context);
+    const QString key = context.selectString(node, "ModeConfigKey");
+    if (!key.isEmpty()) {
+        const int comma = key.indexOf(',');
+        if (comma > 0) {
+            delete m_pShowTrackTimeRemaining;
+            m_pShowTrackTimeRemaining = new ControlProxy(
+                    key.left(comma), key.mid(comma + 1), this);
+            m_pShowTrackTimeRemaining->connectValueChanged(
+                    this, &WNumberPos::slotSetDisplayMode);
+            slotSetDisplayMode(m_pShowTrackTimeRemaining->get());
         }
-
-        // BiteDJ has a single track-time field, so skip Mixxx's combined
-        // elapsed-and-remaining mode without rewriting the upstream cycle.
-        if (m_displayMode == TrackTime::DisplayMode::ELAPSED_AND_REMAINING) {
-            m_displayMode = TrackTime::DisplayMode::ELAPSED;
-        }
-
-        m_pShowTrackTimeRemaining->set(static_cast<double>(m_displayMode));
-        slotSetTimeElapsed(m_dOldTimeElapsed);
     }
 }
 

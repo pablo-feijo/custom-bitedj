@@ -1,9 +1,12 @@
 #pragma once
 
+#include <QPointer>
+
 #include <QAbstractItemModel>
 #include <QSortFilterProxyModel>
 
 #include "control/controlproxy.h"
+#include "util/db/dbconnectionpool.h"
 #include "control/pollingcontrolproxy.h"
 #include "library/dao/playlistdao.h"
 #include "library/trackmodel.h" // Can't forward declare enums
@@ -28,6 +31,7 @@ class WTrackTableView : public WLibraryTableView {
             Library* pLibrary,
             double backgroundColorOpacity);
     ~WTrackTableView() override;
+    mixxx::DbConnectionPoolPtr previewDbConnectionPool() const;
     UserSettingsPointer config() const {
         return m_pConfig;
     }
@@ -55,6 +59,7 @@ class WTrackTableView : public WLibraryTableView {
     bool setCurrentTrackId(const TrackId& trackId, int column = 0, bool scrollToTrack = false);
 
     void addToAutoDJBottom();
+    void addAllToAutoDJ();
     void addToAutoDJTop();
     void addToAutoDJReplace();
     void selectTrack(const TrackId&);
@@ -150,6 +155,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent* pEvent) override;
 
 private:
+    QPointer<QWidget> m_dropHighlight;
     QPoint m_dragStartPos;
     bool m_bFakeDragging = false;
     class QLabel* m_pFakeDragLabel = nullptr;

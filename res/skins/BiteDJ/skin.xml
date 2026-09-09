@@ -7,6 +7,8 @@
 		<language>*</language>
 		<license>GPL</license>
 		<attributes>
+			<attribute persist="true" config_key="[Skin],deck1_time_mode">1</attribute>
+			<attribute persist="true" config_key="[Skin],deck2_time_mode">1</attribute>
 			<attribute config_key="[App],num_decks">4</attribute>
 			<attribute config_key="[App],num_samplers">16</attribute>
 			<attribute persist="true" config_key="[Skin],show_maximized_library">0</attribute>
@@ -108,7 +110,7 @@
 						<WidgetGroup>
 							<ObjectName>TopbarStack</ObjectName>
 							<Layout>stacked</Layout>
-							<Size>0me,60f</Size>
+							<Size>0me,40f</Size>
 							<Children>
 								<NotificationStrip>
 									<ObjectName>NotificationStrip</ObjectName>

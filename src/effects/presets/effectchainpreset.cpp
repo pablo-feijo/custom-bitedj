@@ -25,6 +25,7 @@ EffectChainPreset::EffectChainPreset(const QDomElement& chainElement) {
     }
 
     m_name = XmlParse::selectNodeQString(chainElement, EffectXml::kChainName);
+    m_description = XmlParse::selectNodeQString(chainElement, QStringLiteral("Description"));
 
     QString mixModeStr = XmlParse::selectNodeQString(chainElement, EffectXml::kChainMixMode);
     m_mixMode = EffectChainMixMode::fromString(mixModeStr);
@@ -91,6 +92,9 @@ const QDomElement EffectChainPreset::toXml(QDomDocument* doc) const {
             EffectXml::kChainSuperParameter,
             QString::number(m_dSuper));
 
+    if (!m_description.isEmpty()) {
+        XmlParse::addElement(*doc, chainElement, QStringLiteral("Description"), m_description);
+    }
     QDomElement effectsElement = doc->createElement(EffectXml::kEffectsRoot);
     for (const auto& pEffectPreset : m_effectPresets) {
         effectsElement.appendChild(pEffectPreset->toXml(doc));

@@ -43,6 +43,12 @@ class ProxyTrackModel : public QSortFilterProxyModel, public TrackModel {
     void copyTracks(const QModelIndexList& indices) const final;
     void moveTrack(const QModelIndex& sourceIndex, const QModelIndex& destIndex) final;
     QAbstractItemDelegate* delegateForColumn(const int i, QObject* pParent) final;
+    const QString& settingsNamespace() const final {
+        return m_pTrackModel->settingsNamespace();
+    }
+    TrackId getTrackRowIdentity(const QModelIndex& index) const final {
+        return m_pTrackModel->getTrackRowIdentity(mapToSource(index));
+    }
     QString getModelSetting(const QString& name) final;
     bool setModelSetting(const QString& name, const QVariant& value) final;
     TrackModel::SortColumnId sortColumnIdFromColumnIndex(int index) const override;

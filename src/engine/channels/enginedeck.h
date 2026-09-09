@@ -41,6 +41,7 @@ class EngineDeck : public EngineChannel, public AudioDestination {
     EngineBuffer* getEngineBuffer() override;
 
     EngineChannel::ActiveState updateActiveState() override;
+    void updateOnAir(bool mainPathOpen) override;
 
     // This is called by SoundManager whenever there are new samples from the
     // configured input to be processed. This is run in the callback thread of
@@ -73,6 +74,7 @@ class EngineDeck : public EngineChannel, public AudioDestination {
     UserSettingsPointer m_pConfig;
     EngineBuffer* m_pBuffer;
     EnginePregain* m_pPregain;
+    QScopedPointer<ControlObject> m_pOnAir;
 
     // Begin vinyl passthrough fields
     QScopedPointer<ControlObject> m_pInputConfigured;

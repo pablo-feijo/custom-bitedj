@@ -1,5 +1,9 @@
 #include "effects/effectknobparameterslot.h"
 
+#include <algorithm>
+#include <cmath>
+#include <limits>
+
 #include "control/controleffectknob.h"
 #include "control/controlobject.h"
 #include "control/controlpushbutton.h"
@@ -48,6 +52,9 @@ EffectKnobParameterSlot::EffectKnobParameterSlot(
     m_pControlUnits = new ControlObject(
             ConfigKey(m_group, itemPrefix + QString("_units")));
     m_pControlUnits->setReadOnly();
+    m_pControlIsMix = new ControlObject(
+            ConfigKey(m_group, itemPrefix + QStringLiteral("_is_mix")));
+    m_pControlIsMix->setReadOnly();
     m_pControlMin = new ControlObject(
             ConfigKey(m_group, itemPrefix + QString("_min")));
     m_pControlMin->setReadOnly();
@@ -75,6 +82,16 @@ EffectKnobParameterSlot::EffectKnobParameterSlot(
             this,
             &EffectKnobParameterSlot::slotValueAliasFromSkin);
 
+    m_pControlBeatPeriod = new ControlObject(
+            ConfigKey(m_group, itemPrefix + QStringLiteral("_beat_period")));
+    m_pControlBeatPeriodMin = new ControlObject(ConfigKey(m_group, itemPrefix + "_beat_period_min"));
+    m_pControlBeatPeriodMax = new ControlObject(ConfigKey(m_group, itemPrefix + "_beat_period_max"));
+    m_pControlBeatPeriodMin->setReadOnly();
+    m_pControlBeatPeriodMax->setReadOnly();
+    // A selected button must still apply its native encoding when the saved
+    // raw value differs (e.g. Echo 0.125 versus its quantized minimum, zero).
+    m_pControlBeatPeriod->connectValueChangeRequest(
+            this, &EffectKnobParameterSlot::slotBeatPeriodFromSkin);
     m_pMetaknobSoftTakeover = new SoftTakeover();
 
     clear();
@@ -86,10 +103,14 @@ EffectKnobParameterSlot::~EffectKnobParameterSlot() {
     delete m_pControlLinkType;
     delete m_pControlLinkInverse;
     delete m_pControlUnits;
+    delete m_pControlIsMix;
     delete m_pControlMin;
     delete m_pControlMax;
     delete m_pControlDefault;
     delete m_pControlValueAlias;
+    delete m_pControlBeatPeriod;
+    delete m_pControlBeatPeriodMin;
+    delete m_pControlBeatPeriodMax;
     delete m_pMetaknobSoftTakeover;
 }
 
@@ -117,12 +138,30 @@ void EffectKnobParameterSlot::loadParameter(EffectParameterPointer pEffectParame
         // Default loaded parameters to loaded and unlinked
         m_pControlLoaded->forceSet(1.0);
 
+        // Match stable parameter IDs, never translated labels or slot numbers.
+        // Skins with a unit Mix knob can omit the internal dry/wet row while
+        // preserving its value, saved preset and Super linkage.
+        const auto parameterId = m_pManifestParameter->id();
+        m_pControlIsMix->forceSet(parameterId == QStringLiteral("mix") ||
+                        parameterId == QStringLiteral("dry_wet")
+                ? 1.0
+                : 0.0);
+
         // Bite DJ fork additions: publish manifest metadata.
         m_pControlUnits->forceSet(
                 static_cast<double>(m_pManifestParameter->unitsHint()));
         m_pControlMin->forceSet(m_pManifestParameter->getMinimum());
         m_pControlMax->forceSet(m_pManifestParameter->getMaximum());
         m_pControlDefault->forceSet(m_pManifestParameter->getDefault());
+        if (m_pManifestParameter->unitsHint() == EffectManifestParameter::UnitsHint::Beats) {
+            const double rawMin = m_pManifestParameter->getMinimum();
+            const double rawMax = m_pManifestParameter->getMaximum();
+            const bool rate = m_pManifestParameter->id() == QStringLiteral("rate");
+            m_pControlBeatPeriodMin->forceSet(beatPeriod(rate ? rawMax : rawMin));
+            m_pControlBeatPeriodMax->forceSet(rate && rawMin <= 0
+                            ? std::numeric_limits<double>::infinity()
+                            : rate ? beatPeriod(rawMin) : rawMax);
+        }
 
         // Bite DJ fork addition: seed the raw-value alias from the
         // current knob value. forceSet skips behaviour and the
@@ -131,6 +170,7 @@ void EffectKnobParameterSlot::loadParameter(EffectParameterPointer pEffectParame
         // emits.
         m_bMirroringValueAlias = true;
         m_pControlValueAlias->forceSet(m_pEffectParameter->getValue());
+        m_pControlBeatPeriod->forceSet(beatPeriod(m_pEffectParameter->getValue()));
         m_bMirroringValueAlias = false;
 
         m_pControlLinkType->set(
@@ -158,11 +198,15 @@ void EffectKnobParameterSlot::clear() {
     m_pControlLinkInverse->set(0.0);
     m_pControlUnits->forceSet(
             static_cast<double>(EffectManifestParameter::UnitsHint::Unknown));
+    m_pControlIsMix->forceSet(0.0);
     m_pControlMin->forceSet(0.0);
     m_pControlMax->forceSet(1.0);
     m_pControlDefault->forceSet(0.0);
     m_bMirroringValueAlias = true;
     m_pControlValueAlias->forceSet(0.0);
+    m_pControlBeatPeriod->forceSet(0.0);
+    m_pControlBeatPeriodMin->forceSet(0.0);
+    m_pControlBeatPeriodMax->forceSet(0.0);
     m_bMirroringValueAlias = false;
     emit updated();
 }
@@ -306,6 +350,7 @@ void EffectKnobParameterSlot::slotKnobValueMirror(double v) {
     }
     m_bMirroringValueAlias = true;
     m_pControlValueAlias->set(v);
+    m_pControlBeatPeriod->forceSet(beatPeriod(v));
     m_bMirroringValueAlias = false;
 }
 
@@ -324,7 +369,7 @@ void EffectKnobParameterSlot::slotValueAliasFromSkin(double v) {
     // would never match. forceSet bypasses behaviour and emits
     // valueChanged, which re-enters this slot — the guard above bails.
     double clamped = m_pControlValue->get();
-    if (clamped != v) {
+    if (m_pControlValueAlias->get() != clamped) {
         m_pControlValueAlias->forceSet(clamped);
     }
     // Push to the audio engine ourselves: m_pControlValue->set(v)
@@ -337,5 +382,47 @@ void EffectKnobParameterSlot::slotValueAliasFromSkin(double v) {
     // sender pointer differs, so the UI looks right but the audio
     // thread keeps using the stale value.
     slotValueChanged(clamped);
+    m_pControlBeatPeriod->forceSet(beatPeriod(clamped));
     m_bMirroringValueAlias = false;
+}
+
+// Beats metadata alone does not distinguish a period from Tremolo's cycles/beat.
+// Keep existing raw controls and saved values intact; the skin uses this alias.
+double EffectKnobParameterSlot::beatPeriod(double raw) const {
+    if (m_pManifestParameter && m_pManifestParameter->unitsHint() ==
+                    EffectManifestParameter::UnitsHint::Beats &&
+            m_pManifestParameter->id() == QStringLiteral("rate")) {
+        return raw > 0 ? 1.0 / raw : 0;
+    }
+    if (m_pManifestParameter && m_pManifestParameter->unitsHint() ==
+                    EffectManifestParameter::UnitsHint::Beats) {
+        // Native delay engines clamp zero to 1/8 beat. Phaser rounds to
+        // half-beats, with zero selecting its minimum quarter-beat cycle.
+        if (m_pManifestParameter->id() == QStringLiteral("delay_time")) {
+            return std::max(raw, 0.125);
+        }
+        if (m_pManifestParameter->id() == QStringLiteral("lfo_period")) {
+            return std::max(std::round(raw * 2.0) / 2.0, 0.25);
+        }
+    }
+    return raw;
+}
+
+void EffectKnobParameterSlot::slotBeatPeriodFromSkin(double beats) {
+    if (m_bMirroringValueAlias || !m_pManifestParameter || beats <= 0 ||
+            m_pManifestParameter->unitsHint() != EffectManifestParameter::UnitsHint::Beats) {
+        return;
+    }
+    const auto id = m_pManifestParameter->id();
+    double raw = beats;
+    if (id == QStringLiteral("rate")) {
+        raw = 1.0 / beats;
+    } else if ((id == QStringLiteral("delay_time") && beats <= 0.125 &&
+                       m_pEffectParameter->effectId() == QStringLiteral("org.mixxx.effects.echo")) ||
+            (id == QStringLiteral("lfo_period") && beats <= 0.25)) {
+        // Writing the displayed minimum literally would be rounded up by
+        // the native quantizer. Zero selects the engine's minimum instead.
+        raw = 0;
+    }
+    slotValueAliasFromSkin(raw);
 }
