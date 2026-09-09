@@ -75,7 +75,7 @@ trademark or release-artifact compliance audit and does not certify legal compli
 
 ## Review coverage and task record
 
-- Work branch: `codex/ui-screenshots-docs`; intended merge target: `codex/v0.0.7`.
+- Work branch: `codex/docs-licensing-and-hygiene`; intended merge target: `codex/v0.0.7`.
 - [x] Review all 35 pre-existing tracked Markdown files in the parent repository,
   including hidden issue templates, packaging notes and five bundled-library docs.
 - [x] Review root LICENSE/COPYING, the skin license/manifest, mapping author

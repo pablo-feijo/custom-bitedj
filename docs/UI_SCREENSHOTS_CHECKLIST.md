@@ -30,6 +30,9 @@ No UI source or persisted control values changed. Feature changes merged into `c
 
 ## Branch hygiene follow-up
 
+Work branch: `codex/docs-licensing-and-hygiene` in `bitedj-docs-licensing`.
+Moved with the licensing review to a dedicated worktree on user request.
+
 Merge target: `codex/v0.0.7`.
 
 - [x] Add canonical agent rules for local/remote cleanup after integration.
