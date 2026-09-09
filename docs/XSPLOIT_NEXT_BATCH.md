@@ -1,5 +1,9 @@
 # Selected fork integration todo
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
+
 Branch: `codex/rekordbox-padfx-display` in `bitedj-next-batch`.
 Initial base: completed first batch `180ab1bb60` (inherited `v0.0.6`).
 Rebased onto local `codex/v0.0.7` at `b840bf1327`, including the other task's

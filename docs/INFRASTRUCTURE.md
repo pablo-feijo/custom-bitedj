@@ -1,5 +1,10 @@
 # Infrastructure & Build Architecture
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+This guide describes [Custom Bite DJ](../README.md), an independent fork of
+[Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on Mixxx.
+
 Unlike upstream Mixxx which is distributed as a standard desktop application, BiteDJ is engineered as a full appliance operating system (OS) optimized for the Raspberry Pi. This requires a significantly different build and deployment infrastructure.
 
 ## 1. Cross-Compilation Engine

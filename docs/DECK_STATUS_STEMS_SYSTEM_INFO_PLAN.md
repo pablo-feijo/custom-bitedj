@@ -1,5 +1,9 @@
 # Deck status, stems and system information
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
+
 Status: first implementation complete for source labels, beat jump, ON AIR,
 active quantize/keylock styling and Settings -> INFO. Stems remain a separate
 engine integration; see STEM_FEASIBILITY.md. Targeted tests pass; real Pi

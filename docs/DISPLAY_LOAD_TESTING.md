@@ -1,5 +1,9 @@
 # Two-deck display and replacement checks
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
+
 Branch `codex/rekordbox-padfx-display`; eventual merge `codex/v0.0.7`.
 Only the owned ARM64 container `bitedj-next-gui` is used.
 

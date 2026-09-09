@@ -1,5 +1,10 @@
 # BiteDJ Custom OS - Networking & Audio Infrastructure
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+This guide describes [Custom Bite DJ](../README.md), an independent fork of
+[Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on Mixxx.
+
 This document serves as a complete, versioned record of the custom UI and low-level audio fixes applied to the Raspberry Pi OS build to make it touch-friendly and resolve Bluetooth/ALSA conflicts.
 
 ## 1. Custom Touch-Friendly Networking GUIs

@@ -1,5 +1,9 @@
 # Pioneered-inspired BiteDJ checklist
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
+
 Reviewed 2026-09-08. This is a planning backlog, not authorization to implement
 all items. Checked items exist in BiteDJ; unchecked items are proposed work.
 Feature branch: `codex/deck-status-stems-system-info`.

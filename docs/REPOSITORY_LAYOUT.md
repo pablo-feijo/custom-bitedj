@@ -1,5 +1,9 @@
 # Repository layout
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
+
 Keep the root for project entry points and configuration: README, changelog,
 licenses/notices, agent instructions, CMakeLists.txt, Doxyfile and tool settings.
 BiteDJ helper scripts and Docker recipes live in the directories below.

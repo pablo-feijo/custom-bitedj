@@ -1,5 +1,12 @@
 # Mixxx Flatpak instructions
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+These are inherited Mixxx packaging instructions, retained as upstream reference.
+They do not describe an official Mixxx or Deckshark distribution of
+[Custom Bite DJ](../../README.md). The fork's current ARM64 workflow is in
+[Build and deploy](../../docs/BUILD_AND_DEPLOY.md).
+
 This document provides instructions for building, packaging and installing Mixxx as a Flatpak application using the **tools/flatpak_buildenv.sh** and **packaging/flatpak/flatpak_build.sh** Bash scripts. The scripts provide several options for configuring the build, so please read the documentation before using them.
 
 If you already have Flatpak set up, you can simply use the recommended build options. These commands will install a system-wide build environment, compile a Mixxx Flatpak bundle and install it for the current user. The process requires 15 GB of disk space and usually takes about 20 minutes.

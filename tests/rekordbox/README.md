@@ -1,5 +1,10 @@
 # Synthetic Rekordbox fixtures and live checks
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+These fixtures test [Custom Bite DJ](../../README.md), the independent BiteDJ fork.
+The Rekordbox name identifies the export format under test, not sponsorship.
+
 Generate all media locally with the Python standard library:
 
 ```sh

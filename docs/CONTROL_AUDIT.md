@@ -1,5 +1,10 @@
 # BiteDJ control audit
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+This guide describes [Custom Bite DJ](../README.md), an independent fork of
+[Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on Mixxx.
+
 Date: 2026-09-08. Scope: the current BiteDJ skin and its native widgets.
 
 ## Results

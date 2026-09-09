@@ -1,5 +1,9 @@
 # UI documentation task
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
+
 - Branch: `codex/ui-screenshots-docs`
 - Worktree: `bitedj-ui-docs`
 - Merge target: `codex/v0.0.7` (merge authorized by the user)
@@ -23,3 +27,20 @@ stale Library settings coordinate/visibility map from the live screenshot.
 Owned instance: `bitedj-gui-718691038`, left on Play. Discover its current
 endpoints with the settings helper and `docker port`; launch ports can change.
 No UI source or persisted control values changed. Feature changes merged into `codex/v0.0.7` on user request. No release or push requested.
+
+## Branch hygiene follow-up
+
+Work branch: `codex/docs-licensing-and-hygiene` in `bitedj-docs-licensing`.
+Moved with the licensing review to a dedicated worktree on user request.
+
+Merge target: `codex/v0.0.7`.
+
+- [x] Add canonical agent rules for local/remote cleanup after integration.
+- [x] Preserve release refs, unmerged work, active GUI ownership and submodule reachability.
+- [x] Link the root agent guide to the policy and check the documentation diff.
+
+- [x] Merge licensing and hygiene documentation into `codex/v0.0.7` on user
+  request (2026-09-09). Conventional Commit messages and documentation diff
+  checks passed; application sources, license texts and versions are unchanged.
+- [ ] Publish this integration, then retire the merged documentation branch
+  under the branch-cleanup rules. This merge request did not request a push.

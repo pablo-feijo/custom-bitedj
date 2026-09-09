@@ -1,6 +1,13 @@
 # Local GUI & Audio Testing Environment
 
-BiteDJ provides a local Docker-based testing environment that reproduces the Raspberry Pi's exact display resolution, skin layout, audio pipeline, and effect processing on your development machine (macOS/Linux).
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+This guide describes [Custom Bite DJ](../README.md), an independent fork of
+[Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on Mixxx.
+
+Custom Bite DJ provides a local Docker environment for inspecting the 1024×600
+skin and exercising virtual audio paths on macOS/Linux. It does not establish
+Raspberry Pi hardware performance or upstream certification.
 
 Use this workflow to **quickly test and verify changes before deploying to hardware or generating OS images**.
 
@@ -99,7 +106,7 @@ capture and HTTP checks alone do not prove correct DSP. Use the native
                         +--------------------+      +--------------------+
 ```
 
-- **Screen Resolution**: Locked to 1024x600, matching the official BiteDJ multi-touch screen.
+- **Screen Resolution**: Locked to 1024x600, matching this fork’s target touchscreen resolution.
 - **Audio Subsystem**: PulseAudio virtual dummy sink routing PortAudio audio directly to an internal HTTP MP3 streaming server.
 - **Pre-Loaded Test Music**: Synthesized 44.1kHz stereo test tracks (`BiteDJ_Test_Groove_128BPM.wav` and `BiteDJ_Test_Techno_124BPM.wav`) are mounted into `/music` and automatically cued onto Deck 1 and Deck 2.
 - **Browser Accessibility**: Web-based noVNC interface with auto-scaling, direct VNC, and in-browser audio player.
