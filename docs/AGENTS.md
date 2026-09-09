@@ -109,6 +109,14 @@ When preparing a new release or branch (e.g., `v0.0.4`), agents must explicitly 
 2. **OS Image output**: Ensure `IMG_NAME` in `mixxx-pi-gen/config` includes the semver suffix (e.g., `IMG_NAME="bitedj-pi-v0.0.4"`).
 3. **Flashing Scripts**: Update `flash-sdcard.sh` dynamically or explicitly so `ZIP_FILE` and `IMG_FILE` point to the freshly versioned output targets.
 
+For the 0.0.7 working release, pi-gen also uses `codex/v0.0.7`. Commit changes
+there first, publish that branch, then commit the parent `mixxx-pi-gen` gitlink.
+Keep `.gitmodules` URL/branch valid so a recursive clone resolves the pinned
+commit. The flasher derives IMG_NAME from the pinned config; use
+`BITEDJ_IMAGE_DATE=YYYY-MM-DD` to select a build from a different day.
+Do not copy UI resources into pi-gen: it consumes the matching parent ARM64
+`dist-linux` build. Its sample mixxx.cfg is not installed on first boot.
+
 ## 5. Prevent Configuration Drift (Infrastructure as Code)
 When resolving bugs on live hardware or applying hot-patches over SSH (e.g., editing `~/.config/sway/config` or modifying `gsettings` on the Pi), you **must immediately backport those changes to the local repository.** 
 - Never leave a live Pi in a state that cannot be exactly reproduced by `./generate-pi-image.sh`.

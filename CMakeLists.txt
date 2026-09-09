@@ -102,7 +102,7 @@ set(MIXXX_VERSION_PRERELEASE "") # set to "alpha" "beta" or ""
 # The Bite DJ fork version. This is the product version displayed in the UI and
 # reported by `bitedj --version`; it moves independently of the Mixxx base
 # version above.
-set(BITEDJ_VERSION "0.0.6")
+set(BITEDJ_VERSION "0.0.7")
 set(BITEDJ_VERSION_PRERELEASE "") # set to "alpha" "beta" or ""
 if(NOT BITEDJ_VERSION MATCHES "^[0-9]+(\\.[0-9]+)*$")
   message(FATAL_ERROR "BITEDJ_VERSION must be a dot-separated numeric version, got '${BITEDJ_VERSION}'")
