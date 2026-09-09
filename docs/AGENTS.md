@@ -67,10 +67,14 @@ setup; replace their target with the verified owned `$CONTAINER_NAME`.
   refs, working-tree status, `git worktree list`, and live test-instance ownership.
   Use full ref names to avoid branch/tag ambiguity and exclude symbolic refs
   such as `origin/HEAD` from deletion candidates.
-- Prove each candidate tip is an ancestor of a retained integration/release ref
-  with `git merge-base --is-ancestor`. For remote deletion, also prove the tip is
-  reachable from a retained, published remote ref. Matching filenames, similar
-  commit messages, or an apparently equivalent squash are not ancestry proof.
+- For branch deletion, prove each candidate tip is an ancestor of a retained
+  integration/release ref with `git merge-base --is-ancestor`. For remote deletion,
+  also prove the tip is reachable from a retained, published remote ref. Matching
+  filenames or commit messages are not proof. Squash-merged checkout removal is
+  separate: verify exact tree identity, or review all task changes against the
+  integration result and account for every difference. Record that evidence and
+  preserve the original commit under its existing branch or a recovery ref;
+  lack of ancestry alone must not leave a redundant checkout on disk.
 - Prefer `git branch -d`. If Git refuses because it checks a different upstream
   or current branch, use `-D` only after independently proving ancestry to the
   intended retained ref. Never force-delete unique or uncertain history.
@@ -79,10 +83,20 @@ setup; replace their target with the verified owned `$CONTAINER_NAME`.
   breaks the ownership check. Record the retained branch and reason, then finish
   cleanup when that task's instance is retired. A branch-only cleanup does not
   authorize stopping a GUI requested for review.
-- For an inactive, clean worktree owned by the task, detaching at its exact current
-  commit permits deleting the merged branch while preserving files. Check nested
-  submodules and untracked/ignored outputs before any worktree removal. Do not
-  use forced worktree removal or blanket `git clean` as branch cleanup.
+- Remove inactive, completed task worktrees after the integration audit; do not
+  merely detach them and leave the folders. Check tracked changes, untracked and
+  ignored outputs, and nested submodule worktrees first. Delete only identified,
+  disposable task-generated outputs; preserve unique or uncertain data with a
+  recovery manifest. Do not use forced worktree removal or blanket `git clean`.
+- For nested repositories, inspect their own worktree lists before removing a
+  parent directory. Retire verified redundant nested checkouts first, preserve
+  refs and pinned commits (a verified `git bundle --all HEAD` is a recovery option),
+  and preserve repository metadata if Git cannot remove it normally. Never delete
+  a Git common directory still used by another checkout.
+- After local-only integration, the completed checkout may be retired while its
+  branch/recovery ref remains pending publication. Do not infer authorization to
+  push, delete remote refs, prune Docker globally or discard historical release
+  archives from a local squash-merge request.
 - Audit submodule repositories separately. Preserve any branch needed to keep a
   parent repository's pinned gitlink reachable remotely. Publish a retained ref
   containing that commit before deleting its last remote branch; never assume a
@@ -240,3 +254,30 @@ procedures in Git. Put generated exports, audio captures, screenshots, logs,
 benchmark snapshots, caches and test reports in ignored `test-results/` (or
 other ignored runtime directories). Do not commit test-run results. Record
 instance ownership and regenerate assets instead of copying personal music.
+
+## Branch-local Docker environment and old worktrees
+
+- Launch and open branch previews using the [environment-variable recipe](GUI_TESTING.md#environment-variables-for-launching-and-opening-a-branch-preview).
+  Export task-specific `BITEDJ_TEST_*` values in that task's shell, source the
+  settings helper, verify ownership, and discover actual ports before opening.
+  `.env` files are not loaded automatically. Clear inherited overrides when
+  changing tasks; never hard-code another instance's container name or URL.
+- Finish every authorized integration with a cleanup audit, including the actual
+  sibling folders on disk, Git worktrees, Docker labels and bind mounts, nested
+  repositories, and ignored artifacts. Do not stop at `git branch --merged`:
+  squash merges require checking the integrated source changes.
+- Remove the completed task's inactive checkout once integration is verified.
+  For squash merges, record the original tip and integration commit, verify
+  exact tree identity or review the complete task diff and integration changes,
+  and retain the original tip under a recovery ref when ancestry is absent.
+  Use non-forced `git worktree remove`; follow the canonical policy for ref deletion.
+- Clean known task-generated disposable caches and temporary build/test outputs
+  when retiring that task. Preserve unique settings, user media, uncommitted work,
+  deliverables and uncertain files. If preservation is needed, consolidate them
+  under one ignored recovery directory with a manifest and report its size;
+  moving artifacts does not reclaim disk space. Do not accumulate new sibling
+  backup folders or archive reproducible caches indefinitely.
+- Keep active tasks, integration checkouts and requested previews. Retire only
+  the completed task's own preview when it is no longer needed for review; never
+  stop another task's container or remove a bind-mounted folder. Report remaining
+  folders with specific reasons, sizes and the next cleanup action.

@@ -387,3 +387,30 @@ FX dismisses the picker. See [the gallery](docs/UI_SCREENSHOTS.md#beat-fx-picker
 Compact FX actions: eraser = Clear FX, × = Close, left/right chevrons =
 Prev/Next. Tooltips and accessible names retain the action labels. Standard
 and Saved remain labeled tabs; the 9px page counter reads `1 / 2`.
+
+## Branch-local Docker environment and old worktrees
+
+- Launch and open branch previews using the [environment-variable recipe](docs/GUI_TESTING.md#environment-variables-for-launching-and-opening-a-branch-preview).
+  Export task-specific `BITEDJ_TEST_*` values in that task's shell, source the
+  settings helper, verify ownership, and discover actual ports before opening.
+  `.env` files are not loaded automatically. Clear inherited overrides when
+  changing tasks; never hard-code another instance's container name or URL.
+- Finish every authorized integration with a cleanup audit, including the actual
+  sibling folders on disk, Git worktrees, Docker labels and bind mounts, nested
+  repositories, and ignored artifacts. Do not stop at `git branch --merged`:
+  squash merges require checking the integrated source changes.
+- Remove the completed task's inactive checkout once integration is verified.
+  For squash merges, record the original tip and integration commit, verify
+  exact tree identity or review the complete task diff and integration changes,
+  and retain the original tip under a recovery ref when ancestry is absent.
+  Use non-forced `git worktree remove`; follow the canonical policy for ref deletion.
+- Clean known task-generated disposable caches and temporary build/test outputs
+  when retiring that task. Preserve unique settings, user media, uncommitted work,
+  deliverables and uncertain files. If preservation is needed, consolidate them
+  under one ignored recovery directory with a manifest and report its size;
+  moving artifacts does not reclaim disk space. Do not accumulate new sibling
+  backup folders or archive reproducible caches indefinitely.
+- Keep active tasks, integration checkouts and requested previews. Retire only
+  the completed task's own preview when it is no longer needed for review; never
+  stop another task's container or remove a bind-mounted folder. Report remaining
+  folders with specific reasons, sizes and the next cleanup action.

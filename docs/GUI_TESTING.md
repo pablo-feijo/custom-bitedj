@@ -22,8 +22,10 @@ Use this workflow to **quickly test and verify changes before deploying to hardw
 Create a feature worktree from the agreed, existing semver integration branch:
 
 ```bash
-git worktree add ../bitedj-my-feature -b codex/my-feature codex/v0.0.7
+git fetch origin
+git worktree add ../bitedj-my-feature -b codex/my-feature origin/codex/v0.0.7
 cd ../bitedj-my-feature
+# Assign the branch prerelease version per BRANCH_VERSIONING.md before building.
 ./scripts/build/docker-build.sh --platform linux/arm64
 ./scripts/test/run-gui-test.sh
 ```
@@ -32,6 +34,53 @@ Use the actual agreed base if the next semver branch has not been created yet.
 The launcher chooses a worktree-specific container and free localhost ports.
 It prints the noVNC, audio and VNC endpoints. Another worktree can run the same
 commands concurrently; its writable build, install, settings and results stay separate.
+
+### Environment variables for launching and opening a branch preview
+
+Run from the task worktree. Use a fresh shell when moving between tasks, or
+unset previously exported `BITEDJ_TEST_*` overrides first: an exported instance
+name takes precedence over `test-config/active-instance`. The launcher reads
+process environment variables; it does **not** automatically load `.env` files.
+Do not put task-specific exports in a global shell profile.
+
+```bash
+# Optional: choose a unique name; otherwise the worktree-derived name is used.
+export BITEDJ_TEST_INSTANCE=bitedj-my-feature
+# Optional: export unused fixed ports. Omit these for automatic allocation.
+# export BITEDJ_TEST_WEB_PORT=6081
+# export BITEDJ_TEST_AUDIO_PORT=8001
+# export BITEDJ_TEST_VNC_PORT=5901
+./scripts/test/run-gui-test.sh
+
+# Discover the actual endpoints after every launch, including automatic ports.
+source ./scripts/test/gui-test-settings.sh
+verify_test_instance_owner || exit 1
+export BITEDJ_TEST_WEB_URL="http://localhost:$(test_host_port 6080)/vnc.html"
+export BITEDJ_TEST_AUDIO_URL="http://localhost:$(test_host_port 8000)/stream.mp3"
+export BITEDJ_TEST_VNC_URL="vnc://localhost:$(test_host_port 5900)"
+printf '%s\n' "$BITEDJ_TEST_WEB_URL" "$BITEDJ_TEST_AUDIO_URL" "$BITEDJ_TEST_VNC_URL"
+# macOS; Linux desktop users can use xdg-open instead:
+open "$BITEDJ_TEST_WEB_URL"
+```
+
+The URL variables above are shell conveniences, not launcher inputs. Agents
+opening a Codex browser panel should pass the discovered web URL to the browser
+open tool. Complete the [noVNC delivery gate](#novnc-delivery-gate) before handing
+a preview URL to the user. Never reuse a URL from another task or an earlier
+container launch.
+
+| Launcher variable | Behavior |
+| --- | --- |
+| `BITEDJ_TEST_INSTANCE` | Explicit owned container name; otherwise remembered or derived per worktree. |
+| `BITEDJ_TEST_WEB_PORT`, `BITEDJ_TEST_AUDIO_PORT`, `BITEDJ_TEST_VNC_PORT` | Optional host ports; unset means Docker chooses free localhost ports. |
+| `BITEDJ_TEST_MUSIC_DIR` | Optional existing fixture directory; default is worktree `test-music/`. Supply both startup WAV tracks when overriding. |
+| `BITEDJ_TEST_USB_DIR` | Optional existing directory mounted read-only at `/media/TestUSB`. |
+| `BITEDJ_TEST_REBUILD_IMAGE=1` | Rebuild the shared GUI image when needed. |
+| `BITEDJ_BUILDER_IMAGE` | Builder image used when building the GUI image. |
+
+Keep `dist-linux/`, build outputs and settings inside the task worktree; do not
+redirect them to another branch's mutable artifacts. Automated mode is reserved
+for the test harness and does not publish browser ports.
 
 For stable endpoints, choose an unused port set:
 
