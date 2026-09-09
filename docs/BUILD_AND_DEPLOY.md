@@ -108,7 +108,7 @@ It also requires `mixxx-pi-gen/config` to name the verified product version,
 including the prerelease suffix. Initialize the pinned submodule with
 `git submodule update --init mixxx-pi-gen` if it is absent; do not substitute an
 unrelated image-generator checkout. GUI and hardware testing requirements in
-[the agent guide](AGENTS.md) still apply before delivery.
+[the agent build/test guide](agents/build-and-test.md) still apply before delivery.
 
 BuildKit may refresh an OCI index ID when only attestations change. The helper
 compares rootfs layer digests and runtime configuration for cache compatibility,

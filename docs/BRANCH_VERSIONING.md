@@ -15,7 +15,9 @@ branch before each new task and record the actual resolved commit. Do not start
 from an older release, a stale local integration checkout, or an arbitrary branch
 with a larger version number. The latest **active unreleased** branch is the one
 agreed with the user. When a newer release becomes active, update this table,
-`AGENTS.md` and `docs/AGENTS.md` together; retain the transition history below.
+the affected release-specific guides (including screenshot paths and pi-gen
+notes under `docs/agents/`) together; retain the transition history below.
+This table is the sole active-release record; agent entry points link here.
 
 ## Starting work
 
