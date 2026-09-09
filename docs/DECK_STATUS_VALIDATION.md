@@ -133,3 +133,19 @@ in the updated VNC instance; XML parsing and whitespace checks passed.
   The documented test-gui-automated.sh is absent in this checkout; VNC checks and
   targeted native tests were used. Pi USB/thermal/touch/audio validation is deferred
   at the user's request. No merge into codex/v0.0.7 has been performed.
+
+### 3 BAND preview consistency
+
+The stacked overview now uses the same RGB band colors and high/mid/low order
+as the scrolling 3 BAND renderer, including the optional Amber palette. Its axis
+sits at the bottom of the single-sided preview. Stereo band sums are scaled to
+fit the entire source image, and the normalized crop always retains at least one
+row for silence. This corrects the earlier filtered-color, reversed-band preview.
+
+Ruler follow-up: reduced the ruler to 12px with 8px labels and shorter ticks;
+the waveform gains those four pixels (38px), preserving the total deck height.
+
+Local 1024x600 VNC checks: both deck previews render the default red/green/blue
+stack and the Amber stack in the same band order as the main waveform. RGB and
+FILT mode-switch checks retain their symmetric previews. ARM64 build and
+whitespace checks passed for the preview correction.

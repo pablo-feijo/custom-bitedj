@@ -50,7 +50,7 @@ on the reference's deck controls and presentation, not promises of direct reuse.
   full Unicode text and stable geometry have native regression coverage.
   Keep artist and badges fixed; test long Unicode titles and empty decks.
 - [x] **Overview time ruler.** Sparse minute marks beneath a full, unclipped
-  34px overview, with a separate 16px ruler row.
+  38px overview, with a separate 12px ruler row.
 - [x] **Waveform palette option.** Added a persisted blue/amber/cream preset. Compare
   filtered, RGB and overview rendering on identical tracks. Preserve user choice;
   do not assume a palette alone reproduces another analyser's output.

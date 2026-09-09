@@ -442,12 +442,12 @@
       <WidgetGroup>
         <ObjectName>DeckOverviewContainer</ObjectName>
         <Layout>vertical</Layout>
-        <Size>0me,34f</Size>
+        <Size>0me,38f</Size>
         <Children>
           <Overview>
             <BiteDJPalette>true</BiteDJPalette>
             <ObjectName>DeckOverview</ObjectName>
-            <Size>0me,34f</Size>
+            <Size>0me,38f</Size>
             <Channel><Variable name="channel"/></Channel>
             <BgColor>#000</BgColor>
             <SignalColor>#222</SignalColor>
@@ -619,7 +619,7 @@
           </Overview>
         </Children>
       </WidgetGroup>
-      <OverviewRuler><ObjectName>OverviewRuler</ObjectName><Size>0me,16f</Size><Channel><Variable name="channel"/></Channel></OverviewRuler>
+      <OverviewRuler><ObjectName>OverviewRuler</ObjectName><Size>0me,12f</Size><Channel><Variable name="channel"/></Channel></OverviewRuler>
     </Children>
   </WidgetGroup>
 </Template>

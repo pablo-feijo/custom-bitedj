@@ -21,14 +21,14 @@ void WOverviewRuler::paintEvent(QPaintEvent*) {
     if (!track || track->getDuration() <= 0 || width() < 60) return;
     const double duration = track->getDuration();
     const int step = 60 * qMax(1, static_cast<int>(std::ceil(duration / 60.0 / qMax(1, width() / 60))));
-    QFont f = font(); f.setPixelSize(9); painter.setFont(f);
+    QFont f = font(); f.setPixelSize(8); painter.setFont(f);
     painter.setPen(WSkinColor::getCorrectColor(QColor("#aaaaba")));
     for (int seconds = 0; seconds <= duration; seconds += step) {
         const int x = qRound(seconds / duration * (width() - 1));
-        painter.drawLine(x, 0, x, 3);
+        painter.drawLine(x, 0, x, 1);
         const QString label = QStringLiteral("%1:00").arg(seconds / 60);
         const int labelWidth = painter.fontMetrics().horizontalAdvance(label);
         const int left = qBound(4, x - labelWidth / 2, width() - labelWidth - 4);
-        painter.drawText(left, height() - 2, label);
+        painter.drawText(left, height() - 1, label);
     }
 }

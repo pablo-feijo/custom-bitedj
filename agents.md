@@ -144,8 +144,8 @@ Convert screenshot to PPM (`ffmpeg -i screen.png screen.ppm`) and parse raw RGB 
 - For touch library loading, begin with a horizontal move to distinguish a drag
   from vertical scrolling. Only actual visible deck regions accept that drag;
   Escape cancels it. Highlight geometry must match the release target geometry.
-- Overview waveform height must match its visible container (currently 34px).
-  Keep the 16px minute ruler in a separate row; do not crop a double-height widget.
+- Overview waveform height must match its visible container (currently 38px).
+  Keep the 12px minute ruler in a separate row; do not crop a double-height widget.
   Check RGB, FILT and 3 BAND after changing overview rendering. Stacked rendering
   uses bottom-origin image coordinates and must not get the symmetric translation.
 - Current compact Browse table: breadcrumb y=40..72, header y=72..94,
