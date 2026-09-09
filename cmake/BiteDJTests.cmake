@@ -1,7 +1,7 @@
 # Keep the full upstream suite, with a focused selection for BiteDJ edits.
 # Labels select tests; they do not replace the full native CI gate.
 set(_bitedj_suites
-  "DeckLoadPolicyTest|DeckPresentationTest|EffectSlotTest|PadEchoTest|PadFxEditorTest|PadFxSettingsTest|PadFxRoutingTest|PrepareTest|RekordboxDisplayTest|RekordboxImportTest|SystemTelemetryTest|TextScrollTest|EqModeTest|HighContrastTest|SystemSettingsTest|LibraryColumnControlTest|ControllerLibraryColumnIDRegressionTest|FsCueOverrideStoreTest|FsMetaOverrideStoreTest|FsHistoryStoreTest|FsHistoryWorkerTest|FsSamplerBankStoreTest|SamplerDriveTest|PlayedTracksTest|RekordboxAnlzTest|MetaLinkTest|TouchScrollFilterTest|WWidgetStackTest")
+  "WaveformRenderingTest|PreviewDelegateTest|DeckLoadPolicyTest|DeckPresentationTest|EffectSlotTest|PadEchoTest|PadFxEditorTest|PadFxSettingsTest|PadFxRoutingTest|PrepareTest|RekordboxDisplayTest|RekordboxImportTest|SystemTelemetryTest|TextScrollTest|EqModeTest|HighContrastTest|SystemSettingsTest|LibraryColumnControlTest|ControllerLibraryColumnIDRegressionTest|FsCueOverrideStoreTest|FsMetaOverrideStoreTest|FsHistoryStoreTest|FsHistoryWorkerTest|FsSamplerBankStoreTest|SamplerDriveTest|PlayedTracksTest|RekordboxAnlzTest|MetaLinkTest|TouchScrollFilterTest|WWidgetStackTest")
 foreach(_test IN LISTS testsuite)
   set_property(TEST "${_test}" APPEND PROPERTY LABELS native)
   if(_test MATCHES "^(${_bitedj_suites})\\.")

@@ -6,29 +6,29 @@ This guide describes [Custom Bite DJ](../README.md), an independent fork of
 [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on Mixxx.
 
 Native **1024×600** screenshots using synthetic music in isolated ARM64 Docker
-instances. Play and Beat FX were refreshed on `codex/ddj400-shift-fx-back` for
-the catalogue and picker changes documented here; they use the generated Groove
-128 BPM and Techno 124 BPM tracks. The picker is shown in Night and Day modes.
+instances. Play, Browse, Settings and the drawer were refreshed on
+`codex/waveform-preview-fixes`, binary `0.0.7-codex-waveform-preview-fixes.2`.
+They use generated Groove 128 BPM and Techno 124 BPM tracks. Browse also shows
+the unloaded 16-second replacement fixture, read from its cached analysis after
+a restart. Unavailable previews show an em dash. No physical MIDI controller or
+USB drive is attached; runtime statistics describe the container.
 
-Browse and Settings retain UI source revision `8f87aa338f` on `codex/v0.0.7`,
-in Night mode. Their [synthetic Rekordbox fixture](../tests/rekordbox/README.md)
-supplies tracks, phrases and cue colors. Its copied export directory is not a
-mounted USB drive; the source badges read **OFFLINE**. No physical MIDI controller
-or USB drive is attached. The two fallback Browse rows show LOAD until preview
-data is available.
+Beat FX picker images retain the `codex/ddj400-shift-fx-back` capture for the
+catalogue/picker changes documented here. The picker and drawer include Day
+captures; the primary Play/Browse/Settings images use Night mode.
 
 See the [0.0.7 changelog](../CHANGELOG.md#007--unreleased) for the changes behind
 these screens, or [return to the README](../README.md).
 
-[Play](#play) | [Beat FX picker](#beat-fx-picker) | [Browse with previews](#browse-preview) | [General](#settings-general) | [Library](#settings-library) | [Pad FX](#settings-pad-fx) | [Device](#settings-device) | [Audio](#settings-audio) | [System](#settings-system) | [Info](#settings-info)
+[Drawer](#controller-pad-drawer) | [Play](#play) | [Beat FX picker](#beat-fx-picker) | [Browse with previews](#browse-preview) | [General](#settings-general) | [Library](#settings-library) | [Pad FX](#settings-pad-fx) | [Device](#settings-device) | [Audio](#settings-audio) | [System](#settings-system) | [Info](#settings-info)
 
 <a id="play"></a>
 
 ## Play
 
-Two loaded decks with scrolling waveforms, deck overviews and the FX panel. The KEY and JUMP tabs share the right-hand panel.
+Two loaded decks with synchronized waveform type/palette rendering, deck overviews and the FX panel. The KEY and JUMP tabs share the right-hand panel.
 
-![Play: Two loaded decks with scrolling waveforms, deck overviews and the FX panel. The KEY and JUMP tabs share the right-hand panel.](images/ui/0.0.7/play.png)
+![Play: Two loaded decks with synchronized waveform type/palette rendering, deck overviews and the FX panel. The KEY and JUMP tabs share the right-hand panel.](images/ui/0.0.7/play.png)
 
 <a id="beat-fx-picker"></a>
 
@@ -64,9 +64,9 @@ labels now display as COLOR FILTER and RHYTHMIC FILTER.
 
 ## Browse with previews
 
-Synthetic tracks in the compact library table, with the waveform Preview column enabled and both deck overviews visible below.
+Synthetic tracks in the compact library table, with cached waveform previews, including the unloaded 16-second replacement fixture, and both deck overviews visible below.
 
-![Browse with previews: Synthetic tracks in the compact library table, with the waveform Preview column enabled and both deck overviews visible below.](images/ui/0.0.7/browse-preview.png)
+![Browse with previews: Synthetic tracks in the compact library table, with cached waveform previews, including the unloaded 16-second replacement fixture, and both deck overviews visible below.](images/ui/0.0.7/browse-preview.png)
 
 <a id="settings-general"></a>
 
@@ -124,6 +124,24 @@ Audio and system status. Readings describe the local ARM64 Docker capture instan
 
 ![Settings — Info: Audio and system status. Readings describe the local ARM64 Docker capture instance, not Raspberry Pi performance.](images/ui/0.0.7/settings-info.png)
 
+## Controller pad drawer
+
+The padded 150px drawer has independent Previous/Next touch buttons and a 44px
+header. Forward order is Hot Cues → Memory → Beat Jump → Pad FX → Beat Loop;
+Previous reverses and wraps. Controller mode selection and touch share the same
+per-deck display state. Performance pads are legends; Hot Cues and Memory retain
+interactive cue pads. [Coordinates and mappings](../AGENTS.md#touch-drawer-navigation-and-padding-1024600).
+
+![Beat Jump with separate previous and next buttons and balanced padding.](images/ui/0.0.7/controller-beat-jump.png)
+
+![Beat Loop legend in the padded drawer.](images/ui/0.0.7/controller-beat-loop.png)
+
+![Pad FX legend and touch mode navigation.](images/ui/0.0.7/controller-pad-fx.png)
+
+![Memory cue pads with the same header and spacing.](images/ui/0.0.7/touch-memory.png)
+
+![Pad FX drawer in Day mode.](images/ui/0.0.7/controller-pad-fx-day.png)
+
 ## Refreshing these images
 
 Follow the [capture and review procedure](GUI_TESTING.md#documentation-screenshots)
@@ -131,27 +149,3 @@ and [agent screenshot policy](../AGENTS.md#published-ui-screenshots). Refresh
 screens affected by UI changes in the same commit and link their sections from
 the changelog. Raw captures remain ignored; only reviewed publication images
 are stored here. Preserve this gallery once 0.0.7 is released.
-
-<a id="controller-pad-drawer"></a>
-
-## Controller pad drawer
-
-Branch `codex/controller-pad-drawer`, based on `559edc3def`; compiled version
-`0.0.7-codex-controller-pad-drawer.2`. Captured at 1024×600 with synthetic music
-and the actual DDJ-400 mapping receiving simulated MIDI, not physical hardware.
-The legend occupies the existing cue drawer, follows each deck's selected mode
-and shows the current saved assignments. Use the controller pads to perform;
-the new legend cells are read-only. The touch header cycles Hot Cues → Memory →
-Beat Jump → Pad FX → Beat Loop. Hot Cue restores the existing touch controls.
-
-![Deck 1 Pad FX: eight default assignments in the cue drawer.](images/ui/0.0.7/controller-pad-fx.png)
-
-![Deck 2 Beat Jump: four backward/forward beat distances.](images/ui/0.0.7/controller-beat-jump.png)
-
-![Deck 1 Beat Loop: four held rolls above four toggle loops.](images/ui/0.0.7/controller-beat-loop.png)
-
-![Shift follows the alternate saved Pad FX bank.](images/ui/0.0.7/controller-pad-fx-shift.png)
-
-![Day theme with the touch-selectable Pad FX header.](images/ui/0.0.7/controller-pad-fx-day.png)
-
-![Touch cycles from Hot Cues to the Memory bank.](images/ui/0.0.7/touch-memory.png)

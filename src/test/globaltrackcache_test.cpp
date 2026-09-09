@@ -235,3 +235,15 @@ TEST_F(GlobalTrackCacheTest, evictWhileMoving) {
 
     EXPECT_TRUE(GlobalTrackCacheLocker().isEmpty());
 }
+
+TEST_F(GlobalTrackCacheTest, PreviewLookupSkipsUnpublishedTrackWithoutWaiting) {
+    auto file = mixxx::FileAccess(mixxx::FileInfo(getTestDir().filePath(kTestFile)));
+    auto resolver = GlobalTrackCacheResolver(file);
+    auto track = resolver.getTrack();
+    ASSERT_TRUE(track);
+    // A blocking lookup here would deadlock with this unfinished resolver.
+    EXPECT_FALSE(GlobalTrackCacheLocker().lookupPublishedTrackByLocation(track->getLocation()));
+    resolver.initTrackIdAndUnlockCache(TrackId(QVariant(321)));
+    EXPECT_EQ(GlobalTrackCacheLocker().lookupPublishedTrackByLocation(track->getLocation()), track);
+    EXPECT_FALSE(GlobalTrackCacheLocker().lookupPublishedTrackByLocation("/missing/usb/track.wav"));
+}

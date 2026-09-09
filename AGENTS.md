@@ -348,11 +348,6 @@ not close it. Other modes close only their own deck's visible drawer.
 Runtime controls (not saved): `[PadFX],dN_mode` = 0 Hot Cue, 1 Pad FX,
 2 Beat Jump, 3 Beat Loop, 4 Memory; `dN_shift` = 0/1; `dN_jump_bank` = 0/1/2 for
 1/16, 1, 16 multipliers. The existing mapping shares jump sizes across decks.
-The header stays 30px high; the legend uses the existing four-column/two-row
-area, with a 44px minimum row height. Verified at 1024×600: header y=450–481, X center (1000,467);
-legend columns centered at x=128/384/640/896, rows at y=510/570.
-Each legend cell is 252×56px. The waveform area stays at y=39–449.
-See [controller drawer screenshots](docs/UI_SCREENSHOTS.md#controller-pad-drawer).
 
 The legend follows saved Normal/Shift assignments, timing overrides, strength
 and toggle settings. Beat Loop shows four held rolls and four toggle loops;
@@ -360,9 +355,28 @@ holding Shift shows its mapped shifted Pad FX assignments. Beat Jump's Shift
 bank shows size ÷16 / ×16 on pads 7/8. Modes are independent per deck.
 
 
-Touch drawer navigation: tap the header at (530,467) to cycle Hot Cues → Memory
-→ Beat Jump → Pad FX → Beat Loop → Hot Cues. `[PadFX],dN_cycle` is a momentary
-command; release does not advance. Controller and touch selection share
-`dN_mode`, while the two decks keep independent selections. Touch navigation
-works without a connected controller. The performance legend remains read-only;
-this change adds header navigation, not new touch performance actions.
+## Touch drawer navigation and padding (1024×600)
+
+- Open Deck 1/2 with the existing CUE chips `(60,462)` / `(572,462)` on Play.
+- Drawer header: Previous `(116,476)`, mode label `(530,476)`, Next `(944,476)`,
+  Close `(994,476)`. Header targets are 44px tall, arrows 48px wide.
+- Previous emits `[PadFX],dN_previous`; Next emits the existing `dN_cycle`.
+  Both emit press/release, with only press advancing. The label only reflects
+  `dN_mode`; it does not change mode when tapped.
+- Forward order: Hot Cues=0 → Memory=4 → Beat Jump=2 → Pad FX=1 → Beat Loop=3.
+  Previous reverses and wraps. Each deck retains its independent mode.
+- The 150px drawer keeps 8px horizontal and approximately 4px vertical outside
+  clearance, 4px row gaps and at least 44px pads. Pad centers are approximately
+  x=`132,385,638,891`, y=`525,574`; inspect current geometry before pad actions.
+- Verify both directions, controller-to-touch mode handoff, Close, all five pages,
+  and Day/Night. See [drawer gallery](docs/UI_SCREENSHOTS.md#controller-pad-drawer).
+
+Waveform regressions: type and palette changes update Browse, Play and deck
+summaries while paused. Do not restore filesystem access or `getTrack()` calls
+in preview painting; cached summaries load on the background pool. Preserve
+completion and waveform identity in the bounded pixmap cache.
+
+## noVNC Delivery Gate
+
+- Before delivering a test GUI URL, follow [the noVNC delivery gate](docs/GUI_TESTING.md#novnc-delivery-gate): pass fast and E2E JavaScript checks, then verify the connected desktop in a real browser. HTTP success alone does not establish a working client.
+- Keep cached-image repair shared by automated and manual launch paths. Test fresh, malformed and repeatedly repaired sources; invalidate the full module graph when changing cached assets.

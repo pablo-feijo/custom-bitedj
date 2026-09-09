@@ -21,6 +21,7 @@ class QDomNode;
 class SkinContext;
 
 class WOverview : public WWidget, public TrackDropTarget {
+    friend class WaveformRenderingTest;
     Q_OBJECT
     /// Whether the time-remaining watermark is painted. The summary only stands
     /// in for the scrolling waveform on the pages that don't carry one, so the
@@ -89,6 +90,8 @@ class WOverview : public WWidget, public TrackDropTarget {
     void slotNormalizeOrVisualGainChanged();
 
   private:
+    void resetWaveformImages();
+
     // Append the waveform overview pixmap according to available data
     // in waveform
     bool drawNextPixmapPart();

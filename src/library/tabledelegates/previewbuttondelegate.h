@@ -2,13 +2,16 @@
 
 #include "library/tabledelegates/tableitemdelegate.h"
 #include "track/track_decl.h"
+#include "waveform/waveform.h"
 
-#include <QHash>
+#include <QCache>
+#include "waveform/renderers/waveformsignalcolors.h"
 #include <QPixmap>
 
 class WLibraryTableView;
 
 class PreviewButtonDelegate : public TableItemDelegate {
+    friend class PreviewDelegateTest;
     Q_OBJECT
 
   public:
@@ -45,18 +48,25 @@ class PreviewButtonDelegate : public TableItemDelegate {
   public slots:
     void cellEntered(const QModelIndex& index);
 
-  private slots:
-    void waveformTypeChanged(double value);
-
   private:
     struct CachedPreview {
         QPixmap pixmap;
-        int width;
-        int height;
-        int waveformType;
+        ConstWaveformPointer waveform;
+        int completion = 0;
+        bool fromLiveTrack = false;
     };
+    void refreshVisiblePreviews();
+    void invalidatePreviews();
+    void requestSummary(const QString& location) const;
+    ConstWaveformPointer summaryForLocation(const QString& location) const;
 
     const int m_column;
-    mutable QHash<QString, CachedPreview> m_previewCache;
+    mutable QCache<QString, CachedPreview> m_previewCache{128};
+    // A null value is a cached miss, so an uncached track does not repeatedly
+    // open its filesystem on every repaint. Loading analysis into a deck wins.
+    mutable QCache<QString, ConstWaveformPointer> m_summaries{128};
+    mutable bool m_requestPending = false;
+    int m_generation = 0;
+    WaveformSignalColors m_colors;
     class ControlProxy* m_pCOWaveformType;
 };

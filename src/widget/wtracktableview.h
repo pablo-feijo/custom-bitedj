@@ -6,6 +6,7 @@
 #include <QSortFilterProxyModel>
 
 #include "control/controlproxy.h"
+#include "util/db/dbconnectionpool.h"
 #include "control/pollingcontrolproxy.h"
 #include "library/dao/playlistdao.h"
 #include "library/trackmodel.h" // Can't forward declare enums
@@ -30,6 +31,7 @@ class WTrackTableView : public WLibraryTableView {
             Library* pLibrary,
             double backgroundColorOpacity);
     ~WTrackTableView() override;
+    mixxx::DbConnectionPoolPtr previewDbConnectionPool() const;
     UserSettingsPointer config() const {
         return m_pConfig;
     }

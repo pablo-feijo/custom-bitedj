@@ -205,7 +205,7 @@ bool FsAnalysisCache::openConnection(QSqlDatabase& db, bool writable, QSqlError*
 }
 
 QList<AnalysisDao::AnalysisInfo> FsAnalysisCache::getAnalysesForTrack(
-        const QString& trackLocation) {
+        const QString& trackLocation, AnalysisDao::AnalysisType type) {
     QList<AnalysisDao::AnalysisInfo> analyses;
 
     // Hold the handles lock across the whole operation so an eject-driven
@@ -220,7 +220,8 @@ QList<AnalysisDao::AnalysisInfo> FsAnalysisCache::getAnalysesForTrack(
     QSqlQuery query(db);
     query.prepare(QStringLiteral(
             "SELECT type, description, version, data_checksum, data "
-            "FROM waveform_cache WHERE relpath = :relpath"));
+            "FROM waveform_cache WHERE relpath = :relpath AND (:type = 0 OR type = :type)"));
+    query.bindValue(QStringLiteral(":type"), static_cast<int>(type));
     query.bindValue(QStringLiteral(":relpath"), relPath);
     if (!query.exec()) {
         qWarning() << "FsAnalysisCache: query failed for" << relPath

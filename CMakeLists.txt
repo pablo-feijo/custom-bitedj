@@ -938,6 +938,7 @@ add_library(mixxx-lib STATIC EXCLUDE_FROM_ALL
   src/waveform/renderers/waveformrendermark.cpp
   src/waveform/renderers/waveformrendermarkbase.cpp
   src/waveform/renderers/waveformrendermarkrange.cpp
+  src/waveform/renderers/waveformpreviewrenderer.cpp
   src/waveform/renderers/waveformsignalcolors.cpp
   src/waveform/renderers/waveformwidgetrenderer.cpp
   src/waveform/sharedglcontext.cpp
@@ -1647,6 +1648,7 @@ if(BUILD_TESTING)
     src/test/synctrackmetadatatest.cpp
     src/test/systemsettings_test.cpp
     src/test/deckpresentation_test.cpp
+    src/test/waveformpreview_test.cpp
     src/test/systemtelemetry_test.cpp
     src/test/tableview_test.cpp
     src/test/taglibtest.cpp

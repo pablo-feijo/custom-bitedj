@@ -82,7 +82,7 @@ TEST_F(PadFxEditorTest, ControllerLegendTracksDeckAssignmentsAndFitsDrawer) {
     document.appendChild(root);
     WControllerPadDisplay display;
     display.setup(root, context);
-    display.resize(1000, 116);
+    display.resize(1000, 94);
     display.show();
     ControlProxy mode("[PadFX]", "d2_mode");
     ControlProxy effect("[PadFX]", "d2_s0_effect");
@@ -105,5 +105,5 @@ TEST_F(PadFxEditorTest, ControllerLegendTracksDeckAssignmentsAndFitsDrawer) {
         EXPECT_TRUE(display.rect().contains(label->geometry()));
         EXPECT_GE(label->height(), 44);
     }
-    EXPECT_LE(display.minimumSizeHint().height(), 116);
+    EXPECT_LE(display.minimumSizeHint().height(), 94);
 }

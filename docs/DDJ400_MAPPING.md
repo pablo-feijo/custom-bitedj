@@ -134,11 +134,6 @@ not close it. Other modes close only their own deck's visible drawer.
 Runtime controls (not saved): `[PadFX],dN_mode` = 0 Hot Cue, 1 Pad FX,
 2 Beat Jump, 3 Beat Loop, 4 Memory; `dN_shift` = 0/1; `dN_jump_bank` = 0/1/2 for
 1/16, 1, 16 multipliers. The existing mapping shares jump sizes across decks.
-The header stays 30px high; the legend uses the existing four-column/two-row
-area, with a 44px minimum row height. Verified at 1024×600: header y=450–481, X center (1000,467);
-legend columns centered at x=128/384/640/896, rows at y=510/570.
-Each legend cell is 252×56px. The waveform area stays at y=39–449.
-See [controller drawer screenshots](UI_SCREENSHOTS.md#controller-pad-drawer).
 
 The legend follows saved Normal/Shift assignments, timing overrides, strength
 and toggle settings. Beat Loop shows four held rolls and four toggle loops;
@@ -154,9 +149,15 @@ Source: [AlphaTheta DDJ-400 MIDI message list, page 3](https://downloads.support
 Run `node tests/padfx/test_controller_pad_display.cjs` and
 `node tests/padfx/test_padfx.cjs` for the mapping regressions.
 
-Touch drawer navigation: tap the header at (530,467) to cycle Hot Cues → Memory
-→ Beat Jump → Pad FX → Beat Loop → Hot Cues. `[PadFX],dN_cycle` is a momentary
-command; release does not advance. Controller and touch selection share
-`dN_mode`, while the two decks keep independent selections. Touch navigation
-works without a connected controller. The performance legend remains read-only;
-this change adds header navigation, not new touch performance actions.
+
+## Touch drawer mode navigation
+
+The drawer follows controller mode selection independently for Deck 1 and Deck 2.
+Touch **Previous** (`[PadFX],dN_previous`) and **Next** (`[PadFX],dN_cycle`) step
+through Hot Cues → Memory → Beat Jump → Pad FX → Beat Loop and wrap in either
+direction. Both are momentary: only the press advances; release does not.
+Numeric IDs remain 0, 4, 2, 1, 3 in that display order. Controller selection
+updates the same `dN_mode` state, so touch navigation continues from that mode.
+Performance pages are assignment legends; they do not trigger pads or change
+hardware pad routing. Hot Cue/Memory pages retain their existing touch actions.
+See [drawer geometry and screenshots](UI_SCREENSHOTS.md#controller-pad-drawer).

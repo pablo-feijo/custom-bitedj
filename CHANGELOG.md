@@ -76,6 +76,17 @@ UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 
 ### Fixed
 
+- Browse previews load cached summaries in the background and retain correct
+  track positions during analysis. Their bounded cache refreshes on completion,
+  replacement and settings changes; repainting no longer imports track metadata
+  or reads/decompresses full waveform files ([Browse](docs/UI_SCREENSHOTS.md#browse-preview)).
+- Deck overviews use the new track's summary dimensions during loading and reset
+  incremental/scaled images together. Waveform type and palette changes refresh
+  Browse, Play and bottom deck previews without a full skin rebuild
+  ([Play](docs/UI_SCREENSHOTS.md#play)).
+- Touch drawer modes have separate previous/next buttons, a 44px header and
+  balanced edge/row padding ([drawer](docs/UI_SCREENSHOTS.md#controller-pad-drawer)).
+
 - DDJ-400 BEAT FX SELECT now moves backward while either deck's Shift is held,
   including when the normal SELECT MIDI note is sent. Preserve the dedicated
   shifted note and native preset-list navigation; see the [mapping guide](docs/DDJ400_MAPPING.md#effect-selection).

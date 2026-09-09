@@ -22,8 +22,8 @@ def capture(name):
     subprocess.run(['scrot', str(target)], env=env, check=True)
 
 def tap_header():
-    # Verified header bounds: x=86..973, y=452..481.
-    subprocess.run(['xdotool', 'mousemove', '530', '467', 'click', '1'], env=env, check=True)
+    # Verified separate Next button: x=920..967, y=454..497.
+    subprocess.run(['xdotool', 'mousemove', '944', '476', 'click', '1'], env=env, check=True)
 
 for deck in (1, 2):
     select(deck, 0x1b)
@@ -35,3 +35,6 @@ select(1, 0x1e)
 tap_header()
 capture('controller-fx-then-touch-loop')
 print(out)
+
+subprocess.run(['xdotool', 'mousemove', '116', '476', 'click', '1'], env=env, check=True)
+capture('touch-previous-back-to-fx')

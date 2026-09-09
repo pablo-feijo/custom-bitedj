@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QColor>
+#include <array>
 #include <QDomNode>
 
 #include "skin/legacy/skincontext.h"
@@ -11,6 +12,8 @@ class WaveformSignalColors {
     virtual ~WaveformSignalColors() {}
 
     bool setup(const QDomNode &node, const SkinContext& context);
+
+    void applyBiteDJPalette(int palette);
 
     inline const QColor& getSignalColor() const {
         return m_signalColor;
@@ -71,6 +74,8 @@ class WaveformSignalColors {
     double stableHue(double hue) const;
 
   private:
+    bool m_biteDJPalette = false;
+    std::array<QColor, 9> m_defaultBandColors;
     QColor m_signalColor;
     QColor m_lowColor;
     QColor m_midColor;

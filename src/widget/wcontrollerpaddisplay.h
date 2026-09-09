@@ -49,7 +49,7 @@ class WControllerPadDisplay : public QWidget, public WBaseWidget {
         }
         setStyleSheet(HighContrast::mapStyleSheet(QStringLiteral(
                 "QLabel#ControllerPadLegend { background:#20232c; color:#edf0fa;"
-                " border:1px solid #565b6b; border-radius:3px; font-size:16px; padding:3px; }")));
+                " border:1px solid #565b6b; border-radius:3px; font-size:14px; padding:4px 8px; }")));
         m_ready = true;
         refresh();
     }

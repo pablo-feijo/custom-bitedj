@@ -14,10 +14,10 @@ namespace {
 void require(bool value, const char* message) {
     if (!value) { throw std::runtime_error(message); }
 }
-double get(const char* item) {
+double get(const QString& item) {
     return ControlObject::get(ConfigKey("[PadFX]", item));
 }
-void set(const char* item, double value) {
+void set(const QString& item, double value) {
     ControlObject::set(ConfigKey("[PadFX]", item), value);
     QCoreApplication::processEvents();
 }
@@ -92,4 +92,21 @@ TEST_F(PadFxSettingsTest, TouchCycleWithoutControllerAndControllerSelectionShare
     require(get("d1_mode") == 3, "touch continues from controller-selected mode");
     set("d1_mode", 0);
     require(get("d1_performance_visible") == 0, "controller hot cue restores cue grid");
+}
+
+TEST_F(PadFxSettingsTest, TouchPreviousIsInverseAndWrapsIndependentlyForBothDecks) {
+    PadFxSettings settings(config());
+    for (const auto* prefix : {"d1_", "d2_"}) {
+        const QString key(prefix);
+        for (int mode = 0; mode < 5; ++mode) {
+            set(key + "mode", mode);
+            set(key + "cycle", 1); set(key + "cycle", 0);
+            set(key + "previous", 1); set(key + "previous", 0);
+            require(get(key + "mode") == mode, "previous reverses next");
+            require(get(key + "performance_visible") == (mode > 0 && mode < 4), "previous selects correct grid");
+        }
+        set(key + "mode", 0);
+        set(key + "previous", 1); set(key + "previous", 0);
+        require(get(key + "mode") == 3, "previous wraps to Beat Loop");
+    }
 }

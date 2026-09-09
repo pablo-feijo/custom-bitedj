@@ -2000,3 +2000,7 @@ void WTrackTableView::mouseReleaseEvent(QMouseEvent* pEvent) {
     m_dragStartPos = QPoint();
     WLibraryTableView::mouseReleaseEvent(pEvent);
 }
+
+mixxx::DbConnectionPoolPtr WTrackTableView::previewDbConnectionPool() const {
+    return m_pLibrary->dbConnectionPool();
+}

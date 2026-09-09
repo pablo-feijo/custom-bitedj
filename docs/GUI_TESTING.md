@@ -373,11 +373,6 @@ not close it. Other modes close only their own deck's visible drawer.
 Runtime controls (not saved): `[PadFX],dN_mode` = 0 Hot Cue, 1 Pad FX,
 2 Beat Jump, 3 Beat Loop, 4 Memory; `dN_shift` = 0/1; `dN_jump_bank` = 0/1/2 for
 1/16, 1, 16 multipliers. The existing mapping shares jump sizes across decks.
-The header stays 30px high; the legend uses the existing four-column/two-row
-area, with a 44px minimum row height. Verified at 1024×600: header y=450–481, X center (1000,467);
-legend columns centered at x=128/384/640/896, rows at y=510/570.
-Each legend cell is 252×56px. The waveform area stays at y=39–449.
-See [controller drawer screenshots](UI_SCREENSHOTS.md#controller-pad-drawer).
 
 The legend follows saved Normal/Shift assignments, timing overrides, strength
 and toggle settings. Beat Loop shows four held rolls and four toggle loops;
@@ -394,9 +389,32 @@ Run `python3 tests/novnc/test_repair.py` for the regression. Verify the served
 JavaScript parses and connect in the browser; a desktop screenshot alone does
 not verify the noVNC client. Reload a browser tab after repairing its served files.
 
-Touch drawer navigation: tap the header at (530,467) to cycle Hot Cues → Memory
-→ Beat Jump → Pad FX → Beat Loop → Hot Cues. `[PadFX],dN_cycle` is a momentary
-command; release does not advance. Controller and touch selection share
-`dN_mode`, while the two decks keep independent selections. Touch navigation
-works without a connected controller. The performance legend remains read-only;
-this change adds header navigation, not new touch performance actions.
+
+### Waveform previews and touch drawer
+
+Current header coordinates and control mappings are in the root
+[touch drawer guide](../AGENTS.md#touch-drawer-navigation-and-padding-1024600).
+The Previous and Next buttons are separate from the read-only mode label;
+update scripts that previously tapped the middle of the header to advance.
+At 1024×600 use Previous `(116,476)`, Next `(944,476)`, Close `(994,476)`.
+Both directions wrap through Hot Cues, Memory, Beat Jump, Pad FX and Beat Loop;
+release events do not advance. Verify Deck 1 and Deck 2 independently.
+
+For waveform checks, use the [native and cold-cache regression procedure](TESTING.md#preview-and-waveform-regressions).
+With two paused tracks, change Wave at `(872|928|984,104)` and Palette at
+`(886|970,208)`. Inspect Browse thumbnails, Play and both bottom deck summaries.
+No full-screen display-mode notification/rebuild should occur for Palette.
+Load the 16-second replacement fixture into a deck that held a 60-second track:
+all four waveform sections must occupy the correct quarter of its summary.
+Browse's unavailable-preview marker is an em dash, not a loading action.
+
+### noVNC delivery gate
+
+Before handing out a GUI link, run `python3 scripts/test/run-tests.py fast` and
+`python3 scripts/test/run-tests.py e2e` with Node.js on PATH. The fast regression
+covers fresh and cached noVNC sources and repeated repair; the desktop suite
+parses every served JavaScript module. HTTP 200 is not sufficient validation.
+Open the owned instance in a real browser and verify a connected desktop canvas,
+not just the noVNC page shell. After changing noVNC assets, invalidate the module
+graph cache and verify a previously opened tab reconnects. Never prepend feature
+exports to upstream modules that already declare them.

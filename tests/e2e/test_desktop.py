@@ -2,6 +2,7 @@
 
 import array
 import math
+import json
 import sys
 from pathlib import Path
 import subprocess
@@ -292,6 +293,58 @@ class DesktopE2E(unittest.TestCase):
         finally:
             self.inside("xdotool", "key", "d")
         eventually(lambda: self.assertLess(self.audio_rms(), 30), timeout=20)
+
+    def waveform_regions(self):
+        self.inside("scrot", "-o", "/tmp/waveforms.png")
+        regions = []
+        # Verified Play geometry: scrolling lane above, compact deck summary below.
+        for crop in ("240:120:520:70", "470:28:12:555"):
+            regions.append(self.inside(
+                "ffmpeg", "-v", "error", "-i", "/tmp/waveforms.png",
+                "-vf", "crop=" + crop, "-f", "rawvideo", "-pix_fmt", "rgb24", "pipe:1"))
+        return regions
+
+    def test_waveform_settings_refresh_paused_deck(self):
+        def select(style_x, palette_x):
+            self.click(950, 20)
+            self.click(73, 60)
+            self.click(style_x, 104)
+            self.click(palette_x, 208)
+            self.click(100, 20)
+            eventually(lambda: self.assert_selected_tab(0))
+            time.sleep(.4)
+            return self.waveform_regions()
+
+        original = select(872, 886)
+        for style_x, palette_x in ((872, 970), (928, 886), (984, 886)):
+            with self.subTest(style=style_x, palette=palette_x):
+                changed = select(style_x, palette_x)
+                for surface, before, after in zip(("Play", "deck overview"), original, changed):
+                    self.assertEqual(len(before), len(after))
+                    self.assertGreater(sum(a != b for a, b in zip(before, after)), 300,
+                                       surface + " did not refresh while paused")
+        restored = select(872, 886)
+        for before, after in zip(original, restored):
+            self.assertEqual(before, after, "Changing settings must not move or reload the track")
+
+    def test_novnc_modules_parse(self):
+        # HTTP 200 alone does not prove the browser can execute these modules.
+        modules = json.loads(self.inside(
+            "python3", "-c",
+            "from pathlib import Path; import json; "
+            "r=Path('/usr/share/novnc'); "
+            "print(json.dumps([str(p.relative_to(r)) for p in r.rglob('*.js')]))",
+        ))
+        self.assertIn("core/util/browser.js", modules)
+        for module in modules:
+            with self.subTest(module=module):
+                source = self.inside("cat", "/usr/share/novnc/" + module)
+                result = subprocess.run(
+                    ["node", "--input-type=module", "--check"],
+                    input=source, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    timeout=20,
+                )
+                self.assertEqual(0, result.returncode, result.stderr.decode())
 
     def test_web_and_audio_transport(self):
         for port, path in (

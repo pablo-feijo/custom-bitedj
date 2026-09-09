@@ -66,6 +66,15 @@ PadFxSettings::PadFxSettings(UserSettingsPointer config)
             performance->set(selected > 0 && selected < 4 ? 1 : 0);
             mode->set(selected);
         });
+        auto* previous = addControl(prefix + "previous", 0, 0);
+        connect(previous, &ControlObject::valueChanged, this, [mode, performance](double value) {
+            if (value != 1) return;
+            constexpr int previousMode[] = {3, 2, 4, 1, 0};
+            const double current = mode->get();
+            const int selected = valid(current, 5) ? previousMode[static_cast<int>(current)] : 0;
+            performance->set(selected > 0 && selected < 4 ? 1 : 0);
+            mode->set(selected);
+        });
         addControl(prefix + "shift", 2, 0);
         addControl(prefix + "jump_bank", 3, 1); // 1/16, 1, 16 multiplier
     }

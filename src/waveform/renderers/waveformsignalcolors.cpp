@@ -114,15 +114,12 @@ bool WaveformSignalColors::setup(const QDomNode &node, const SkinContext& contex
         m_dimBrightThreshold = kDefaultDimBrightThreshold;
     }
 
-    if (context.selectBool(node, "BiteDJPalette", false) &&
-            context.getConfig()->getValue<int>(ConfigKey("[BiteDJ]", "waveform_palette"), 0) == 1) {
-        m_lowColor = WSkinColor::getCorrectColor(QColor("#0055e1")).toRgb();
-        m_midColor = WSkinColor::getCorrectColor(QColor("#b4690a")).toRgb();
-        m_highColor = WSkinColor::getCorrectColor(QColor("#f5ebd7")).toRgb();
-        m_rgbLowColor = m_rgbLowFilteredColor = m_lowColor;
-        m_rgbMidColor = m_rgbMidFilteredColor = m_midColor;
-        m_rgbHighColor = m_rgbHighFilteredColor = m_highColor;
-    }
+    m_biteDJPalette = context.selectBool(node, "BiteDJPalette", false);
+    m_defaultBandColors = {m_lowColor, m_midColor, m_highColor,
+            m_rgbLowColor, m_rgbMidColor, m_rgbHighColor,
+            m_rgbLowFilteredColor, m_rgbMidFilteredColor, m_rgbHighFilteredColor};
+    applyBiteDJPalette(context.getConfig()->getValue<int>(
+            ConfigKey("[BiteDJ]", "waveform_palette"), 0));
 
     bool filteredColorValid = m_lowColor.isValid() && m_midColor.isValid() && m_highColor.isValid();
 
@@ -210,4 +207,27 @@ void WaveformSignalColors::fallBackDefaultColor() {
 //NOTE(vRince) this sabilise hue between -1.0 and 2.0 but not more !
 double WaveformSignalColors::stableHue(double hue) const {
     return hue < 0.0 ? hue + 1.0 : hue > 1.0 ? hue - 1.0 : hue;
+}
+
+void WaveformSignalColors::applyBiteDJPalette(int palette) {
+    if (!m_biteDJPalette) {
+        return;
+    }
+    m_lowColor = m_defaultBandColors[0];
+    m_midColor = m_defaultBandColors[1];
+    m_highColor = m_defaultBandColors[2];
+    m_rgbLowColor = m_defaultBandColors[3];
+    m_rgbMidColor = m_defaultBandColors[4];
+    m_rgbHighColor = m_defaultBandColors[5];
+    m_rgbLowFilteredColor = m_defaultBandColors[6];
+    m_rgbMidFilteredColor = m_defaultBandColors[7];
+    m_rgbHighFilteredColor = m_defaultBandColors[8];
+    if (palette == 1) {
+        m_lowColor = WSkinColor::getCorrectColor(QColor("#0055e1")).toRgb();
+        m_midColor = WSkinColor::getCorrectColor(QColor("#b4690a")).toRgb();
+        m_highColor = WSkinColor::getCorrectColor(QColor("#f5ebd7")).toRgb();
+        m_rgbLowColor = m_rgbLowFilteredColor = m_lowColor;
+        m_rgbMidColor = m_rgbMidFilteredColor = m_midColor;
+        m_rgbHighColor = m_rgbHighFilteredColor = m_highColor;
+    }
 }

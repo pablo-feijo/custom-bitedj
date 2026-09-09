@@ -47,7 +47,8 @@ class FsAnalysisCache {
 
     /// Load the cached waveform analyses for the track at `trackLocation`.
     /// Returns an empty list on a cache miss or if the filesystem is unavailable.
-    QList<AnalysisDao::AnalysisInfo> getAnalysesForTrack(const QString& trackLocation);
+    QList<AnalysisDao::AnalysisInfo> getAnalysesForTrack(const QString& trackLocation,
+            AnalysisDao::AnalysisType type = AnalysisDao::TYPE_UNKNOWN);
 
     /// Persist the waveform and waveform summary for the track at `trackLocation`
     /// to its filesystem's cache. Returns false (and logs) if the filesystem is

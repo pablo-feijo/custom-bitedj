@@ -286,12 +286,15 @@ WPushButton[value="1"]:hover {
 
 #CuePanel {
   background-color: #151515;
-  padding: 2px;
+  qproperty-layoutContentsMargins: rect(4 2 4 2);
+}
+
+#CuePanel_Page {
+  qproperty-layoutSpacing: 4;
 }
 
 #CuePanel_Header {
   qproperty-layoutSpacing: 4;
-  margin-bottom: 4px;
 }
 
 #CuePanel_DeckLabel {
@@ -300,6 +303,7 @@ WPushButton[value="1"]:hover {
   text-transform: uppercase;
   color: #a7a9ac;
   qproperty-alignment: 'AlignLeft | AlignVCenter';
+  padding-left: 8px;
 }
 
 /* Bank toggle. Labelled with the bank on show, the same off/active
@@ -320,7 +324,7 @@ WPushButton[value="1"]:hover {
   color: #e7e8e9;
 }
 
-#CuePanel_Close {
+#CuePanel_Previous, #CuePanel_Next, #CuePanel_Close {
   background-color: transparent;
   border: 2px solid #32323c;
   border-radius: 2px;
@@ -329,7 +333,11 @@ WPushButton[value="1"]:hover {
   font-weight: bold;
 }
 
-#CuePanel_Close:pressed {
+#CuePanel_Previous, #CuePanel_Next {
+  font-size: 24px;
+}
+
+#CuePanel_Previous:pressed, #CuePanel_Next:pressed, #CuePanel_Close:pressed {
   border-color: #855ea7;
   color: #e7e8e9;
 }

@@ -1,6 +1,7 @@
 #include "woverview.h"
 #include "waveform/renderers/phrasestrip.h"
 
+#include <algorithm>
 #include <QBrush>
 #include <QColor>
 #include <QMouseEvent>
@@ -105,6 +106,14 @@ WOverview::WOverview(
             QStringLiteral("WaveformOverviewType"),
             this);
     m_pTypeControl->connectValueChanged(this, &WOverview::slotTypeControlChanged);
+    auto* palette = new ControlProxy(ConfigKey("[BiteDJ]", "waveform_palette"),
+            this, ControlFlag::NoAssertIfMissing);
+    palette->connectValueChanged(this, [this](double value) {
+        m_signalColors.applyBiteDJPalette(static_cast<int>(value));
+        resetWaveformImages();
+        drawNextPixmapPart();
+        update();
+    });
     slotTypeControlChanged(m_pTypeControl->get());
     m_pShowPhrasesControl = make_parented<ControlProxy>(ConfigKey("[BiteDJ]", "show_phrases"), this);
     m_pShowPhrasesControl->connectValueChanged(this, [this](double) { update(); });
@@ -355,25 +364,13 @@ void WOverview::slotWaveformSummaryUpdated() {
     if (!pTrack) {
         return;
     }
-    m_pWaveform = pTrack->getWaveformSummary();
-    if (m_pWaveform) {
-        // If the waveform is already complete, just draw it.
-        if (m_pWaveform->getCompletion() == m_pWaveform->getDataSize()) {
-            m_actualCompletion = 0;
-            if (drawNextPixmapPart()) {
-                update();
-            }
-        }
-    } else {
-        // Null waveform pointer means waveform was cleared.
-        m_waveformSourceImage = QImage();
-        m_analyzerProgress = kAnalyzerProgressUnknown;
-        m_actualCompletion = 0;
-        m_waveformPeak = -1.0;
-        m_pixmapDone = false;
-
-        update();
+    const auto waveform = pTrack->getWaveformSummary();
+    if (waveform != m_pWaveform) {
+        resetWaveformImages();
+        m_pWaveform = waveform;
     }
+    drawNextPixmapPart();
+    update();
 }
 
 void WOverview::onTrackAnalyzerProgress(TrackId trackId, AnalyzerProgress analyzerProgress) {
@@ -416,11 +413,8 @@ void WOverview::slotLoadingTrack(TrackPointer pNewTrack, TrackPointer pOldTrack)
                 &WOverview::receiveCuesUpdated);
     }
 
-    m_waveformSourceImage = QImage();
+    resetWaveformImages();
     m_analyzerProgress = kAnalyzerProgressUnknown;
-    m_actualCompletion = 0;
-    m_waveformPeak = -1.0;
-    m_pixmapDone = false;
     // Note: Here we already have the new track, but the engine and it's
     // Control Objects may still have the old one until the slotTrackLoaded()
     // signal has been received.
@@ -497,8 +491,7 @@ void WOverview::slotTypeControlChanged(double v) {
     }
 
     m_type = type;
-    m_pWaveform.clear();
-    m_waveformSourceImage = QImage();
+    resetWaveformImages();
     slotWaveformSummaryUpdated();
 }
 
@@ -1520,9 +1513,7 @@ bool WOverview::drawNextPixmapPart() {
     }
 
     const int dataSize = pWaveform->getDataSize();
-    const double audioVisualRatio = pWaveform->getAudioVisualRatio();
-    const double trackSamples = getTrackSamples();
-    if (dataSize <= 0 || audioVisualRatio <= 0 || trackSamples <= 0) {
+    if (dataSize < 2) {
         return false;
     }
 
@@ -1531,19 +1522,19 @@ bool WOverview::drawNextPixmapPart() {
         // by total_gain
         // We keep full range waveform data to scale it on paint
         m_waveformSourceImage = QImage(
-                static_cast<int>(trackSamples / audioVisualRatio / 2) + 1,
+                dataSize / 2,
                 2 * 255,
                 QImage::Format_ARGB32_Premultiplied);
         m_waveformSourceImage.fill(QColor(0, 0, 0, 0).value());
-        if (dataSize / 2 != m_waveformSourceImage.width()) {
-            qWarning() << "Track duration has changed since last analysis"
-                       << m_waveformSourceImage.width() << "!=" << dataSize / 2;
-        }
+
     }
     DEBUG_ASSERT(!m_waveformSourceImage.isNull());
 
     // Always multiple of 2
-    const int waveformCompletion = pWaveform->getCompletion();
+    const int waveformCompletion = std::clamp(pWaveform->getCompletion(), 0, dataSize) / 2 * 2;
+    if (waveformCompletion <= m_actualCompletion) {
+        return false;
+    }
     // Test if there is some new to draw (at least of pixel width)
     const int completionIncrement = waveformCompletion - m_actualCompletion;
 
@@ -1919,4 +1910,13 @@ void WOverview::dragEnterEvent(QDragEnterEvent* pEvent) {
 
 void WOverview::dropEvent(QDropEvent* pEvent) {
     DragAndDropHelper::handleTrackDropEvent(pEvent, *this, m_group, m_pConfig);
+}
+
+void WOverview::resetWaveformImages() {
+    m_waveformSourceImage = QImage();
+    m_waveformImageScaled = QImage();
+    m_actualCompletion = 0;
+    m_waveformPeak = -1.0;
+    m_pixmapDone = false;
+    m_diffGain = 0;
 }

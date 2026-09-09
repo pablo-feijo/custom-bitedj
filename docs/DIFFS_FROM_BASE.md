@@ -133,3 +133,17 @@ private native effect lanes and a compact full-height Settings editor. DDJ-400
 normal/Shift pads use the new mapping instead of swapping the main Beat FX slot.
 See [Pad FX validation](PAD_FX_TESTING.md). Other selected fork features remain
 on the [next-batch checklist](XSPLOIT_NEXT_BATCH.md).
+
+
+### 2026-09-09 — Preview loading and rendering
+
+Browse summary-only I/O now runs on a single background pool with bounded caches;
+painting uses a published-object lookup without filesystem canonicalization or
+metadata-import waits. Cached images include data identity and completion, and
+partial summaries use full-track coordinates. Shared waveform-type mapping and
+palette updates cover Browse/Play/deck overviews. Palette changes rebuild only
+scrolling waveform widgets. Deck summaries reset incremental/scaled images and
+use the summary's own width before engine duration controls catch up.
+Native rendering/delegate/cache regressions and paused GPU E2E checks accompany
+these fixes. The controller pad drawer dependency from `5a84488ae3` also gains
+explicit previous/next touch navigation and balanced padding in this task.

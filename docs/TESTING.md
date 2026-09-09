@@ -138,3 +138,41 @@ Validation on 2026-09-09:
   It also fails when invoked directly without the new runner. This is an open
   decoder/reference investigation; no exclusion or relaxed assertion was added.
 - GitHub Actions configuration parses; the remote workflow has not been run.
+
+## Preview and waveform regressions
+
+`WaveformRenderingTest` checks empty/partial summaries, full-track coordinates,
+transient-preserving downsampling, palette round trips, 3 Band stacking and deck
+loading with stale duration controls. `PreviewDelegateTest` exercises actual
+painting, pixmap reuse, completion/replacement invalidation, row reordering,
+metadata-only tracks, clearing and a 300-track bounded-cache traversal. Its model
+counts metadata-loading calls so accidental track imports from paint fail tests.
+`GlobalTrackCacheTest.PreviewLookupSkipsUnpublishedTrackWithoutWaiting` exercises
+an unfinished metadata import: waiting for that import would deadlock the test.
+
+Run the focused native selection with:
+
+```sh
+./scripts/build/docker-build.sh --platform linux/arm64 --test-filter 'WaveformRenderingTest\.|PreviewDelegateTest\.|GlobalTrackCacheTest.Preview|PadFxSettingsTest.Touch|PadFxEditorTest.Controller'
+```
+
+The desktop E2E suite also compares actual paused Play/deck pixels after RGB,
+Filtered, 3 Band and palette changes, including a round trip without reloading
+or moving the track. GPU and USB throughput on a physical Pi remain separate
+from the container checks. Fast tests include controller drawer mode bindings;
+native touch tests cover both directions and release handling.
+
+For an owned interactive cold-cache/replacement check, generate an additional
+fixture with `python3 tests/e2e/make_preview_track.py test-music/Preview_Replacement_16s.wav`.
+Enable the home analysis cache for the read-only synthetic `/music` mount
+(`AnalysisCacheOnTrackFs=0`, `AnalysisCacheInHome=1` in test settings), load and
+analyze the 16-second fixture, then restart with the normal 60-second deck
+fixtures. Browse must show the unloaded short track's summary from disk; its
+four sections must stay in place after type/palette changes and when loaded
+into a deck. The test settings belong only to that owned fixture instance.
+
+
+After a fresh owned GUI start, `python3 tests/e2e/check_touch_drawer.py` checks
+all five distinct header labels, forward wrap and the entire reverse cycle on
+both decks using captured pixels. It needs no controller and leaves the drawer
+closed. Captures are saved under that instance's ignored test-results directory.
