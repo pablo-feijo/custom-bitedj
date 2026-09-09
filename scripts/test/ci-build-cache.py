@@ -11,7 +11,14 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
 ASSETS = ("res/skins/", "res/controllers/", "res/effects/", "res/keyboard/")
-DOCS = {"README.md", "CHANGELOG.md", "AGENTS.md", "agents.md"}
+DOCS = {"README.md", "CHANGELOG.md", "AGENTS.md", "agents.md", ".codex/config.toml"}
+
+
+def is_agent_documentation(path):
+    # Native skill instructions/metadata do not affect compiled binaries.
+    # Keep executable helpers and other skill assets in the fingerprint.
+    return path.startswith(".agents/skills/") and (
+        path.endswith(".md") or path.endswith("/agents/openai.yaml"))
 
 
 def git(*args):
@@ -34,7 +41,8 @@ def compiled_entries():
                     os.path.normpath(ROOT / Path(path).parent / node.text), ROOT))
     return [(path, metadata) for path, metadata in entries
             if path in embedded or not (
-                path.startswith(ASSETS) or path.startswith("docs/") or path in DOCS)]
+                path.startswith(ASSETS) or path.startswith("docs/") or path in DOCS
+                or is_agent_documentation(path))]
 
 
 def fingerprint(environment):

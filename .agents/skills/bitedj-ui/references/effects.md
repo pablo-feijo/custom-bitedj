@@ -1,10 +1,10 @@
 # Beat FX and picker control maps
 
-[Agent tooling index](README.md). Read this guide when its task trigger applies.
+[Codex setup](../../../../docs/CODEX.md). Read this guide when its task trigger applies.
 
 ## Beat FX catalogue and picker
 
-Maintain [docs/BEAT_FX.md](../BEAT_FX.md) alongside factory XML and native controls.
+Maintain [docs/BEAT_FX.md](../../../../docs/BEAT_FX.md) alongside factory XML and native controls.
 The Standard section uses versioned `[RB7] ` IDs with documented native
 approximations. Preserve legacy/custom files, Pad FX IDs and the Saved section.
 Never silently claim reverse, freeze, slip or transport behavior for delay chains.
@@ -15,7 +15,7 @@ The picker uses two columns and seven rows per page, with fixed 44px effect
 buttons, 10px labels, 4px gaps and 4px outside padding. Utility buttons are
 30px high and the page counter uses 9px text;
 page changes and Close must never load an effect. Match selected state to the
-live chain. Refresh the [picker gallery](../UI_SCREENSHOTS.md#beat-fx-picker)
+live chain. Refresh the [picker gallery](../../../../docs/UI_SCREENSHOTS.md#beat-fx-picker)
 and Play image for visible changes, together with changelog links.
 
 Beat grid labels are periods in beats. Bind `parameterN_beat_period`; native
@@ -42,7 +42,7 @@ The FX selector `(922,116)` opens a child picker bounded by
 uses 9px text at `(922,514)`. Prev/Next: `(876,538)` / `(968,538)`. Standard pages contain
 14/11 entries in row-major order. Saved identifiers and controller order
 are unchanged. Page changes and cancellation preserve selection; leaving
-FX dismisses the picker. See [the gallery](../UI_SCREENSHOTS.md#beat-fx-picker).
+FX dismisses the picker. See [the gallery](../../../../docs/UI_SCREENSHOTS.md#beat-fx-picker).
 
 Picker actions use 10px text: Erase, Close, Prev and Next. Erase and Close
 share the second header row. Erase clears the current FX without deleting its
@@ -60,7 +60,7 @@ The side panel is 204px wide and the waveform area is 820px.
 
 FX availability: hide unsupported Beat periods and unloaded controls. Super
 requires a loaded, linked parameter. Check Echo, Phaser, Trans, Enigma Jet and
-an unloaded chain; see [the availability regression](../GUI_TESTING.md#available-fx-controls).
+an unloaded chain; see [the availability regression](../../../../docs/GUI_TESTING.md#available-fx-controls).
 
 The compact FX list omits internal `mix` / `dry_wet` parameter rows using
 read-only `parameterN_is_mix` metadata. Unit Mix remains visible; saved native

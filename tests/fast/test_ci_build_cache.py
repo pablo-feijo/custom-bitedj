@@ -58,6 +58,24 @@ class BuildCache(unittest.TestCase):
         self.commit()
         self.assertNotEqual(before, cache.fingerprint("environment"))
 
+    def test_native_agent_instructions_reuse_but_helpers_and_embedded_files_invalidate(self):
+        before = cache.fingerprint("environment")
+        for path in (".codex/config.toml", ".agents/skills/example/SKILL.md",
+                     ".agents/skills/example/references/guide.md",
+                     ".agents/skills/example/agents/openai.yaml"):
+            self.write(path, "agent configuration")
+        self.commit()
+        self.assertEqual(before, cache.fingerprint("environment"))
+        self.write(".agents/skills/example/scripts/build.py", "compiled helper")
+        self.commit()
+        self.assertNotEqual(before, cache.fingerprint("environment"))
+        self.write("res/mixxx.qrc", '<RCC><qresource><file>../.agents/skills/example/references/guide.md</file></qresource></RCC>')
+        self.commit()
+        before = cache.fingerprint("environment")
+        self.write(".agents/skills/example/references/guide.md", "embedded changed")
+        self.commit()
+        self.assertNotEqual(before, cache.fingerprint("environment"))
+
     def test_qrc_embedded_asset_must_invalidate(self):
         self.write("res/mixxx.qrc", '<RCC><qresource><file>skins/test.xml</file></qresource></RCC>')
         self.commit()

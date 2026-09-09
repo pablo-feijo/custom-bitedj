@@ -1,0 +1,8 @@
+# Repository-scoped Codex configuration; loaded only for trusted projects.
+# Keep the documented default instruction ceiling. AGENTS.md remains <60 lines;
+# detailed workflows are loaded on demand through .agents/skills/.
+project_doc_max_bytes = 32768
+
+# Model, approval, sandbox and MCP settings inherit from the user's environment.
+# Add shared MCP definitions only for services this repository actually uses;
+# keep credentials and machine-specific paths out of this tracked file.

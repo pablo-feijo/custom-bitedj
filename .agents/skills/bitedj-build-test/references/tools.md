@@ -1,22 +1,22 @@
 # Build, test and GUI tools
 
-[Agent tooling index](README.md). Read this guide when its task trigger applies.
+[Codex setup](../../../../docs/CODEX.md). Read this guide when its task trigger applies.
 
 ## Build and deployment entry points
 
-If the user asks you to compile or test the application, use the scripts under `scripts/`, as listed in [the repository layout](../REPOSITORY_LAYOUT.md):
+If the user asks you to compile or test the application, use the scripts under `scripts/`, as listed in [the repository layout](../../../../docs/REPOSITORY_LAYOUT.md):
 
 - **Compiling for the Pi**: Run `./scripts/build/docker-build.sh --platform linux/arm64`. This uses a custom Docker container to cross-compile the binary into `dist-linux/`. Do not try to compile natively on a Mac or Windows machine using standard `CMake` unless you are explicitly building a local debug version.
-- **Local GUI & Audio Testing**: Before deploying changes or building an OS image, verify the 1024×600 GUI and affected audio paths in the owned instance using [GUI_TESTING.md](../GUI_TESTING.md), [PAD_FX_TESTING.md](../PAD_FX_TESTING.md), and the [Rekordbox fixture procedure](../../tests/rekordbox/README.md) as applicable. Start interactive testing with `./scripts/test/run-gui-test.sh` and use its printed VNC/audio endpoints; never assume ports belong to this task.
+- **Local GUI & Audio Testing**: Before deploying changes or building an OS image, verify the 1024×600 GUI and affected audio paths in the owned instance using [GUI_TESTING.md](../../../../docs/GUI_TESTING.md), [PAD_FX_TESTING.md](../../../../docs/PAD_FX_TESTING.md), and the [Rekordbox fixture procedure](../../../../tests/rekordbox/README.md) as applicable. Start interactive testing with `./scripts/test/run-gui-test.sh` and use its printed VNC/audio endpoints; never assume ports belong to this task.
 - **Hot-Deploying**: Use `./scripts/deploy/deploy-ssh.sh` to push a newly compiled ARM64 binary to a live Raspberry Pi over the network.
 - **Flashing the OS**: The complete Raspberry Pi OS is generated using `./scripts/build/generate-pi-image.sh`, which leverages the `mixxx-pi-gen` submodule.
 
 ## Choose validation before building
 
-Read [test layers](../TESTING.md#run-the-appropriate-layer) and run the checks
+Read [test layers](../../../../docs/TESTING.md#run-the-appropriate-layer) and run the checks
 appropriate to the changed inputs. Documentation-only work needs link/anchor,
 diff and staged-storage checks; it does not require a binary or GUI launch.
-For asset changes, follow [compatible compiled-output reuse](../TESTING.md#reuse-compiled-outputs-for-asset-changes);
+For asset changes, follow [compatible compiled-output reuse](../../../../docs/TESTING.md#reuse-compiled-outputs-for-asset-changes);
 always rerun applicable tests. Compiled input or toolchain changes invalidate
 reuse. Deliverable builds still require a full branch version and provenance.
 
@@ -45,7 +45,7 @@ reuse. Deliverable builds still require a full branch version and provenance.
   Report its exact branch, instance, endpoints, validation results, and merge
   target. Merge or deploy to hardware only when requested.
 
-- Launch and open branch previews using the [environment-variable recipe](../GUI_TESTING.md#environment-variables-for-launching-and-opening-a-branch-preview).
+- Launch and open branch previews using the [environment-variable recipe](../../../../docs/GUI_TESTING.md#environment-variables-for-launching-and-opening-a-branch-preview).
   Export task-specific `BITEDJ_TEST_*` values in that task's shell, source the
   settings helper, verify ownership, and discover actual ports before opening.
   `.env` files are not loaded automatically. Clear inherited overrides when
@@ -76,12 +76,12 @@ Convert screenshot to PPM (`ffmpeg -i screen.png screen.ppm`) and parse raw RGB 
 
 ## noVNC Delivery Gate
 
-- Before delivering a test GUI URL, follow [the noVNC delivery gate](../GUI_TESTING.md#novnc-delivery-gate): pass fast and E2E JavaScript checks, then verify the connected desktop in a real browser. HTTP success alone does not establish a working client.
+- Before delivering a test GUI URL, follow [the noVNC delivery gate](../../../../docs/GUI_TESTING.md#novnc-delivery-gate): pass fast and E2E JavaScript checks, then verify the connected desktop in a real browser. HTTP success alone does not establish a working client.
 - Keep cached-image repair shared by automated and manual launch paths. Test fresh, malformed and repeatedly repaired sources; invalidate the full module graph when changing cached assets.
 
 ## Docker disk hygiene
 
-Follow [Docker maintenance](../DOCKER_MAINTENANCE.md) before large builds and
+Follow [Docker maintenance](../../../../docs/DOCKER_MAINTENANCE.md) before large builds and
 when recovering from disk exhaustion. Inspect host and Docker disk usage before
 and after heavy builds; aim for at least 10 GiB free before starting and remove
 obsolete task-owned outputs when space falls below that budget. When
@@ -94,7 +94,7 @@ the new ports. Do not prune globally on every build or restart a healthy engine.
 
 ## Versioned images and reproducible hardware fixes
 
-Follow [branch versions](../BRANCH_VERSIONING.md) before any deliverable build.
+Follow [branch versions](../../../../docs/BRANCH_VERSIONING.md) before any deliverable build.
 For the 0.0.7 working release, pi-gen uses `codex/v007-custom-defaults`;
 `codex/v0.0.7` is only the later merge target in both repositories. Commit on
 the feature branch, publish it, then commit the parent `mixxx-pi-gen` gitlink.

@@ -59,7 +59,7 @@ from a task being idle.
 Check large worktree-local `build-linux/`, `dist-linux/` and `test-results/`
 separately when more disk recovery is needed. Retire known task-generated
 objects, caches and temporary recordings under the existing
-[worktree cleanup procedure](agents/cleanup.md#branch-cleanup-after-integration);
+[worktree cleanup procedure](../.agents/skills/bitedj-integration/references/cleanup.md#branch-cleanup-after-integration);
 container cleanup alone does not authorize discarding unique source, settings,
 release artifacts or another task's active outputs. Avoid starting duplicate
 builds and keep monitoring free space during long compilation and linking.

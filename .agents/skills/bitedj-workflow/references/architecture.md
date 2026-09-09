@@ -1,6 +1,6 @@
 # Architecture and attribution
 
-[Agent tooling index](README.md). Read this guide when its task trigger applies.
+[Codex setup](../../../../docs/CODEX.md). Read this guide when its task trigger applies.
 
 Custom Bite DJ is an independent fork of [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on [Mixxx](https://github.com/mixxxdj/mixxx). It targets a headless Raspberry Pi OS appliance with Sway/Wayland and a multi-touch screen.
 
@@ -16,7 +16,7 @@ Qt6 Wayland currently suffers from severe grab-serial desynchronization bugs whe
 
 Sway is a tiling window manager. The application runs natively in fullscreen, and dialogs (like Preferences) are meant to spawn in fullscreen as well.
 - **Rule**: Never use `this->setGeometry()` or `this->resize()` in C++ dialog constructors.
-- The panel-contained [Beat FX picker](ui-effects.md#panel-contained-beat-fx-picker)
+- The panel-contained [Beat FX picker](../../bitedj-ui/references/effects.md#panel-contained-beat-fx-picker)
   is an explicit native exception; preserve its bounded child layout.
 - Always use `this->showFullScreen()` for other dialogs to prevent the compositor from splitting the screen in half and breaking Qt's internal layouts.
 
@@ -40,7 +40,7 @@ BiteDJ runs on slow USB flash storage.
   GPLv3. Add scoped Custom Bite DJ copyright notices while retaining upstream
   credits and the standard license text. Keep LICENSE, COPYING and NOTICE.md
   consistent and packaged together; do not introduce a blanket proprietary or
-  noncommercial license. Follow [the licensing policy](../LICENSING.md).
+  noncommercial license. Follow [the licensing policy](../../../../docs/LICENSING.md).
 
 - Identify this project as **Custom Bite DJ**, an independent fork of Team
   Deckshark's BiteDJ, based on Mixxx. Link upstream and distinguish inherited
@@ -48,7 +48,7 @@ BiteDJ runs on slow USB flash storage.
 - Preserve copyright notices, author credits and license texts. Keep source
   identifiers, paths and historical documents accurate; never globally replace
   “BiteDJ” or “Mixxx” inside notices, code keys or third-party material.
-- Follow [LICENSING.md](../LICENSING.md) when changing attribution or preparing
+- Follow [LICENSING.md](../../../../docs/LICENSING.md) when changing attribution or preparing
   distribution. The program and skin have distinct license notices. Document
   upstream paths/revisions and dated modifications when adapting material.
 - Recheck component terms before importing code or artwork. Credits alone are
@@ -57,6 +57,6 @@ BiteDJ runs on slow USB flash storage.
 ## Refactors and upstream imports
 
 Before attempting large refactors or upstream cherry-picking from `mixxxdj/mixxx`, review the following documents:
-- [Upstream differences](../DIFFS_FROM_BASE.md): Master ledger of all C++ engine and OS changes vs upstream.
-- [Infrastructure](../INFRASTRUCTURE.md): Explains Polkit permissions, Kernel realtime scheduling (`preempt=full`), and Docker dependencies.
-- [DDJ-400 mapping](../DDJ400_MAPPING.md): Explains the custom Pioneer DDJ-400 Pad FX logic and Hardware UI interception.
+- [Upstream differences](../../../../docs/DIFFS_FROM_BASE.md): Master ledger of all C++ engine and OS changes vs upstream.
+- [Infrastructure](../../../../docs/INFRASTRUCTURE.md): Explains Polkit permissions, Kernel realtime scheduling (`preempt=full`), and Docker dependencies.
+- [DDJ-400 mapping](../../../../docs/DDJ400_MAPPING.md): Explains the custom Pioneer DDJ-400 Pad FX logic and Hardware UI interception.

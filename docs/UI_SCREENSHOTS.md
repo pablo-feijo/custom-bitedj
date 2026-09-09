@@ -149,7 +149,7 @@ Audio and system status. Readings describe the local ARM64 Docker capture instan
 ## Controller pad drawer
 
 Touch or controller navigation switches between Hot Cues, Memory, Beat Jump,
-Pad FX 1, Pad FX 2 and Beat Loop. [Controls and mappings](agents/ui-pads.md#touch-drawer-navigation-and-padding-1024600).
+Pad FX 1, Pad FX 2 and Beat Loop. [Controls and mappings](../.agents/skills/bitedj-ui/references/pads.md#touch-drawer-navigation-and-padding-1024600).
 
 ![Beat Jump with separate previous and next buttons and balanced padding](images/ui/0.0.7/controller-beat-jump.png)
 
@@ -169,7 +169,7 @@ changing height during touch navigation.
 ## Refreshing these images
 
 Follow the [capture and review procedure](GUI_TESTING.md#documentation-screenshots)
-and [agent screenshot policy](agents/ui-workflow.md#published-ui-screenshots). Refresh
+and [agent screenshot policy](../.agents/skills/bitedj-ui/SKILL.md#published-ui-screenshots). Refresh
 screens affected by UI changes in the same commit and link their sections from
 the changelog. Raw captures remain ignored; only reviewed publication images
 are stored here. Preserve this gallery once 0.0.7 is released.

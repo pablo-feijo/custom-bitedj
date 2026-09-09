@@ -22,7 +22,8 @@ BiteDJ helper scripts and Docker recipes live in the directories below.
 | `tools/` | Existing upstream development, packaging and CI utilities |
 | `packaging/`, `.github/` | Distribution packaging and CI workflows |
 | `docs/` | Reusable human/agent guides and curated documentation assets |
-| `docs/agents/` | Focused agent workflows, tool routing and control constraints; start at [the tooling index](agents/README.md) |
+| `.codex/` | Native repository Codex configuration; no credentials or local state |
+| `.agents/skills/` | Discoverable OpenAI skills and focused references; see [Codex setup](CODEX.md) |
 | `tasks/` | Ignored local roadmaps, execution checklists and activity logs |
 | `mixxx-pi-gen/` | Pinned image-generator submodule; follow its own agent guide |
 | `build-linux/`, `dist-linux/` | Ignored, worktree-local build and installed output |

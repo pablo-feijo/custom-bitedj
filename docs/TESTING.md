@@ -102,7 +102,7 @@ fast, native, removable and the requested desktop tests all run again.
 | Change | Compilation strategy |
 | --- | --- |
 | Skins, controller mappings, effect presets, keyboard mappings | Reuse exact compatible binaries; replace installed asset directories from this checkout |
-| Root README/changelog/agent guide or `docs/` | Reuse exact compatible binaries; tests still run |
+| Root README/changelog/agent guide, `docs/`, native skill Markdown/`agents/openai.yaml`, or `.codex/config.toml` | Reuse exact compatible binaries; tests still run |
 | C++, native tests, CMake/product version, workflow, dependencies, unknown inputs | New binary fingerprint; compile with Ninja, ccache and resource-bounded workers |
 | Any file embedded through a Qt `.qrc` | Invalidate binaries even if located in an otherwise reusable asset directory |
 | Cache absent, expired or evicted | Build normally and populate the cache; never restore an approximate binary match |
@@ -112,6 +112,8 @@ fast, native, removable and the requested desktop tests all run again.
 artifacts. Do not relabel them or use this shortcut for a deliverable build.
 Replacing whole asset directories removes deleted files as well as copying changes.
 Tests exercise the current source assets; a cache hit never counts as a test pass.
+Native skill scripts and other assets remain fingerprinted; only instruction
+Markdown and the named UI/config metadata are excluded, unless embedded by Qt.
 
 The Tests workflow uses Node 24 Action runtimes; its controller test interpreter
 remains Node.js 22. The GCC problem matcher is registered from a local JSON file.

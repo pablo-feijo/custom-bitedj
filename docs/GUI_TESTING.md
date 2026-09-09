@@ -290,7 +290,7 @@ When writing tests or automating UI interactions in `bitedj-gui-test-instance`:
 Two-button centers: left `374, 458`; right `886, 970`. Three-button centers:
 left `360, 416, 472`; right `872, 928, 984`. Track Load: `290, 350, 410, 470`.
 Phrases toggle: `788,104` (default On); click twice to verify Off then On, including paused decks and restart persistence. Return to Play: Off `886,470`, On `970,470` (default Off).
-Played reset: `932`. See [the canonical option/control map](agents/ui-settings.md#d-settings---general-options-x73-y60)
+Played reset: `932`. See [the canonical option/control map](../.agents/skills/bitedj-ui/references/settings.md#d-settings---general-options-x73-y60)
 for each button's value and key. Standard rows are 52px; Track Load is 58px.
 The General footer starts at `y=520`; PAD FX alone hides it.
 
@@ -299,7 +299,7 @@ whenever UI options change. Remeasure after layout changes; these positions
 are for the current 1024×600 skin.
 
 Library column settings use independent visibility and width controls with
-48px row spacing. See the [verified Library mapping](agents/ui-settings.md#e-settings---library-options-x219-y60)
+48px row spacing. See the [verified Library mapping](../.agents/skills/bitedj-ui/references/settings.md#e-settings---library-options-x219-y60)
 and [Library screenshot](UI_SCREENSHOTS.md#settings-library); the Preview row
 is at `y=390`, with ON/OFF at `820` and L width at `988`.
 
@@ -341,7 +341,7 @@ At overlapping positions, the orange main **CUE** line and label paint last, abo
 The [0.0.7 UI gallery](UI_SCREENSHOTS.md) contains publication images, linked
 from the README and changelog. These curated assets are the exception to the
 rule excluding raw test screenshots from Git. Agent refresh requirements live
-in [the canonical screenshot policy](agents/ui-workflow.md#published-ui-screenshots).
+in [the canonical screenshot policy](../.agents/skills/bitedj-ui/SKILL.md#published-ui-screenshots).
 
 1. Build and launch an isolated worktree with the commands above. Use the
    inherited application version; do not bump it for a documentation change.
@@ -465,7 +465,7 @@ not verify the noVNC client. Reload a browser tab after repairing its served fil
 ### Waveform previews and touch drawer
 
 Current header coordinates and control mappings are in the
-[touch drawer guide](agents/ui-pads.md#touch-drawer-navigation-and-padding-1024600).
+[touch drawer guide](../.agents/skills/bitedj-ui/references/pads.md#touch-drawer-navigation-and-padding-1024600).
 The Previous and Next buttons are separate from the read-only mode label;
 update scripts that previously tapped the middle of the header to advance.
 At 1024×600 use Previous `(116,476)`, Next `(944,476)`, Close `(994,476)`.
@@ -496,7 +496,7 @@ x11vnc and the application. Shell background jobs must not bypass this gate;
 a browser connection refusal can mean x11vnc exited before the display existed.
 ### Browse touch navigation
 
-Use the [canonical Browse coordinates](agents/ui-settings.md#b-browse--library-navigation).
+Use the [canonical Browse coordinates](../.agents/skills/bitedj-ui/references/settings.md#b-browse--library-navigation).
 With the synthetic `/music` Quick Link configured, tap Computer `(150,107)`,
 Quick Links `(150,151)`, then Music `(200,195)`. Group labels must expand
 without switching to a table; a folder's indentation cell expands its

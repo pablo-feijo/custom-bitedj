@@ -16,7 +16,7 @@ from an older release, a stale local integration checkout, or an arbitrary branc
 with a larger version number. The latest **active unreleased** branch is the one
 agreed with the user. When a newer release becomes active, update this table,
 the affected release-specific guides (including screenshot paths and pi-gen
-notes under `docs/agents/`) together; retain the transition history below.
+notes under `.agents/skills/`) together; retain the transition history below.
 This table is the sole active-release record; agent entry points link here.
 
 ## Starting work

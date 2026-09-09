@@ -1,6 +1,6 @@
 # Integration cleanup
 
-[Agent tooling index](README.md). Read this guide when its task trigger applies.
+[Codex setup](../../../../docs/CODEX.md). Read this guide when its task trigger applies.
 
 ## Branch Cleanup After Integration
 
@@ -71,7 +71,7 @@
   folders with specific reasons, sizes and the next cleanup action.
 
 For authorized cleanup of older branch containers, follow [the audited preview
-cleanup procedure](../DOCKER_MAINTENANCE.md#older-branch-previews-and-running-containers).
+cleanup procedure](../../../../docs/DOCKER_MAINTENANCE.md#older-branch-previews-and-running-containers).
 Check host and Docker disk usage, retire obsolete previews by exact ID, and keep
 current review instances, active builds, bind-mounted data and named caches.
 

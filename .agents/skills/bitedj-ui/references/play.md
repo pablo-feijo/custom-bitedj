@@ -1,6 +1,6 @@
 # Play, waveform and Grid control maps
 
-[Agent tooling index](README.md). Read this guide when its task trigger applies.
+[Codex setup](../../../../docs/CODEX.md). Read this guide when its task trigger applies.
 
 ## Deck interaction additions
 

@@ -1,0 +1,3 @@
+interface:
+  display_name: "BiteDJ Integration"
+  short_description: "Integrate BiteDJ changes and follow CI"

@@ -1,6 +1,6 @@
 # Settings and Browse control maps
 
-[Agent tooling index](README.md). Read this guide when its task trigger applies.
+[Codex setup](../../../../docs/CODEX.md). Read this guide when its task trigger applies.
 
 ## A. Top Tab Bar (`topbar.xml`): `y=0..40`
 
@@ -30,7 +30,7 @@ The track table's **Folders** button `(980,62)` restores navigation using
 `[Sidebar],sidebar_visible`; opening a folder sets it to 0. Table headers
 use 11px text with 8px padding, at `y=84..117`. Compact track centers are
 `y=129,151` (22px spacing). Column visibility, sort and size controls retain
-their existing values. See [GUI testing](../GUI_TESTING.md#browse-touch-navigation).
+their existing values. See [GUI testing](../../../../docs/GUI_TESTING.md#browse-touch-navigation).
 
 ## C. Settings Sub-Tab Bar: `y=40..80`
 
@@ -97,7 +97,7 @@ Verified against the documentation capture at 1024×600, UI source `8f87aa338f`:
 
 Visibility uses `[Library],column_visible_<column>` (Off=0, On=1); width
 uses `[Library],column_weight_<column>` (XS=1, S=2, M=3, L=4). Selecting a width does not enable an
-Off column. See [the current Library screenshot](../UI_SCREENSHOTS.md#settings-library).
+Off column. See [the current Library screenshot](../../../../docs/UI_SCREENSHOTS.md#settings-library).
 
 ## F. Levels Page (`x=700, y=20`)
 
@@ -109,4 +109,4 @@ Service Preferences → Decks → Deck options adds Jog-wheel smoothing after
 Clone deck (eighth row), stored as `[Controls] JogWheelFilterLength` (6, 1–64).
 At 1024×600 with the native service window maximized, the spin box is `(600,302)`;
 Apply is `(974,577)`. Full option order, verified coordinates and persistence
-checks are in [GUI testing](../GUI_TESTING.md#service-deck-preferences-jog-smoothing).
+checks are in [GUI testing](../../../../docs/GUI_TESTING.md#service-deck-preferences-jog-smoothing).

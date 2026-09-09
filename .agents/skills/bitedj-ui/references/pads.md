@@ -1,6 +1,6 @@
 # Pad FX and controller drawer
 
-[Agent tooling index](README.md). Read this guide when its task trigger applies.
+[Codex setup](../../../../docs/CODEX.md). Read this guide when its task trigger applies.
 
 ## Pad FX Architecture
 
@@ -26,7 +26,7 @@ Runtime controls (not saved): `[PadFX],dN_mode` = 0 Hot Cue, 1 Pad FX 1,
 The header has separate 48×44px Previous/Next buttons and a read-only mode
 label. A bounded 92px bank area holds two 44px pad rows and a 4px gap.
 Navigation coordinates and mode mappings are listed below.
-See [controller drawer screenshots](../UI_SCREENSHOTS.md#controller-pad-drawer).
+See [controller drawer screenshots](../../../../docs/UI_SCREENSHOTS.md#controller-pad-drawer).
 
 Touch pad centers retain x=`132,385,638,891`, y=`525,574` at 1024×600.
 `[PadFX],dN_touch_p0..7` are momentary inputs, row-major. Pad FX reads saved
@@ -65,7 +65,7 @@ bank shows size ÷16 / ×16 on pads 7/8. Modes are independent per deck.
   clearance, 4px row gaps and at least 44px pads. Pad centers are approximately
   x=`132,385,638,891`, y=`525,574`; inspect current geometry before pad actions.
 - Verify both directions, controller-to-touch mode handoff, Close, all six pages,
-  and Day/Night. See [drawer gallery](../UI_SCREENSHOTS.md#controller-pad-drawer).
+  and Day/Night. See [drawer gallery](../../../../docs/UI_SCREENSHOTS.md#controller-pad-drawer).
 
 ## Touch mode transition regression
 
