@@ -53,7 +53,10 @@ class PreviewButtonDelegate : public TableItemDelegate {
         QPixmap pixmap;
         ConstWaveformPointer waveform;
         int completion = 0;
-        bool fromLiveTrack = false;
+    };
+    struct CachedSummary {
+        ConstWaveformPointer waveform;
+        TrackWeakPointer sourceTrack;
     };
     void refreshVisiblePreviews();
     void invalidatePreviews();
@@ -64,7 +67,7 @@ class PreviewButtonDelegate : public TableItemDelegate {
     mutable QCache<QString, CachedPreview> m_previewCache{128};
     // A null value is a cached miss, so an uncached track does not repeatedly
     // open its filesystem on every repaint. Loading analysis into a deck wins.
-    mutable QCache<QString, ConstWaveformPointer> m_summaries{128};
+    mutable QCache<QString, CachedSummary> m_summaries{128};
     mutable bool m_requestPending = false;
     int m_generation = 0;
     WaveformSignalColors m_colors;

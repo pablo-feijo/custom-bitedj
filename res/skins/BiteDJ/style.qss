@@ -781,11 +781,19 @@ WLabel {
 #WaveformTransportButton[value="1"] { background-color: #238751; color: #ffffff; }
 #DeckOnAir { font-size: 9px; font-weight: bold; color: #71717c; background-color: #24242c; }
 #DeckOnAir[highlight="1"] { color: #ffffff; background-color: #c9372c; }
-#InfoCard { background-color: #17171f; border: 1px solid #383846; border-radius: 6px; }
-#InfoHeading { color: #aaaaba; font-size: 14px; font-weight: bold; }
-#InfoValue { color: #e5e6ea; font-size: 42px; font-weight: bold; }
+#InfoCard, #InfoClockCard { background-color: #17171f; border: 1px solid #30303d; border-radius: 10px; text-align: left; }
+#InfoClockCard:hover, #InfoClockCard:pressed { border-color: #b28ad0; background-color: #242031; }
+#InfoHeading { color: #aaaaba; font-size: 12px; font-weight: bold; }
+#InfoValue { color: #e5e6ea; font-size: 38px; font-weight: bold; }
 #InfoHint { color: #9999a8; font-size: 12px; }
-#InfoOutput { color: #c5c5d0; font-size: 14px; padding: 10px; }
+#InfoOutput { color: #aaaaba; font-size: 12px; padding: 8px; }
+#SystemDialog { background-color: #111118; color: #e5e6ea; font-size: 16px; }
+#SystemDialog QLabel, #SystemDialog QCheckBox { color: #c5c5d0; font-size: 16px; }
+#SystemDialog #SystemDialogTitle { color: #e5e6ea; font-size: 24px; font-weight: bold; }
+#SystemDialogButton, #ClockDateButton { background-color: #252530; color: #e5e6ea; border: 1px solid #555566; border-radius: 6px; font-size: 16px; padding: 4px 12px; }
+#SystemDialogButton:pressed, #ClockDateButton:pressed { background-color: #8058a0; }
+#SystemDialogButton:disabled, #ClockDateButton:disabled { color: #777784; border-color: #33333e; }
+#SystemDialog QSpinBox { background-color: #1b1b25; color: #e5e6ea; border: 1px solid #444453; border-radius: 4px; font-size: 18px; padding: 2px 8px; }
 
 #WaveformInfo_Header {
   background-color: #32323c;
@@ -1145,7 +1153,7 @@ WBeatSpinBox::up-button {
   text-transform: uppercase;
 }
 
-#SettingsActionButton {
+#SettingsActionButton, #SettingsPowerButton {
   background-color: transparent;
   border: 2px solid #855ea7;
   border-radius: 4px;
@@ -1155,14 +1163,14 @@ WBeatSpinBox::up-button {
   text-transform: uppercase;
 }
 
-#SettingsActionButton[pressed="true"] {
+#SettingsActionButton[pressed="true"], #SettingsPowerButton[pressed="true"] {
   background-color: #2d6488;
 }
 
 /* The Audio Rescan button binds `enabled` to [AudioDevices],reconfigure_enabled,
  * which drops to 0 while a deck plays — rescanning re-opens the devices and
  * would cut the music. */
-#SettingsActionButton:disabled {
+#SettingsActionButton:disabled, #SettingsPowerButton:disabled {
   border-color: #2b3f4d;
   color: #5c707d;
 }
@@ -1517,8 +1525,8 @@ WBeatSpinBox::up-button {
 }
 
 #SettingsVersionLabel {
-  color: #5c5e61;
-  font-size: 11px;
+  color: #aaaaba;
+  font-size: 12px;
 }
 
 /************************************************************************/
@@ -1905,3 +1913,18 @@ WBeatSpinBox::up-button {
 #BeatFX_ActiveToggle { font-size: 11px; }
 
 #BeatFX_BeatsLabel { color: #a7a9ac; font-size: 12px; font-weight: bold; padding: 0; qproperty-alignment: 'AlignCenter'; }
+
+/* Compact label; retain the full 150 × 44 touch target. */
+#SettingsPowerButton { font-size: 12px; }
+
+#SystemDialog #ClockPreview { font-size: 28px; font-weight: bold; color: #e5e6ea; }
+#SystemDialog QComboBox { min-height: 48px; font-size: 18px; color: #e5e6ea; background: #252530; border: 1px solid #555566; padding: 0 12px; }
+#SystemDialog QComboBox QAbstractItemView { font-size: 18px; color: #e5e6ea; background: #252530; selection-background-color: #8058a0; }
+#SystemDialog QComboBox QAbstractItemView::item { min-height: 44px; }
+#SystemDialog QCalendarWidget { font-size: 20px; }
+#SystemDialog QCalendarWidget QToolButton { min-height: 44px; min-width: 60px; font-size: 18px; }
+
+#SystemDialog QCalendarWidget QAbstractItemView { color: #e5e6ea; background-color: #17171f; selection-background-color: #8058a0; selection-color: #ffffff; }
+
+#SystemDialog QCalendarWidget #qt_calendar_navigationbar { background-color: #252530; }
+#SystemDialog QCalendarWidget QToolButton { color: #e5e6ea; }

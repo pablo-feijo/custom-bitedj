@@ -110,3 +110,58 @@ Clone deck (eighth row), stored as `[Controls] JogWheelFilterLength` (6, 1–64)
 At 1024×600 with the native service window maximized, the spin box is `(600,302)`;
 Apply is `(974,577)`. Full option order, verified coordinates and persistence
 checks are in [GUI testing](../../../../docs/GUI_TESTING.md#service-deck-preferences-jog-smoothing).
+
+## G. System and Info dashboard
+
+System retains its saved stack index 3 and Info retains index 5. Screen rotation,
+Night/Day, network controls and Advanced preferences keep their existing keys.
+The last System row is ordered **Overclock**, **Advanced**, **Power**:
+`[System],overclock`, `[Master],show_preferences`, `[System],power_menu` are
+momentary actions. The footer shows only the full Custom Bite DJ version, with
+BiteDJ by Team Deckshark and Mixxx attribution as plain text below it. The old `[System],shutdown` and `shutdown_arm` controls remain
+available for compatibility; the new menu does not repurpose their values.
+
+Power opens a full-screen menu: Restart BiteDJ, Restart system, Power
+off, Back. Each power action opens a separate confirmation with Cancel. Restart
+BiteDJ flushes application state before relaunching; reboot and power-off are OS
+requests with visible errors. Overclock uses Save for next restart and a separate
+Restart system confirmation. Firmware defaults clears the three editable boot
+overrides. Unsupported configurations disable saving.
+
+Tap the Local Time card on Info to open Local date & time. Field order: live
+preview, Region, City / timezone, automatic sync, then manual date and hour/minute
+controls when sync is off. Timezones come from the installed IANA database;
+changing selection previews the local day/hour before Apply. The date button
+opens a fullscreen calendar with Cancel, Today and Use date. Manual changes are
+sent only when a date/time control was edited. Selecting only a timezone never
+sends a manual date/time. Apply sets the timezone before sync and manual time;
+a failed timezone request stops the sequence. These native dialogs do not change
+persisted skin enum values. See [service behavior](../../../../docs/INFRASTRUCTURE.md#touch-datetime-boot-clocks-and-restart).
+
+Verified 1024×600 targets: System tab `(805,60)`; Overclock `(634,448)`,
+Advanced `(783,448)`, Power `(933,448)`. Info tab `(951,60)`;
+Local Time card `(760,180)`. Power menu buttons are centered at `x=512`,
+`y=376/436/496/556` in the order above; confirmation Cancel `(267,556)`
+and action `(760,556)`. Overclock Back/Defaults/Save are at `y=496`,
+`x=186/512/839`; Restart system `(512,556)`. Status wrapping can move field
+rows, so locate +/- from the current dialog rather than reusing row heights.
+
+The Power label uses 12px type within the unchanged 150×44 touch target.
+
+Timezone editor (1024×600): Region `(592,160)`, City `(592,222)`, automatic sync
+`(35,282)`. In manual mode, Change date `(512,340)`; Hour minus/plus
+`(222,394)/(476,394)`, Minute minus/plus `(710,394)/(964,394)`. Bottom
+Cancel/Apply remain `(267,556)/(760,556)`. Calendar actions: Cancel `(186,556)`,
+Today `(512,556)`, Use date `(840,556)`; previous/next month `(62,84)/(962,84)`.
+
+Region/city lists support native touch scrolling. Clock and overclock writes use
+noninteractive sudo as needed; BiteDJ itself retains the normal user account.
+
+Touch System dialogs use independent fullscreen native windows, matching Preferences,
+so Wayland cannot stack the skin’s embedded GL surfaces over their controls.
+They inherit the initiating skin’s appearance and close when its owner is destroyed.
+The owner window is explicitly hidden while the dialog is open to unmap embedded
+GL surfaces on the Pi, then restored with its previous window state on return.
+
+Clock selection lists countries and a curated shortlist of main cities. Qt tzdata
+supplies offsets/DST; an existing timezone outside the shortlist remains selectable.

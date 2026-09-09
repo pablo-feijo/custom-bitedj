@@ -149,7 +149,7 @@ bool MixxxApplication::notify(QObject* pTarget, QEvent* pEvent) {
     // modal dialog boxes are suppressed application-wide; all interaction
     // that stock Mixxx routes through dialogs is handled by in-skin pages
     // and the NotificationStrip instead. Exceptions: DlgPreferences
-    // (and its children), and the explicitly designed fullscreen Beat FX picker.
+    // (and its children), the Beat FX picker and touch System dialogs.
     switch (pEvent->type()) {
     case QEvent::ToolTip:
         // Swallow every tooltip event before it reaches any widget.
@@ -157,7 +157,8 @@ bool MixxxApplication::notify(QObject* pTarget, QEvent* pEvent) {
     case QEvent::Show:
         if (auto* pDialog = qobject_cast<QDialog*>(pTarget)) {
             if (!belongsToPreferencesDialog(pDialog) &&
-                    pDialog->objectName() != QStringLiteral("BeatFxPicker")) {
+                    pDialog->objectName() != QStringLiteral("BeatFxPicker") &&
+                    pDialog->objectName() != QStringLiteral("SystemDialog")) {
                 // Dismiss as soon as the event loop spins again: a queued
                 // reject() also quits a modal exec() loop right after it starts,
                 // and callers get the safe "cancelled" result.

@@ -77,7 +77,7 @@ PreviewButtonDelegate::PreviewButtonDelegate(WLibraryTableView* parent, int colu
             invalidatePreviews();
         });
     }
-    // Check only visible cells, and repaint only changed summaries. Analysis
+    // Repaint only visible changed summaries. Analysis
     // writes completion atomically; it need not emit a signal for every block.
     auto* timer = new QTimer(this);
     timer->setInterval(250);
@@ -94,20 +94,26 @@ void PreviewButtonDelegate::invalidatePreviews() {
 
 ConstWaveformPointer PreviewButtonDelegate::summaryForLocation(const QString& location) const {
     const auto track = GlobalTrackCacheLocker().lookupPublishedTrackByLocation(location);
+    auto* cached = m_summaries.object(location);
     if (track) {
         const auto waveform = track->getWaveformSummary();
         if (waveform) {
+            // Replace an earlier disk miss with the live analysis. Retain only
+            // the summary so unloading the deck can still release the Track.
+            if (!cached || cached->waveform != waveform ||
+                    cached->sourceTrack.lock() != track) {
+                m_summaries.insert(location, new CachedSummary{waveform, track});
+            }
             return waveform;
         }
-        // Once a live summary has been displayed, a null replacement means
-        // it was cleared. Do not resurrect its old disk copy.
-        const auto* preview = m_previewCache.object(location);
-        if (preview && preview->fromLiveTrack) {
-            m_summaries.insert(location, new ConstWaveformPointer());
+        // A clear on the same live Track wins even after a palette change has
+        // discarded its pixmap. A newly imported metadata-only Track does not
+        // invalidate the summary retained from a previous deck load.
+        if (cached && cached->sourceTrack.lock() == track) {
+            cached->waveform.clear();
         }
     }
-    const auto* cached = m_summaries.object(location);
-    return cached ? *cached : ConstWaveformPointer();
+    return cached ? cached->waveform : ConstWaveformPointer();
 }
 
 void PreviewButtonDelegate::requestSummary(const QString& location) const {
@@ -127,9 +133,10 @@ void PreviewButtonDelegate::requestSummary(const QString& location) const {
     connect(watcher, &QFutureWatcher<ConstWaveformPointer>::finished, self,
             [self, watcher, location, generation] {
                 self->m_requestPending = false;
-                if (self->m_generation == generation) {
+                if (self->m_generation == generation &&
+                        !self->m_summaries.contains(location)) {
                     self->m_summaries.insert(location,
-                            new ConstWaveformPointer(watcher->result()));
+                            new CachedSummary{watcher->result(), {}});
                     // Location-keyed result: sorting or changing folders during
                     // I/O cannot install one track's waveform into another row.
                 }
@@ -172,6 +179,12 @@ void PreviewButtonDelegate::requestSummary(const QString& location) const {
 }
 
 void PreviewButtonDelegate::refreshVisiblePreviews() {
+    // A previously missing track may be loaded while another page is open.
+    // Promote its live summary before the deck releases it, without disk I/O
+    // or importing tracks. The visited-location cache is bounded to 128 entries.
+    for (const auto& location : m_summaries.keys()) {
+        summaryForLocation(location);
+    }
     if (!m_pTableView->isVisible() || m_pTableView->isColumnHidden(m_column)) {
         return;
     }
@@ -250,9 +263,7 @@ void PreviewButtonDelegate::paintItem(QPainter* painter,
         const QImage image = WaveformPreviewRenderer::render(waveform, rect.size(),
                 WaveformWidgetType::overviewType(type), m_colors);
         if (!image.isNull()) {
-            const auto liveTrack = GlobalTrackCacheLocker().lookupPublishedTrackByLocation(location);
-            const bool fromLiveTrack = liveTrack && liveTrack->getWaveformSummary() == waveform;
-            cached = new CachedPreview{QPixmap::fromImage(image), waveform, completion, fromLiveTrack};
+            cached = new CachedPreview{QPixmap::fromImage(image), waveform, completion};
             m_previewCache.insert(location, cached);
         } else {
             m_previewCache.remove(location);

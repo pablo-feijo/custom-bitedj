@@ -103,7 +103,7 @@ set(MIXXX_VERSION_PRERELEASE "") # set to "alpha" "beta" or ""
 # reported by `bitedj --version`; it moves independently of the Mixxx base
 # version above.
 set(BITEDJ_VERSION "0.0.7")
-set(BITEDJ_VERSION_PRERELEASE "codex-semver-vnc.7")
+set(BITEDJ_VERSION_PRERELEASE "codex-system-dashboard.10")
 if(NOT BITEDJ_VERSION MATCHES "^[0-9]+(\\.[0-9]+)*$")
   message(FATAL_ERROR "BITEDJ_VERSION must be a dot-separated numeric version, got '${BITEDJ_VERSION}'")
 endif()
@@ -1036,6 +1036,8 @@ add_library(mixxx-lib STATIC EXCLUDE_FROM_ALL
   src/widget/woverviewruler.cpp
   src/widget/wlinkedzoom.cpp
   src/widget/wsysteminfo.cpp
+  src/widget/wsystemdialogs.cpp
+  src/util/bootsettings.cpp
   src/util/systemtelemetry.cpp
   src/widget/wversionlabel.cpp
   src/widget/wstatuslight.cpp
@@ -1652,6 +1654,7 @@ if(BUILD_TESTING)
     src/test/deckpresentation_test.cpp
     src/test/waveformpreview_test.cpp
     src/test/systemtelemetry_test.cpp
+    src/test/bootsettings_test.cpp
     src/test/tableview_test.cpp
     src/test/taglibtest.cpp
     src/test/touchscrollfilter_test.cpp

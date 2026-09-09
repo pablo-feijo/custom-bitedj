@@ -7,6 +7,19 @@ Versioning; commit messages follow Conventional Commits.
 
 ## [0.0.7] — Unreleased
 
+- Reduce the overview time ruler to 8px with 6px labels, preserving waveform
+  height and seek controls ([Play](docs/UI_SCREENSHOTS.md#play)).
+- Focus the System version footer on Custom Bite DJ and its full version, with
+  direct upstream BiteDJ and Mixxx reference links.
+- Refine the [Info dashboard](docs/UI_SCREENSHOTS.md#settings-info) with a tappable
+  local clock and date, region/city timezone selection with a live preview,
+  calendar date editing and automatic network time.
+  [System settings](docs/UI_SCREENSHOTS.md#settings-system) adds Raspberry Pi
+  overclock editing, firmware defaults, a recovery backup, and separate confirmed
+  actions to restart BiteDJ, restart the system or power off. Clock and boot
+  settings use noninteractive sudo when needed, keeping the GUI and library
+  under the normal user account.
+
 - Add a [Grid page](docs/UI_SCREENSHOTS.md#grid) with per-deck earlier, set-here, later and slower/faster BPM controls, a waveform editing state and compact right-panel tabs.
 
 UI previews: [Play](docs/UI_SCREENSHOTS.md#play),

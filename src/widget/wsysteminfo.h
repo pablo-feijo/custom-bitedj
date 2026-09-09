@@ -23,6 +23,7 @@ class WSystemInfo : public WWidget {
     QLabel* m_cpu;
     QLabel* m_temperature;
     QLabel* m_clock;
+    QLabel* m_date;
     QLabel* m_output;
     QTimer m_timer;
     QElapsedTimer m_age;

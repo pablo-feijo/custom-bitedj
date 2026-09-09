@@ -228,6 +228,8 @@ class SystemSettings : public QObject {
     std::unique_ptr<ControlObject> m_pCoUsbRefresh;
     std::unique_ptr<ControlObject> m_pCoShutdownArm;
     std::unique_ptr<ControlObject> m_pCoShutdown;
+    std::unique_ptr<ControlObject> m_pCoPowerMenu;
+    std::unique_ptr<ControlObject> m_pCoOverclock;
     // [BiteDJ],vinyl_mode — 1 = Vinyl, 0 = CDJ jog behaviour. Persisted to
     // config; read by the controller mapping to toggle jog-touch scratching.
     std::unique_ptr<ControlObject> m_pCoVinylMode;

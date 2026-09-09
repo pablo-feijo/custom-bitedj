@@ -3,6 +3,8 @@
 #include <cmath>
 
 #include <QCoreApplication>
+#include <QApplication>
+#include "widget/wsystemdialogs.h"
 #include <QDir>
 #include <QEventLoop>
 #include <QFile>
@@ -163,6 +165,19 @@ SystemSettings::SystemSettings(UserSettingsPointer pConfig,
             &ControlObject::valueChanged,
             this,
             &SystemSettings::onShutdownRequested);
+
+    m_pCoPowerMenu = std::make_unique<ControlObject>(ConfigKey(kGroup, "power_menu"));
+    connect(m_pCoPowerMenu.get(), &ControlObject::valueChanged, this, [this](double value) {
+        if (value <= 0) return;
+        m_pCoPowerMenu->set(0);
+        mixxx::systemdialogs::power(QApplication::activeWindow());
+    });
+    m_pCoOverclock = std::make_unique<ControlObject>(ConfigKey(kGroup, "overclock"));
+    connect(m_pCoOverclock.get(), &ControlObject::valueChanged, this, [this](double value) {
+        if (value <= 0) return;
+        m_pCoOverclock->set(0);
+        mixxx::systemdialogs::overclock(QApplication::activeWindow());
+    });
 
     // Vinyl/CDJ jog mode (General settings tab). Seeded from the persisted config
     // value and written back on every change so the choice survives restarts. The

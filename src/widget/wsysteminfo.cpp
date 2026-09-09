@@ -1,8 +1,12 @@
 #include "widget/wsysteminfo.h"
 
 #include <QDateTime>
+#include <QApplication>
+#include <QTimeZone>
 #include <QGridLayout>
 #include <QLabel>
+#include <QPushButton>
+#include "widget/wsystemdialogs.h"
 #include <QVBoxLayout>
 #include <QtConcurrentRun>
 
@@ -24,10 +28,11 @@ WSystemInfo::WSystemInfo(QWidget* parent) : WWidget(parent) {
     auto* layout = new QGridLayout(this);
     layout->setContentsMargins(16, 12, 16, 12);
     layout->setSpacing(12);
-    auto card = [this, layout](const QString& title, const QString& detail, int row, int col) {
-        auto* frame = new QWidget(this);
+    auto card = [this, layout](const QString& title, const QString& detail, int row, int col, bool editable = false) {
+        QWidget* frame = editable ? static_cast<QWidget*>(new QPushButton(this)) : new QWidget(this);
         frame->setObjectName(QStringLiteral("InfoCard"));
         frame->setAttribute(Qt::WA_StyledBackground);
+        frame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         auto* contents = new QVBoxLayout(frame);
         contents->setContentsMargins(16, 10, 16, 10);
         contents->setSpacing(2);
@@ -37,6 +42,17 @@ WSystemInfo::WSystemInfo(QWidget* parent) : WWidget(parent) {
         value->setObjectName(QStringLiteral("InfoValue"));
         auto* hint = new QLabel(detail, frame);
         hint->setObjectName(QStringLiteral("InfoHint"));
+        if (editable) {
+            frame->setObjectName(QStringLiteral("InfoClockCard"));
+            frame->setCursor(Qt::PointingHandCursor);
+            frame->setAccessibleName(tr("Edit local date and time"));
+            heading->setAttribute(Qt::WA_TransparentForMouseEvents);
+            value->setAttribute(Qt::WA_TransparentForMouseEvents);
+            hint->setAttribute(Qt::WA_TransparentForMouseEvents);
+            connect(static_cast<QPushButton*>(frame), &QPushButton::clicked, this,
+                    [this] { mixxx::systemdialogs::clock(this); });
+            m_date = hint;
+        }
         contents->addWidget(heading);
         contents->addWidget(value, 1);
         contents->addWidget(hint);
@@ -44,7 +60,7 @@ WSystemInfo::WSystemInfo(QWidget* parent) : WWidget(parent) {
         return value;
     };
     m_load = card(tr("AUDIO LOAD"), tr("Audio callback utilization"), 0, 0);
-    m_clock = card(tr("LOCAL TIME"), tr("System clock"), 0, 1);
+    m_clock = card(tr("LOCAL TIME"), tr("Tap to edit date & time"), 0, 1, true);
     m_cpu = card(tr("CPU"), tr("Whole-system utilization"), 1, 0);
     m_temperature = card(tr("TEMPERATURE"), tr("CPU / SoC sensor"), 1, 1);
     m_output = new QLabel(this);
@@ -77,7 +93,11 @@ void WSystemInfo::setup(const QDomNode&, const SkinContext&) {
 }
 
 void WSystemInfo::refresh() {
-    m_clock->setText(QDateTime::currentDateTime().toString(QStringLiteral("HH:mm")));
+    const auto zoneId = qApp->property("bitedjTimeZone").toByteArray();
+    const auto now = zoneId.isEmpty() ? QDateTime::currentDateTime()
+            : QDateTime::currentDateTimeUtc().toTimeZone(QTimeZone(zoneId));
+    m_clock->setText(now.toString(QStringLiteral("HH:mm")));
+    m_date->setText(now.toString(QStringLiteral("ddd, d MMM yyyy")) + tr(" · Tap to edit"));
     const bool outputEnabled = control("[Master]", "main_output_connected") > 0;
     const bool audioEnabled = outputEnabled || control("[Master]", "headEnabled") > 0 ||
             control("[Master]", "booth_enabled") > 0;

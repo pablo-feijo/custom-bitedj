@@ -624,7 +624,7 @@
           </Overview>
         </Children>
       </WidgetGroup>
-      <OverviewRuler><ObjectName>OverviewRuler</ObjectName><Size>0me,9f</Size><Channel><Variable name="channel"/></Channel></OverviewRuler>
+      <OverviewRuler><ObjectName>OverviewRuler</ObjectName><Size>0me,8f</Size><Channel><Variable name="channel"/></Channel></OverviewRuler>
     </Children>
   </WidgetGroup>
 </Template>

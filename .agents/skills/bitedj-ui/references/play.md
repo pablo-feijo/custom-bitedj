@@ -12,7 +12,7 @@
   from vertical scrolling. Only actual visible deck regions accept that drag;
   Escape cancels it. Highlight geometry must match the release target geometry.
 - Overview waveform height must match its visible container (currently 38px).
-  Keep the 12px minute ruler in a separate row; do not crop a double-height widget.
+  Keep the 8px minute ruler in a separate row; do not crop a double-height widget.
   Check RGB, FILT and 3 BAND after changing overview rendering. Stacked rendering
   uses bottom-origin image coordinates and must not get the symmetric translation.
 
@@ -20,7 +20,7 @@
 
 Overview labels use hot-cue letters and memory numbers; full names remain in
 the Play waveform. Phrase strips are 10px with 8px text; the overview ruler
-is 9px with 7px text.
+is 8px with 6px text.
 
 Compact overview cue labels retain the cue color as a small badge with contrasting text. Verify both hot-cue letters and memory numbers in Day/Night, with phrases enabled and disabled. Fixtures include distinct cue colors to make regressions visible.
 

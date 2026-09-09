@@ -655,3 +655,58 @@ real virtual-PortMidi messages. It asserts both decks' Loop Shift/release,
 FX 1/2 selection, FX 2 persistence after Shift release, all three Jump banks,
 and touch Next continuing from the MIDI-selected FX 2 page. Screenshot/result
 artifacts are saved under the owned instance's `test-results/` directory.
+
+### Compact overview time ruler
+
+The deck overview minute ruler is a separate 8px row with 6px labels. Verify both
+decks at 1024×600 in RGB, FILT and 3 BAND, Night and Day. The 38px waveform
+height, cue labels, time mapping and seek targets remain unchanged.
+
+### System dashboard, clock and restart
+
+See the [System/Info control map](../.agents/skills/bitedj-ui/references/settings.md#g-system-and-info-dashboard)
+and [OS behavior](INFRASTRUCTURE.md#touch-datetime-boot-clocks-and-restart).
+Verify Night and Day at 1024×600: all four Info cards, local date and tap hint,
+output status and deck footer must remain visible. Tap Local Time; check
+Region/City selectors, timezone preview including day rollover, calendar selection,
+Hour/Minute controls, automatic sync hiding the manual fields,
+Cancel, and disabled Apply when the date/time service is unavailable.
+
+Native `SystemDialogsTest` uses temporary fake system executables to verify
+manual/automatic clock commands, partial failures and confirmation/cancellation.
+`BootSettingsTest` uses a temporary boot file to verify preservation, reset,
+backup, invalid/unsupported configurations and stale-write rejection. Neither
+test modifies host time, boot settings or system power.
+
+On the owned desktop, verify System → Power → Restart BiteDJ relaunches
+the branch binary and retains settings. Check Restart system and Power off
+confirmation/cancel. A container without systemd must report a visible failure
+for an OS request. Hardware application of clock values and physical reboot
+require a separately authorized Raspberry Pi test; container success does not
+certify overclock stability.
+
+The overclock dialog tests also click +/- to change 2000/750/6 to 2100/700/5,
+save, reopen, restore firmware defaults, verify the original recovery copy,
+and cancel the restart confirmation. Draft cancellation and external edits are
+checked independently. The reader fixture supplies a simulated Pi model and a
+temporary boot file; production always reads the fixed OS paths. Optional
+`BITEDJ_UI_CAPTURE_DIR` captures this test with scrot on an owned X display.
+These harness captures use the default Qt style; published skin captures come
+from the actual application. See the control map above for verified touch targets.
+
+Timezone tests verify zone-before-sync ordering, timezone-only edits without a
+manual clock write, failure short-circuiting, and selecting 29 February 2028 with
+a manual time. Use the current System/Info control map for touch targets. Test
+commands are temporary fakes; no host timezone or clock is changed.
+
+Verified timezone preview examples: America/Sao_Paulo (UTC−03) and
+Pacific/Kiritimati (UTC+14), including the following calendar day. Cancelling
+returns to the unchanged system clock. Night/Day calendar headers and touch
+controls were checked at 1024×600.
+
+Linux clock mutations run through noninteractive sudo when the app is non-root.
+Run `SystemDialogsTest.*` as an unprivileged user with the temporary fake sudo
+and timedatectl commands to check that path. BootSettingsTest validates the
+headless helper request hash, numeric bounds, stale snapshots and original backup.
+The helper must reject non-root invocation and malformed requests before any GUI
+initialization; an invalid `QT_QPA_PLATFORM` is useful for checking this boundary.

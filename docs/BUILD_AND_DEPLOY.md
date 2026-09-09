@@ -25,6 +25,12 @@ This script will:
 3. Build a customized Debian Trixie OS from scratch (Stages 0-3).
 4. Export a fully flashable `.zip` file into `mixxx-pi-gen/deploy/`.
 
+The image keeps BiteDJ under the `pi` account and validates noninteractive sudo
+for clock and overclock operations during Stage 3. On a booted image, run
+`/usr/lib/bitedj/check-system-settings` as `pi` to verify the same capabilities
+without changing system state. See the pinned image recipe's
+[system settings guide](../mixxx-pi-gen/docs/SYSTEM_SETTINGS.md).
+
 **Flashing the SD Card:**
 Once the `.zip` is generated, insert your SD card and run:
 ```bash

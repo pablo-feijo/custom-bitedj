@@ -816,41 +816,7 @@
                 <SizePolicy>me,me</SizePolicy>
               </UsbList>
 
-              <!-- One row carries everything on this page that isn't a drive:
-                   rotation, day/night and Power. The USB list is the reason —
-                   it is the page's only content that grows with the hardware
-                   (three slots), and at the 420px floor a second and third
-                   drive were pushing it into the rows below. Folding the old
-                   72f Power row into this one buys the list ~72px, which is
-                   one and a bit more drive rows.
-                   The three read as one group in the sense that matters here:
-                   none is touched mid-set, they are all about the box rather
-                   than the mix. Rotation and day/night are both about making
-                   the panel readable from where the DJ is standing — Day
-                   inverts every colour in the skin's stylesheet (dark-on-light
-                   instead of light-on-dark), which is what survives an LCD in
-                   direct sun; HighContrast re-applies the inverted sheets live,
-                   so there is no skin reboot.
-                   Width at the 480px floor is the binding constraint and there
-                   is no slack left: 400px inside the row's padding, spent as
-                   120 + 12 + 120 + 16 + 64 = 332, leaving 68 for a label that
-                   measures 58 (six 16px Monospace caps). Both segment groups
-                   are therefore on the 60px min-width (#ScreenRotSegmented /
-                   #ScreenModeSegmented) rather than the stock 80, and Power
-                   is a 64f button reading POWER rather than the old 96f SHUT
-                   DOWN. Anything else that wants a place here needs a fourth
-                   row, not a fourth column.
-                   Rows are 68f/44f rather than the 52f/40f used elsewhere:
-                   Power is a destructive control and has to clear the 44px
-                   touch floor, and mixed heights in one row would have read as
-                   emphasis on the one control that deserves it least.
-                   68 is 44 plus everything #SettingsRow spends before its
-                   layout sees the height — 8px of margin-bottom and 8px of
-                   padding top and bottom. Qt's stylesheet box model takes all
-                   three off the widget's own geometry, so the 60f this used to
-                   be left a 36px content strip and the 44f controls lost their
-                   bottom border off the end of it. Any change to that padding
-                   or margin has to move this number with it. -->
+              <!-- Keep the flexible USB list above three fixed touch rows. -->
               <WidgetGroup>
                 <ObjectName>SettingsRow</ObjectName>
                 <Layout>horizontal</Layout>
@@ -956,104 +922,42 @@
                 <Layout>horizontal</Layout>
                 <Size>0me,68f</Size>
                 <Children>
-                  <!-- Arming takes over the whole row instead of swapping a
-                       button in place (the pattern the Devices/Audio Apply rows
-                       use): at 64f the in-place page would have had to fit
-                       Confirm and Cancel in the width of one small button, well
-                       under the touch floor for a pair where the wrong tap
-                       powers the unit off mid-set. Taking the row also puts the
-                       question where the DJ is already looking. -->
-                  <WidgetStack currentpage="[System],shutdown_arm">
-                    <SizePolicy>me,me</SizePolicy>
-                    <Children>
+                  <Label>
+                    <ObjectName>SettingsRowLabel</ObjectName>
+                    <Text>System</Text>
+                    <Size>0me,0me</Size>
+                  </Label>
+                  <PushButton>
+                    <ObjectName>SettingsActionButton</ObjectName>
+                    <Size>150f,44f</Size>
+                    <NumberStates>1</NumberStates>
+                    <State><Number>0</Number><Text>Overclock</Text></State>
+                    <Connection>
+                      <ConfigKey>[System],overclock</ConfigKey>
+                      <EmitOnDownPress>true</EmitOnDownPress>
+                    </Connection>
+                  </PushButton>
+                  <PushButton>
+                    <ObjectName>SettingsActionButton</ObjectName>
+                    <Size>150f,44f</Size>
+                    <NumberStates>1</NumberStates>
+                    <State><Number>0</Number><Text>Advanced</Text></State>
+                    <Connection>
+                      <ConfigKey>[Master],show_preferences</ConfigKey>
+                      <EmitOnDownPress>true</EmitOnDownPress>
+                    </Connection>
+                  </PushButton>
+                  <PushButton>
+                    <ObjectName>SettingsPowerButton</ObjectName>
+                    <Size>150f,44f</Size>
+                    <NumberStates>1</NumberStates>
+                    <State><Number>0</Number><Text>Power</Text></State>
+                    <Connection>
+                      <ConfigKey>[System],power_menu</ConfigKey>
+                      <EmitOnDownPress>true</EmitOnDownPress>
+                    </Connection>
+                  </PushButton>
 
-                      <WidgetGroup>
-                        <Layout>horizontal</Layout>
-                        <SizePolicy>me,me</SizePolicy>
-                        <Children>
-                          <Label>
-                            <ObjectName>SettingsRowLabel</ObjectName>
-                            <Text>Advanced</Text>
-                            <Size>0me,0me</Size>
-                          </Label>
-                          <PushButton>
-                            <ObjectName>SettingsActionButton</ObjectName>
-                            <Size>114f,40f</Size>
-                            <NumberStates>1</NumberStates>
-                            <State>
-                              <Number>0</Number>
-                              <Text>Settings</Text>
-                            </State>
-                            <Connection>
-                              <ConfigKey>[Master],show_preferences</ConfigKey>
-                              <EmitOnDownPress>true</EmitOnDownPress>
-                            </Connection>
-                          </PushButton>
-                          <WidgetGroup>
-                            <Size>4f,0me</Size>
-                          </WidgetGroup>
-                          <PushButton>
-                            <ObjectName>SettingsActionButton</ObjectName>
-                            <Size>114f,40f</Size>
-                            <NumberStates>1</NumberStates>
-                            <State>
-                              <Number>0</Number>
-                              <Text>Power</Text>
-                            </State>
-                            <Connection>
-                              <ConfigKey>[System],shutdown_arm</ConfigKey>
-                              <EmitOnDownPress>true</EmitOnDownPress>
-                              <Transform><IsEqual>1</IsEqual></Transform>
-                            </Connection>
-                          </PushButton>
-                        </Children>
-                      </WidgetGroup>
-
-                      <WidgetGroup>
-                        <Layout>horizontal</Layout>
-                        <SizePolicy>me,me</SizePolicy>
-                        <Children>
-                          <Label>
-                            <ObjectName>SettingsRowLabel</ObjectName>
-                            <Text>Shut Down?</Text>
-                            <Size>0me,0me</Size>
-                          </Label>
-                          <PushButton>
-                            <ObjectName>SettingsDangerButton</ObjectName>
-                            <Size>114f,40f</Size>
-                            <NumberStates>1</NumberStates>
-                            <State>
-                              <Number>0</Number>
-                              <Text>Confirm</Text>
-                            </State>
-                            <Connection>
-                              <ConfigKey>[System],shutdown</ConfigKey>
-                              <EmitOnDownPress>true</EmitOnDownPress>
-                              <Transform><IsEqual>1</IsEqual></Transform>
-                            </Connection>
-                          </PushButton>
-                          <WidgetGroup>
-                            <Size>4f,0me</Size>
-                          </WidgetGroup>
-                          <PushButton>
-                            <ObjectName>SettingsActionButton</ObjectName>
-                            <Size>114f,40f</Size>
-                            <NumberStates>1</NumberStates>
-                            <State>
-                              <Number>0</Number>
-                              <Text>Cancel</Text>
-                            </State>
-                            <Connection>
-                              <ConfigKey>[System],shutdown_arm</ConfigKey>
-                              <EmitOnDownPress>true</EmitOnDownPress>
-                              <Transform><IsEqual>0</IsEqual></Transform>
-                            </Connection>
-                          </PushButton>
-                        </Children>
-                      </WidgetGroup>
-
-                    </Children>
-                  </WidgetStack>
                 </Children>
               </WidgetGroup>
 

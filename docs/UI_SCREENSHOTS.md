@@ -6,7 +6,8 @@ This guide describes [Custom Bite DJ](../README.md), an independent fork of
 [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on Mixxx.
 
 Synthetic **1024×600** captures in Night and Day mode. The main preview is
-`0.0.7-codex-semver-vnc.7`; drawer examples use
+`0.0.7-codex-system-dashboard.10` for System and the clock dialogs; waveform/picker examples also use
+`0.0.7-codex-system-dashboard.3` with the same skin. Unchanged drawer examples use
 `0.0.7-codex-bottom-pad-touch.2`.
 [Capture provenance](images/ui/0.0.7/semver-capture-provenance.json) records
 binary and image hashes.
@@ -20,7 +21,8 @@ these screens, or [return to the README](../README.md).
 
 ## Play
 
-Two decks with scrolling waveforms and the FX, Key, Jump and Grid panel.
+Two decks with scrolling waveforms, a shorter overview ruler with smaller labels,
+and the FX, Key, Jump and Grid panel.
 
 ![Play](images/ui/0.0.7/play.png)
 
@@ -134,17 +136,58 @@ Output routing, latency/quality selection and device rescanning. Devices shown b
 
 ## Settings — System
 
-USB drives, screen mode and rotation, network shortcuts and appliance actions.
+USB drives, screen mode and rotation, network shortcuts, overclock settings,
+Advanced preferences and Power. The power menu separates application
+restart, system restart and power-off, each with confirmation. The footer
+features the Custom Bite DJ version with plain-text attribution to BiteDJ and Mixxx.
 
 ![Settings — System](images/ui/0.0.7/settings-system.png)
+
+![Separate restart and power actions](images/ui/0.0.7/power-menu.png)
+
+The overclock editor exposes CPU, GPU and voltage offset, with firmware defaults,
+Save for next restart and a separate restart confirmation. This Docker capture
+has no Pi boot configuration, so editing is disabled. Save/reopen/defaults are
+covered by native tests using a simulated Pi configuration.
+
+![Overclock editor without supported hardware](images/ui/0.0.7/overclock-editor.png)
+
+<details><summary>System controls in Day mode</summary>
+
+![System in Day mode](images/ui/0.0.7/settings-system-day.png)
+![Power menu in Day mode](images/ui/0.0.7/power-menu-day.png)
+![Overclock in Day mode](images/ui/0.0.7/overclock-editor-day.png)
+
+</details>
 
 <a id="settings-info"></a>
 
 ## Settings — Info
 
-Audio and system status. Readings describe the local ARM64 Docker capture instance, not Raspberry Pi performance.
+Four dashboard cards show audio load, local date/time, CPU load and temperature.
+Tap Local Time to choose a country and one of its main cities and preview the new hour/day.
+Automatic sync sets the clock; manual mode provides a calendar and time controls. Readings describe the local
+ARM64 Docker capture instance, not Raspberry Pi performance.
 
 ![Settings — Info](images/ui/0.0.7/settings-info.png)
+
+![Timezone-first editor; service unavailable in this container](images/ui/0.0.7/clock-editor.png)
+
+Turn automatic sync off to reveal the manual date and time controls. Select a
+calendar day, use Today, or change the hour/minute with the touch buttons.
+
+![Main cities for the selected country](images/ui/0.0.7/clock-city-shortlist.png)
+
+![Manual date and time controls](images/ui/0.0.7/clock-manual.png)
+![Touch calendar](images/ui/0.0.7/clock-calendar.png)
+
+<details><summary>Dashboard and clock in Day mode</summary>
+
+![Dashboard in Day mode](images/ui/0.0.7/settings-info-day.png)
+![Clock editor in Day mode](images/ui/0.0.7/clock-editor-day.png)
+![Calendar in Day mode](images/ui/0.0.7/clock-calendar-day.png)
+
+</details>
 
 ## Controller pad drawer
 

@@ -238,7 +238,9 @@ Validation on 2026-09-09:
 transient-preserving downsampling, palette round trips, 3 Band stacking and deck
 loading with stale duration controls. `PreviewDelegateTest` exercises actual
 painting, pixmap reuse, completion/replacement invalidation, row reordering,
-metadata-only tracks, clearing and a 300-track bounded-cache traversal. Its model
+metadata-only tracks, clearing and a 300-track bounded-cache traversal.
+It also covers a cached miss becoming partial/complete deck analysis, unloading
+the track without losing its preview, and clearing after palette invalidation. Its model
 counts metadata-loading calls so accidental track imports from paint fail tests.
 `GlobalTrackCacheTest.PreviewLookupSkipsUnpublishedTrackWithoutWaiting` exercises
 an unfinished metadata import: waiting for that import would deadlock the test.

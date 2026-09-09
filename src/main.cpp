@@ -1,3 +1,5 @@
+#include <QProcess>
+#include <QMessageBox>
 #include <QApplication>
 #include <QDir>
 #include <QPixmapCache>
@@ -22,6 +24,10 @@
 #endif
 #include "sources/soundsourceproxy.h"
 #include "util/cmdlineargs.h"
+#include "util/bootsettings.h"
+#ifdef Q_OS_LINUX
+#include <unistd.h>
+#endif
 #include "util/console.h"
 #include "util/logging.h"
 #include "util/rtscheduling.h"
@@ -159,6 +165,24 @@ void applyStyleOverride(CmdlineArgs* pArgs) {
 } // anonymous namespace
 
 int main(int argc, char * argv[]) {
+    // A short-lived root helper; do not initialize the GUI, audio, user library
+    // or settings. Only fixed Pi boot paths and validated clock values are used.
+    if (argc > 1 && QByteArray(argv[1]) == "--bitedj-apply-boot-settings") {
+        QCoreApplication helper(argc, argv);
+#ifdef Q_OS_LINUX
+        if (geteuid() != 0) {
+            std::fprintf(stderr, "Boot-settings helper requires sudo.\n");
+            return 1;
+        }
+        const QString error = mixxx::bootsettings::applyRequest(
+                mixxx::bootsettings::read(), helper.arguments().mid(2));
+        if (error.isEmpty()) return 0;
+        std::fprintf(stderr, "%s\n", error.toUtf8().constData());
+#else
+        std::fprintf(stderr, "Boot settings require Raspberry Pi Linux.\n");
+#endif
+        return 1;
+    }
     Console console;
 
     // Lock pages against reclaim as they are touched (on-fault) so the audio
@@ -293,6 +317,21 @@ int main(int argc, char * argv[]) {
     qDebug() << "Mixxx shutdown complete with code" << exitCode;
 
     mixxx::Logging::shutdown();
+
+    if (app.property("bitedjRestart").toBool()) {
+        // Services and the main window are already destroyed: settings and
+        // recording/history writes have completed before the new process starts.
+        if (!QProcess::startDetached(QCoreApplication::applicationFilePath(),
+                    QCoreApplication::arguments().mid(1))) {
+            QMessageBox error(QMessageBox::Critical, QObject::tr("Restart failed"),
+                    QObject::tr("BiteDJ could not restart. Launch the application again."),
+                    QMessageBox::Close);
+            error.setObjectName(QStringLiteral("SystemDialog"));
+            error.showFullScreen();
+            error.exec();
+            exitCode = 1;
+        }
+    }
 
     return exitCode;
 }

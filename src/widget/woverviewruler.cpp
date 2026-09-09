@@ -21,7 +21,7 @@ void WOverviewRuler::paintEvent(QPaintEvent*) {
     if (!track || track->getDuration() <= 0 || width() < 60) return;
     const double duration = track->getDuration();
     const int step = 60 * qMax(1, static_cast<int>(std::ceil(duration / 60.0 / qMax(1, width() / 60))));
-    QFont f = font(); f.setPixelSize(7); painter.setFont(f);
+    QFont f = font(); f.setPixelSize(6); painter.setFont(f);
     painter.setPen(WSkinColor::getCorrectColor(QColor("#aaaaba")));
     for (int seconds = 0; seconds <= duration; seconds += step) {
         const int x = qRound(seconds / duration * (width() - 1));

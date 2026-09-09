@@ -10,6 +10,7 @@
 #include "library/tabledelegates/previewbuttondelegate.h"
 #include "test/mixxxtest.h"
 #include "track/track.h"
+#include "track/globaltrackcache.h"
 #include "waveform/renderers/waveformpreviewrenderer.h"
 #include "waveform/waveformwidgetfactory.h"
 #include "waveform/widgets/waveformwidgettype.h"
@@ -214,7 +215,7 @@ class PreviewDelegateTest : public LibraryTest {
   protected:
     static void seed(PreviewButtonDelegate& delegate, const QString& location,
             const ConstWaveformPointer& waveform) {
-        delegate.m_summaries.insert(location, new ConstWaveformPointer(waveform));
+        delegate.m_summaries.insert(location, new PreviewButtonDelegate::CachedSummary{waveform, {}});
     }
     static void configure(PreviewButtonDelegate& delegate, UserSettingsPointer config) {
         QDomDocument doc;
@@ -224,6 +225,7 @@ class PreviewDelegateTest : public LibraryTest {
                 "</Visual>"));
         delegate.m_colors.setup(doc.documentElement(), SkinContext(config, "test"));
     }
+    static void refresh(PreviewButtonDelegate& delegate) { delegate.refreshVisiblePreviews(); }
     static int cacheSize(const PreviewButtonDelegate& delegate) { return delegate.m_previewCache.size(); }
     static qint64 pixmapKey(const PreviewButtonDelegate& delegate, const QString& path) {
         const auto* item = delegate.m_previewCache.object(path);
@@ -348,6 +350,74 @@ TEST_F(PreviewDelegateTest, ColdSummaryRemainsVisibleForMetadataOnlyTrackAndLive
     EXPECT_NE(live, cleared);
     EXPECT_NE(fromDisk, cleared);
     EXPECT_EQ(cleared, paint(delegate, model));
+}
+
+TEST_F(PreviewDelegateTest, LoadedAnalysisReplacesMissAndSurvivesDeckUnload) {
+    ControlObject type(ConfigKey("[Waveform]", "waveform_type"));
+    ControlObject palette(ConfigKey("[BiteDJ]", "waveform_palette"));
+    type.set(17);
+    PreviewModel model;
+    model.locations[0] = getTestDir().filePath("id3-test-data/cover-test.ogg");
+    PreviewTable table(config());
+    table.setModel(&model);
+    PreviewButtonDelegate delegate(&table, 0);
+    configure(delegate, config());
+    seed(delegate, model.locations[0], {});
+    const auto missing = paint(delegate, model);
+    auto track = getOrAddTrackByLocation(model.locations[0]);
+    ASSERT_TRUE(track);
+    auto waveform = wave(200, 0);
+    waveform->setCompletion(waveform->getDataSize() / 2);
+    track->setWaveformSummary(waveform);
+    // Analysis starts on another page: the table is hidden and cannot paint.
+    ASSERT_FALSE(table.isVisible());
+    refresh(delegate);
+    const auto partial = paint(delegate, model);
+    EXPECT_NE(missing, partial);
+    waveform->setCompletion(waveform->getDataSize());
+    refresh(delegate);
+    const auto complete = paint(delegate, model);
+    EXPECT_NE(partial, complete);
+    track.reset();
+    QCoreApplication::processEvents();
+    ASSERT_FALSE(GlobalTrackCacheLocker().lookupPublishedTrackByLocation(model.locations[0]));
+    EXPECT_EQ(complete, paint(delegate, model));
+    palette.set(1);
+    const auto amber = paint(delegate, model);
+    EXPECT_NE(complete, amber);
+    palette.set(0);
+    EXPECT_EQ(complete, paint(delegate, model));
+    // Metadata can be imported again without loading its analysis into a deck.
+    track = getOrAddTrackByLocation(model.locations[0]);
+    ASSERT_TRUE(track);
+    track->setWaveformSummary({});
+    EXPECT_EQ(complete, paint(delegate, model));
+    EXPECT_EQ(model.loads, 0);
+}
+
+TEST_F(PreviewDelegateTest, LiveClearAfterPaletteInvalidationDoesNotRestoreOldSummary) {
+    ControlObject type(ConfigKey("[Waveform]", "waveform_type"));
+    ControlObject palette(ConfigKey("[BiteDJ]", "waveform_palette"));
+    type.set(17);
+    PreviewModel model;
+    model.locations[0] = getTestDir().filePath("id3-test-data/cover-test.ogg");
+    auto track = getOrAddTrackByLocation(model.locations[0]);
+    ASSERT_TRUE(track);
+    PreviewTable table(config());
+    table.setModel(&model);
+    PreviewButtonDelegate delegate(&table, 0);
+    configure(delegate, config());
+    seed(delegate, model.locations[0], wave(200, 0));
+    track->setWaveformSummary(wave(0, 200));
+    paint(delegate, model);
+    palette.set(1);
+    track->setWaveformSummary({});
+    paint(delegate, model);
+    EXPECT_EQ(0, pixmapKey(delegate, model.locations[0]));
+    track.reset();
+    QCoreApplication::processEvents();
+    paint(delegate, model);
+    EXPECT_EQ(0, pixmapKey(delegate, model.locations[0]));
 }
 
 // Grid mode changes interaction as well as paint: exercise the viewer with a
