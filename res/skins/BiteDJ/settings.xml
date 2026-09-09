@@ -19,6 +19,10 @@
             <SetVariable name="ConfigKey">columns</SetVariable>
           </Template>
           <Template src="skin:templates/setting_subtab_button.xml">
+            <SetVariable name="Text">PAD FX</SetVariable>
+            <SetVariable name="ConfigKey">padfx</SetVariable>
+          </Template>
+          <Template src="skin:templates/setting_subtab_button.xml">
             <SetVariable name="Text">Device</SetVariable>
             <SetVariable name="ConfigKey">midi</SetVariable>
           </Template>
@@ -33,10 +37,6 @@
           <Template src="skin:templates/setting_subtab_button.xml">
             <SetVariable name="Text">Info</SetVariable>
             <SetVariable name="ConfigKey">info</SetVariable>
-          </Template>
-          <Template src="skin:templates/setting_subtab_button.xml">
-            <SetVariable name="Text">PAD FX</SetVariable>
-            <SetVariable name="ConfigKey">padfx</SetVariable>
           </Template>
         </Children>
       </WidgetGroup>

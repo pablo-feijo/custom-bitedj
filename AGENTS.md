@@ -92,52 +92,58 @@ so remeasure those from a current screenshot before clicking.
   - Track Row 0: `y=218`
   - Track Row 1: `y=240` (row spacing = +22px in Compact, +38px in Detail)
 
-#### C. Settings Sub-Tab Bar: `y=60..100`
-- `GENERAL`: `x=85, y=80`
-- `LIBRARY`: `x=255, y=80`
-- `DEVICE`: `x=425, y=80`
-- `AUDIO`: `x=595, y=80`
-- `SYSTEM`: `x=765, y=80`
-- `INFO`: `x=937, y=80`
+#### C. Settings Sub-Tab Bar: `y=40..80`
+Visible order and verified button centers at 1024×600:
+- `GENERAL`: `x=73, y=60`
+- `LIBRARY`: `x=219, y=60`
+- `PAD FX`: `x=366, y=60` (third option)
+- `DEVICE`: `x=512, y=60`
+- `AUDIO`: `x=658, y=60`
+- `SYSTEM`: `x=805, y=60`
+- `INFO`: `x=951, y=60`
 
-#### D. Settings -> General Options (`x=85, y=80`)
-Split into two 512px columns. Row height: 52px each, starting at `y=100` (`y_center = 124 + (row_index * 52)`).
+Button order is independent of the persisted WidgetStack page indices. Move
+buttons by their named triggers; keep stack order stable to preserve saved tabs.
+PAD FX fills the remaining screen and hides the deck footer; other tabs retain it.
+
+#### D. Settings -> General Options (`x=73, y=60`)
+Split into two 512px columns. Row height: 52px each, starting at `y=80` (`y_center = 104 + (row_index * 52)`).
 - **Left Column (`x=0..512`)**:
-  - Row 0 (`y=124`) `CROSSFADER`: `OFF (x=366)`, `ON (x=446)`
-  - Row 1 (`y=176`) `KEY`: `CAMELOT (x=366)`, `TRAD (x=446)`
-  - Row 2 (`y=228`) `DECK 1`: `A (x=350)`, `NONE (x=406)`, `B (x=462)`
-  - Row 3 (`y=280`) `DECK 2`: `A (x=350)`, `NONE (x=406)`, `B (x=462)`
-  - Row 4 (`y=332`) `JOG`: `VINYL (x=366)`, `CDJ (x=446)`
-  - Row 5 (`y=384`) `HOT CUE`: `UNGATED (x=366)`, `GATED (x=446)`
-  - Row 6 (`y=436`) `GRID`: `COMPACT (x=366)`, `DETAIL (x=446)`
+  - Row 0 (`y=104`) `CROSSFADER`: `OFF (x=366)`, `ON (x=446)`
+  - Row 1 (`y=156`) `KEY`: `CAMELOT (x=366)`, `TRAD (x=446)`
+  - Row 2 (`y=208`) `DECK 1`: `A (x=350)`, `NONE (x=406)`, `B (x=462)`
+  - Row 3 (`y=260`) `DECK 2`: `A (x=350)`, `NONE (x=406)`, `B (x=462)`
+  - Row 4 (`y=312`) `JOG`: `VINYL (x=366)`, `CDJ (x=446)`
+  - Row 5 (`y=364`) `HOT CUE`: `UNGATED (x=366)`, `GATED (x=446)`
+  - Row 6 (`y=416`) `GRID`: `COMPACT (x=366)`, `DETAIL (x=446)`
 - **Right Column (`x=512..1024`)**:
-  - Row 0 (`y=124`) `VINYL BRAKE`: `OFF (x=852)`, `SHORT (x=908)`, `LONG (x=964)`
-  - Row 1 (`y=176`) `WAVE`: `RGB (x=852)`, `FILT (x=908)`, `STACK (x=964)`
-  - Row 2 (`y=228`) `APPLY WAVEFORM EQ`: `ON (x=866)`, `OFF (x=946)`
-  - Row 3 (`y=280`) `EQ MODE`: `EQ (x=866)`, `ISO (x=946)`
-  - Row 4 (`y=332`) `CLEAR`: `CACHE (x=852)`, `CUES (x=908)`, `META (x=964)`
-  - Row 5 (`y=384`) `PLAYED`: `RESET (x=910)`
+  - Row 0 (`y=104`) `VINYL BRAKE`: `OFF (x=852)`, `SHORT (x=908)`, `LONG (x=964)`
+  - Row 1 (`y=156`) `WAVE`: `RGB (x=852)`, `FILT (x=908)`, `STACK (x=964)`
+  - Row 2 (`y=208`) `APPLY WAVEFORM EQ`: `ON (x=866)`, `OFF (x=946)`
+  - Row 3 (`y=260`) `EQ MODE`: `EQ (x=866)`, `ISO (x=946)`
+  - Row 4 (`y=312`) `CLEAR`: `CACHE (x=852)`, `CUES (x=908)`, `META (x=964)`
+  - Row 5 (`y=364`) `PLAYED`: `RESET (x=910)`
 
-#### E. Settings -> Library Options (`x=255, y=80`)
+#### E. Settings -> Library Options (`x=219, y=60`)
 Configures visible columns and column widths (`OFF | XS | S | M | L`).
 - **Left Column (`x=0..512`)**:
   - Column buttons at: `OFF (x=296)`, `XS (x=346)`, `S (x=386)`, `M (x=426)`, `L (x=466)`
-  - Row 0 (`y=124`): `#`
-  - Row 1 (`y=176`): `TITLE`
-  - Row 2 (`y=228`): `ARTIST`
-  - Row 3 (`y=280`): `ALBUM`
-  - Row 4 (`y=332`): `BPM`
-  - Row 5 (`y=384`): `KEY`
-  - Row 6 (`y=436`): `TIME`
+  - Row 0 (`y=104`): `#`
+  - Row 1 (`y=156`): `TITLE`
+  - Row 2 (`y=208`): `ARTIST`
+  - Row 3 (`y=260`): `ALBUM`
+  - Row 4 (`y=312`): `BPM`
+  - Row 5 (`y=364`): `KEY`
+  - Row 6 (`y=416`): `TIME`
 - **Right Column (`x=512..1024`)**:
   - Column buttons at: `OFF (x=796)`, `XS (x=846)`, `S (x=886)`, `M (x=926)`, `L (x=966)`
-  - Row 0 (`y=124`): `GENRE`
-  - Row 1 (`y=176`): `YEAR`
-  - Row 2 (`y=228`): `COLOR`
-  - Row 3 (`y=280`): `RATING`
-  - Row 4 (`y=332`): `PLAYED`
-  - Row 5 (`y=384`): `COMMENT`
-  - Row 6 (`y=436`): `PREVIEW` (e.g. click `x=966, y=436` for `L` size)
+  - Row 0 (`y=104`): `GENRE`
+  - Row 1 (`y=156`): `YEAR`
+  - Row 2 (`y=208`): `COLOR`
+  - Row 3 (`y=260`): `RATING`
+  - Row 4 (`y=312`): `PLAYED`
+  - Row 5 (`y=364`): `COMMENT`
+  - Row 6 (`y=416`): `PREVIEW` (e.g. click `x=966, y=416` for `L` size)
 
 #### F. Levels Page (`x=700, y=30`)
 - Master EQ buttons: `FLAT (x=845, y=240)`, `MODE (x=940, y=240)`.

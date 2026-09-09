@@ -208,24 +208,25 @@ When writing tests or automating UI interactions in `bitedj-gui-test-instance`:
 | **Skin Updates** | Edit `res/skins/` and copy to `dist-linux/share/mixxx/skins/` | Modifying `/dist-linux` inside container (read-only mount) |
 
 ### B. Exact 1024x600 Coordinate Grid
-- **Main Tabs (`topbar.xml`)**: `y=30`
+- **Main Tabs (`topbar.xml`)**: `y=20`
   - `PLAY` (Overview): `x=100`
   - `BROWSE` (Library): `x=300`
   - `SAMPLER`: `x=500`
   - `LEVELS`: `x=700`
   - `SETTINGS`: `x=950`
-- **Settings Sub-Tabs**: `y=85`
-  - `GENERAL`: `x=100`, `LIBRARY`: `x=300`, `DEVICE`: `x=500`, `AUDIO`: `x=700`, `SYSTEM`: `x=900`
+- **Settings Sub-Tabs**: `y=60` (bar `y=40..80`)
+  - `GENERAL`: `x=73`, `LIBRARY`: `x=219`, **`PAD FX`: `x=366`**, `DEVICE`: `x=512`, `AUDIO`: `x=658`, `SYSTEM`: `x=805`, `INFO`: `x=951`
+  - PAD FX is the third visible option. Named triggers preserve the existing saved WidgetStack indices. Its editor uses the bottom area with 16px outer horizontal and 12px bottom padding; the deck footer is hidden only on this tab.
 - **Settings Grid (`settings.xml`)**:
   - Left Column: `x=0..512` | Right Column: `x=512..1024`
-  - Row Height: `52px` starting at `y=100` (`y_center = 124 + row_index * 52`)
+  - Row Height: `52px` starting at `y=80` (`y_center = 104 + row_index * 52`)
   - Row Centers:
-    - Row 0 (`y=124`): `CROSSFADER` / `VINYL BRAKE`
-    - Row 1 (`y=176`): `KEY` / `WAVE`
-    - Row 2 (`y=228`): `DECK 1` / `APPLY WAVEFORM EQ`
-    - Row 3 (`y=280`): `DECK 2` / `EQ MODE`
-    - Row 4 (`y=332`): `JOG` / `CLEAR`
-    - Row 5 (`y=384`): `HOT CUE` / `PLAYED`
+    - Row 0 (`y=104`): `CROSSFADER` / `VINYL BRAKE`
+    - Row 1 (`y=156`): `KEY` / `WAVE`
+    - Row 2 (`y=208`): `DECK 1` / `APPLY WAVEFORM EQ`
+    - Row 3 (`y=260`): `DECK 2` / `EQ MODE`
+    - Row 4 (`y=312`): `JOG` / `CLEAR`
+    - Row 5 (`y=364`): `HOT CUE` / `PLAYED`
   - 2-Segment Button Group (`168f` width): Left button center `x=876`, Right button center `x=960`
   - 3-Segment Button Group (`168f` width): Left `x=856`, Center `x=912`, Right `x=968`
   - Levels Page Master EQ: `FLAT (x=845, y=240)`, `MODE (x=940, y=240)`

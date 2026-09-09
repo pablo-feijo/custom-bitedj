@@ -71,8 +71,9 @@ When developing or testing in `bitedj-gui-test-instance`:
    - Never assume Python `PIL` or OpenCV are present in the testing environment.
 2. **Deterministic UI Coordinate Targeting**:
    - Never guess pixel coordinates for `xdotool`. Calculate them from XML layout widths or scan the exact bounding box using standard library Python on PPM dumps (`ffmpeg -i in.png out.ppm`).
-   - Topbar tabs are at `y=30` with 200px step (`PLAY=100`, `BROWSE=300`, `SAMPLER=500`, `LEVELS=700`, `SETTINGS=950`).
-   - Settings rows are 52px each starting at `y=100` (`y_center = 124 + row_index * 52`: Row 0 `y=124`, Row 1 `y=176`, Row 2 `y=228`, Row 3 `y=280`, Row 4 `y=332`, Row 5 `y=384`).
+   - Topbar tabs are at `y=20` with 200px step (`PLAY=100`, `BROWSE=300`, `SAMPLER=500`, `LEVELS=700`, `SETTINGS=950`).
+   - Settings sub-tabs are at `y=60`: GENERAL `x=73`, LIBRARY `x=219`, PAD FX `x=366` (third), DEVICE `x=512`, AUDIO `x=658`, SYSTEM `x=805`, INFO `x=951`. Keep WidgetStack indices stable; only reorder named tab buttons.
+   - Settings rows are 52px each starting at `y=80` (`y_center = 104 + row_index * 52`: Row 0 `y=104`, Row 1 `y=156`, Row 2 `y=208`, Row 3 `y=260`, Row 4 `y=312`, Row 5 `y=364`).
    - Right-aligned segmented buttons (168px): Left segment center `x=876`, Right segment center `x=960`.
    - Levels page Master EQ buttons: `FLAT (x=845, y=240)`, `MODE (x=940, y=240)`.
 3. **Spacing & Margin Sizing**:
