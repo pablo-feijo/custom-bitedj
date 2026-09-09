@@ -14,6 +14,7 @@
 #include "library/columncache.h"
 #include "library/dao/trackschema.h"
 #include "library/librarycolumncontrol.h"
+#include "library/proxytrackmodel.h"
 #include "library/rekordbox/rekordboxfeature.h"
 #include "library/starrating.h"
 #include "library/trackcollection.h"
@@ -186,4 +187,80 @@ TEST_F(LibraryColumnControlTest, ManagedLayoutIsAppliedAndSelfHealing) {
     EXPECT_TRUE(header->isSectionHidden(previewCol));
     EXPECT_FALSE(header->isSectionHidden(positionCol));
     EXPECT_GE(header->sectionSize(ratingCol), StarRating().sizeHint().width());
+}
+
+TEST_F(LibraryColumnControlTest, ColumnOrderRestoresWithoutOverridingManagedWidths) {
+    createRekordboxTables();
+    LibraryColumnControl control(config());
+    auto source = createRekordboxTrackSource();
+    RekordboxPlaylistModel model(nullptr, trackCollectionManager(), source);
+    model.setPlaylist(QStringLiteral("/media/USB1"));
+    model.select();
+    ProxyTrackModel proxy(&model);
+    EXPECT_EQ(proxy.settingsNamespace(), model.settingsNamespace());
+    const int title = model.fieldIndex(ColumnCache::COLUMN_LIBRARYTABLE_TITLE);
+    const int artist = model.fieldIndex(ColumnCache::COLUMN_LIBRARYTABLE_ARTIST);
+    const int preview = model.fieldIndex(ColumnCache::COLUMN_LIBRARYTABLE_PREVIEW);
+    int movedIndex = -1;
+    QString saved;
+    {
+        QTableView view;
+        view.resize(1024, 420);
+        view.setModel(&proxy);
+        auto* header = new WTrackTableViewHeader(Qt::Horizontal, &view);
+        view.setHorizontalHeader(header);
+        header->restoreHeaderState();
+        header->moveSection(header->visualIndex(title), header->visualIndex(artist));
+        movedIndex = header->visualIndex(title);
+        saved = control.headerState(model.settingsNamespace());
+        ASSERT_FALSE(saved.isEmpty());
+        // Managed header moves must not create SQLite settings on the GUI thread.
+        EXPECT_TRUE(model.getModelSetting("header_state_pb").isNull());
+    }
+    setLibraryConfig("ColumnVisible_preview", 0);
+    // New width/visibility choices must outrank stale serialized dimensions.
+    ControlObject::set(ConfigKey("[Library]", "column_visible_preview"), 0);
+    ControlObject::set(ConfigKey("[Library]", "column_weight_title"), 4);
+    ControlObject::set(ConfigKey("[Library]", "column_weight_artist"), 1);
+    QTableView restored;
+    restored.resize(1024, 420);
+    restored.setModel(&proxy);
+    auto* header = new WTrackTableViewHeader(Qt::Horizontal, &restored);
+    restored.setHorizontalHeader(header);
+    header->restoreHeaderState();
+    restored.show();
+    QApplication::processEvents();
+    EXPECT_EQ(header->visualIndex(title), movedIndex);
+    EXPECT_TRUE(header->isSectionHidden(preview));
+    EXPECT_GT(header->sectionSize(title), header->sectionSize(artist));
+    // Intermediate restore moves must not overwrite the complete saved order.
+    EXPECT_EQ(control.headerState(model.settingsNamespace()), saved);
+    EXPECT_TRUE(control.headerState("another.model").isEmpty());
+    saveAndReloadConfig();
+    EXPECT_EQ(config()->getValueString(ConfigKey("[Library]",
+                      "HeaderState_" + model.settingsNamespace())), saved);
+}
+
+TEST_F(LibraryColumnControlTest, ExternalSortUsesRowIdentityWithoutLoadingAudio) {
+    createRekordboxTables();
+    QSqlQuery query(internalCollection()->database());
+    ASSERT_TRUE(query.exec("INSERT INTO rekordbox_library (id, rb_id, title, bpm, location) "
+                          "VALUES (900, 102, 'Earlier', 110, '/missing/second.wav')"));
+    ASSERT_TRUE(query.exec("INSERT INTO rekordbox_playlist_tracks (playlist_id, track_id, position) "
+                          "VALUES (1, 900, 2)"));
+    auto source = createRekordboxTrackSource();
+    RekordboxPlaylistModel model(nullptr, trackCollectionManager(), source);
+    model.setPlaylist(QStringLiteral("/media/USB1"));
+    model.select();
+    const int bpm = model.fieldIndex(ColumnCache::COLUMN_LIBRARYTABLE_BPM);
+    model.sort(bpm, Qt::AscendingOrder);
+    ASSERT_EQ(model.rowCount(), 2);
+    const auto identity = model.getTrackRowIdentity(model.index(0, 0));
+    EXPECT_EQ(identity, TrackId(QVariant(900)));
+    ProxyTrackModel proxy(&model);
+    EXPECT_EQ(proxy.getTrackRowIdentity(proxy.index(0, 0)), identity);
+    model.sort(bpm, Qt::DescendingOrder);
+    EXPECT_EQ(model.getTrackRows(identity), QList<int>{1});
+    EXPECT_EQ(model.getTrackRowIdentity(model.index(1, 0)), identity);
+    EXPECT_FALSE(model.getTrackRowIdentity(QModelIndex()).isValid());
 }

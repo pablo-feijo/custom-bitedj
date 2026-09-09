@@ -33,6 +33,7 @@
 #include "library/trackcollection.h"
 #include "library/trackcollectionmanager.h"
 #include "mixer/playermanager.h"
+#include "mixer/deckloadpolicy.h"
 #include "moc_wtracktableview.cpp"
 #include "preferences/colorpalettesettings.h"
 #include "preferences/dialog/dlgprefdeck.h"
@@ -294,15 +295,9 @@ void WTrackTableView::loadTrackModel(QAbstractItemModel* pNewModel, bool restore
 
     setModel(pNewModel);
     setHorizontalHeader(header);
-    // Bite DJ fork: when LibraryColumnControl owns column visibility +
-    // widths, also lock the order and disable user drag-resize. Reorders
-    // wouldn't survive restart (we no longer save the per-model protobuf)
-    // and drag-resize would silently get clobbered by the next flex-weight
-    // re-apply on header resize — both are confusing transient UX. Fixed
-    // resize mode still permits programmatic resizeSection(), which is
-    // what LibraryColumnControl::applyTo uses.
+    // Persisted column order is independent of managed visibility/widths.
     const bool columnControlActive = LibraryColumnControl::tryInstance() != nullptr;
-    header->setSectionsMovable(!columnControlActive);
+    header->setSectionsMovable(true);
     if (columnControlActive) {
         header->setSectionResizeMode(QHeaderView::Fixed);
     }
@@ -1448,31 +1443,7 @@ void WTrackTableView::loadSelectedTrackToGroup(const QString& group, bool play) 
     if (indices.isEmpty()) {
         return;
     }
-    bool allowLoadTrackIntoPlayingDeck = false;
-    if (m_pConfig->exists(kConfigKeyLoadWhenDeckPlaying)) {
-        int loadWhenDeckPlaying =
-                m_pConfig->getValueString(kConfigKeyLoadWhenDeckPlaying).toInt();
-        switch (static_cast<LoadWhenDeckPlaying>(loadWhenDeckPlaying)) {
-        case LoadWhenDeckPlaying::Allow:
-        case LoadWhenDeckPlaying::AllowButStopDeck:
-            allowLoadTrackIntoPlayingDeck = true;
-            break;
-        case LoadWhenDeckPlaying::Reject:
-            break;
-        }
-    } else {
-        // support older version of this flag
-        allowLoadTrackIntoPlayingDeck =
-                m_pConfig->getValue<bool>(kConfigKeyAllowTrackLoadToPlayingDeck);
-    }
-    // If the track load override is disabled, check to see if a track is
-    // playing before trying to load it.
-    // Always load to preview deck.
-    if (!allowLoadTrackIntoPlayingDeck &&
-            !PlayerManager::isPreviewDeckGroup(group) &&
-            ControlObject::get(ConfigKey(group, "play")) > 0.0) {
-        return;
-    }
+    if (!mixxx::deckload::allowed(group, m_pConfig)) return;
     auto index = indices.at(0);
     auto* pTrackModel = getTrackModel();
     if (!pTrackModel) {
@@ -1717,7 +1688,14 @@ void WTrackTableView::doSortByColumn(int headerSection, Qt::SortOrder sortOrder)
         const QModelIndexList indices = selectionModel()->selectedRows();
         selectedTrackPositions = pTrackModel->getSelectedPositions(indices);
     } else {
-        selectedTrackIds = getSelectedTrackIds();
+        // Use model row identities, not getTrackId(): external models resolve
+        // that API to local library IDs (and may import analysis as a side effect).
+        for (const auto& index : selectionModel()->selectedRows()) {
+            const auto id = pTrackModel->getTrackRowIdentity(index);
+            if (id.isValid()) {
+                selectedTrackIds.append(id);
+            }
+        }
     }
 
     int savedHScrollBarPos = horizontalScrollBar()->value();

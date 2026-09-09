@@ -1,4 +1,5 @@
 #include "mixer/basetrackplayer.h"
+#include "mixer/deckloadpolicy.h"
 
 #include <QMessageBox>
 #include <QMetaMethod>
@@ -557,6 +558,17 @@ void BaseTrackPlayerImpl::slotLoadTrack(TrackPointer pNewTrack, bool bPlay) {
         }
     }
 
+    if (pNewTrack && !mixxx::deckload::allowed(getGroup(), m_pConfig)) {
+        m_pChannelToCloneFrom = nullptr;
+        return;
+    }
+    if (pNewTrack && m_pLoadedTrack && PlayerManager::isDeckGroup(getGroup()) &&
+            ControlObject::get(ConfigKey(getGroup(), "play")) > 0.0) {
+        // Stop/Fader always stop replacement, including instant-double requests.
+        // Live preserves a playing destination regardless of the UI request path.
+        bPlay = mixxx::deckload::policy(m_pConfig) == LoadWhenDeckPlaying::Allow;
+    }
+
     auto pOldTrack = unloadTrack();
 
     loadTrack(pNewTrack);
@@ -638,6 +650,20 @@ void BaseTrackPlayerImpl::slotTrackLoaded(TrackPointer pNewTrack,
         // A track loaded successfully, so clear the dedup guard: if the DJ
         // later returns to a track that fails, they should be alerted again.
         m_pPrevFailedTrackId = TrackId();
+
+        // Only leave Browse after this request has successfully reached a main
+        // deck. Failed/stale loads, preview and sampler loads never navigate.
+        if ((getGroup() == "[Channel1]" || getGroup() == "[Channel2]") &&
+                m_pConfig->getValue(ConfigKey("[BiteDJ]", "return_to_play"), false)) {
+            auto* libraryTab = ControlObject::getControl(
+                    ConfigKey("[Tab]", "library"), ControlFlag::NoWarnIfMissing);
+            auto* playTab = ControlObject::getControl(
+                    ConfigKey("[Tab]", "overview"), ControlFlag::NoWarnIfMissing);
+            if (libraryTab && libraryTab->toBool() && playTab) {
+                playTab->set(1.0);
+            }
+        }
+
 
         // Update the BPM and duration values that are stored in ControlObjects
         m_pDuration->set(m_pLoadedTrack->getDuration());

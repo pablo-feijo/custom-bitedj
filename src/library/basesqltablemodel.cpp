@@ -775,6 +775,14 @@ TrackPointer BaseSqlTableModel::getTrack(const QModelIndex& index) const {
     return m_pTrackCollectionManager->getTrackById(getTrackId(index));
 }
 
+TrackId BaseSqlTableModel::getTrackRowIdentity(const QModelIndex& index) const {
+    if (!index.isValid() || index.model() != this ||
+            index.row() < 0 || index.row() >= m_rowInfo.size()) {
+        return TrackId();
+    }
+    return m_rowInfo.at(index.row()).trackId;
+}
+
 TrackId BaseSqlTableModel::getTrackId(const QModelIndex& index) const {
     if (index.isValid()) {
         return TrackId(getFieldVariant(index, m_idColumn));

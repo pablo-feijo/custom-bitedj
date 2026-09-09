@@ -1,4 +1,5 @@
 #include "mixer/playermanager.h"
+#include "mixer/deckloadpolicy.h"
 
 #include <QRegularExpression>
 
@@ -693,9 +694,9 @@ void PlayerManager::slotLoadLocationToPlayer(
 void PlayerManager::slotLoadLocationToPlayerMaybePlay(
         const QString& location, const QString& group) {
     bool play = false;
-    LoadWhenDeckPlaying loadWhenDeckPlaying = m_pConfig->getValue(
-            kConfigKeyLoadWhenDeckPlaying, kDefaultLoadWhenDeckPlaying);
+    LoadWhenDeckPlaying loadWhenDeckPlaying = mixxx::deckload::policy(m_pConfig);
     switch (loadWhenDeckPlaying) {
+    case LoadWhenDeckPlaying::AllowIfChannelClosed:
     case LoadWhenDeckPlaying::AllowButStopDeck:
     case LoadWhenDeckPlaying::Reject:
         break;

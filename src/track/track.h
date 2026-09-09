@@ -9,6 +9,7 @@
 #include "audio/streaminfo.h"
 #include "sources/metadatasource.h"
 #include "track/beats.h"
+#include "track/phrase.h"
 #include "track/cue.h"
 #include "track/cueinfoimporter.h"
 #include "track/track_decl.h"
@@ -285,6 +286,10 @@ class Track : public QObject {
 
     ConstWaveformPointer getWaveformSummary() const;
     void setWaveformSummary(ConstWaveformPointer pWaveform);
+    // Publish both views before notifying observers of an imported pair.
+    void setWaveforms(ConstWaveformPointer detail, ConstWaveformPointer summary);
+    mixxx::PhraseList getPhrases() const;
+    void setPhrases(mixxx::PhraseList phrases, mixxx::BeatsPointer sourceBeats = {});
 
     /// Get the track's main cue point
     mixxx::audio::FramePos getMainCuePosition() const;
@@ -440,6 +445,7 @@ class Track : public QObject {
 
     void waveformUpdated();
     void waveformSummaryUpdated();
+    void phrasesUpdated();
     void coverArtUpdated();
     void beatsUpdated();
     void replayGainUpdated(mixxx::ReplayGain replayGain);
@@ -576,6 +582,9 @@ class Track : public QObject {
     // Visual waveform data
     ConstWaveformPointer m_waveform;
     ConstWaveformPointer m_waveformSummary;
+    mixxx::PhraseList m_phrases;
+    mixxx::PhraseList m_sourcePhrases;
+    mixxx::BeatsPointer m_phraseSourceBeats;
 
     mixxx::BeatsImporterPointer m_pBeatsImporterPending;
     std::unique_ptr<mixxx::CueInfoImporter> m_pCueInfoImporterPending;

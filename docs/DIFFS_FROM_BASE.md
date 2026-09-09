@@ -4,6 +4,21 @@ This document tracks all divergences from upstream Mixxx, specifically formatted
 1. **Base BiteDJ (v1.0-1)**: The foundational fork that optimized Mixxx for standalone hardware, focusing on audio path resilience, USB stability, and SQLite threading.
 2. **Custom BiteDJ (v0.0.6)**: Our tailored branch built on top of Base BiteDJ, specifically engineered for native Wayland integration, screen rotation persistence, DRM hardware cursor workarounds, touchscreen drag-and-drop, and club-ready DDJ-400 mappings.
 
+## Pending integration: selected PiFlex fixes
+
+Working branch `codex/xsploit-readme-feature-map`, intended target `codex/v0.0.7`.
+See [first-batch implementation and validation](XSPLOIT_FIRST_BATCH.md).
+
+- Explicit engine publication for programmatic effect enable/disable.
+- Persisted browser column ordering and text size, with model/proxy identity
+  preserved during sorting. Managed widths and Wayland track dragging retained.
+- Rekordbox page-chain bounds/cycle checks and independent DAT/EXT analysis import
+  that warns on optional-data failure while retaining audio loading.
+- Worktree-owned GUI instances, independent ports/config/results, and reusable
+  branch/semver/Conventional Commits rules for agents.
+
+These are selected adaptations of xsploit/bitedj at `4c1dfec590`, not a fork merge.
+
 ---
 
 ## 1. Custom BiteDJ (v0.0.6 - Display Persistence, DRM Cursor Fixes, & UI Polish)
@@ -108,3 +123,11 @@ When evaluating new Mixxx releases (e.g., 2.5, 2.6), prioritize reviewing the fo
 - **Preview Button Connections**: Ensured the global `[Waveform] waveform_type` ControlObject is instantiated *before* `WTrackTableView` creates `PreviewButtonDelegate`s. This resolves the bug where track library waveforms were permanently frozen on the startup setting.
 - **Overview Stack Sync**: Created a dedicated `WaveformOverviewType` property in the backend to ensure Deck `WOverview` waveforms respond natively to the 3-Band setting change.
 - **WaveformRendererFiltered Track Colors**: Updated `WaveformRendererFiltered` to correctly source dynamic RGB track colors (`m_rgbLowColor`, etc.) for `mode == 2`, fixing a major rendering bug where 3-Band stacked waveforms were drawing black due to an undefined generic skin color fallback.
+
+## Pending v0.0.7: configurable Pad FX
+
+`codex/rekordbox-padfx-display` adds system-owned assignments/reset commands,
+private native effect lanes and a compact full-height Settings editor. DDJ-400
+normal/Shift pads use the new mapping instead of swapping the main Beat FX slot.
+See [Pad FX validation](PAD_FX_TESTING.md). Other selected fork features remain
+on the [next-batch checklist](XSPLOIT_NEXT_BATCH.md).

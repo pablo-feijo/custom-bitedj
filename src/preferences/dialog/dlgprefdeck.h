@@ -7,6 +7,7 @@
 #include "preferences/dialog/dlgpreferencepage.h"
 #include "preferences/dialog/ui_dlgprefdeckdlg.h"
 #include "preferences/usersettings.h"
+#include "preferences/deckloadmode.h"
 #include "util/parented_ptr.h"
 
 class ControlProxy;
@@ -44,18 +45,6 @@ enum class KeyunlockMode {
     KeepLockedKey
 };
 
-enum class LoadWhenDeckPlaying {
-    Reject,
-    Allow,
-    AllowButStopDeck
-};
-
-namespace {
-const ConfigKey kConfigKeyLoadWhenDeckPlaying = ConfigKey("[Controls]", "LoadWhenDeckPlaying");
-const ConfigKey kConfigKeyAllowTrackLoadToPlayingDeck =
-        ConfigKey("[Controls]", "AllowTrackLoadToPlayingDeck");
-constexpr LoadWhenDeckPlaying kDefaultLoadWhenDeckPlaying = LoadWhenDeckPlaying::Reject;
-} // namespace
 
 class DlgPrefDeck : public DlgPreferencePage, public Ui::DlgPrefDeckDlg  {
     Q_OBJECT

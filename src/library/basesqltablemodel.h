@@ -46,6 +46,7 @@ class BaseSqlTableModel : public BaseTrackTableModel {
     int fieldIndex(const QString& fieldName) const final;
 
     TrackPointer getTrack(const QModelIndex& index) const override;
+    TrackId getTrackRowIdentity(const QModelIndex& index) const override;
     TrackId getTrackId(const QModelIndex& index) const override;
     QString getTrackLocation(const QModelIndex& index) const override;
 
