@@ -25,5 +25,23 @@
   early compiler-cache saving, two build workers and an E2E runtime cache.
 - [x] Fast cache regressions cover asset/docs hits, source/config/toolchain and
   embedded-resource invalidation, shared-library links and stale-asset removal.
-- [ ] Validate the cache strategy remotely, including a second compatible run
-  that skips compilation and still passes all native/removable/E2E checks.
+- [x] Follow-up build tuning: Ninja and up to four compiler workers, bounded by
+  actual CPU count and 3 GiB RAM per worker. Keep existing compile flags and
+  serial native tests. User prioritized immediate publication over waiting for
+  the previous run; other active work is asked to hold integration pushes.
+- [x] Replace Node 20 Actions with verified Node 24 releases: checkout/setup-node
+  v7, cache v6, upload-artifact v7. Register a local GCC matcher without a Node action.
+- [x] Priority squash published as `8f428a87728209cc3658be6f4ce58dab21b8d118`.
+- [x] [Cold validation run 34347232331](https://github.com/pablo-feijo/custom-bitedj/actions/runs/34347232331)
+  passed: 1,035 native tests, 42 store tests, 12 sampler tests and five desktop
+  E2E tests, plus the fast suite. The Node 20 Action warning is absent.
+- [x] Logs confirm four compiler workers. Native compilation took 26m 36s with
+  939 compiler-cache misses; compiler, binary and runtime caches were all saved.
+- [x] The original Docker builder-image mismatch is resolved by successful E2E.
+- [x] [Warm validation run 34350706794](https://github.com/pablo-feijo/custom-bitedj/actions/runs/34350706794)
+  for `931411065c` passed every test layer with exact binary and runtime cache
+  hits. Both compilation commands were skipped; original binary provenance was
+  preserved. Total time fell from 36m 42s to 5m 42s (about 84% faster).
+- [x] Implementation and validation are complete. Temporary test files, tooling
+  downloads and task worktrees are retired at closeout. Preserve other tasks and
+  their previews; retain the original task history only as a recovery ref.

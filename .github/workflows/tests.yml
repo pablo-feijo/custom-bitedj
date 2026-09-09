@@ -32,10 +32,11 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
+          package-manager-cache: false
       - run: python3 scripts/test/run-tests.py fast
 
   unit-tests:
@@ -58,7 +59,7 @@ jobs:
       DEBIAN_FRONTEND: noninteractive
     steps:
       - name: "Check out repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # This is necessary for making `git describe` work.
           fetch-depth: 0
@@ -66,7 +67,20 @@ jobs:
       - name: "Install build dependencies"
         # `< /dev/null` so the script never blocks on its interactive prompt
         # about the (optional) fonts-ubuntu package.
-        run: tools/debian_buildenv.sh setup < /dev/null
+        run: |
+          tools/debian_buildenv.sh setup < /dev/null
+          sudo apt-get install -y ninja-build
+
+      - name: Select build parallelism from runner resources
+        run: |
+          # At least 3 GiB per compiler, at most four workers on standard runners.
+          workers=$(nproc)
+          memory_workers=$(awk '/MemTotal/ {print int($2 / 3145728)}' /proc/meminfo)
+          if [ "$workers" -gt "$memory_workers" ]; then workers=$memory_workers; fi
+          if [ "$workers" -gt 4 ]; then workers=4; fi
+          if [ "$workers" -lt 1 ]; then workers=1; fi
+          echo "CMAKE_BUILD_PARALLEL_LEVEL=$workers" >> "$GITHUB_ENV"
+          echo "Using $workers build workers ($(nproc) CPUs available)"
 
       - name: Fingerprint compiled inputs and installed toolchain
         id: fingerprint
@@ -78,7 +92,7 @@ jobs:
 
       - name: Restore exact compiled binaries
         id: binaries
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: test-results/ci-native-cache
           key: native-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.fingerprint.outputs.key }}
@@ -87,7 +101,7 @@ jobs:
       - name: Restore compiler cache
         id: ccache
         if: steps.binaries.outputs.cache-hit != 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: ${{ env.CCACHE_DIR }}
           key: ubuntu-24.04-tests-v2-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -112,6 +126,7 @@ jobs:
         # is missing rather than silently producing a build without tests.
         run: >-
           cmake
+          -G Ninja
           -DCMAKE_BUILD_TYPE=RelWithDebInfo
           -DBUILD_TESTING=ON
           -DQT6=ON
@@ -139,12 +154,12 @@ jobs:
         working-directory: build
 
       - name: "Set up gcc problem matcher"
-        uses: ammaraskar/gcc-problem-matcher@0.3.0
+        run: echo "::add-matcher::.github/gcc-problem-matcher.json"
 
       - name: "Build test suite"
         id: native_build
         if: steps.binaries.outputs.cache-hit != 'true'
-        run: cmake --build . --config RelWithDebInfo --target mixxx-test --parallel 2
+        run: cmake --build . --config RelWithDebInfo --target mixxx-test --parallel "$CMAKE_BUILD_PARALLEL_LEVEL"
         working-directory: build
         env:
           # GitHub Actions automatically zstd compresses caches
@@ -153,7 +168,7 @@ jobs:
       - name: Save compiler cache even if a later stage fails
         if: ${{ always() && steps.ccache.outcome == 'success' && steps.native_build.outcome != 'skipped' }}
         continue-on-error: true
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: ${{ env.CCACHE_DIR }}
           key: ${{ steps.ccache.outputs.cache-primary-key }}
@@ -162,13 +177,13 @@ jobs:
         id: desktop_build
         if: steps.binaries.outputs.cache-hit != 'true'
         run: |
-          cmake --build build --target mixxx --parallel 2
+          cmake --build build --target mixxx --parallel "$CMAKE_BUILD_PARALLEL_LEVEL"
           cmake --install build --prefix "$PWD/dist-linux"
           python3 scripts/test/ci-build-cache.py snapshot --key "${{ steps.fingerprint.outputs.key }}"
 
       - name: Save compiled binaries before running tests
         if: steps.desktop_build.outcome == 'success'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: test-results/ci-native-cache
           key: ${{ steps.binaries.outputs.cache-primary-key }}
@@ -204,7 +219,7 @@ jobs:
       - name: Restore E2E runtime image
         id: runtime_cache
         if: ${{ !cancelled() && steps.runtime_key.outcome == 'success' }}
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: test-results/ci-runtime/runtime.tar
           key: runtime-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.runtime_key.outputs.week }}-${{ hashFiles('test-results/ci-environment.txt', 'docker/build.Dockerfile', 'docker/gui-test.Dockerfile', 'tools/debian_buildenv.sh', 'scripts/test/repair-novnc.py', 'scripts/test/novnc_audio_snippet.html') }}
@@ -224,7 +239,7 @@ jobs:
 
       - name: Save E2E runtime image
         if: ${{ !cancelled() && steps.e2e_runtime.outcome == 'success' && steps.runtime_cache.outputs.cache-hit != 'true' }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: test-results/ci-runtime/runtime.tar
           key: ${{ steps.runtime_cache.outputs.cache-primary-key }}
@@ -235,7 +250,7 @@ jobs:
 
       - name: "Upload test results"
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results
           path: |
