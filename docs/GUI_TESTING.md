@@ -267,3 +267,5 @@ Overview previews show A–H for hot cues and 1–8 for memories; the Play wavef
 Compact overview cue labels retain the cue color as a small badge with contrasting text. Verify both hot-cue letters and memory numbers in Day/Night, with phrases enabled and disabled. Fixtures include distinct cue colors to make regressions visible.
 
 For top-tab automation, move to the measured button center, wait briefly for the fullscreen menu to settle, then click. Capture again if the menu bar shifts the layout; do not reuse coordinates from a shifted screenshot.
+
+Bottom-preview cue priority: use 2px colored marker lines with a contrasting border, painted above the countdown watermark. Keep cue letters/numbers and phrase labels at 8px. Verify hot cues and memories remain distinct with phrases On/Off and in Day/Night.

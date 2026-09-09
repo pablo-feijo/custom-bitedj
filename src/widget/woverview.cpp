@@ -746,6 +746,11 @@ void WOverview::paintEvent(QPaintEvent* pEvent) {
         drawEndOfTrackFrame(&painter);
         drawAnalyzerProgress(&painter);
 
+        // Compact previews prioritize cue markers over the countdown watermark.
+        if (m_compactCueLabels) {
+            drawTimeRemaining(&painter);
+        }
+
         double trackSamples = getTrackSamples();
         if (trackSamples > 0) {
             const float offset = 1.0f;
@@ -758,8 +763,9 @@ void WOverview::paintEvent(QPaintEvent* pEvent) {
             drawTimeRuler(&painter);
             drawMarkLabels(&painter, offset, gain);
         }
-        // Last, so the watermark sits over every other layer.
-        drawTimeRemaining(&painter);
+        if (!m_compactCueLabels) {
+            drawTimeRemaining(&painter);
+        }
     }
 
     if (m_bPassthroughEnabled) {
@@ -1027,17 +1033,25 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
             }
         }
 
-        pPainter->setPen(pMark->borderColor());
-        pPainter->drawLine(bgLine);
-
-        pPainter->setPen(pMark->fillColor());
-        pPainter->drawLine(line);
-
         if (rect.isValid()) {
             QColor loopColor = pMark->fillColor();
             loopColor.setAlphaF(0.5f);
             pPainter->fillRect(rect, loopColor);
         }
+
+        const bool prominentCue = m_compactCueLabels &&
+                pMark->getHotCue() != Cue::kNoHotCue;
+        if (prominentCue) {
+            pPainter->setPen(QPen(pMark->borderColor(), 4 * m_scaleFactor));
+            pPainter->drawLine(line);
+        } else {
+            pPainter->setPen(pMark->borderColor());
+            pPainter->drawLine(bgLine);
+        }
+
+        pPainter->setPen(QPen(pMark->fillColor(),
+                prominentCue ? 2 * m_scaleFactor : 1));
+        pPainter->drawLine(line);
 
         if (!pMark->m_text.isEmpty()) {
             Qt::Alignment halign = pMark->m_align & Qt::AlignHorizontal_Mask;
