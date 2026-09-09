@@ -46,6 +46,11 @@ class EngineChannel : public EngineObject {
         return m_active;
     }
 
+    // Mixer-owned routing state; decks combine it with transport/input state.
+    virtual void updateOnAir(bool mainPathOpen) {
+        Q_UNUSED(mainPathOpen);
+    }
+
     void setPfl(bool enabled);
     virtual bool isPflEnabled() const;
     void setMainMix(bool enabled);

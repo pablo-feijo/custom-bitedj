@@ -243,6 +243,8 @@ class EngineMixer : public QObject, public AudioSource {
     // ControlObjects for switching off unnecessary processing
     // These are protected so tests can set them
     ControlObject* m_pMainEnabled;
+    ControlObject* m_pMainOutputConnected;
+    int m_mainOutputConnections = 0;
     ControlObject* m_pHeadphoneEnabled;
     ControlObject* m_pBoothEnabled;
 

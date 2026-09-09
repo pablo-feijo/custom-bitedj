@@ -97,6 +97,10 @@ WTrackTableView::WTrackTableView(QWidget* pParent,
 }
 
 WTrackTableView::~WTrackTableView() {
+    delete m_dropHighlight;
+    if (m_pFakeDragLabel) {
+        m_pFakeDragLabel->close();
+    }
     WTrackTableViewHeader* pHeader =
             qobject_cast<WTrackTableViewHeader*>(horizontalHeader());
     if (pHeader) {
@@ -1189,6 +1193,18 @@ void WTrackTableView::moveSelectedTracks(QKeyEvent* event) {
 }
 
 void WTrackTableView::keyPressEvent(QKeyEvent* event) {
+    if (event->key() == Qt::Key_Escape && m_bFakeDragging) {
+        m_bFakeDragging = false;
+        m_dragStartPos = QPoint();
+        delete m_dropHighlight;
+        if (m_pFakeDragLabel) {
+            m_pFakeDragLabel->close();
+            m_pFakeDragLabel = nullptr;
+        }
+        event->accept();
+        return;
+    }
+
     switch (event->key()) {
     case kPropertiesShortcutKey: {
         // Return invokes the double-click action.
@@ -1919,6 +1935,20 @@ void WTrackTableView::mousePressEvent(QMouseEvent* pEvent) {
     WLibraryTableView::mousePressEvent(pEvent);
 }
 
+namespace {
+QWidget* deckDropTargetAt(const QPoint& globalPosition) {
+    for (QWidget* widget : QApplication::allWidgets()) {
+        if ((widget->objectName() == "DeckDropTarget1" ||
+                    widget->objectName() == "DeckDropTarget2") &&
+                widget->isVisible() &&
+                widget->rect().contains(widget->mapFromGlobal(globalPosition))) {
+            return widget;
+        }
+    }
+    return nullptr;
+}
+} // namespace
+
 void WTrackTableView::mouseMoveEvent(QMouseEvent* pEvent) {
     if (pEvent->buttons() & Qt::LeftButton) {
         if (!m_bFakeDragging && !m_dragStartPos.isNull() &&
@@ -1950,6 +1980,20 @@ void WTrackTableView::mouseMoveEvent(QMouseEvent* pEvent) {
             int dx = -m_pFakeDragLabel->width() / 2;
             int dy = -m_pFakeDragLabel->height() - 10;
             m_pFakeDragLabel->move(pEvent->globalPosition().toPoint() + QPoint(dx, dy));
+            QWidget* target = deckDropTargetAt(pEvent->globalPosition().toPoint());
+            if (m_dropHighlight && m_dropHighlight->parentWidget() != target) {
+                delete m_dropHighlight;
+            }
+            if (target && !m_dropHighlight) {
+                auto* highlight = new QWidget(target);
+                highlight->setAttribute(Qt::WA_TransparentForMouseEvents);
+                highlight->setStyleSheet("background-color: rgba(133,94,167,35); border: 3px solid #ba8edf;");
+                highlight->setGeometry(target->rect());
+                highlight->show();
+                highlight->raise();
+                m_dropHighlight = highlight;
+            }
+
             return;
         }
     }
@@ -1965,18 +2009,13 @@ void WTrackTableView::mouseReleaseEvent(QMouseEvent* pEvent) {
         }
         m_dragStartPos = QPoint();
         
-        int screenWidth = 1024;
-        if (QApplication::primaryScreen()) {
-            screenWidth = QApplication::primaryScreen()->size().width();
+        if (m_dropHighlight) {
+            delete m_dropHighlight;
         }
-        
-        // Check if the drop is OUTSIDE the track list view (i.e., on the decks)
-        if (!this->rect().contains(pEvent->pos())) {
-            if (pEvent->globalPosition().x() < screenWidth / 2) {
-                ControlObject::set(ConfigKey("[Channel1]", "LoadSelectedTrack"), 1.0);
-            } else {
-                ControlObject::set(ConfigKey("[Channel2]", "LoadSelectedTrack"), 1.0);
-            }
+        if (auto* target = deckDropTargetAt(pEvent->globalPosition().toPoint())) {
+            const QString group = target->objectName().endsWith('1')
+                    ? QStringLiteral("[Channel1]") : QStringLiteral("[Channel2]");
+            ControlObject::set(ConfigKey(group, "LoadSelectedTrack"), 1.0);
         }
         return;
     }

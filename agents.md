@@ -1,7 +1,12 @@
 # Agent Instructions
 
+## Commit Messages
+- Use Conventional Commits for every commit: `type(scope): description` (scope is optional).
+- Use appropriate types such as `feat`, `fix`, `docs`, `refactor`, `test`, `build`, or `chore`.
+- Before finishing, check commits created for the current task and amend any nonconforming messages. Do not rewrite unrelated history.
+
 ## UI Layout
-- Overview Panel: We are intentionally keeping only the **FX** and **KEY** tabs for now. 
+- Overview Panel: Keep **FX**, **KEY**, and **JUMP** tabs. Beat-jump size and actions belong in JUMP, not the left waveform sidebar.
 - Do not attempt to add `PADS` or `CFX` tabs back to the native `WidgetStack` in `effects.xml`.
 - Effect times (e.g., Roll lengths 1/8, 1/4, 1/2, 1) are mapped natively through the skin's Beats parameter grid (which appears automatically for `_units == 1` Beats-typed parameters).
 
@@ -23,7 +28,12 @@ To ensure changes and automated UI tests succeed on the first attempt without tr
 ### 2. Zero-Guessing Precision Coordinate System (1024x600)
 Never guess pixel coordinates for `xdotool` clicks. Use the exact layout geometry or scan via standard library Python:
 
-#### A. Top Tab Bar (`topbar.xml`): `y=0..60`
+The top bar is now 40px (previously 60px). The legacy coordinates below remain
+reference points: main-tab centers are now y=20; settings sub-tabs and top-anchored
+content move up 20px. Expanding overview lanes may reposition centered controls,
+so remeasure those from a current screenshot before clicking.
+
+#### A. Top Tab Bar (`topbar.xml`): `y=0..40`
 - `PLAY` (Overview): `x=100, y=30`
 - `BROWSE` (Library): `x=300, y=30`
 - `SAMPLER`: `x=500, y=30`
@@ -55,14 +65,15 @@ Never guess pixel coordinates for `xdotool` clicks. Use the exact layout geometr
   - Track Row 0: `y=218`
   - Track Row 1: `y=240` (row spacing = +22px in Compact, +38px in Detail)
 
-#### C. Settings Sub-Tab Bar: `y=60..112`
-- `GENERAL`: `x=100, y=85`
-- `LIBRARY`: `x=300, y=85`
-- `DEVICE`: `x=500, y=85`
-- `AUDIO`: `x=700, y=85`
-- `SYSTEM`: `x=900, y=85`
+#### C. Settings Sub-Tab Bar: `y=60..100`
+- `GENERAL`: `x=85, y=80`
+- `LIBRARY`: `x=255, y=80`
+- `DEVICE`: `x=425, y=80`
+- `AUDIO`: `x=595, y=80`
+- `SYSTEM`: `x=765, y=80`
+- `INFO`: `x=937, y=80`
 
-#### D. Settings -> General Options (`x=100, y=85`)
+#### D. Settings -> General Options (`x=85, y=80`)
 Split into two 512px columns. Row height: 52px each, starting at `y=100` (`y_center = 124 + (row_index * 52)`).
 - **Left Column (`x=0..512`)**:
   - Row 0 (`y=124`) `CROSSFADER`: `OFF (x=366)`, `ON (x=446)`
@@ -80,7 +91,7 @@ Split into two 512px columns. Row height: 52px each, starting at `y=100` (`y_cen
   - Row 4 (`y=332`) `CLEAR`: `CACHE (x=852)`, `CUES (x=908)`, `META (x=964)`
   - Row 5 (`y=384`) `PLAYED`: `RESET (x=910)`
 
-#### E. Settings -> Library Options (`x=300, y=85`)
+#### E. Settings -> Library Options (`x=255, y=80`)
 Configures visible columns and column widths (`OFF | XS | S | M | L`).
 - **Left Column (`x=0..512`)**:
   - Column buttons at: `OFF (x=296)`, `XS (x=346)`, `S (x=386)`, `M (x=426)`, `L (x=466)`
@@ -112,3 +123,30 @@ Convert screenshot to PPM (`ffmpeg -i screen.png screen.ppm`) and parse raw RGB 
 - Measure both available margins: `gap_above` and `gap_below`.
 - The balanced target position is `(gap_above + gap_below) / 2`.
 - Verify both the element's own QSS (`margin-top`, `padding-left`) and its container's layout alignment (`qproperty-layoutAlignment`).
+
+#### H. Overview Right Panel (1024x600)
+- Tab centers: `FX (878,90)`, `KEY (934,90)`, `JUMP (990,90)`.
+- KEY: Deck 1 `-2 (891,178)`, `+2 (977,178)`, `RESET (934,230)`;
+  Deck 2 uses the same x coordinates at `y=326` and `y=378`.
+- JUMP: Deck 1 halve/double at `(891,178)` / `(977,178)`,
+  backward/forward at `(891,230)` / `(977,230)`;
+  Deck 2 uses `y=326` and `y=378`.
+- FX: selector `(934,142)`, deck routing `(891,194)` / `(977,194)`,
+  activation `(934,246)`. Parameter-grid positions depend on the selected effect.
+- Wait for display-mode notifications to clear before clicking the main tabs;
+  the notification temporarily covers the top bar.
+
+## Deck interaction additions
+- Linked waveform zoom is below the two JUMP sections. Use native zoom controls
+  and the waveform factory's synchronization; do not step both synchronized decks
+  separately, which would apply each action twice.
+- Deck time modes use persisted `[Skin],deck1_time_mode` and `deck2_time_mode`.
+- For touch library loading, begin with a horizontal move to distinguish a drag
+  from vertical scrolling. Only actual visible deck regions accept that drag;
+  Escape cancels it. Highlight geometry must match the release target geometry.
+- Overview waveform height must match its visible container (currently 38px).
+  Keep the 12px minute ruler in a separate row; do not crop a double-height widget.
+  Check RGB, FILT and 3 BAND after changing overview rendering. Stacked rendering
+  uses bottom-origin image coordinates and must not get the symmetric translation.
+- Current compact Browse table: breadcrumb y=40..72, header y=72..94,
+  fixture row centers y=104 and y=126. Top-menu centers now use y=20.

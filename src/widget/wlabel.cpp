@@ -2,6 +2,7 @@
 
 #include <QEvent>
 #include <QFont>
+#include <QPainter>
 
 #include "moc_wlabel.cpp"
 #include "skin/legacy/skincontext.h"
@@ -16,6 +17,18 @@ WLabel::WLabel(QWidget* pParent)
           m_scaleFactor(1.0),
           m_highlight(0),
           m_widthHint(0) {
+    connect(&m_scrollTimer, &QTimer::timeout, this, [this] {
+        if (!m_scroll || !isVisible()) return;
+        const int overflow = fontMetrics().horizontalAdvance(m_longText) - contentsRect().width();
+        if (overflow <= 0) return;
+        if (m_scrollHold > 0) { --m_scrollHold; return; }
+        m_scrollOffset = qBound(0, m_scrollOffset + m_scrollDirection, overflow);
+        if (m_scrollOffset == 0 || m_scrollOffset == overflow) {
+            m_scrollDirection = -m_scrollDirection;
+            m_scrollHold = 24;
+        }
+        update();
+    });
 }
 
 void WLabel::setup(const QDomNode& node, const SkinContext& context) {
@@ -74,7 +87,11 @@ void WLabel::setup(const QDomNode& node, const SkinContext& context) {
     QString elide;
     if (context.hasNodeSelectString(node, "Elide", &elide)) {
         elide = elide.toLower();
-        if (elide == "right") {
+        if (elide == "scroll") {
+            m_scroll = true;
+            m_elideMode = Qt::ElideRight;
+            m_scrollTimer.start(50);
+        } else if (elide == "right") {
             m_elideMode = Qt::ElideRight;
         } else if (elide == "middle") {
             m_elideMode = Qt::ElideMiddle;
@@ -94,7 +111,19 @@ QString WLabel::text() const {
 }
 
 void WLabel::setText(const QString& text) {
+    if (m_longText != text) {
+        m_scrollOffset = 0;
+        m_scrollDirection = 1;
+        m_scrollHold = 24;
+    }
     m_longText = text;
+    if (m_scroll) {
+        m_widthHint = 160;
+        QLabel::setText(QString());
+        update();
+        return;
+    }
+
     if (m_elideMode != Qt::ElideNone) {
         QFontMetrics metrics(font());
         // Measure the text for the optimum label width
@@ -130,7 +159,22 @@ bool WLabel::event(QEvent* pEvent) {
 
 void WLabel::resizeEvent(QResizeEvent* event) {
     QLabel::resizeEvent(event);
+    m_scrollOffset = 0;
+    m_scrollDirection = 1;
+    m_scrollHold = 24;
     setText(m_longText);
+}
+
+void WLabel::paintEvent(QPaintEvent* event) {
+    QLabel::paintEvent(event);
+    if (!m_scroll) return;
+    QPainter painter(this);
+    painter.setClipRect(contentsRect());
+    painter.setPen(m_qFgColor.isValid() ? WSkinColor::getCorrectColor(m_qFgColor)
+                                      : palette().color(QPalette::WindowText));
+    const int baseline = contentsRect().center().y() +
+            (fontMetrics().ascent() - fontMetrics().descent()) / 2;
+    painter.drawText(contentsRect().left() - m_scrollOffset, baseline, m_longText);
 }
 
 void WLabel::fillDebugTooltip(QStringList* debug) {

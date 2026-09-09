@@ -762,9 +762,11 @@ void WOverview::drawAxis(QPainter* pPainter) {
     PainterScope painterScope(pPainter);
     pPainter->setPen(QPen(m_axesColor, m_scaleFactor));
     if (m_orientation == Qt::Horizontal) {
-        pPainter->drawLine(0, height() / 2, width(), height() / 2);
+        const int baseline = m_type == Type::Stacked ? height() - 1 : height() / 2;
+        pPainter->drawLine(0, baseline, width(), baseline);
     } else {
-        pPainter->drawLine(width() / 2, 0, width() / 2, height());
+        const int baseline = m_type == Type::Stacked ? width() - 1 : width() / 2;
+        pPainter->drawLine(baseline, 0, baseline, height());
     }
 }
 
@@ -786,8 +788,9 @@ void WOverview::drawWaveformPixmap(QPainter* pPainter) {
             QRect sourceRect;
             if (m_type == Type::Stacked) {
                 // Single-sided from bottom: crop empty space from the top only
-                int topCrop = m_waveformSourceImage.height() - static_cast<int>(m_waveformPeak);
-                if (topCrop < 0) topCrop = 0;
+                const int signalHeight = qBound(1, static_cast<int>(std::ceil(m_waveformPeak)),
+                        m_waveformSourceImage.height());
+                const int topCrop = m_waveformSourceImage.height() - signalHeight;
                 sourceRect = QRect(0,
                         topCrop,
                         m_waveformSourceImage.width(),
@@ -1491,7 +1494,11 @@ bool WOverview::drawNextPixmapPart() {
     //  << "completionIncrement:" << completionIncrement;
 
     QPainter painter(&m_waveformSourceImage);
-    painter.translate(0.0, static_cast<double>(m_waveformSourceImage.height()) / 2.0);
+    // Symmetric renderers draw around zero. Stacked rendering already uses
+    // absolute image coordinates measured upward from its bottom edge.
+    if (m_type != Type::Stacked) {
+        painter.translate(0.0, static_cast<double>(m_waveformSourceImage.height()) / 2.0);
+    }
 
     if (m_type == Type::Filtered) {
         drawNextPixmapPartLMH(&painter, pWaveform, nextCompletion);
@@ -1651,13 +1658,13 @@ void WOverview::drawNextPixmapPartStacked(QPainter* pPainter,
     DEBUG_ASSERT(!m_waveformSourceImage.isNull());
     ScopedTimer t(QStringLiteral("WOverview::drawNextPixmapPartStacked"));
 
-    QColor lowColor = m_signalColors.getLowColor();
+    QColor lowColor = m_signalColors.getRgbLowColor();
     QPen lowColorPen(QBrush(lowColor), 1);
 
-    QColor midColor = m_signalColors.getMidColor();
+    QColor midColor = m_signalColors.getRgbMidColor();
     QPen midColorPen(QBrush(midColor), 1);
 
-    QColor highColor = m_signalColors.getHighColor();
+    QColor highColor = m_signalColors.getRgbHighColor();
     QPen highColorPen(QBrush(highColor), 1);
 
     int currentCompletion = 0;
@@ -1669,8 +1676,9 @@ void WOverview::drawNextPixmapPartStacked(QPainter* pPainter,
         float mid = static_cast<float>(pWaveform->getMid(currentCompletion)) + static_cast<float>(pWaveform->getMid(currentCompletion + 1));
         float high = static_cast<float>(pWaveform->getHigh(currentCompletion)) + static_cast<float>(pWaveform->getHigh(currentCompletion + 1));
 
-        // Use a scale factor so that max possible sum (765) fits within the 510px height
-        const float scale = 0.6f;
+        // Two channels times three bands can sum to 1530. Fit the full
+        // range into the 510px source image before normalizing its height.
+        const float scale = 1.0f / 3.0f;
 
         low *= scale;
         mid *= scale;
@@ -1679,24 +1687,21 @@ void WOverview::drawNextPixmapPartStacked(QPainter* pPainter,
         float x = currentCompletion / 2.0f;
         float y = m_waveformSourceImage.height(); // Start drawing from the very bottom edge of the 510px image
 
-        // Draw low
-        if (low > 0) {
-            pPainter->setPen(lowColorPen);
-            pPainter->drawLine(QPointF(x, y), QPointF(x, y - low));
-            y -= low;
+        // Match the scrolling 3 BAND renderer: high at the baseline,
+        // then mid, with low forming the outside edge.
+        if (high > 0) {
+            pPainter->setPen(highColorPen);
+            pPainter->drawLine(QPointF(x, y), QPointF(x, y - high));
+            y -= high;
         }
-
-        // Draw mid
         if (mid > 0) {
             pPainter->setPen(midColorPen);
             pPainter->drawLine(QPointF(x, y), QPointF(x, y - mid));
             y -= mid;
         }
-
-        // Draw high
-        if (high > 0) {
-            pPainter->setPen(highColorPen);
-            pPainter->drawLine(QPointF(x, y), QPointF(x, y - high));
+        if (low > 0) {
+            pPainter->setPen(lowColorPen);
+            pPainter->drawLine(QPointF(x, y), QPointF(x, y - low));
         }
 
         m_waveformPeak = math_max3(
