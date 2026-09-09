@@ -114,6 +114,9 @@ PioneerDDJ400.bendScale = 0.8;
 PioneerDDJ400.tempoRanges = [0.06, 0.10, 0.25, 0.50, 1.00];
 
 PioneerDDJ400.shiftButtonDown = [false, false];
+PioneerDDJ400.shiftTapCount = 0;
+PioneerDDJ400.shiftTapStartedAt = 0;
+PioneerDDJ400.shiftTripleTapWindowMs = 1200;
 
 // Jog wheel loop adjust
 PioneerDDJ400.loopAdjustIn = [false, false];
@@ -703,10 +706,28 @@ PioneerDDJ400.jogTouch = function(channel, _control, value) {
 // Shift button
 //
 
-PioneerDDJ400.shiftPressed = function(channel, _control, value, _status, _group) {
-    PioneerDDJ400.shiftButtonDown[channel] = value === 0x7F;
-    if (channel === 0 || channel === 1) {
-        engine.setValue("[PadFX]", "d" + (channel + 1) + "_shift", value === 0x7F ? 1 : 0);
+PioneerDDJ400.shiftPressed = function(channel, _control, value, status, _group) {
+    if (channel !== 0 && channel !== 1) return;
+    const down = value === 0x7F && (status & 0xF0) !== 0x80;
+    const wasDown = PioneerDDJ400.shiftButtonDown[channel];
+    PioneerDDJ400.shiftButtonDown[channel] = down;
+    engine.setValue("[PadFX]", "d" + (channel + 1) + "_shift", down ? 1 : 0);
+    if (!down || wasDown) return;
+
+    // Both Shift buttons share one gesture; count only new presses while open.
+    if (engine.getValue("[Skin]", "cue_panel") === 0) {
+        PioneerDDJ400.shiftTapCount = 0;
+        return;
+    }
+    const now = Date.now();
+    if (PioneerDDJ400.shiftTapCount === 0 ||
+            now - PioneerDDJ400.shiftTapStartedAt > PioneerDDJ400.shiftTripleTapWindowMs) {
+        PioneerDDJ400.shiftTapCount = 0;
+        PioneerDDJ400.shiftTapStartedAt = now;
+    }
+    if (++PioneerDDJ400.shiftTapCount === 3) {
+        engine.setValue("[Skin]", "cue_close", 1);
+        PioneerDDJ400.shiftTapCount = 0;
     }
 };
 
@@ -945,6 +966,8 @@ PioneerDDJ400.filterKnob = function(channel, control, value, status, group) {
 // 0/1, unlike the performance pads on channels 7/8/9/10. Releases are not
 // deactivation: the hardware mode remains selected until another mode is chosen.
 PioneerDDJ400.resetPadDisplay = function() {
+    PioneerDDJ400.shiftButtonDown = [false, false];
+    PioneerDDJ400.shiftTapCount = 0;
     for (let deck = 1; deck <= 2; ++deck) {
         engine.setValue("[PadFX]", "d" + deck + "_mode", 0);
         engine.setValue("[PadFX]", "d" + deck + "_shift", 0);
@@ -963,6 +986,8 @@ PioneerDDJ400.padModeSelected = function(channel, control, value, status, group)
     if (value === 0 || (status & 0xF0) !== 0x90 || channel < 0 || channel > 1) return;
     const modes = {0x1B: 0, 0x1E: 1, 0x20: 2, 0x6D: 3};
     const deck = channel + 1;
+    // Shift used to select a mode is not part of the subsequent close gesture.
+    PioneerDDJ400.shiftTapCount = 0;
     if (Object.prototype.hasOwnProperty.call(modes, control)) {
         engine.setValue("[PadFX]", "d" + deck + "_mode", modes[control]);
         engine.setValue("[Skin]", "cue_deck" + deck, 1);

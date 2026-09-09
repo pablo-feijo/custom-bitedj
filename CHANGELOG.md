@@ -17,6 +17,9 @@ UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 
 ### Added
 
+- DDJ-400: three Shift presses within 1.2 seconds on either side close the pad
+  drawer and restore the bottom waveform previews.
+
 - Two-column, paged Beat FX picker with large touch targets and separate Standard
   and Saved sections ([picker preview](docs/UI_SCREENSHOTS.md#beat-fx-picker)).
 - The 25 Rekordbox 7 single-mode standard names using documented native

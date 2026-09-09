@@ -7,6 +7,7 @@ const group = '[EffectRack1_EffectUnit1]';
 let current, writes;
 const context = {engine: {
     getValue(g, key) {
+        if (g === '[Skin]' && key === 'cue_panel') return 0;
         assert.equal(g, group);
         assert.equal(key, 'chain_selector');
         assert.fail('relative selection must not read chain_selector as an index');

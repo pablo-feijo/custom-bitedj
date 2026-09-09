@@ -13,7 +13,7 @@ are needed for the fast suite. Native tests need a configured, compiled
 
 | Command | Coverage | When to run |
 | --- | --- | --- |
-| `python3 scripts/test/run-tests.py fast` | Pad FX controller behavior with a fake clock; skin XML, template references, tab contracts | Every edit; first CI gate |
+| `python3 scripts/test/run-tests.py fast` | All DDJ-400 MIDI bindings and Pad FX behavior with a fake clock; skin XML, template references, tab contracts | Every edit; first CI gate |
 | `python3 scripts/test/run-tests.py bitedj --build-dir build-linux` | Focused BiteDJ C++ behavior: settings, DSP routing/tails, UI widgets, library, import and controller regressions | Local feature changes |
 | `python3 scripts/test/run-tests.py native --build-dir build-linux` | Full C++ suite except tests needing removable mounts | Every PR and push to main/develop/semver branches |
 | `bash scripts/test/run-removable-tests.sh --build-dir build-linux` | Removable storage, cue/metadata/history persistence, sampler unplug/replug | Storage changes; every native CI run |

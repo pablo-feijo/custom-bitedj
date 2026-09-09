@@ -131,6 +131,12 @@ physical pads to perform the displayed actions. X still closes the drawer;
 selecting a controller mode opens that deck again. Mode button release does
 not close it. Other modes close only their own deck's visible drawer.
 
+After selecting a pad mode (including Shift + Pad Mode), press **Shift three
+times within 1.2 seconds** to close the drawer and restore the bottom waveform
+previews. Either Shift button works, including alternating sides. Mode selection
+resets the count; holding Shift or releasing it does not add presses. The gesture
+keeps each deck's selected pad mode and normal Shift behavior intact.
+
 Runtime controls (not saved): `[PadFX],dN_mode` = 0 Hot Cue, 1 Pad FX,
 2 Beat Jump, 3 Beat Loop, 4 Memory; `dN_shift` = 0/1; `dN_jump_bank` = 0/1/2 for
 1/16, 1, 16 multipliers. The existing mapping shares jump sizes across decks.
@@ -161,3 +167,32 @@ updates the same `dN_mode` state, so touch navigation continues from that mode.
 Performance pages are assignment legends; they do not trigger pads or change
 hardware pad routing. Hot Cue/Memory pages retain their existing touch actions.
 See [drawer geometry and screenshots](UI_SCREENSHOTS.md#controller-pad-drawer).
+
+## Automated mapping coverage
+
+Run `node tests/controllers/test_ddj400_mappings.cjs` for the complete MIDI
+binding regression suite, or `python3 scripts/test/run-tests.py fast` to include
+it with the existing Pad FX, drawer and effect-selection tests. CI runs the fast
+suite before native compilation. Node.js 22+ is required.
+
+The harness loads the shipped mapping and Pad FX scripts and dispatches events
+using the actual XML status/note/group bindings. A final audit requires unique
+inputs, resolvable callbacks, behavioral execution of every script binding and
+an explicit target/options assertion for every native binding. New bindings
+therefore require coverage. This is a binding/behavior audit, not a claim of
+100% JavaScript branch coverage.
+
+| Area | Regression coverage |
+| --- | --- |
+| Filter and mixer | Independent 14-bit filters, either Shift to Super, simultaneous Mix/Super/Sync while Pad FX is held, crossfader disable/re-enable |
+| Beat FX | Relative selection, routing to either/both decks, enable LEDs, panic, first loaded Beats parameter, all buckets, endpoints, off-grid values and releases |
+| Browse and load | Play waveform zoom, signed library scrolling, Shift tab switch, per-deck loading, Instant Doubles before/at 500 ms, source play/sync state |
+| Deck controls | Sync short/long presses, tempo ranges/sliders, live Vinyl/CDJ setting, jog bend/scratch/search, loop adjustment, quick jumps and quantize |
+| Performance pads | Every Pad FX pad/bank/deck, real and zero-velocity note-offs, duplicate presses, Shift changes while held, LED identity, Beat Jump banks/limits |
+| Drawer | All supported/unsupported mode notes, deck isolation, Shift state and triple-Shift waveform return; timeout/held/release cases in the existing drawer suite |
+| Samplers and lifecycle | All 16 load/play/stop/eject pads, paired Shift LEDs, startup query, track/VU feedback, pending/active loop blink and Pad FX cleanup |
+| Native XML mappings | Transport, mixer/EQ, headphones, Hot Cues and Beat Loop target, deck, MIDI-resolution and soft-takeover contracts |
+
+Engine controls, time, timers and MIDI output are simulated. Native control
+semantics, DSP/audio, device firmware messages and physical LED behavior still
+need native tests or a connected DDJ-400; this suite does not emulate them.
