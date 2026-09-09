@@ -1,0 +1,81 @@
+<Template>
+  <WidgetGroup>
+    <ObjectName>JumpDeckBlock</ObjectName>
+    <Layout>vertical</Layout>
+    <Size>0me,140f</Size>
+    <Children>
+      <WidgetGroup>
+        <ObjectName>JumpHeader</ObjectName>
+        <Layout>horizontal</Layout>
+        <Size>0me,28f</Size>
+        <Children>
+          <Label>
+            <ObjectName>KeyFX_DeckLabel_<Variable name="channel"/></ObjectName>
+            <Text>Deck <Variable name="channel"/></Text>
+          </Label>
+          <BeatSpinBox>
+            <ObjectName>JumpSize</ObjectName>
+            <Size>44f,28f</Size>
+            <Value>[Channel<Variable name="channel"/>],beatjump_size</Value>
+            <ReadOnly>true</ReadOnly>
+          </BeatSpinBox>
+          <Label><ObjectName>JumpUnits</ObjectName><Text>BEATS</Text><Size>40f,28f</Size></Label>
+        </Children>
+      </WidgetGroup>
+      <WidgetGroup>
+        <ObjectName>JumpButtonRow</ObjectName>
+        <Layout>horizontal</Layout>
+        <Size>0me,44f</Size>
+        <Children>
+          <PushButton>
+            <ObjectName>JumpSizeButton</ObjectName><Size>0me,44f</Size>
+            <NumberStates>1</NumberStates>
+            <State><Number>0</Number><Text>÷2</Text></State>
+            <Connection>
+              <ConfigKey>[Channel<Variable name="channel"/>],beatjump_size_halve</ConfigKey>
+              <ConnectValueToWidget>false</ConnectValueToWidget>
+              <EmitOnDownPress>true</EmitOnDownPress>
+            </Connection>
+          </PushButton>
+          <PushButton>
+            <ObjectName>JumpSizeButton</ObjectName><Size>0me,44f</Size>
+            <NumberStates>1</NumberStates>
+            <State><Number>0</Number><Text>×2</Text></State>
+            <Connection>
+              <ConfigKey>[Channel<Variable name="channel"/>],beatjump_size_double</ConfigKey>
+              <ConnectValueToWidget>false</ConnectValueToWidget>
+              <EmitOnDownPress>true</EmitOnDownPress>
+            </Connection>
+          </PushButton>
+        </Children>
+      </WidgetGroup>
+      <WidgetGroup>
+        <ObjectName>JumpButtonRow</ObjectName>
+        <Layout>horizontal</Layout>
+        <Size>0me,44f</Size>
+        <Children>
+          <PushButton>
+            <ObjectName>JumpActionButton</ObjectName><Size>0me,44f</Size>
+            <NumberStates>1</NumberStates>
+            <State><Number>0</Number><Text>‹ BACK</Text></State>
+            <Connection>
+              <ConfigKey>[Channel<Variable name="channel"/>],beatjump_backward</ConfigKey>
+              <ConnectValueToWidget>false</ConnectValueToWidget>
+              <EmitOnDownPress>true</EmitOnDownPress>
+            </Connection>
+          </PushButton>
+          <PushButton>
+            <ObjectName>JumpActionButton</ObjectName><Size>0me,44f</Size>
+            <NumberStates>1</NumberStates>
+            <State><Number>0</Number><Text>FWD ›</Text></State>
+            <Connection>
+              <ConfigKey>[Channel<Variable name="channel"/>],beatjump_forward</ConfigKey>
+              <ConnectValueToWidget>false</ConnectValueToWidget>
+              <EmitOnDownPress>true</EmitOnDownPress>
+            </Connection>
+          </PushButton>
+        </Children>
+      </WidgetGroup>
+    </Children>
+  </WidgetGroup>
+</Template>

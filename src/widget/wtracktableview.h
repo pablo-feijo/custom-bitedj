@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QPointer>
+
 #include <QAbstractItemModel>
 #include <QSortFilterProxyModel>
 
@@ -150,6 +152,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent* pEvent) override;
 
 private:
+    QPointer<QWidget> m_dropHighlight;
     QPoint m_dragStartPos;
     bool m_bFakeDragging = false;
     class QLabel* m_pFakeDragLabel = nullptr;

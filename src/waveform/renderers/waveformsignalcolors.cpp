@@ -114,6 +114,16 @@ bool WaveformSignalColors::setup(const QDomNode &node, const SkinContext& contex
         m_dimBrightThreshold = kDefaultDimBrightThreshold;
     }
 
+    if (context.selectBool(node, "BiteDJPalette", false) &&
+            context.getConfig()->getValue<int>(ConfigKey("[BiteDJ]", "waveform_palette"), 0) == 1) {
+        m_lowColor = WSkinColor::getCorrectColor(QColor("#0055e1")).toRgb();
+        m_midColor = WSkinColor::getCorrectColor(QColor("#b4690a")).toRgb();
+        m_highColor = WSkinColor::getCorrectColor(QColor("#f5ebd7")).toRgb();
+        m_rgbLowColor = m_rgbLowFilteredColor = m_lowColor;
+        m_rgbMidColor = m_rgbMidFilteredColor = m_midColor;
+        m_rgbHighColor = m_rgbHighFilteredColor = m_highColor;
+    }
+
     bool filteredColorValid = m_lowColor.isValid() && m_midColor.isValid() && m_highColor.isValid();
 
     if (m_signalColor.isValid() && filteredColorValid) {

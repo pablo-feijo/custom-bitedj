@@ -30,6 +30,10 @@
             <SetVariable name="Text">System</SetVariable>
             <SetVariable name="ConfigKey">system</SetVariable>
           </Template>
+          <Template src="skin:templates/setting_subtab_button.xml">
+            <SetVariable name="Text">Info</SetVariable>
+            <SetVariable name="ConfigKey">info</SetVariable>
+          </Template>
         </Children>
       </WidgetGroup>
 
@@ -565,6 +569,13 @@
                     </Children>
                   </WidgetGroup>
 
+                  <WidgetGroup><ObjectName>SettingsRow</ObjectName><Layout>horizontal</Layout><Size>0me,52f</Size><Children>
+                    <Label><ObjectName>SettingsRowLabel</ObjectName><Text>Palette</Text><Size>0me,0me</Size></Label>
+                    <WidgetGroup><ObjectName>SettingsSegmented</ObjectName><Layout>horizontal</Layout><Size>168f,40f</Size><Children>
+                      <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable><SetVariable name="Text">BiteDJ</SetVariable><SetVariable name="ConfigKey">[BiteDJ],waveform_palette</SetVariable><SetVariable name="Value">0</SetVariable></Template>
+                      <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentRight</SetVariable><SetVariable name="Text">Amber</SetVariable><SetVariable name="ConfigKey">[BiteDJ],waveform_palette</SetVariable><SetVariable name="Value">1</SetVariable></Template>
+                    </Children></WidgetGroup>
+                  </Children></WidgetGroup>
                   <WidgetGroup>
                     <ObjectName>SettingsSpacer</ObjectName>
                     <Size>0me,0me</Size>
@@ -1041,9 +1052,8 @@
                ControllerSettings hardcodes the Devices/midi panel as child 1;
                keep it that way. The EQ panel used to be child 5 and now lives
                on the top-level Levels tab, so a mixxx.cfg carried over from
-               before that move holds [SettingsTab],current=5 — out of range,
-               which QStackedWidget ignores, so Settings opens on General with
-               no sub-tab lit until the first tap. -->
+               before that move holds [SettingsTab],current=5, which now opens
+               INFO. Existing active pages 0..4 keep their original meanings. -->
           <WidgetGroup trigger="[SettingsTab],audio">
             <ObjectName>SettingsPanel</ObjectName>
             <Layout>vertical</Layout>
@@ -1255,6 +1265,18 @@
                 <Size>0me,0me</Size>
               </WidgetGroup>
 
+            </Children>
+          </WidgetGroup>
+
+          <!-- Append to preserve persisted settings page indices 0..4. -->
+          <WidgetGroup trigger="[SettingsTab],info">
+            <ObjectName>SettingsPanel</ObjectName>
+            <Layout>vertical</Layout>
+            <Children>
+              <SystemInfo>
+                <ObjectName>SystemInfo</ObjectName>
+                <SizePolicy>me,me</SizePolicy>
+              </SystemInfo>
             </Children>
           </WidgetGroup>
 

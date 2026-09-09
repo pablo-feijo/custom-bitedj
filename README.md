@@ -10,6 +10,10 @@ All changes in this fork were made from the upstream base revision **Mixxx 2.5.6
 
 Bite DJ targets a fixed-function, embedded, linux-based, touchscreen-driven DJ unit with a USB-drive-centric library model. Many changes below exist to serve that appliance model — no keyboard, no mouse, no local music library, no modal dialogs, and a hard CPU budget.
 
+## Acknowledgments
+
+Special thanks to **ntamas94** and the contributors to [Pioneered by ntamas](https://github.com/ntamas94/pioneered-by-ntamas), whose skin inspired BiteDJ's recent deck indicators, compact browsing, waveform presentation and controls. Thank you for sharing your work with the Mixxx community.
+
 ## Community
 
 * [Blog](https://www.deckshark.us/blogs/news)

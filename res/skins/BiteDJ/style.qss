@@ -53,12 +53,12 @@ WPushButton[value="1"]:hover {
 /*     Deck                                                             */
 /************************************************************************/
 
-#Deck {
+#DeckDropTarget1, #DeckDropTarget2 {
   border: 1px solid transparent;
   border-radius: 2px;
 }
 
-#Deck[highlight="1"] {
+#DeckDropTarget1[highlight="1"], #DeckDropTarget2[highlight="1"] {
   border: 1px solid #e5e6ea;
 }
 
@@ -111,14 +111,16 @@ WPushButton[value="1"]:hover {
 }
 
 #DeckOverview {
-  margin: 50% 0;
+  margin: 0;
 }
 
 #DeckTitleRow {
   padding-left: 6px;
+  qproperty-layoutAlignment: 'AlignVCenter';
 }
 
 #DeckTitle {
+  color: #cccccc;
   font-size: 16px;
   font-weight: bold;
   padding-left: 0px;
@@ -138,7 +140,7 @@ WPushButton[value="1"]:hover {
 }
 
 #DeckKey {
-  font-size: 13px;
+  font-size: 10px;
   font-weight: bold;
   color: #38bdf8;
   background-color: rgba(8, 125, 225, 0.25);
@@ -228,10 +230,12 @@ WPushButton[value="1"]:hover {
 }
 
 #BeatFX_Header {
-  qproperty-layoutAlignment: 'AlignHCenter | AlignVCenter';
+  qproperty-layoutAlignment: 'AlignTop';
+  qproperty-layoutSpacing: 8;
+  padding-bottom: 8px;
 }
 
-/* FX / KEY page tabs. Same select-only bar as the Settings sub-tabs, sized
+/* FX / KEY / JUMP page tabs. Same select-only bar as the Settings sub-tabs, sized
  * down to fit the 180px panel. */
 #FxPanel_TabBar {
   margin: 0 0 6px 0;
@@ -242,7 +246,7 @@ WPushButton[value="1"]:hover {
   background-color: transparent;
   border: 2px solid #32323c;
   color: #a7a9ac;
-  font-size: 15px;
+  font-size: 12px;
   font-weight: bold;
   text-transform: uppercase;
 }
@@ -254,6 +258,7 @@ WPushButton[value="1"]:hover {
 }
 
 #FxPanel_Page {
+  padding-top: 8px;
   qproperty-layoutAlignment: 'AlignTop';
 }
 
@@ -261,14 +266,14 @@ WPushButton[value="1"]:hover {
 /* Opens the drawer on this deck; sits between the key/BPM chips and the
  * track title, so it stays narrow. */
 #DeckCueChip {
-  font-size: 13px;
+  font-size: 10px;
   font-weight: bold;
   text-transform: uppercase;
   color: #38bdf8;
   background-color: rgba(8, 125, 225, 0.25);
   border: 1px solid transparent;
   border-radius: 2px;
-  margin-right: 2px;
+  margin-right: 8px;
 }
 
 #DeckCueChip:pressed {
@@ -427,8 +432,7 @@ WPushButton[value="1"]:hover {
  * the deck badges used in the sampler view so the FX panel and the deck
  * strips agree on which color means which deck. */
 #BeatFX_DeckRouting {
-  qproperty-layoutSpacing: 4;
-  padding: 4px 0;
+  qproperty-layoutSpacing: 8;
 }
 
 #BeatFX_DeckAssign1,
@@ -471,7 +475,8 @@ WPushButton[value="1"]:hover {
 
 /* KEY page: one stacked block per deck, +/-2 semitone nudges and reset. */
 #KeyFX_DeckBlock {
-  padding: 0 0 10px 0;
+  padding-bottom: 16px;
+  qproperty-layoutSpacing: 8;
 }
 
 #KeyFX_DeckHeader {
@@ -505,7 +510,7 @@ WPushButton[value="1"]:hover {
 }
 
 #KeyFX_ButtonRow {
-  qproperty-layoutSpacing: 4;
+  qproperty-layoutSpacing: 8;
 }
 
 #KeyFX_Down,
@@ -631,8 +636,8 @@ WEffectChainPresetSelector QAbstractItemView {
   background-color: #32323c;
   color: #e5e6ea;
   font-weight: bold;
-  font-size: 18px;
-  margin: 2px;
+  font-size: 12px;
+  margin: 1px;
   text-transform: uppercase;
 }
 
@@ -651,9 +656,9 @@ WEffectChainPresetSelector QAbstractItemView {
   selection-background-color: #e5e6ea;
   color: white;
   selection-color: black;
-  font-size: 18px;
-  padding-top: 5px;
-  padding-bottom: 5px;
+  font-size: 14px;
+  padding-top: 0px;
+  padding-bottom: 0px;
 }
 
 #LibraryWrapper WLibrarySidebar {
@@ -662,7 +667,7 @@ WEffectChainPresetSelector QAbstractItemView {
   border-left: 4px solid gray;
   color: #e5e6ea;
   font-weight: bold;
-  font-size: 24px;
+  font-size: 18px;
   selection-color: black;
   text-transform: uppercase;
 }
@@ -698,13 +703,13 @@ WLabel {
   border: 2px solid lightgray;
   border-radius: 4px;
   color: lightgray;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: bold;
   margin: 4px;
 }
 #LibraryBreadcrumb {
   color: lightgray;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: bold;
   padding-left: 12px;
 }
@@ -726,7 +731,35 @@ WLabel {
 
 #WaveformInfo {
   margin-right: 10px;
+  padding-left: 6px;
+  qproperty-layoutSpacing: 8;
+  qproperty-layoutAlignment: 'AlignVCenter';
 }
+
+#WaveformSourceRow { qproperty-layoutSpacing: 6; }
+#WaveformDeckNumber { font-weight: bold; font-size: 11px; color: #c49ade; background-color: #302638; border-radius: 3px; qproperty-alignment: 'AlignCenter'; }
+#WaveformSource { font-size: 11px; font-weight: bold; color: #e5e6ea; background-color: #24242c; border-radius: 3px; qproperty-alignment: 'AlignCenter'; }
+#WaveformKeyLoopRow { qproperty-layoutSpacing: 4; }
+#WaveformMetadataCell { qproperty-layoutSpacing: 0; }
+#WaveformCaption { font-size: 9px; color: #9999a8; qproperty-alignment: 'AlignCenter'; }
+#WaveformCaption[highlight="1"] { color: #b28ad0; }
+#WaveformKeyValue { font-size: 12px; font-weight: bold; color: #38bdf8; qproperty-alignment: 'AlignCenter'; }
+#WaveformKeyValue[highlight="1"] { color: #f87171; }
+#WaveformLoopValue { padding: 0px; margin: 0px; font-size: 12px; qproperty-alignment: 'AlignCenter'; }
+#WaveformStateButton, #WaveformTransportButton {
+  background-color: #1a1a24; border: 1px solid #383846; border-radius: 3px;
+  color: #c5c5d0; font-size: 12px; font-weight: bold;
+}
+#WaveformStateRow, #WaveformTransportRow { qproperty-layoutSpacing: 4; }
+#WaveformStateButton[value="1"] { background-color: #8058a0; color: #ffffff; }
+#WaveformTransportButton[value="1"] { background-color: #238751; color: #ffffff; }
+#DeckOnAir { font-size: 9px; font-weight: bold; color: #71717c; background-color: #24242c; }
+#DeckOnAir[highlight="1"] { color: #ffffff; background-color: #c9372c; }
+#InfoCard { background-color: #17171f; border: 1px solid #383846; border-radius: 6px; }
+#InfoHeading { color: #aaaaba; font-size: 14px; font-weight: bold; }
+#InfoValue { color: #e5e6ea; font-size: 42px; font-weight: bold; }
+#InfoHint { color: #9999a8; font-size: 12px; }
+#InfoOutput { color: #c5c5d0; font-size: 14px; padding: 10px; }
 
 #WaveformInfo_Header {
   background-color: #32323c;
@@ -859,16 +892,18 @@ WBeatSpinBox::up-button {
 
 #TabControls {
   background-color: #855ea7;
-  margin-bottom: 5px;
+  margin-bottom: 2px;
+  qproperty-layoutSpacing: 10;
+  padding: 0 6px;
 }
 
 /* Five tabs share the bar, so at the 480px floor each cell is ~96px. The
- * margin is a percentage (not px) and the font is small enough that the
+ * inter-button gap is explicit and the font is small enough that the
  * longest label — SETTINGS, 8 chars of monospace — still clears its cell. */
 #TabControls WPushButton {
   font-weight: bold;
-  font-size: 17px;
-  margin: 10px 3%;
+  font-size: 14px;
+  margin: 6px 0;
   max-width: 250px;
   text-transform: uppercase;
 }
@@ -1790,3 +1825,20 @@ WBeatSpinBox::up-button {
   color: #ffffff;
 }
 
+/* Beat-jump controls share the right panel with FX and KEY. */
+#JumpDeckBlock { padding-bottom: 8px; qproperty-layoutSpacing: 8; }
+#JumpButtonRow { qproperty-layoutSpacing: 8; }
+#JumpSize { font-size: 17px; font-weight: bold; padding: 0; margin: 0; qproperty-alignment: 'AlignCenter'; }
+#JumpUnits { font-size: 10px; color: #9999a8; }
+#JumpSizeButton, #JumpActionButton {
+  background-color: #1a1a24; border: 1px solid #383846; border-radius: 3px;
+  color: #c5c5d0; font-size: 12px; font-weight: bold;
+}
+#JumpSizeButton { font-size: 18px; }
+#JumpSizeButton:pressed, #JumpActionButton:pressed { background-color: #8058a0; color: #ffffff; }
+
+#BeatFX_BottomKnobs { padding-top: 8px; qproperty-layoutSpacing: 8; }
+
+#LinkedZoomTitle { font-size: 9px; color: #9999a8; qproperty-alignment: 'AlignCenter'; }
+#LinkedZoom QPushButton { font-size: 12px; color: #c5c5d0; background: #1a1a24; border: 1px solid #383846; border-radius: 3px; }
+#LinkedZoom QPushButton:pressed { background: #8058a0; }

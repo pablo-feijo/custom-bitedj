@@ -27,6 +27,57 @@ class EngineBufferTest : public MockedEngineBackendTest {};
 
 class EngineBufferE2ETest : public SignalPathTest {};
 
+TEST_F(EngineBufferTest, OnAirFollowsTransportAndMainRouting) {
+    const AudioOutput mainOutput(AudioPathType::Main, 0, mixxx::audio::ChannelCount::stereo());
+    m_pEngineMixer->onOutputConnected(mainOutput);
+    auto set = [this](const char* key, double value) {
+        ControlObject::set(ConfigKey(m_sGroup1, key), value);
+        ProcessBuffer();
+        ProcessBuffer(); // settle gain ramps and transport transitions
+    };
+    auto onAir = [this]() {
+        return ControlObject::get(ConfigKey(m_sGroup1, "on_air"));
+    };
+    set("play", 0);
+    EXPECT_EQ(onAir(), 0);
+    set("play", 1);
+    EXPECT_EQ(onAir(), 1);
+    set("volume", 0);
+    EXPECT_EQ(onAir(), 0);
+    set("volume", 1);
+    EXPECT_EQ(onAir(), 1);
+    set("mute", 1);
+    EXPECT_EQ(onAir(), 0);
+    set("mute", 0);
+    set("pfl", 1);
+    set("main_mix", 0);
+    EXPECT_EQ(onAir(), 0); // headphone cue alone is not ON AIR
+    set("main_mix", 1);
+    EXPECT_EQ(onAir(), 1);
+    m_pEngineMixer->onOutputDisconnected(mainOutput);
+    EXPECT_EQ(onAir(), 0); // clears even when there are no further callbacks
+    ProcessBuffer();
+    EXPECT_EQ(onAir(), 0); // internal main buffer may still feed headphones
+    m_pEngineMixer->onOutputConnected(mainOutput);
+    ProcessBuffer();
+    EXPECT_EQ(onAir(), 1);
+    set("orientation", EngineChannel::LEFT);
+    ControlObject::set(ConfigKey(m_sMainGroup, "crossfader"), 1);
+    ProcessBuffer();
+    ProcessBuffer();
+    EXPECT_EQ(onAir(), 0);
+    ControlObject::set(ConfigKey(m_sMainGroup, "crossfader"), -1);
+    ProcessBuffer();
+    ProcessBuffer();
+    EXPECT_EQ(onAir(), 1);
+    ControlObject::set(ConfigKey(m_sMainGroup, "gain"), 0);
+    ProcessBuffer();
+    EXPECT_EQ(onAir(), 0);
+    ControlObject::set(ConfigKey(m_sMainGroup, "gain"), 1);
+    set("play", 0);
+    EXPECT_EQ(onAir(), 0);
+}
+
 TEST_F(EngineBufferTest, DisableKeylockResetsPitch) {
     // To prevent one-slider users from getting stuck on a key,
     // KeyunlockMode::ResetLockedKey resets the musical pitch.

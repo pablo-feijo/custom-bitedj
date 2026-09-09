@@ -4,8 +4,46 @@
 
 #include <QByteArray>
 #include <QStringList>
+#include <QDomDocument>
+
+#include "skin/legacy/skincontext.h"
+#include "test/mixxxtest.h"
+#include "track/track.h"
+#include "widget/wtrackproperty.h"
 
 namespace {
+
+class TrackSourceWidgetTest : public MixxxTest {};
+
+TEST_F(TrackSourceWidgetTest, SourceLoadReplacementAndUnloadDoNotKeepOldTrack) {
+    WTrackProperty label(nullptr, config(), nullptr, "[Channel1]", true);
+    SkinContext context(config(), "test");
+    QDomDocument xml;
+    ASSERT_TRUE(xml.setContent(QStringLiteral("<TrackProperty><Property>source</Property></TrackProperty>")));
+    label.setup(xml.documentElement(), context);
+    const auto first = Track::newTemporary();
+    label.slotTrackLoaded(first);
+    // No SystemSettings singleton in this test: unavailable is explicit.
+    EXPECT_EQ(label.text(), "N/A");
+    const auto second = Track::newTemporary();
+    label.slotLoadingTrack(second, first);
+    EXPECT_TRUE(label.text().isEmpty());
+    label.slotTrackLoaded(second);
+    EXPECT_EQ(label.text(), "N/A");
+    label.slotLoadingTrack({}, second);
+    EXPECT_TRUE(label.text().isEmpty());
+}
+
+TEST(SystemSettingsTest, TrackSourceUsesLongestMountAndPathBoundaries) {
+    const QStringList mounts{"/media/USB", "/media/USB/partition"};
+    const QStringList labels{"USB1", "USB2"};
+    EXPECT_EQ(SystemSettings::classifyTrackSource("/media/USB/song.wav", mounts, labels), "USB1");
+    EXPECT_EQ(SystemSettings::classifyTrackSource("/media/USB/partition/song.wav", mounts, labels), "USB2");
+    EXPECT_EQ(SystemSettings::classifyTrackSource("/media/USB-other/song.wav", mounts, labels), "OFFLINE");
+    EXPECT_EQ(SystemSettings::classifyTrackSource("/music/song.wav", mounts, labels), "LOCAL");
+    EXPECT_TRUE(SystemSettings::classifyTrackSource("", mounts, labels).isEmpty());
+    EXPECT_EQ(SystemSettings::classifyTrackSource("/media/USB/song.wav", {}, {}), "OFFLINE");
+}
 
 class ScopedUserEnvironment {
   public:
