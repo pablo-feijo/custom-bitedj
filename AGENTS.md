@@ -23,6 +23,13 @@ architecture, versioning, branch isolation, testing and Conventional Commits rul
 - Use Conventional Commits for every new or amended commit. Merge into the
   agreed semver branch later when requested; synchronize versions for the release.
 
+## Pad FX Architecture
+- System settings own Pad FX defaults, saved overrides and reset commands.
+  Skins only place the optional editor; never embed presets or effect logic in XML.
+- Keep the Settings editor usable at 1024×600: eight pad selectors, one visible
+  assignment editor, minimum 44px touch controls, no extra overview tabs.
+  Hide the Settings deck footer only on PAD FX; preserve outer and card padding.
+
 ## UI Layout
 - Overview Panel: Keep **FX**, **KEY**, and **JUMP** tabs. Beat-jump size and actions belong in JUMP, not the left waveform sidebar.
 - Do not attempt to add `PADS` or `CFX` tabs back to the native `WidgetStack` in `effects.xml`.

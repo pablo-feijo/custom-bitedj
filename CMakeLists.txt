@@ -461,6 +461,8 @@ add_library(mixxx-lib STATIC EXCLUDE_FROM_ALL
   src/controllers/softtakeoverindicator.cpp
   src/coreservices.cpp
   src/notifications/notifications.cpp
+  src/preferences/padfxsettings.cpp
+  src/effects/chains/padeffectchain.cpp
   src/preferences/audiodevicesettings.cpp
   src/preferences/controllersettings.cpp
   src/database/mixxxdb.cpp
@@ -1614,6 +1616,10 @@ if(BUILD_TESTING)
     src/test/queryutiltest.cpp
     src/test/rangelist_test.cpp
     src/test/readaheadmanager_test.cpp
+    src/test/padecho_test.cpp
+    src/test/padfxeditor_test.cpp
+    src/test/padfxsettings_test.cpp
+    src/test/padfxrouting_test.cpp
     src/test/effectslot_test.cpp
     src/test/rekordboxanlz_test.cpp
     src/test/replaygaintest.cpp

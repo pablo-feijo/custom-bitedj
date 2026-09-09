@@ -11,26 +11,40 @@ In upstream Mixxx, adjusting both the effect parameter (`super`) and the wet/dry
 - **Two-Handed Live Sweeps**: A DJ can hold Shift with their thumb and simultaneously sweep the **SUPER** knob with one hand (using either Filter knob) and the **MIX** knob with the other hand (using the Level/Depth knob).
 - **Normal Filter Operation**: When Shift is not held, the Filter knobs control each deck's respective QuickEffect Filter (`[QuickEffectRack1_[ChannelN]], super1`) as standard.
 
-## 2. Pad FX 1 Integration
-The DDJ-400 has a dedicated hardware mode for "Pad FX 1" which was largely underutilized or buggy in upstream Mixxx.
-BiteDJ maps MIDI notes `0x10-0x17` (and their `0x60-0x67` shadows) directly to high-impact momentary effects.
+## 2. Configurable Pad FX
 
-**How it Works:**
-- Pressing and holding any pad instantly loads a pre-configured effect profile.
-- The `mix` and `meta` values jump to optimal presets instantly, bypassing the physical Level/Depth knob.
-- A `20ms` initialization timer prevents audio dropouts during the rapid effect-swapping phase inside the Mixxx engine.
-- Releasing the pad restores the previous active state, allowing seamless punch-in effects without altering the Beat FX chain.
+Settings → PAD FX selects Deck 1/2, Normal/Shift bank and one of eight pads.
+The 1024×600 editor shows one assignment at a time with effect, supported beat
+length, strength and hold behavior. Reset restores the selected slot only.
+Defaults and resets are owned by the system; opening the editor is optional.
+The skin contains only the editor placement, with no Pad FX presets or DSP logic.
+Changes are saved and apply on the next press; held pads keep their snapshot.
+Stop All Pad FX clears both decks, including latched effects and pending tails.
 
-### Pad FX Profiles
-The following profiles are currently hardcoded for Pad FX1 mode:
-* **Pad 1**: Echo (1/2 beat)
-* **Pad 2**: Echo (1 beat)
-* **Pad 3**: Echo (2 beats)
-* **Pad 4**: Echo (4 beats)
-* **Pad 5**: Flanger (Fast)
-* **Pad 6**: Flanger (Medium)
-* **Pad 7**: Flanger (Slow)
-* **Pad 8**: Reverb
+DDJ-400 notes `0x10–0x17` and `0x60–0x67` share physical pad identities;
+channels 7/8 select Deck 1 and 9/10 Deck 2, with even channels selecting Shift.
+Note-off releases the original assignment even if Shift changed while held.
+Private native effect lanes leave the user's Beat FX rack and faders untouched.
+The former effect-number lookup and delayed 20 ms effect swap are removed.
+
+Defaults follow the reviewed PiFlex bank (a change from our old fixed mapping):
+
+| Pad | Normal | Shift |
+| --- | --- | --- |
+| 1 | Roll 1/2 | Trans 1/2 |
+| 2 | Sweep | Crush |
+| 3 | Flanger 16 | Filter LFO 4 |
+| 4 | Release Brake 3/4 | Release Backspin 4 |
+| 5 | Echo 1/4 | MT Delay 1/8 approximation |
+| 6 | Echo 1/2 | Dub Echo approximation |
+| 7 | Reverb | Space approximation |
+| 8 | Release Echo 1/2 | Release Echo 1 |
+
+These are native Mixxx approximations, not proprietary Rekordbox DSP. Only
+Release Echo can latch; roll/brake/backspin remain momentary. Echo-family beat
+overrides are bounded to 1/8–2 beats. Strength 0 disables an assignment.
+Physical DDJ-400 timing, audio and LED validation is still required for this
+new implementation; the historical verification below predates it.
 
 ## 3. Instant Doubles & Sync Fixes
 - **Double-Tap Clone**: Pushing the rotary Load encoder twice in rapid succession triggers a custom Instant Doubles script. The script clones the currently playing track to the opposite deck, perfectly matching the playhead position, loop state, and pitch.

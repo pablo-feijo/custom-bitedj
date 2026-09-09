@@ -123,3 +123,11 @@ When evaluating new Mixxx releases (e.g., 2.5, 2.6), prioritize reviewing the fo
 - **Preview Button Connections**: Ensured the global `[Waveform] waveform_type` ControlObject is instantiated *before* `WTrackTableView` creates `PreviewButtonDelegate`s. This resolves the bug where track library waveforms were permanently frozen on the startup setting.
 - **Overview Stack Sync**: Created a dedicated `WaveformOverviewType` property in the backend to ensure Deck `WOverview` waveforms respond natively to the 3-Band setting change.
 - **WaveformRendererFiltered Track Colors**: Updated `WaveformRendererFiltered` to correctly source dynamic RGB track colors (`m_rgbLowColor`, etc.) for `mode == 2`, fixing a major rendering bug where 3-Band stacked waveforms were drawing black due to an undefined generic skin color fallback.
+
+## Pending v0.0.7: configurable Pad FX
+
+`codex/rekordbox-padfx-display` adds system-owned assignments/reset commands,
+private native effect lanes and a compact full-height Settings editor. DDJ-400
+normal/Shift pads use the new mapping instead of swapping the main Beat FX slot.
+See [Pad FX validation](PAD_FX_TESTING.md). Other selected fork features remain
+on the [next-batch checklist](XSPLOIT_NEXT_BATCH.md).

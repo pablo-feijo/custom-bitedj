@@ -23,3 +23,11 @@ The main source’s GPL-2.0-or-later terms are stated in [LICENSE](LICENSE).
 See also [COPYING](COPYING); bundled libraries and skins retain their own notices.
 Project and product names identify their respective projects and owners;
 this custom fork does not imply their endorsement.
+
+### Pad FX adaptation (pending v0.0.7)
+
+The Pad FX settings bridge, private effect lanes, Pad Echo DSP, controller
+helper and regression fixtures adapt xsploit/bitedj revision
+`4c1dfec590f98851159fe7a64e3348e8aad306a5`. The editor is reworked for 1024×600
+with a single selected pad; the adapter targets DDJ-400 Normal/Shift MIDI and
+preserves its shadow-note LED addresses. Original GPL licensing applies.
