@@ -1623,6 +1623,7 @@ if(BUILD_TESTING)
     src/test/padfxsettings_test.cpp
     src/test/padfxrouting_test.cpp
     src/test/effectslot_test.cpp
+    src/test/rekordboxdisplay_test.cpp
     src/test/rekordboxanlz_test.cpp
     src/test/replaygaintest.cpp
     src/test/rescalertest.cpp
@@ -1680,7 +1681,7 @@ if(BUILD_TESTING)
 
   target_precompile_headers(mixxx-test REUSE_FROM mixxx-lib)
   set_target_properties(mixxx-test PROPERTIES AUTOMOC ON)
-  target_link_libraries(mixxx-test PRIVATE mixxx-lib mixxx-gitinfostore GTest::gtest GTest::gmock)
+  target_link_libraries(mixxx-test PRIVATE mixxx-lib mixxx-gitinfostore GTest::gtest GTest::gmock rekordbox_metadata Kaitai)
 
   if(BUILD_BENCH)
     add_compile_definitions(USE_BENCH)
