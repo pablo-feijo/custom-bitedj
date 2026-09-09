@@ -288,6 +288,13 @@ class Track : public QObject {
     void setWaveformSummary(ConstWaveformPointer pWaveform);
     // Publish both views before notifying observers of an imported pair.
     void setWaveforms(ConstWaveformPointer detail, ConstWaveformPointer summary);
+    // Session-local export fallback, read by the analyzer after native cache lookup.
+    struct RekordboxWaveformSource {
+        QString analyzePath;
+        int timingOffsetMillis = 0;
+    };
+    void setRekordboxWaveformSource(RekordboxWaveformSource source);
+    RekordboxWaveformSource getRekordboxWaveformSource() const;
     mixxx::PhraseList getPhrases() const;
     void setPhrases(mixxx::PhraseList phrases, mixxx::BeatsPointer sourceBeats = {});
 
@@ -582,6 +589,7 @@ class Track : public QObject {
     // Visual waveform data
     ConstWaveformPointer m_waveform;
     ConstWaveformPointer m_waveformSummary;
+    RekordboxWaveformSource m_rekordboxWaveformSource;
     mixxx::PhraseList m_phrases;
     mixxx::PhraseList m_sourcePhrases;
     mixxx::BeatsPointer m_phraseSourceBeats;

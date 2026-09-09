@@ -1653,10 +1653,10 @@ TrackPointer RekordboxPlaylistModel::getTrack(const QModelIndex& index) const {
     auto failedPaths = mixxx::rekordbox::readAnalyzeFiles(
             track, sampleRate, timingOffset, anlzPath);
     const auto phrasesFailure = mixxx::rekordbox::readPhrases(track, timingOffset, anlzPath);
-    const auto waveFailure = mixxx::rekordbox::readThreeBandWaveforms(
-            track, sampleRate, timingOffset, anlzPath);
+    // The analyzer checks the native cache before using this export fallback.
+    // Importing here replaced the RGB preview's cached native bands on deck load.
+    track->setRekordboxWaveformSource({anlzPath, timingOffset});
     if (!phrasesFailure.isEmpty()) failedPaths.append(phrasesFailure);
-    if (!waveFailure.isEmpty()) failedPaths.append(waveFailure);
     if (!failedPaths.isEmpty()) {
         if (auto* notifications = Notifications::tryInstance()) {
             notifications->publish(

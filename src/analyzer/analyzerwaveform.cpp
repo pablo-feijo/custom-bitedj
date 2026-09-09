@@ -2,6 +2,8 @@
 
 #include "analyzer/analyzertrack.h"
 #include "engine/filters/enginefilterbessel4.h"
+#include "library/rekordbox/rekordboxanlz.h"
+#include "notifications/notifications.h"
 #include "track/track.h"
 #include "util/logger.h"
 #include "waveform/waveformfactory.h"
@@ -48,6 +50,27 @@ bool AnalyzerWaveform::initialize(const AnalyzerTrack& track,
     // If we don't need to calculate the waveform/wavesummary, skip.
     if (!shouldAnalyze(track.getTrack())) {
         return false;
+    }
+
+    // Rekordbox display envelopes use different band scaling from native RMS.
+    // Prefer the same native cache that supplies library previews, then import
+    // the export only on a cache miss. Both disk reads run on this worker.
+    const auto source = track.getTrack()->getRekordboxWaveformSource();
+    if (!source.analyzePath.isEmpty()) {
+        const auto failure = mixxx::rekordbox::readThreeBandWaveforms(
+                track.getTrack(), sampleRate, source.timingOffsetMillis, source.analyzePath);
+        if (!failure.isEmpty()) {
+            if (auto* notifications = Notifications::tryInstance()) {
+                QMetaObject::invokeMethod(notifications, [notifications] {
+                    notifications->publish(
+                            QObject::tr("Some Rekordbox analysis could not be read. Audio remains available."),
+                            Notifications::Severity::Warning);
+                }, Qt::QueuedConnection);
+            }
+        }
+        if (track.getTrack()->getWaveform() && track.getTrack()->getWaveformSummary()) {
+            return false;
+        }
     }
 
     m_timer.start();
@@ -152,11 +175,9 @@ bool AnalyzerWaveform::shouldAnalyze(TrackPointer tio) const {
     // If we don't need to calculate the waveform/wavesummary, skip.
     if (!missingWaveform && !missingWavesummary) {
         kLogger.debug() << "loadStored - Stored waveform loaded";
-        if (pLoadedTrackWaveform) {
-            tio->setWaveform(pLoadedTrackWaveform);
-        }
-        if (pLoadedTrackWaveformSummary) {
-            tio->setWaveformSummary(pLoadedTrackWaveformSummary);
+        if (pLoadedTrackWaveform || pLoadedTrackWaveformSummary) {
+            tio->setWaveforms(pLoadedTrackWaveform ? pLoadedTrackWaveform : pTrackWaveform,
+                    pLoadedTrackWaveformSummary ? pLoadedTrackWaveformSummary : pTrackWaveformSummary);
         }
         return false;
     }

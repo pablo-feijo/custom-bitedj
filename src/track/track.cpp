@@ -946,6 +946,16 @@ void Track::setWaveforms(ConstWaveformPointer detail, ConstWaveformPointer summa
     emit waveformSummaryUpdated();
 }
 
+void Track::setRekordboxWaveformSource(RekordboxWaveformSource source) {
+    const auto locked = lockMutex(&m_qMutex);
+    m_rekordboxWaveformSource = std::move(source);
+}
+
+Track::RekordboxWaveformSource Track::getRekordboxWaveformSource() const {
+    const auto locked = lockMutex(&m_qMutex);
+    return m_rekordboxWaveformSource;
+}
+
 mixxx::PhraseList Track::getPhrases() const {
     const auto locked = lockMutex(&m_qMutex);
     return m_phrases;

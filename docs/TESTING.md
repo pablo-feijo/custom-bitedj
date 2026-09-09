@@ -242,6 +242,11 @@ content. It checks BiteDJ/Amber palette round trips and switching Filtered and
 color tolerance allows for rasterization. This is a color-consistency check, not
 an assertion that an entire music-track summary matches one zoomed-in passage.
 
+`RekordboxImportTest` also covers loading a track whose native cached bands differ
+from the export: the native detail and summary must remain the source for both
+views. A cache miss still imports a valid export on the analyzer worker, and an
+invalid export leaves native audio analysis available.
+
 `WaveformRenderingTest` checks empty/partial summaries, full-track coordinates,
 transient-preserving downsampling, palette round trips, 3 Band stacking and deck
 loading with stale duration controls. `PreviewDelegateTest` exercises actual

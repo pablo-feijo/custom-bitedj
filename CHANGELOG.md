@@ -53,6 +53,11 @@ UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 
 ### Fixed
 
+- Keep cached native waveform colors when loading Rekordbox tracks, so library
+  previews and [Play overviews](docs/UI_SCREENSHOTS.md#play) do not change from
+  red/pink to green/yellow. Import exported bands on the background worker only
+  when the native cache is missing; cover source selection and RGB consistency.
+
 - Clarify the [Key panel](docs/UI_SCREENSHOTS.md#grid-key-controls) with compact
   deck sections and semitone labels; align key/BPM badges in the
   [Settings deck previews](docs/UI_SCREENSHOTS.md#settings-general).

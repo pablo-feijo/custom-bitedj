@@ -135,6 +135,16 @@ normal/Shift pads use the new mapping instead of swapping the main Beat FX slot.
 See [Pad FX validation](PAD_FX_TESTING.md). Implementation plans are local execution records under ignored `tasks/`.
 
 
+### 2026-09-09 — Stable colors when loading Rekordbox tracks
+
+Deck loading checks the native waveform cache before importing Rekordbox display
+envelopes. Previously the playlist import replaced cached RGB bands immediately,
+turning red/pink library and bottom previews green/yellow. The playlist now records
+a session-local export source; the analyzer worker imports it only on a native
+cache miss, retaining native audio analysis as the fallback for invalid exports.
+Cached detail and summary are published together. Regression tests cover cached
+native colors, deferred valid exports and malformed-export fallback.
+
 ### 2026-09-09 — Preview loading and rendering
 
 Browse summary-only I/O now runs on a single background pool with bounded caches;

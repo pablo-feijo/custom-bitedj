@@ -86,6 +86,11 @@ TEST(RekordboxDisplayTest, TenMinuteEnvelopeTimingAndAllocation) {
 
 #include <QFile>
 #include <QTemporaryDir>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include "analyzer/analyzertrack.h"
+#include "analyzer/analyzerwaveform.h"
+#include "waveform/waveformfactory.h"
 #include "test/mixxxtest.h"
 #include "library/rekordbox/rekordboxanlz.h"
 #include "track/track.h"
@@ -131,6 +136,83 @@ class RekordboxImportTest : public MixxxTest {
     }
 };
 }
+TEST_F(RekordboxImportTest, DeckLoadKeepsCachedNativeBandsInsteadOfExportColors) {
+    QTemporaryDir dir;
+    ASSERT_TRUE(dir.isValid());
+    const auto dat = dir.filePath("ANLZ.DAT");
+    writeAnalysis(dir.filePath("ANLZ.2EX"), waveSection("PWV6") + waveSection("PWV7"));
+    config()->setValue(ConfigKey("[Library]", "AnalysisCacheOnTrackFs"), false);
+    config()->setValue(ConfigKey("[Library]", "AnalysisCacheInHome"), true);
+    const QString connection = dir.path();
+    {
+        auto db = QSqlDatabase::addDatabase("QSQLITE", connection);
+        db.setDatabaseName(":memory:");
+        ASSERT_TRUE(db.open());
+        QSqlQuery query(db);
+        ASSERT_TRUE(query.exec("CREATE TABLE track_analysis (id INTEGER PRIMARY KEY, "
+                               "track_id INTEGER, type INTEGER, description TEXT, "
+                               "version TEXT, data_checksum INTEGER)"));
+        auto t = Track::newDummy(getTestDir().filePath("sine-30.wav"), TrackId(QVariant(17)));
+        t->setAudioProperties(mixxx::audio::ChannelCount(2),
+                mixxx::audio::SampleRate(44100), mixxx::audio::Bitrate(),
+                mixxx::Duration::fromSeconds(3));
+        auto native = WaveformPointer(new Waveform(44100, 3 * 44100, 150, -1));
+        for (int i = 0; i < native->getDataSize(); ++i) {
+            native->data()[i].filtered = {255, 0, 0, 255};
+        }
+        native->setCompletion(native->getDataSize());
+        AnalysisDao dao(config());
+        dao.initialize(db);
+        for (const auto type : {AnalysisDao::TYPE_WAVEFORM, AnalysisDao::TYPE_WAVESUMMARY}) {
+            AnalysisDao::AnalysisInfo info;
+            info.trackId = t->getId();
+            info.type = type;
+            info.version = type == AnalysisDao::TYPE_WAVEFORM
+                    ? WaveformFactory::currentWaveformVersion()
+                    : WaveformFactory::currentWaveformSummaryVersion();
+            info.data = native->toByteArray();
+            ASSERT_TRUE(dao.saveAnalysis(&info));
+        }
+        // This is what selecting a Rekordbox row now schedules: no eager import
+        // may replace the native summary already displayed by the library.
+        t->setRekordboxWaveformSource({dat, 0});
+        EXPECT_FALSE(t->getWaveform());
+        EXPECT_FALSE(t->getWaveformSummary());
+        AnalyzerWaveform analyzer(config(), db);
+        EXPECT_FALSE(analyzer.initialize(AnalyzerTrack(t), t->getSampleRate(), 3 * 44100));
+        ASSERT_TRUE(t->getWaveform());
+        ASSERT_TRUE(t->getWaveformSummary());
+        EXPECT_EQ(t->getWaveform()->getVersion(), WaveformFactory::currentWaveformVersion());
+        EXPECT_EQ(t->getWaveformSummary()->getVersion(), WaveformFactory::currentWaveformSummaryVersion());
+        EXPECT_EQ(t->getWaveform()->toByteArray(), native->toByteArray());
+        EXPECT_EQ(t->getWaveformSummary()->toByteArray(), native->toByteArray());
+    }
+    QSqlDatabase::removeDatabase(connection);
+}
+
+TEST_F(RekordboxImportTest, DeferredExportFallbackAndInvalidExportAllowNativeAnalysis) {
+    QTemporaryDir dir;
+    ASSERT_TRUE(dir.isValid());
+    config()->setValue(ConfigKey("[Library]", "AnalysisCacheOnTrackFs"), false);
+    config()->setValue(ConfigKey("[Library]", "AnalysisCacheInHome"), false);
+    const auto dat = dir.filePath("ANLZ.DAT");
+    writeAnalysis(dir.filePath("ANLZ.2EX"), waveSection("PWV6") + waveSection("PWV7"));
+    auto t = track();
+    t->setRekordboxWaveformSource({dat, 0});
+    AnalyzerWaveform analyzer(config(), QSqlDatabase());
+    EXPECT_FALSE(analyzer.initialize(AnalyzerTrack(t), t->getSampleRate(), 3 * 44100));
+    ASSERT_TRUE(t->getWaveform());
+    ASSERT_TRUE(t->getWaveformSummary());
+    EXPECT_EQ(t->getWaveform()->getVersion(), "Rekordbox 3-band v3");
+    EXPECT_EQ(t->getWaveformSummary()->getVersion(), "Rekordbox 3-band v3");
+    writeAnalysis(dir.filePath("ANLZ.2EX"), waveSection("PWV6"));
+    t = track();
+    t->setRekordboxWaveformSource({dat, 0});
+    EXPECT_TRUE(analyzer.initialize(AnalyzerTrack(t), t->getSampleRate(), 3 * 44100));
+    EXPECT_EQ(t->getWaveform()->getCompletion(), 0);
+    EXPECT_EQ(t->getWaveformSummary()->getCompletion(), 0);
+}
+
 TEST_F(RekordboxImportTest, PublishPairTogetherReuseAndPreserveOnInvalidExport) {
     QTemporaryDir dir;
     ASSERT_TRUE(dir.isValid());
