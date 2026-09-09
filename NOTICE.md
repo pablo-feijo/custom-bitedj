@@ -31,3 +31,10 @@ helper and regression fixtures adapt xsploit/bitedj revision
 `4c1dfec590f98851159fe7a64e3348e8aad306a5`. The editor is reworked for 1024×600
 with a single selected pad; the adapter targets DDJ-400 Normal/Shift MIDI and
 preserves its shadow-note LED addresses. Original GPL licensing applies.
+
+### Display and load-policy adaptation (pending v0.0.7)
+
+Elapsed-time scrolling labels and the shared deck-load policy adapt the same
+pinned xsploit revision. This build retains two decks and defaults to Lock;
+checks at the player boundary cover controller and clone requests as well as
+UI loading.

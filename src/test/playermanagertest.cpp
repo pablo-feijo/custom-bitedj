@@ -259,3 +259,59 @@ TEST_F(PlayerManagerTest, UnReplaceTest) {
     ASSERT_NE(nullptr, deck1->getLoadedTrack());
     ASSERT_EQ(testId1, deck1->getLoadedTrack()->getId());
 }
+
+TEST_F(PlayerManagerTest, ReplacementLockIsEnforcedAtPlayerBoundary) {
+    auto* deck = m_pPlayerManager->getDeck(0);
+    ASSERT_NE(deck, nullptr);
+    auto first = getOrAddTrackByLocation(getTestDir().filePath(kTrackLocationTest1));
+    auto second = getOrAddTrackByLocation(getTestDir().filePath(kTrackLocationTest2));
+    deck->slotLoadTrack(first, false);
+    m_pEngine->process(1024);
+    QTRY_COMPARE_WITH_TIMEOUT(deck->getEngineDeck()->getEngineBuffer()->getLoadedTrack(), first, 5000);
+    m_pEngine->process(1024);
+    ControlObject::set(ConfigKey("[Channel1]", "play"), 1);
+    m_pEngine->process(1024);
+    ASSERT_GT(ControlObject::get(ConfigKey("[Channel1]", "play")), 0);
+    m_pConfig->setValue(ConfigKey("[Controls]", "LoadWhenDeckPlaying"), 0);
+    deck->slotLoadTrack(second, true);
+    EXPECT_EQ(deck->getLoadedTrack(), first);
+    m_pConfig->setValue(ConfigKey("[Controls]", "LoadWhenDeckPlaying"), 3);
+    ControlObject::set(ConfigKey("[Channel1]", "volume"), 1);
+    ControlObject::set(ConfigKey("[Channel1]", "main_mix"), 1);
+    deck->slotLoadTrack(second, true);
+    EXPECT_EQ(deck->getLoadedTrack(), first);
+    ControlObject::set(ConfigKey("[Channel1]", "volume"), 0);
+    deck->slotLoadTrack(second, true);
+    EXPECT_EQ(deck->getLoadedTrack(), second);
+    m_pEngine->process(1024);
+    QTRY_COMPARE_WITH_TIMEOUT(deck->getEngineDeck()->getEngineBuffer()->getLoadedTrack(), second, 5000);
+    m_pEngine->process(1024);
+    EXPECT_EQ(ControlObject::get(ConfigKey("[Channel1]", "play")), 0);
+}
+
+TEST_F(PlayerManagerTest, LiveContinuesAndStopOverridesExplicitPlay) {
+    auto* deck = m_pPlayerManager->getDeck(0);
+    auto first = getOrAddTrackByLocation(getTestDir().filePath(kTrackLocationTest1));
+    auto second = getOrAddTrackByLocation(getTestDir().filePath(kTrackLocationTest2));
+    deck->slotLoadTrack(first, false);
+    m_pEngine->process(1024);
+    QTRY_COMPARE_WITH_TIMEOUT(deck->getEngineDeck()->getEngineBuffer()->getLoadedTrack(), first, 5000);
+    m_pEngine->process(1024);
+    ControlObject::set(ConfigKey("[Channel1]", "play"), 1);
+    m_pEngine->process(1024);
+    ASSERT_GT(ControlObject::get(ConfigKey("[Channel1]", "play")), 0);
+    m_pConfig->setValue(ConfigKey("[Controls]", "LoadWhenDeckPlaying"), 1);
+    deck->slotLoadTrack(second, false);
+    m_pEngine->process(1024);
+    QTRY_COMPARE_WITH_TIMEOUT(deck->getEngineDeck()->getEngineBuffer()->getLoadedTrack(), second, 5000);
+    m_pEngine->process(1024);
+    EXPECT_EQ(deck->getLoadedTrack(), second);
+    ASSERT_GT(ControlObject::get(ConfigKey("[Channel1]", "play")), 0);
+    m_pConfig->setValue(ConfigKey("[Controls]", "LoadWhenDeckPlaying"), 2);
+    deck->slotLoadTrack(first, true);
+    m_pEngine->process(1024);
+    QTRY_COMPARE_WITH_TIMEOUT(deck->getEngineDeck()->getEngineBuffer()->getLoadedTrack(), first, 5000);
+    m_pEngine->process(1024);
+    EXPECT_EQ(deck->getLoadedTrack(), first);
+    EXPECT_EQ(ControlObject::get(ConfigKey("[Channel1]", "play")), 0);
+}

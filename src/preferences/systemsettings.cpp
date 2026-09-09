@@ -1,4 +1,6 @@
 #include "preferences/systemsettings.h"
+#include "mixer/deckloadpolicy.h"
+#include <cmath>
 
 #include <QCoreApplication>
 #include <QDir>
@@ -173,6 +175,19 @@ SystemSettings::SystemSettings(UserSettingsPointer pConfig,
             &ControlObject::valueChanged,
             this,
             &SystemSettings::onVinylModeChanged);
+
+    // Shared native policy; the skin only edits the saved preference.
+    m_pCoTrackLoadPolicy = std::make_unique<ControlObject>(
+            ConfigKey("[BiteDJ]", "track_load_policy"));
+    m_pCoTrackLoadPolicy->set(static_cast<int>(mixxx::deckload::policy(m_pConfig)));
+    connect(m_pCoTrackLoadPolicy.get(), &ControlObject::valueChanged, this,
+            [this](double value) {
+                if (std::isfinite(value) && value == std::floor(value) && value >= 0 && value <= 3) {
+                    m_pConfig->setValue(kConfigKeyLoadWhenDeckPlaying, static_cast<int>(value));
+                } else {
+                    m_pCoTrackLoadPolicy->set(static_cast<int>(mixxx::deckload::policy(m_pConfig)));
+                }
+            });
 
     // Vinyl brake (General settings tab). Same seed-then-persist pattern as the
     // jog mode above; the scratch engine reads this CO directly rather than

@@ -1,4 +1,5 @@
 #include "mixer/basetrackplayer.h"
+#include "mixer/deckloadpolicy.h"
 
 #include <QMessageBox>
 #include <QMetaMethod>
@@ -555,6 +556,17 @@ void BaseTrackPlayerImpl::slotLoadTrack(TrackPointer pNewTrack, bool bPlay) {
                 return;
             }
         }
+    }
+
+    if (pNewTrack && !mixxx::deckload::allowed(getGroup(), m_pConfig)) {
+        m_pChannelToCloneFrom = nullptr;
+        return;
+    }
+    if (pNewTrack && m_pLoadedTrack && PlayerManager::isDeckGroup(getGroup()) &&
+            ControlObject::get(ConfigKey(getGroup(), "play")) > 0.0) {
+        // Stop/Fader always stop replacement, including instant-double requests.
+        // Live preserves a playing destination regardless of the UI request path.
+        bPlay = mixxx::deckload::policy(m_pConfig) == LoadWhenDeckPlaying::Allow;
     }
 
     auto pOldTrack = unloadTrack();

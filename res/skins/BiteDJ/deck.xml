@@ -131,7 +131,7 @@
                 <TooltipId>track_artist</TooltipId>
                 <SizePolicy>e,18f</SizePolicy>
                 <Property>artist</Property>
-                <Elide>right</Elide>
+                <Elide>scroll</Elide>
                 <Channel><Variable name="channel"/></Channel>
               </TrackProperty>
               <Label>
@@ -204,7 +204,7 @@
                             <Size>0me,0me</Size>
                             <Property>trackNumber</Property>
                             <Channel><Variable name="channel"/></Channel>
-                            <Elide>right</Elide>
+                            <Elide>scroll</Elide>
                           </TrackProperty>
                           <Label>
                             <Size>0me,0me</Size>

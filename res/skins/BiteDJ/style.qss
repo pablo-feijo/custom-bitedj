@@ -121,12 +121,14 @@ WPushButton[value="1"]:hover {
 
 #DeckTitle {
   color: #cccccc;
+  qproperty-scrollColor: #cccccc;
   font-size: 16px;
   font-weight: bold;
   padding-left: 0px;
 }
 
 #DeckTitlePlaying {
+  qproperty-scrollColor: #c9372c;
   font-size: 16px;
   font-weight: bold;
   color: #c9372c;
@@ -134,6 +136,7 @@ WPushButton[value="1"]:hover {
 }
 
 #DeckArtist {
+  qproperty-scrollColor: #9a9b9c;
   font-size: 16px;
   color: #9a9b9c;
   padding-left: 4px;
@@ -1842,3 +1845,8 @@ WBeatSpinBox::up-button {
 #LinkedZoomTitle { font-size: 9px; color: #9999a8; qproperty-alignment: 'AlignCenter'; }
 #LinkedZoom QPushButton { font-size: 12px; color: #c5c5d0; background: #1a1a24; border: 1px solid #383846; border-radius: 3px; }
 #LinkedZoom QPushButton:pressed { background: #8058a0; }
+
+/* Four load-policy choices fit one 512px General column. */
+#LoadPolicySegmented #SettingsSegmentLeft,
+#LoadPolicySegmented #SettingsSegmentMid,
+#LoadPolicySegmented #SettingsSegmentRight { min-width: 52px; }

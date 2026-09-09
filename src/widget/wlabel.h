@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QLabel>
+#include <QElapsedTimer>
 #include <QTimer>
 
 #include "widget/wbasewidget.h"
@@ -10,6 +11,7 @@ class SkinContext;
 
 class WLabel : public QLabel, public WBaseWidget {
     Q_OBJECT
+    Q_PROPERTY(QColor scrollColor MEMBER m_scrollColor)
   public:
     explicit WLabel(QWidget* pParent=nullptr);
 
@@ -41,11 +43,13 @@ class WLabel : public QLabel, public WBaseWidget {
     QColor m_qFgColor;
     QColor m_qBgColor;
   private:
-    bool m_scroll = false;
-    int m_scrollOffset = 0;
-    int m_scrollDirection = 1;
-    int m_scrollHold = 24;
+    QColor m_scrollColor;
+    void updateScrolling();
+    QRect scrollRect() const;
+    bool m_scrollText = false;
+    bool m_scrollOverflow = false;
     QTimer m_scrollTimer;
+    QElapsedTimer m_scrollClock;
     QString m_longText;
     Qt::TextElideMode m_elideMode;
     double m_scaleFactor;
