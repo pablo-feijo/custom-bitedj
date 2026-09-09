@@ -21,14 +21,14 @@ BiteDJ is a highly-customized fork of Mixxx, specifically engineered to run as a
 - Every worktree must have its own `build-linux/`, `dist-linux/`, test settings,
   results, and GUI container. Never share writable build/install/config directories
   between branches. A shared compiler cache and immutable Docker image are fine.
-- Use `run-gui-test.sh` and `gui-test-settings.sh`: they derive a worktree-specific
+- Use `scripts/test/run-gui-test.sh` and `scripts/test/gui-test-settings.sh`: they derive a worktree-specific
   container name, assign free host ports by default, and refuse to replace a
   container labeled for another worktree/branch. Explicit names/ports may be set
   with `BITEDJ_TEST_INSTANCE`, `BITEDJ_TEST_WEB_PORT`, `BITEDJ_TEST_AUDIO_PORT`,
   and `BITEDJ_TEST_VNC_PORT`.
 - Read the printed endpoints or `docker port`; **never assume port 6080 or the
   legacy `bitedj-gui-test-instance` belongs to this task**. Source
-  `gui-test-settings.sh` and run `verify_test_instance_owner` before manual
+  `scripts/test/gui-test-settings.sh` and run `verify_test_instance_owner` before manual
   test operations. Use `$CONTAINER_NAME` in commands.
 - For stopping Mixxx in an owned instance, use
   `docker exec "$CONTAINER_NAME" pkill -9 mixxx`. Never use `killall`, global
@@ -79,6 +79,13 @@ When developing or testing in `bitedj-gui-test-instance`:
    - When fixing cramped margins, measure both opposing gaps (`gap_above` and `gap_below`) and target the visual midpoint `(gap_above + gap_below) / 2` on the first iteration rather than testing tentative 2px increments.
 
 ### E. Keep UI Guides in Sync
+
+For every visible UI change, follow the root
+[published screenshot policy](../AGENTS.md#published-ui-screenshots): recapture
+all affected documentation images, update gallery captions and link the affected
+gallery section from that change's changelog entry in the same commit. Preserve
+released galleries. Curated documentation screenshots are committed assets;
+raw test screenshots and logs remain ignored.
 Every UI option addition, removal, rename, move or resize must update the root
 [UI guide](../AGENTS.md) and [GUI testing guide](GUI_TESTING.md) in the same
 commit. Record option order, measured 1024×600 coordinates and control/value
@@ -88,14 +95,29 @@ clearance, padding and footer visibility in the owned VNC instance; include
 Day/Night checks when styling changes. Prefer a canonical mapping link over
 stale duplicate coordinates.
 
+## Repository Organization
+
+- Follow [the canonical repository layout](REPOSITORY_LAYOUT.md) for every new file.
+  Put BiteDJ helpers in `scripts/build/`, `scripts/deploy/`, `scripts/test/` or
+  `scripts/legacy/`; Docker recipes in `docker/`; guides and plans in `docs/`;
+  integration fixtures in `tests/`. Keep existing upstream utilities in `tools/`.
+- Do not accumulate scripts or scratch files at the root. Root additions require
+  a tool-discovery need or deliberate project entry point, explained in the change.
+- Keep generated output in ignored, worktree-local runtime directories. Curated
+  documentation images belong under `docs/images/`, never at the root.
+- For every move, update all callers, Docker paths, CI/config references, tests,
+  README/docs and agent instructions. Search tracked and hidden files, preserve
+  executable permissions, and verify path resolution from outside the repo.
+- Update the canonical map when adding a category; link to it instead of copying it.
+
 ## 2. Infrastructure & Build Workflows
 
-If the user asks you to compile or test the application, use the scripts provided in the root directory:
+If the user asks you to compile or test the application, use the scripts under `scripts/`, as listed in [the repository layout](REPOSITORY_LAYOUT.md):
 
-- **Compiling for the Pi**: Run `./docker-build.sh --platform linux/arm64`. This uses a custom Docker container to cross-compile the binary into `dist-linux/`. Do not try to compile natively on a Mac or Windows machine using standard `CMake` unless you are explicitly building a local debug version.
-- **Local GUI & Audio Testing**: Before deploying changes or building an OS image, verify the 1024×600 GUI and affected audio paths in the owned instance using [GUI_TESTING.md](GUI_TESTING.md), [PAD_FX_TESTING.md](PAD_FX_TESTING.md), and the [Rekordbox fixture procedure](../tests/rekordbox/README.md) as applicable. Start interactive testing with `./run-gui-test.sh` and use its printed VNC/audio endpoints; never assume ports belong to this task.
-- **Hot-Deploying**: Use `./deploy-ssh.sh` to push a newly compiled ARM64 binary to a live Raspberry Pi over the network.
-- **Flashing the OS**: The complete Raspberry Pi OS is generated using `./generate-pi-image.sh`, which leverages the `mixxx-pi-gen` submodule.
+- **Compiling for the Pi**: Run `./scripts/build/docker-build.sh --platform linux/arm64`. This uses a custom Docker container to cross-compile the binary into `dist-linux/`. Do not try to compile natively on a Mac or Windows machine using standard `CMake` unless you are explicitly building a local debug version.
+- **Local GUI & Audio Testing**: Before deploying changes or building an OS image, verify the 1024×600 GUI and affected audio paths in the owned instance using [GUI_TESTING.md](GUI_TESTING.md), [PAD_FX_TESTING.md](PAD_FX_TESTING.md), and the [Rekordbox fixture procedure](../tests/rekordbox/README.md) as applicable. Start interactive testing with `./scripts/test/run-gui-test.sh` and use its printed VNC/audio endpoints; never assume ports belong to this task.
+- **Hot-Deploying**: Use `./scripts/deploy/deploy-ssh.sh` to push a newly compiled ARM64 binary to a live Raspberry Pi over the network.
+- **Flashing the OS**: The complete Raspberry Pi OS is generated using `./scripts/build/generate-pi-image.sh`, which leverages the `mixxx-pi-gen` submodule.
 
 ## 3. Important Context
 Before attempting large refactors or upstream cherry-picking from `mixxxdj/mixxx`, review the following documents:
@@ -107,7 +129,7 @@ Before attempting large refactors or upstream cherry-picking from `mixxxdj/mixxx
 When preparing a new release or branch (e.g., `v0.0.4`), agents must explicitly synchronize the Semantic Version (semver) across the entire stack:
 1. **Source Code**: Ensure `BITEDJ_VERSION` in `CMakeLists.txt` matches the target branch semver (e.g., `0.0.4`). This updates the `WVersionLabel` in the Settings UI automatically.
 2. **OS Image output**: Ensure `IMG_NAME` in `mixxx-pi-gen/config` includes the semver suffix (e.g., `IMG_NAME="bitedj-pi-v0.0.4"`).
-3. **Flashing Scripts**: Update `flash-sdcard.sh` dynamically or explicitly so `ZIP_FILE` and `IMG_FILE` point to the freshly versioned output targets.
+3. **Flashing Scripts**: Update `scripts/deploy/flash-sdcard.sh` dynamically or explicitly so `ZIP_FILE` and `IMG_FILE` point to the freshly versioned output targets.
 
 For the 0.0.7 working release, pi-gen uses `codex/v007-custom-defaults`;
 `codex/v0.0.7` is only the later merge target in both repositories. Commit on
@@ -121,7 +143,7 @@ Do not copy UI resources into pi-gen: it consumes the matching parent ARM64
 
 ## 5. Prevent Configuration Drift (Infrastructure as Code)
 When resolving bugs on live hardware or applying hot-patches over SSH (e.g., editing `~/.config/sway/config` or modifying `gsettings` on the Pi), you **must immediately backport those changes to the local repository.** 
-- Never leave a live Pi in a state that cannot be exactly reproduced by `./generate-pi-image.sh`.
+- Never leave a live Pi in a state that cannot be exactly reproduced by `./scripts/build/generate-pi-image.sh`.
 - If you fix a system issue, commit the corresponding changes to the `mixxx-pi-gen` submodule (e.g., injecting the fix into `i3.conf` or `01-run.sh`) so the local build state remains the absolute source of truth.
 
 ## 6. Commit Message Convention

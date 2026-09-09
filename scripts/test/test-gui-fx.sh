@@ -14,8 +14,8 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/gui-test-settings.sh"
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "${REPO_DIR}/scripts/test/gui-test-settings.sh"
 
 mkdir -p "${RESULTS_DIR}"
 
@@ -39,7 +39,7 @@ log_fail() {
 log_step "1. Checking BiteDJ Test Container Status"
 if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
     echo "Container '${CONTAINER_NAME}' is not running. Launching via run-gui-test.sh..."
-    "${SCRIPT_DIR}/run-gui-test.sh"
+    "${REPO_DIR}/scripts/test/run-gui-test.sh"
     sleep 5
 fi
 

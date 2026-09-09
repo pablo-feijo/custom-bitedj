@@ -65,7 +65,7 @@ agent guide (normalized to `AGENTS.md`) preserves the existing UI/debugging rule
 and points to `docs/AGENTS.md`. Both require a feature branch and worktree for each
 new task, an explicit semver merge target, Conventional Commits, and isolated tests.
 
-`run-gui-test.sh` uses ownership labels, distinct settings/results directories,
+`scripts/test/run-gui-test.sh` uses ownership labels, distinct settings/results directories,
 and automatically assigned localhost ports. Fixed ports are optional. The FX and
 preview scripts use the same instance selection and port discovery. No developer
 USB path is mounted automatically; optional `BITEDJ_TEST_USB_DIR` is read-only.

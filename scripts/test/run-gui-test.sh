@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DIST_DIR="${SCRIPT_DIR}/dist-linux"
-MUSIC_DIR="${SCRIPT_DIR}/test-music"
-source "${SCRIPT_DIR}/gui-test-settings.sh"
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+DIST_DIR="${REPO_DIR}/dist-linux"
+MUSIC_DIR="${REPO_DIR}/test-music"
+source "${REPO_DIR}/scripts/test/gui-test-settings.sh"
 for port in "${BITEDJ_TEST_WEB_PORT:-}" "${BITEDJ_TEST_AUDIO_PORT:-}" "${BITEDJ_TEST_VNC_PORT:-}"; do
     if [[ -n "${port}" ]] && [[ ! "${port}" =~ ^[1-9][0-9]{0,4}$ || "${port}" -lt 1 || "${port}" -gt 65535 ]]; then
         echo "Test ports must be integers between 1 and 65535." >&2
@@ -26,23 +26,23 @@ fi
 
 if [ ! -f "${DIST_DIR}/bin/mixxx" ]; then
     echo "Error: dist-linux/bin/mixxx not found!"
-    echo "Please build the ARM64 binary first with: ./docker-build.sh --platform linux/arm64"
+    echo "Please build the ARM64 binary first with: ./scripts/build/docker-build.sh --platform linux/arm64"
     exit 1
 fi
 
 echo "==> 1. Synchronizing effect chains and resources to dist-linux..."
 mkdir -p "${DIST_DIR}/share/mixxx/effects/chains"
-cp -r "${SCRIPT_DIR}/res/effects/chains/"*.xml "${DIST_DIR}/share/mixxx/effects/chains/"
-cp -r "${SCRIPT_DIR}/res/skins/BiteDJ" "${DIST_DIR}/share/mixxx/skins/"
+cp -r "${REPO_DIR}/res/effects/chains/"*.xml "${DIST_DIR}/share/mixxx/effects/chains/"
+cp -r "${REPO_DIR}/res/skins/BiteDJ" "${DIST_DIR}/share/mixxx/skins/"
 
 echo "==> 2. Ensuring test music tracks exist..."
 if [ ! -f "${MUSIC_DIR}/BiteDJ_Test_Groove_128BPM.wav" ]; then
-    (cd "${SCRIPT_DIR}" && python3 generate_test_music.py)
+    (cd "${REPO_DIR}" && python3 scripts/test/generate_test_music.py)
 fi
 
 echo "==> 3. Building/verifying BiteDJ GUI test container..."
 if [[ "${BITEDJ_TEST_REBUILD_IMAGE:-0}" == 1 ]] || ! docker image inspect bitedj-gui-test:latest >/dev/null 2>&1; then
-    docker build -t bitedj-gui-test:latest -f "${SCRIPT_DIR}/Dockerfile.gui-test" "${SCRIPT_DIR}"
+    docker build -t bitedj-gui-test:latest -f "${REPO_DIR}/docker/gui-test.Dockerfile" "${REPO_DIR}"
 fi
 
 echo "==> 4. Launching BiteDJ GUI test instance (1024x600, VNC + PulseAudio)..."
@@ -58,15 +58,15 @@ fi
 
 docker run -d \
     --name "${CONTAINER_NAME}" \
-    --label "us.bitedj.test.worktree=${SCRIPT_DIR}" \
-    --label "us.bitedj.test.branch=$(git -C "${SCRIPT_DIR}" branch --show-current)" \
+    --label "us.bitedj.test.worktree=${REPO_DIR}" \
+    --label "us.bitedj.test.branch=$(git -C "${REPO_DIR}" branch --show-current)" \
     -p "127.0.0.1:${BITEDJ_TEST_WEB_PORT:-}:6080" \
     -p "127.0.0.1:${BITEDJ_TEST_AUDIO_PORT:-}:8000" \
     -p "127.0.0.1:${BITEDJ_TEST_VNC_PORT:-}:5900" \
     -v "${DIST_DIR}:/dist-linux:ro" \
     -v "${MUSIC_DIR}:/music:ro" \
     -v "${CONFIG_DIR}:/root/.mixxx:rw" \
-    -v "${SCRIPT_DIR}/audio_stream.py:/audio_stream.py:ro" \
+    -v "${REPO_DIR}/scripts/test/audio_stream.py:/audio_stream.py:ro" \
     "${EXTRA_DOCKER_ARGS[@]}" \
     bitedj-gui-test:latest \
     bash -c "\
@@ -84,7 +84,7 @@ docker run -d \
         tail -f /dev/null \
     "
 
-printf '%s\n' "${CONTAINER_NAME}" > "${SCRIPT_DIR}/test-config/active-instance"
+printf '%s\n' "${CONTAINER_NAME}" > "${REPO_DIR}/test-config/active-instance"
 WEB_PORT="$(test_host_port 6080)"
 AUDIO_PORT="$(test_host_port 8000)"
 VNC_PORT="$(test_host_port 5900)"
@@ -100,11 +100,11 @@ p.write_text(s)
 Path("/usr/share/novnc/branch.json").write_text(json.dumps({
     "branch": sys.argv[2], "revision": sys.argv[3], "binarySha256": sys.argv[4]
 }) + "\n")
-' "${AUDIO_PORT}" "$(git -C "${SCRIPT_DIR}" branch --show-current)" \
-    "$(git -C "${SCRIPT_DIR}" describe --always --dirty)" \
+' "${AUDIO_PORT}" "$(git -C "${REPO_DIR}" branch --show-current)" \
+    "$(git -C "${REPO_DIR}" describe --always --dirty)" \
     "$(shasum -a 256 "${DIST_DIR}/bin/mixxx" | awk '{print $1}')"
 echo "Instance: ${CONTAINER_NAME}"
-echo "Branch: $(git -C "${SCRIPT_DIR}" branch --show-current)"
+echo "Branch: $(git -C "${REPO_DIR}" branch --show-current)"
 echo "Web UI: http://localhost:${WEB_PORT}/vnc.html"
 echo "Audio: http://localhost:${AUDIO_PORT}/stream.mp3"
 echo "VNC: localhost:${VNC_PORT}"

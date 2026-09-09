@@ -43,10 +43,10 @@ This does not qualify physical USB/controller timing or Pi audio hardware.
 Build and launch from this worktree, using a free instance/ports:
 
 ```bash
-./docker-build.sh --platform linux/arm64
+./scripts/build/docker-build.sh --platform linux/arm64
 BITEDJ_TEST_INSTANCE=bitedj-next-gui \
 BITEDJ_TEST_WEB_PORT=6082 BITEDJ_TEST_AUDIO_PORT=8002 BITEDJ_TEST_VNC_PORT=5902 \
-./run-gui-test.sh
+./scripts/test/run-gui-test.sh
 ./tests/padfx/test-live-midi-audio.sh
 node tests/padfx/test_padfx.cjs
 ```

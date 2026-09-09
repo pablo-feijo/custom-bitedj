@@ -5,11 +5,17 @@ Versioning; commit messages follow Conventional Commits.
 
 ## [0.0.7] — Unreleased
 
+UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
+[Browse with previews](docs/UI_SCREENSHOTS.md#browse-preview), and
+[all Settings screens](docs/UI_SCREENSHOTS.md#settings-general).
+
 ### Added
 
 - System-owned Pad FX presets and a compact eight-pad Settings editor, with
-  independent effect lanes and DDJ-400 Normal/Shift banks.
-- Configurable Lock / Fader / Stop / Live track replacement behavior.
+  independent effect lanes and DDJ-400 Normal/Shift banks
+  ([Pad FX preview](docs/UI_SCREENSHOTS.md#settings-pad-fx)).
+- Configurable Lock / Fader / Stop / Live track replacement behavior
+  ([General preview](docs/UI_SCREENSHOTS.md#settings-general)).
 - Validated Rekordbox PWV6/PWV7 waveform and PSSI phrase import, with native
   analysis fallback and phrase alignment after beatgrid edits.
 - Persisted phrase visibility, a saved Prepare queue, and optional return to
@@ -19,7 +25,8 @@ Versioning; commit messages follow Conventional Commits.
   compact ON badge tied to playback and main-output routing.
 - A JUMP panel with per-deck beat-jump controls and linked waveform zoom/reset.
 - Independent elapsed/remaining time selection and scrolling long track titles.
-- Settings → INFO with audio load, CPU usage, temperature, clock and output status.
+- Settings → INFO with audio load, CPU usage, temperature, clock and output status
+  ([Info preview](docs/UI_SCREENSHOTS.md#settings-info)).
 - Deck drop-target highlighting with matching drop geometry and Escape cancellation.
 - Sparse minute rulers and an optional blue/amber/cream waveform palette.
 
@@ -30,8 +37,10 @@ Versioning; commit messages follow Conventional Commits.
   the local library visibility and compact-row settings in its reference profile.
 
 - Reduced top-menu height and button size, with wider gaps between buttons.
-- Simplified deck metadata and aligned FX, KEY and JUMP controls.
-- Compacted the Browse table, headers and breadcrumb to leave more room for tracks.
+- Simplified deck metadata and aligned FX, KEY and JUMP controls
+  ([Play preview](docs/UI_SCREENSHOTS.md#play)).
+- Compacted the Browse table, headers and breadcrumb to leave more room for tracks
+  ([Browse preview](docs/UI_SCREENSHOTS.md#browse-preview)).
 - Keep overview waveforms at 38px, with 9px rulers and discreet 10px phrase strips.
 - Place PAD FX third in Settings and group General options for the 1024×600 screen.
 - Use compact colored hot-cue letters and memory-cue numbers in previews;
@@ -57,10 +66,21 @@ Versioning; commit messages follow Conventional Commits.
 
 ### Documentation and validation
 
+- Organize helper scripts under `scripts/build/`, `scripts/deploy/`, `scripts/test/`
+  and `scripts/legacy/`, and Docker recipes under `docker/`. Update callers and
+  documentation; scripts keep outputs anchored to their worktree from any cwd.
+  See the [repository layout and agent placement rules](docs/REPOSITORY_LAYOUT.md).
+
+- Publish a [1024×600 UI gallery](docs/UI_SCREENSHOTS.md) with Play, Browse
+  waveform previews and all seven Settings tabs, plus README previews.
+- Require agents to refresh affected publication images and link their gallery
+  sections from UI changelog entries in the same commit; preserve released galleries.
+
 - Keep UI control/position maps and agent guides synchronized. Feature branches
   have independent worktrees, builds, settings and ARM64 VNC instances.
 - Retain synthetic Rekordbox and MIDI/audio fixture generators and reproduction
-  procedures; exclude generated media, screenshots, logs and test reports.
+  procedures; exclude generated media, raw test screenshots, logs and test reports.
+  Curated documentation images are tracked under `docs/images/ui/`.
 - Native checks cover import, alignment, cue marks, loading and queue persistence;
   visual procedures cover two decks, overlapping cues, phrases and Day/Night.
 - Sustained audio validation remains open because the virtual test device logged
