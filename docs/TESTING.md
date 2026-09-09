@@ -1,6 +1,5 @@
 # Test strategy and suite
 
-Worktree: `codex/test-suite`. Intended merge target: `codex/v0.0.7`.
 Start future tasks from the latest agreed semver integration branch, not an older
 checkout. Keep build outputs and GUI instances local to that task's worktree.
 

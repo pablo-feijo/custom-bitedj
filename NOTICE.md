@@ -21,7 +21,7 @@ library text-size persistence (`0144fc92b5`), header-order approach, and
 Rekordbox page-chain/analysis error handling from the pinned revision above.
 Our implementation retains the existing Wayland dragging and compact layout,
 stores managed header state in settings, and uses external model row identities
-for sorting. See [the batch record](docs/XSPLOIT_FIRST_BATCH.md) for scope and checks.
+for sorting. See [the change ledger](docs/DIFFS_FROM_BASE.md) for scope and checks.
 Original Mixxx and BiteDJ notices remain in the affected source. That first
 batch did not import the PiFlex skin, Pad FX architecture, companion service
 or OS image; later Pad FX adaptations are credited below.
@@ -58,7 +58,7 @@ layout, compact annotations, optional phrase visibility, and native fallback.
 
 Deck indicators, browsing, waveform controls and system readouts were informed
 by [Pioneered by ntamas](https://github.com/ntamas94/pioneered-by-ntamas) and the
-Pioneered contributors. See the [recorded adaptation scope](docs/DECK_STATUS_STEMS_SYSTEM_INFO_PLAN.md).
+Pioneered contributors. See the [implemented changes](docs/DIFFS_FROM_BASE.md).
 This design credit is distinct from the inherited BiteDJ skin's Pioneered
 lineage and does not relicense any copied material.
 

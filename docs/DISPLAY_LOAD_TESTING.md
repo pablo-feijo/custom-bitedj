@@ -4,8 +4,7 @@
 
 Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
 
-Branch `codex/rekordbox-padfx-display`; eventual merge `codex/v0.0.7`.
-Only the owned ARM64 container `bitedj-next-gui` is used.
+Use the owned worktree instance and discover its actual ports.
 
 ## Behavior
 
@@ -40,11 +39,5 @@ review a deliberately long title across multiple frames. Track Load controls
 reserve 44px after the General row's padding and margin. This is a software
 contrast/layout review, not a physical direct-sunlight measurement.
 
-Evidence is stored under ignored `test-results/bitedj-next-gui/`. The existing
-PAD FX validation remains documented in [PAD_FX_TESTING.md](PAD_FX_TESTING.md).
-
-Verified on the owned ARM64 instance: 54 native regression tests passed, followed
-by 20 focused tests after adding the rendered Day-color regression (55 distinct
-tests). Day and Night screenshots show moving long titles, intact padding and
-the four load-policy controls. PAD FX still fills its page without bottom
-waveforms. Fader selection was checked and Lock restored for review.
+Record evidence in the owned instance’s ignored `test-results/` directory.
+See [Pad FX checks](PAD_FX_TESTING.md) for related regression coverage.

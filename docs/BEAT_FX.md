@@ -103,8 +103,8 @@ under `tests/effects/`; generated logs/audio/raw captures stay in `test-results/
 - [Rekordbox plans](https://rekordbox.com/pt/plan/) identifies the nine optional
   RMX effects, excluded here: BPF ECHO, NOISE, SPIRAL UP, REVERB UP, HPF ECHO,
   LPF ECHO, CRUSH ECHO, SPIRAL DOWN and REVERB DOWN.
-- [Prior repository audit](EFFECT_CATALOG_REVIEW.md#references-from-earlier-tasks)
-  pins the Deckshark, xsploit/PiFlex and Pioneered references previously used.
+- [Attribution and pinned adaptation sources](../NOTICE.md) identify the
+  Deckshark, xsploit/PiFlex and Pioneered material used.
 
 The standard list is pinned to the Rekordbox 7 single-mode catalogue, rather
 than inferred from a particular hardware mixer's shorter FX list. Native audio

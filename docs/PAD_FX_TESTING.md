@@ -4,9 +4,6 @@
 
 Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
 
-Branch `codex/rekordbox-padfx-display`; eventual integration `codex/v0.0.7`.
-The feature inherits the completed first batch, not another task's checkout.
-
 ## Behavior
 
 System settings own defaults, saved assignments and reset commands. The skin
@@ -48,8 +45,6 @@ Build and launch from this worktree, using a free instance/ports:
 
 ```bash
 ./scripts/build/docker-build.sh --platform linux/arm64
-BITEDJ_TEST_INSTANCE=bitedj-next-gui \
-BITEDJ_TEST_WEB_PORT=6082 BITEDJ_TEST_AUDIO_PORT=8002 BITEDJ_TEST_VNC_PORT=5902 \
 ./scripts/test/run-gui-test.sh
 ./tests/padfx/test-live-midi-audio.sh
 node tests/padfx/test_padfx.cjs
@@ -71,17 +66,8 @@ QT_QPA_PLATFORM=offscreen ./build-linux/mixxx-test \
 ```
 
 Run that ARM64 command inside the builder container, with this worktree mounted
-at `/src`, as documented in the first-batch guide. Do not invoke the ARM64 binary
+at `/src`, as documented in [the build guide](BUILD_AND_DEPLOY.md). Do not invoke the ARM64 binary
 as a native macOS executable.
-
-## Recorded ARM64 result
-
-40 native tests pass, plus the JavaScript controller suite and two live MIDI
-capture runs. In the repeatable-script run, Sweep reduced the 8 kHz component
-by 10.79 dB; release RMS returned within 2.7% of the baseline (the capture check
-allows 10%). Echo's tail dropped 49.5 dB and Reverb's 33.5 dB between the first
-and second seconds. These are container captures, not hardware latency claims.
-The initial manual run also passed; its release level matched within 0.001%.
 
 ### Controller mode legend
 

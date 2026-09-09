@@ -26,7 +26,7 @@ agreed with the user. When a newer release becomes active, update this table,
 3. Create a separate `codex/<topic>` feature branch and worktree from the freshly
    fetched remote tip. Preserve other tasks and their uncommitted changes.
 4. Record the active release, remote base, full resolved commit, feature branch,
-   worktree, binary version and intended merge target in the task checklist.
+   worktree, binary version and intended merge target in the ignored `tasks/<topic>.md` checklist.
 5. Reuse that worktree for follow-ups. Do not restart a task because the release
    branch advanced. Integrate later changes deliberately and record the new base.
 

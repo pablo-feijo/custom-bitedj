@@ -17,7 +17,7 @@ Custom Bite DJ is an independent fork of [Team Deckshark’s BiteDJ](https://git
   Never perform feature work directly on the semver branch or switch a checkout
   that contains another task's work. Reuse the feature worktree for follow-ups
   to the same task; do not create another branch for every message.
-- Record the intended merge target in the task checklist. The user-designated
+- Record the intended merge target in the ignored `tasks/<topic>.md` checklist. The user-designated
   target for the PiFlex first batch is `codex/v0.0.7`. Do not substitute `main`
   or an older release branch. If the target does not yet exist, preserve the
   agreed base and document the future target; do not invent its starting state.
@@ -189,7 +189,7 @@ stale duplicate coordinates.
 
 - Follow [the canonical repository layout](REPOSITORY_LAYOUT.md) for every new file.
   Put BiteDJ helpers in `scripts/build/`, `scripts/deploy/`, `scripts/test/` or
-  `scripts/legacy/`; Docker recipes in `docker/`; guides and plans in `docs/`;
+  `scripts/legacy/`; Docker recipes in `docker/`; reusable guides in `docs/` and local plans in ignored `tasks/`;
   integration fixtures in `tests/`. Keep existing upstream utilities in `tools/`.
 - Do not accumulate scripts or scratch files at the root. Root additions require
   a tool-discovery need or deliberate project entry point, explained in the change.
@@ -305,3 +305,16 @@ For authorized cleanup of older branch containers, follow [the audited preview
 cleanup procedure](DOCKER_MAINTENANCE.md#older-branch-previews-and-running-containers).
 Check host and Docker disk usage, retire obsolete previews by exact ID, and keep
 current review instances, active builds, bind-mounted data and named caches.
+
+## Git storage and retention
+
+Follow [GIT_STORAGE.md](GIT_STORAGE.md): check staged blobs against the 1 MiB
+limit, keep new large assets outside Git, verify commit identity and reclaim
+superseded build outputs at build start and completion. Generated artifacts
+never belong in Git. Do not configure Git LFS in these forks. Keep current previews and unique user data.
+
+Keep reusable guidance in `docs/` and all execution plans/checklists in ignored
+`tasks/`. Keep gallery captions brief; link canonical mappings and provenance.
+
+Cleanup also retires completed `tasks/` plans after durable findings reach the
+guides; preserve active work and consolidate unresolved backlog items.

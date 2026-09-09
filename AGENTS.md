@@ -5,7 +5,7 @@
 ## Active Unreleased Branch and Binary Versions
 - Current active unreleased base: `origin/codex/v0.0.7`, target SemVer `0.0.7`.
 - Follow [the branch and version guide](docs/BRANCH_VERSIONING.md). Fetch the active remote tip before each new task; create an isolated `codex/<topic>` worktree from that tip. Reuse the task worktree for follow-ups.
-- Track the base branch, resolved commit, feature branch, worktree, binary version and merge target in the task checklist. When the user advances the active release, update this record, `docs/AGENTS.md` and the guide's active-release table/history together.
+- Track the base branch, resolved commit, feature branch, worktree, binary version and merge target in the ignored `tasks/<topic>.md` checklist. When the user advances the active release, update this record, `docs/AGENTS.md` and the guide's active-release table/history together.
 - Every work-branch binary must embed `MAJOR.MINOR.PATCH-<full-branch-slug>.<build-number>` using `BITEDJ_VERSION` and `BITEDJ_VERSION_PRERELEASE`; for example `0.0.7-codex-controller-pad-drawer.1`. Increment the build number for new deliverable builds. Keep the upstream Mixxx version independent.
 - Synchronize full binary/package/archive/image versions, record the original branch and source commit as provenance, and verify the rebuilt binary's reported version before delivery. Never relabel an old binary. Unsuffixed versions are reserved for final releases.
 
@@ -25,7 +25,7 @@ architecture, versioning, branch isolation, testing and Conventional Commits rul
   worktree, based on the latest agreed semver integration branch (currently
   `codex/v0.0.7`). Fetch the matching remote ref and inspect the local integration
   tip before branching; preserve local integration commits. Reuse that worktree
-  for follow-ups and record the intended merge target in the task checklist.
+  for follow-ups and record the intended merge target in the ignored `tasks/<topic>.md` checklist.
 - Keep build outputs, installed binaries, settings and test containers independent
   per worktree. Never switch or overwrite another task's checkout or VNC instance.
 - Use `scripts/test/run-gui-test.sh`; select free ports automatically or set
@@ -112,7 +112,7 @@ replace technical identifiers and historical credits as a branding cleanup.
 
 - Follow [the canonical repository layout](docs/REPOSITORY_LAYOUT.md) for every new file.
   Put BiteDJ helpers in `scripts/build/`, `scripts/deploy/`, `scripts/test/` or
-  `scripts/legacy/`; Docker recipes in `docker/`; guides and plans in `docs/`;
+  `scripts/legacy/`; Docker recipes in `docker/`; reusable guides in `docs/` and local plans in ignored `tasks/`;
   integration fixtures in `tests/`. Keep existing upstream utilities in `tools/`.
 - Do not accumulate scripts or scratch files at the root. Root additions require
   a tool-discovery need or deliberate project entry point, explained in the change.
@@ -531,3 +531,25 @@ For authorized cleanup of older branch containers, follow [the audited preview
 cleanup procedure](docs/DOCKER_MAINTENANCE.md#older-branch-previews-and-running-containers).
 Check host and Docker disk usage, retire obsolete previews by exact ID, and keep
 current review instances, active builds, bind-mounted data and named caches.
+
+## Git storage, identity and build retention
+
+Follow [Git storage and build retention](docs/GIT_STORAGE.md). Run the staged
+1 MiB size guard before each commit; reduce new large assets or keep them
+outside Git. Do not configure Git LFS in these forks. Audit and reclaim superseded build outputs before
+and after build tasks, preserving current previews and unique data. Verify
+canonical author/committer identity; do not generate machine-local email addresses.
+
+## Documentation versus execution records
+
+Keep `/docs/` for concise, reusable human and agent guides. Store roadmaps,
+ignored `tasks/<topic>.md` checklists, progress logs and one-off activity reviews under ignored
+`/tasks/`; create it locally, never force-add it or link published docs to
+local task files. Put durable behavior, testing and attribution facts into
+the relevant guide. Keep screenshot captions to one short sentence; link
+control mappings and capture provenance rather than repeating them.
+
+During cleanup, remove completed execution plans and activity logs from `tasks/`
+after moving durable facts into the relevant guide. Keep active plans and
+unresolved backlog items; consolidate outstanding work instead of archiving
+finished task folders indefinitely. Never commit `tasks/` or its backups.

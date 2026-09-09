@@ -1,0 +1,11 @@
+name: Git storage policy
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  git-storage:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 scripts/test/check-git-storage.py
+      - run: python3 tests/repository/test_git_storage.py

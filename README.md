@@ -37,7 +37,7 @@ in the [0.0.7 UI gallery](docs/UI_SCREENSHOTS.md) and the
 - Appliance settings for audio, display rotation, devices, and system information.
 
 See the [DDJ-400 guide](docs/DDJ400_MAPPING.md) for controls and the
-[integration checklist](docs/XSPLOIT_NEXT_BATCH.md) for completed and planned work.
+[change ledger](docs/DIFFS_FROM_BASE.md) for implemented behavior.
 
 ## Build and test
 
@@ -83,3 +83,5 @@ removable-drive fixtures and isolated desktop E2E. Start with
 The [Beat FX picker](docs/UI_SCREENSHOTS.md#beat-fx-picker) offers a two-column
 standard list and a separate Saved section. See [Beat FX](docs/BEAT_FX.md) for
 the 25 native approximations, differences from Rekordbox and upgrade behavior.
+
+Repository contributors: follow [Git storage and build retention](docs/GIT_STORAGE.md).

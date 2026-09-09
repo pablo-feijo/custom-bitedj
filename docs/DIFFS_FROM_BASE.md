@@ -6,10 +6,11 @@ This document tracks all divergences from upstream Mixxx, specifically formatted
 1. **Base BiteDJ (v1.0-1)**: [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), the foundational fork that optimized Mixxx for standalone hardware, focusing on audio path resilience, USB stability, and SQLite threading.
 2. **Custom BiteDJ (v0.0.6)**: Our tailored branch built on top of Base BiteDJ, specifically engineered for native Wayland integration, screen rotation persistence, DRM hardware cursor workarounds, touchscreen drag-and-drop, and club-ready DDJ-400 mappings.
 
-## Pending integration: selected PiFlex fixes
+## Selected PiFlex adaptations
 
 Working branch `codex/xsploit-readme-feature-map`, intended target `codex/v0.0.7`.
-See [first-batch implementation and validation](XSPLOIT_FIRST_BATCH.md).
+Source: xsploit/bitedj `4c1dfec590f98851159fe7a64e3348e8aad306a5`.
+See [test coverage](TESTING.md) and [licensing](LICENSING.md).
 
 - Explicit engine publication for programmatic effect enable/disable.
 - Persisted browser column ordering and text size, with model/proxy identity
@@ -131,8 +132,7 @@ When evaluating new Mixxx releases (e.g., 2.5, 2.6), prioritize reviewing the fo
 `codex/rekordbox-padfx-display` adds system-owned assignments/reset commands,
 private native effect lanes and a compact full-height Settings editor. DDJ-400
 normal/Shift pads use the new mapping instead of swapping the main Beat FX slot.
-See [Pad FX validation](PAD_FX_TESTING.md). Other selected fork features remain
-on the [next-batch checklist](XSPLOIT_NEXT_BATCH.md).
+See [Pad FX validation](PAD_FX_TESTING.md). Implementation plans are local execution records under ignored `tasks/`.
 
 
 ### 2026-09-09 — Preview loading and rendering

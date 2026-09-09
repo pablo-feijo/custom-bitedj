@@ -21,7 +21,8 @@ BiteDJ helper scripts and Docker recipes live in the directories below.
 | `tests/` | Fast contracts, desktop E2E, integration fixtures and feature-specific test procedures; see [test strategy](TESTING.md) |
 | `tools/` | Existing upstream development, packaging and CI utilities |
 | `packaging/`, `.github/` | Distribution packaging and CI workflows |
-| `docs/` | Guides, plans, checklists and curated documentation assets |
+| `docs/` | Reusable human/agent guides and curated documentation assets |
+| `tasks/` | Ignored local roadmaps, execution checklists and activity logs |
 | `mixxx-pi-gen/` | Pinned image-generator submodule; follow its own agent guide |
 | `build-linux/`, `dist-linux/` | Ignored, worktree-local build and installed output |
 | `test-config/`, `test-music/`, `test-results/` | Ignored, worktree-local runtime settings, generated music and test artifacts |
@@ -81,3 +82,7 @@ helpers extract Ubuntu ARM64 runtime libraries into ignored
   instead of maintaining competing directory maps.
 
 Use [Docker maintenance](DOCKER_MAINTENANCE.md) to keep build and container disk usage bounded.
+
+Storage policy and the `scripts/test/check-git-storage.py` index guard are
+documented in [GIT_STORAGE.md](GIT_STORAGE.md). Its exact-blob exception list
+is for inherited upstream fixtures only.

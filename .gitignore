@@ -77,3 +77,9 @@ test-results/
 # Verified build staging and same-worktree build lock.
 /dist-linux-staging.*/
 /.bitedj-build-lock/
+
+# Optional downloaded manual is not source; fetch it when needed.
+/res/Mixxx-Manual.pdf
+
+# Local agent roadmaps, execution checklists and activity records.
+/tasks/

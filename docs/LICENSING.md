@@ -12,7 +12,7 @@ separately; project names and compatibility references do not claim endorsement.
 | --- | --- | --- |
 | Main application | [LICENSE](../LICENSE), [COPYING](../COPYING), source copyright headers | The upstream grant permits GPL version 2 or any later version. The GPL text and upstream authorship are preserved. |
 | BiteDJ skin | [Skin LICENSE](../res/skins/BiteDJ/LICENSE) and [manifest](../res/skins/BiteDJ/skin.xml) | The dedicated license supplies GPLv3 and credits Deckshark and the Pioneered lineage. The generic `GPL` manifest label does not override it. |
-| Selected PiFlex adaptations | [NOTICE](../NOTICE.md) and pinned source records in [the fork review](XSPLOIT_FORK_REVIEW.md) | Preserve original notices alongside the adaptation credits. |
+| Selected PiFlex adaptations | [NOTICE](../NOTICE.md) and pinned source records in [the change ledger](DIFFS_FROM_BASE.md) | Preserve original notices alongside the adaptation credits. |
 | Controller mappings | Individual source headers, including [DDJ-400](../res/controllers/Pioneer-DDJ-400-script.js) | Retain original mapping authors and reviewers as well as subsequent adaptation credits. |
 | Bundled dependencies and fonts | Their local notices, including [PortAudio](../lib/portaudio/LICENSE.txt), [Kaitai](../lib/kaitai/LICENSE), [hidapi](../lib/hidapi/LICENSE.txt) and [OpenSans](../res/fonts/OpenSans.LICENSE.txt) | These examples are not a complete dependency license inventory. Do not replace their licenses with the application's label. |
 | Image generator | [Pinned pi-gen LICENSE](https://github.com/pablo-feijo/bitedj-mixxx-pi-gen/blob/de8656e297f22d35428d6f06b987adf4ddb886bd/LICENSE) | BSD-3-Clause notice for the generator, including Raspberry Pi (Trading) Ltd.; application and OS packages keep their own terms. |
@@ -72,16 +72,3 @@ for the conditions and exceptions rather than treating this summary as a grant.
 This documentation review establishes clearer attribution and records the
 license notices found. It is not a complete source-header, dependency, artwork,
 trademark or release-artifact compliance audit and does not certify legal compliance.
-
-## Review coverage and task record
-
-- Work branch: `codex/docs-licensing-and-hygiene`; intended merge target: `codex/v0.0.7`.
-- [x] Review all 35 pre-existing tracked Markdown files in the parent repository,
-  including hidden issue templates, packaging notes and five bundled-library docs.
-- [x] Review root LICENSE/COPYING, the skin license/manifest, mapping author
-  headers and the four Markdown files plus LICENSE at pinned pi-gen `de8656e`.
-- [x] Clarify fork identity in maintained guides, complete attribution, remove
-  upstream auto-assignment and replace official-effect wording.
-- [x] Preserve main/skin/dependency license texts and the inherited README body.
-- [ ] Complete artifact-specific license/source/branding checks before a public
-  binary, OS-image or hardware release; no such release is part of this review.

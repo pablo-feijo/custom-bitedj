@@ -4,10 +4,10 @@
 
 Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
 
-Target: two-deck BiteDJ, eventual merge into `codex/v0.0.7`.
+Target: two-deck Custom Bite DJ.
 Source: xsploit/bitedj `4c1dfec590f98851159fe7a64e3348e8aad306a5`.
 
-## Stage 1: decoder contract (verified)
+## Decoder contract
 
 PWV6/PWV7 are mono display envelopes in mid/high/low byte order. Mirror
 them into the two renderer channels; use a shared peak multiplier per
@@ -27,26 +27,26 @@ variable tempo and final boundaries. It records decode time for a ten-minute
 150 Hz envelope; a generous five-second timeout catches gross regressions,
 not a claim about physical Pi performance.
 
-## Stage 2: transactional import and alignment
+## Transactional import and alignment
 
-- [x] Publish only a complete validated detail/overview pair; preserve native
+- Publish only a complete validated detail/overview pair; preserve native
   analysis when 2EX is missing, corrupt, duplicated or incomplete.
-- [x] Reuse validated data by file identity, sample rate, duration and offset.
-- [x] Avoid writing exported display envelopes into the native waveform cache.
-- [x] Keep phrases separate from cues and retain an immutable exported grid
+- Reuse validated data by file identity, sample rate, duration and offset.
+- Avoid writing exported display envelopes into the native waveform cache.
+- Keep phrases separate from cues and retain an immutable exported grid
   for exact projection when the local beatgrid is edited or undone.
-- [x] Protect already loaded tracks from import side effects.
-- [x] Verify real DAT/EXT/2EX fixtures at the import boundary.
+- Protect already loaded tracks from import side effects.
+- Verify real DAT/EXT/2EX fixtures at the import boundary.
 
-## Stage 3: render and benchmark
+## Rendering and qualification
 
-- [x] Preserve seconds per pixel at native 441 Hz and imported 150 Hz at every
+- Preserve seconds per pixel at native 441 Hz and imported 150 Hz at every
   zoom level; retain existing stacked-band mode.
-- [x] Render phrases beneath cue labels without altering cue hit targets.
-- [x] Check two-deck Play and summary geometry at 1024×600 in Day/Night.
-- [x] Measure frame time and import latency with two decks playing on ARM64.
-- [x] Verify missing-analysis fallback and repeat native regressions.
-- [ ] Complete a clean sustained audio run and investigate virtual-device underruns before closing the performance gate.
+- Render phrases beneath cue labels without altering cue hit targets.
+- Check two-deck Play and summary geometry at 1024×600 in Day/Night.
+- Measure frame time and import latency with two decks playing on ARM64.
+- Verify missing-analysis fallback and repeat native regressions.
+- Qualify sustained audio on target hardware; container checks do not establish zero-underrun Pi performance.
 
 Do not import four-deck layouts, analysis-policy settings, streaming services
 or appliance changes as part of this display integration.

@@ -117,3 +117,8 @@ For focused native tests, the build helper accepts a quoted CTest regex:
 ```
 
 Logs and cleanup reports belong under ignored `test-results/`, never the root.
+
+## Required build-output retention audit
+
+At build start and after validation, apply [the retention policy](GIT_STORAGE.md#reclaim-past-build-space-on-every-build-task). Reclaim superseded reproducible
+outputs as part of the task; report retained large directories and reasons.

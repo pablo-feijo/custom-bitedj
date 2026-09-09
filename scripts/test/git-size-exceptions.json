@@ -1,0 +1,6 @@
+{
+  "src/test/id3-test-data/cover-test-alac.caf": "9e2f9b117c7e5c4ad3d59af0a9b602672bfdff01",
+  "src/test/id3-test-data/cover-test.aiff": "5f09af9fdf34eef07c449f8be838c5bd75e7769a",
+  "src/test/id3-test-data/cover-test.wav": "771a60aa64e3bef730047d6ad53301bf6e6bd68d",
+  "src/test/sine-30.wav": "2f1b6bbb888a2d8e029d894d54817d3cb2d7cc95"
+}
