@@ -4,7 +4,7 @@ Reviewed 2026-09-09. The initial assessment below is followed by the implementat
 build scripts have now been updated; CI configuration remains unchanged. Commit metadata does not identify
 which assistant authored the changes, so attribution to Gemini is unverified.
 
-## Task checklist
+## Initial review checklist
 
 - [x] Fetch base `origin/codex/v0.0.7`, resolved to
   `51da207bdd` (the freshly fetched integration tip).
@@ -127,13 +127,13 @@ compatible binaries. No new speedup estimate is justified until measured.
 - [x] Verify real Docker worktree Git resolution and worker calculation (2 workers
   on the available ARM64 builder).
 - [x] Run full fast suite using bundled Node; the earlier PATH limitation is resolved.
-- [x] Update build and layout documentation. No binary/image delivery, native
-  compilation, integration merge or push performed in this script-only task.
+- [x] Update build and layout documentation. At that stage no binary/image
+  delivery, native compilation, integration merge or push had been performed.
 - [ ] Priorities 4–5 remain separate CI experiments: pin the environment and
   measure runtime image alternatives before changing the proven CI cache path.
 
-Validation uses synthetic ELF fixtures and a mocked Docker build for orchestration;
-these are not claimed as a real application build. No new speedup is claimed.
+Initial validation used synthetic ELF fixtures and mocked Docker orchestration.
+The real build and repeat-run results are recorded in the closeout below.
 
 ## Authorized validation and integration
 
@@ -168,4 +168,36 @@ these are not claimed as a real application build. No new speedup is claimed.
 - Repair validation: 19 Python fast tests and the controller/effect/noVNC checks
   pass. A real Docker retry migrated the old marker and resumed compatible
   objects successfully with four workers. Integration repair version is
-  `0.0.7-codex-v0-0-7.8`; final ARM64 install and post-repair CI remain pending.
+  `0.0.7-codex-v0-0-7.8`; final ARM64 install and post-repair CI results are recorded below.
+
+## Completed validation and cleanup
+
+- [x] Repair squash `7b88562d3c7bcf038f4b2f870ee9b9c6aaa53cdc` passed
+  [CI run 34358751517](https://github.com/pablo-feijo/custom-bitedj/actions/runs/34358751517):
+  fast checks (19 Python tests plus controller/effect/noVNC checks), 1,043 native
+  tests, 42 removable-store tests, 12 removable-sampler tests and five desktop
+  E2E tests. All expected steps executed successfully.
+- [x] Built and installed a real ARM64 binary from
+  `ea08f904efc10443822b815e7ca43aa7a28464f9`; verified its reported version
+  `0.0.7-codex-build-workflow-review.2`, ELF architecture and source/install hashes.
+  All nine focused EffectSlot native tests passed.
+- [x] An unchanged Docker rebuild completed in **14.06 seconds**, ran all nine
+  tests again, performed **zero C/C++ compilation steps**, and produced identical
+  artifact contents. This includes configure/install/provenance verification;
+  it is one measured repeat run, not a general performance guarantee.
+- [x] Retired six audited obsolete branch previews, removing 377,073,664 bytes
+  of writable layers. Kept current SemVer/pad-touch previews and active builds;
+  retained bind-mounted settings/source/media and the named compiler cache.
+- [x] Updated the cleanup guide and both agent guides with the authorized
+  cross-branch container audit, exact-ID removal and disk monitoring procedure.
+- [x] Removed this task's approximately 5.1 GiB of build objects. Preserved the
+  verified 586 MiB ARM64 install, logs/provenance and cleanup audit together in
+  the original checkout's ignored
+  `test-results/build-workflow-validation-20260909/`, with `closure.json`.
+- [x] Code and guide changes are published as squash commits; published SemVer
+  history is preserved. Closeout documentation follows as a separate squash.
+
+Task-owned checkout retirement is recorded in the local closure manifest after
+verifying the final squash and preserving a Git recovery ref. No OS image was
+created and no hardware was flashed or deployed. Optional CI environment/runtime
+image experiments from priorities 4–5 are outside this completed task.
