@@ -95,10 +95,10 @@ the new ports. Do not prune globally on every build or restart a healthy engine.
 ## Versioned images and reproducible hardware fixes
 
 Follow [branch versions](../../../../docs/BRANCH_VERSIONING.md) before any deliverable build.
-For the 0.0.7 working release, pi-gen uses `codex/v007-custom-defaults`;
-`codex/v0.0.7` is only the later merge target in both repositories. Commit on
-the feature branch, publish it, then commit the parent `mixxx-pi-gen` gitlink.
-Do not advance either semver branch without an explicit merge request.
+The 0.0.7 release uses `codex/v0.0.7` in both repositories; the parent
+`mixxx-pi-gen` gitlink selects the exact image source. Start new changes on an
+isolated feature branch, publish the image commit, then update the parent
+gitlink. Advance semver only within the user's integration authorization.
 Keep `.gitmodules` URL/branch valid so a recursive clone resolves the pinned
 commit. The flasher derives IMG_NAME from the pinned config; use
 `BITEDJ_IMAGE_DATE=YYYY-MM-DD` to select a build from a different day.
