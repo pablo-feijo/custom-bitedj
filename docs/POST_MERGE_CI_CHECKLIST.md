@@ -17,7 +17,13 @@
   agent guides and [the testing procedure](TESTING.md#post-merge-ci-check-and-repair).
 - [x] Fast controller/resource suite passes; workflow YAML parses;
   `git diff --check` passes.
-- [ ] Integration/publication and remote validation of this repair remain pending.
-- [ ] [Run 34340773525](https://github.com/pablo-feijo/custom-bitedj/actions/runs/34340773525)
-  for the base SHA was still in progress when checked on 2026-09-09, with fast
-  tests successful and native compilation running. It does not contain this repair.
+- [x] Initial repair squash-published as `c0eb61e5116db0ec333edede9166156345b96ac7`.
+  [Run 34342649328](https://github.com/pablo-feijo/custom-bitedj/actions/runs/34342649328)
+  passed fast checks but was cancelled by the next integration push while compiling.
+- [x] Incorporated `41c41ca62815331e78a1e4b7994f6e479ac3b9f6` for the cache follow-up.
+- [x] Implement exact binary reuse, fresh asset replacement, original provenance,
+  early compiler-cache saving, two build workers and an E2E runtime cache.
+- [x] Fast cache regressions cover asset/docs hits, source/config/toolchain and
+  embedded-resource invalidation, shared-library links and stale-asset removal.
+- [ ] Validate the cache strategy remotely, including a second compatible run
+  that skips compilation and still passes all native/removable/E2E checks.

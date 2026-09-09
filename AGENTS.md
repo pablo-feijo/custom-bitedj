@@ -39,6 +39,11 @@ architecture, versioning, branch isolation, testing and Conventional Commits rul
 
 ## Post-Merge CI
 
+- Follow the compiled-output cache strategy in [TESTING.md](docs/TESTING.md#reuse-compiled-outputs-for-asset-changes).
+  Asset-only changes should reuse exact compatible CI binaries and refresh assets;
+  always rerun tests. Invalidate on compiled input/toolchain changes, preserve
+  original binary provenance, and retain full versioned rebuilds for deliverables.
+
 - After every merge and push to the active SemVer branch, check CI for the exact
   published commit and follow all expected jobs through completion, including
   desktop E2E. Follow [the post-merge procedure](docs/TESTING.md#post-merge-ci-check-and-repair).

@@ -93,6 +93,43 @@ application twice and avoids putting Docker startup on the fast feedback path.
 Once compilation succeeds, E2E still runs if a native assertion fails, while
 the job retains that native failure.
 
+## Reuse compiled outputs for asset changes
+
+CI fingerprints tracked compiled inputs, build/workflow configuration, installed
+package versions, runner architecture and workspace path. An exact binary-cache
+hit skips both C++ build commands. Configure still regenerates CTest registrations;
+fast, native, removable and the requested desktop tests all run again.
+
+| Change | Compilation strategy |
+| --- | --- |
+| Skins, controller mappings, effect presets, keyboard mappings | Reuse exact compatible binaries; replace installed asset directories from this checkout |
+| Root README/changelog/agent guide or `docs/` | Reuse exact compatible binaries; tests still run |
+| C++, native tests, CMake/product version, workflow, dependencies, unknown inputs | New binary fingerprint; compile with ccache and two workers |
+| Any file embedded through a Qt `.qrc` | Invalidate binaries even if located in an otherwise reusable asset directory |
+| Cache absent, expired or evicted | Build normally and populate the cache; never restore an approximate binary match |
+
+`ci-build-cache.py` preserves the original binary version, branch and commit in
+`provenance.json`. These are reusable CI test binaries, not newly versioned release
+artifacts. Do not relabel them or use this shortcut for a deliverable build.
+Replacing whole asset directories removes deleted files as well as copying changes.
+Tests exercise the current source assets; a cache hit never counts as a test pass.
+
+The compiler cache is bounded to 4 GiB, uses compiler-content checks and is saved
+immediately after compilation, including partial work after a build failure when
+possible. Separate restore/save steps preserve it before later test/E2E failures.
+The E2E Docker image also has an exact cache, keyed by its Dockerfiles, copied
+helpers, installed host dependencies, architecture and a weekly refresh generation.
+Cache storage/visibility follows [GitHub's branch-scoped cache rules](https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching);
+misses and eviction are expected. The first run must populate these new caches.
+
+Validate changes to this strategy with the fast regression suite, workflow lint,
+and two remote runs: a cold build followed by a compatible docs/asset-only run.
+Confirm the second run reports an exact hit, skips compilation, restores original
+provenance, refreshes assets and passes every test layer. A changed C++/CMake or
+embedded-resource fingerprint must rebuild; the fast suite tests invalidation and
+stale-asset removal. See [actions/cache](https://github.com/actions/cache) for the
+exact-hit output and explicit restore/save actions used here.
+
 ## Post-merge CI check and repair
 
 Every merge and push to the active SemVer branch includes a CI follow-through.
@@ -113,8 +150,9 @@ gh run view RUN_ID --repo pablo-feijo/custom-bitedj --log-failed
    not validate the merged result. If no run appears, inspect workflow triggers
    and dispatch the Tests workflow with `e2e=true` if necessary; verify its SHA.
 2. Follow all expected workflows to completion with bounded status checks. For
-   Tests, verify fast tests, native build/tests, removable integration, desktop
-   build, matching runtime build and desktop E2E all succeeded. Missing, pending,
+   Tests, verify fast tests, native tests, removable integration and desktop E2E all succeeded.
+   Compilation and runtime construction may be skipped only when their exact
+   caches are successfully restored and verified; record that reuse explicitly. Missing, pending,
    cancelled or unexpectedly skipped checks are unresolved, not passes.
 3. Read failed step logs and uploaded test reports, find the cause and fix it in
    the task's isolated feature worktree. Run the relevant local checks. Do not

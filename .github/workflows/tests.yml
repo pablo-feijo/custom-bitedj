@@ -48,6 +48,8 @@ jobs:
       # Release integration branches always exercise the desktop smoke path.
       RUN_E2E: ${{ inputs.e2e == true || (github.event_name == 'push' && (startsWith(github.ref_name, 'codex/v') || startsWith(github.ref_name, 'codex-v') || startsWith(github.ref_name, 'v'))) }}
       CCACHE_DIR: /home/runner/.cache/ccache
+      CCACHE_COMPILERCHECK: content
+      CCACHE_BASEDIR: ${{ github.workspace }}
       # Render analyzer/waveform tests to an offscreen buffer, there is no
       # display server on the runner.
       QT_QPA_PLATFORM: offscreen
@@ -66,23 +68,42 @@ jobs:
         # about the (optional) fonts-ubuntu package.
         run: tools/debian_buildenv.sh setup < /dev/null
 
-      - name: "Set up GitHub cache for ccache"
-        uses: actions/cache@v4
+      - name: Fingerprint compiled inputs and installed toolchain
+        id: fingerprint
+        run: |
+          mkdir -p test-results
+          dpkg-query -W -f='${Package}=${Version}\n' | LC_ALL=C sort > test-results/ci-environment.txt
+          printf '%s\n' "${ImageOS}" "$(uname -m)" >> test-results/ci-environment.txt
+          echo "key=$(python3 scripts/test/ci-build-cache.py key --environment test-results/ci-environment.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore exact compiled binaries
+        id: binaries
+        uses: actions/cache/restore@v4
+        with:
+          path: test-results/ci-native-cache
+          key: native-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.fingerprint.outputs.key }}
+          # No prefix fallback: different compiled inputs must rebuild.
+
+      - name: Restore compiler cache
+        id: ccache
+        if: steps.binaries.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ubuntu-24.04-tests-${{ github.ref }}-${{ github.run_number }}
+          key: ubuntu-24.04-tests-v2-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
+            ubuntu-24.04-tests-v2-${{ runner.arch }}-
             ubuntu-24.04-tests-${{ github.ref }}
-            ubuntu-24.04-tests-refs/heads/main
             ubuntu-24.04-tests
 
-      - name: "Set up ccache"
+      - name: Set up ccache
+        if: steps.binaries.outputs.cache-hit != 'true'
         run: |
           ccache --zero-stats
-          ccache --max-size=2G
+          ccache --max-size=4G
 
-      - name: "Create build directory"
-        run: mkdir build
+      - name: Create build directory
+        run: mkdir -p build
 
       - name: "Configure"
         # Feature flags mirror the upstream Mixxx Linux CI build so that the
@@ -122,16 +143,48 @@ jobs:
 
       - name: "Build test suite"
         id: native_build
-        run: cmake --build . --config RelWithDebInfo --target mixxx-test
+        if: steps.binaries.outputs.cache-hit != 'true'
+        run: cmake --build . --config RelWithDebInfo --target mixxx-test --parallel 2
         working-directory: build
         env:
           # GitHub Actions automatically zstd compresses caches
           CCACHE_NOCOMPRESS: true
 
-      - name: "Print ccache stats"
+      - name: Save compiler cache even if a later stage fails
+        if: ${{ always() && steps.ccache.outcome == 'success' && steps.native_build.outcome != 'skipped' }}
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ steps.ccache.outputs.cache-primary-key }}
+
+      - name: Build desktop and install reusable CI binaries
+        id: desktop_build
+        if: steps.binaries.outputs.cache-hit != 'true'
         run: |
-          ccache --show-stats
-          ccache --cleanup
+          cmake --build build --target mixxx --parallel 2
+          cmake --install build --prefix "$PWD/dist-linux"
+          python3 scripts/test/ci-build-cache.py snapshot --key "${{ steps.fingerprint.outputs.key }}"
+
+      - name: Save compiled binaries before running tests
+        if: steps.desktop_build.outcome == 'success'
+        uses: actions/cache/save@v4
+        with:
+          path: test-results/ci-native-cache
+          key: ${{ steps.binaries.outputs.cache-primary-key }}
+
+      - name: Restore binaries and refresh current runtime assets
+        id: ready
+        run: |
+          if [ "${{ steps.binaries.outputs.cache-hit }}" = true ]; then
+            python3 scripts/test/ci-build-cache.py restore --key "${{ steps.fingerprint.outputs.key }}"
+          else
+            cat test-results/ci-native-cache/provenance.json
+          fi
+
+      - name: Print ccache stats
+        if: ${{ !cancelled() && steps.native_build.outcome == 'success' }}
+        run: ccache --show-stats
 
       - name: "Run native tests"
         # --no-tests=error guards against a configuration that registers no
@@ -142,19 +195,39 @@ jobs:
         # Mount/unmount fixtures only in a private namespace, never the runner's /mnt.
         run: sudo bash scripts/test/run-removable-tests.sh --build-dir build
 
-      - name: "Build desktop for E2E"
-        id: desktop_build
-        if: ${{ !cancelled() && env.RUN_E2E == 'true' && steps.native_build.outcome == 'success' }}
-        run: |
-          cmake --build build --target mixxx --parallel 2
-          cmake --install build --prefix "$PWD/dist-linux"
+      - name: Select E2E runtime cache generation
+        id: runtime_key
+        if: ${{ !cancelled() && env.RUN_E2E == 'true' && steps.ready.outcome == 'success' }}
+        # Refresh OS packages weekly; Docker/helper changes invalidate immediately.
+        run: echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
 
-      - name: "Build matching Ubuntu E2E runtime"
+      - name: Restore E2E runtime image
+        id: runtime_cache
+        if: ${{ !cancelled() && steps.runtime_key.outcome == 'success' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: test-results/ci-runtime/runtime.tar
+          key: runtime-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.runtime_key.outputs.week }}-${{ hashFiles('test-results/ci-environment.txt', 'docker/build.Dockerfile', 'docker/gui-test.Dockerfile', 'tools/debian_buildenv.sh', 'scripts/test/repair-novnc.py', 'scripts/test/novnc_audio_snippet.html') }}
+
+      - name: Build matching Ubuntu E2E runtime
         id: e2e_runtime
-        if: ${{ !cancelled() && env.RUN_E2E == 'true' && steps.desktop_build.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.runtime_cache.outcome == 'success' }}
         run: |
-          docker build --build-arg BASE_IMAGE=ubuntu:24.04 -t bitedj-builder:latest -f docker/build.Dockerfile .
-          docker build --build-arg BITEDJ_BUILDER_IMAGE=bitedj-builder:latest -t bitedj-gui-test:latest -f docker/gui-test.Dockerfile .
+          if [ "${{ steps.runtime_cache.outputs.cache-hit }}" = true ]; then
+            docker load -i test-results/ci-runtime/runtime.tar
+          else
+            docker build --build-arg BASE_IMAGE=ubuntu:24.04 -t bitedj-builder:latest -f docker/build.Dockerfile .
+            docker build --build-arg BITEDJ_BUILDER_IMAGE=bitedj-builder:latest -t bitedj-gui-test:latest -f docker/gui-test.Dockerfile .
+            mkdir -p test-results/ci-runtime
+            docker save bitedj-gui-test:latest -o test-results/ci-runtime/runtime.tar
+          fi
+
+      - name: Save E2E runtime image
+        if: ${{ !cancelled() && steps.e2e_runtime.outcome == 'success' && steps.runtime_cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: test-results/ci-runtime/runtime.tar
+          key: ${{ steps.runtime_cache.outputs.cache-primary-key }}
 
       - name: "Run desktop E2E"
         if: ${{ !cancelled() && env.RUN_E2E == 'true' && steps.e2e_runtime.outcome == 'success' }}
@@ -166,6 +239,7 @@ jobs:
         with:
           name: test-results
           path: |
+            test-results/ci-native-cache/provenance.json
             build/*-results.xml
             test-results/bitedj-e2e-*/
           if-no-files-found: warn

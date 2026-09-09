@@ -54,6 +54,11 @@ setup; replace their target with the verified owned `$CONTAINER_NAME`.
 
 ## Post-Merge CI Check and Repair
 
+- Follow the compiled-output cache strategy in [TESTING.md](TESTING.md#reuse-compiled-outputs-for-asset-changes).
+  Asset-only changes should reuse exact compatible CI binaries and refresh assets;
+  always rerun tests. Invalidate on compiled input/toolchain changes, preserve
+  original binary provenance, and retain full versioned rebuilds for deliverables.
+
 After every merge and push to the active SemVer branch, follow
 [the CI check and repair procedure](TESTING.md#post-merge-ci-check-and-repair).
 Record the published SHA and run links, wait for all expected jobs (including
