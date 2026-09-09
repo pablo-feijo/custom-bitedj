@@ -2,6 +2,13 @@
 
 <!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
 
+## Active Unreleased Branch and Binary Versions
+- Current active unreleased base: `origin/codex/v0.0.7`, target SemVer `0.0.7`.
+- Follow [the branch and version guide](docs/BRANCH_VERSIONING.md). Fetch the active remote tip before each new task; create an isolated `codex/<topic>` worktree from that tip. Reuse the task worktree for follow-ups.
+- Track the base branch, resolved commit, feature branch, worktree, binary version and merge target in the task checklist. When the user advances the active release, update this record, `docs/AGENTS.md` and the guide's active-release table/history together.
+- Every work-branch binary must embed `MAJOR.MINOR.PATCH-<full-branch-slug>.<build-number>` using `BITEDJ_VERSION` and `BITEDJ_VERSION_PRERELEASE`; for example `0.0.7-codex-controller-pad-drawer.1`. Increment the build number for new deliverable builds. Keep the upstream Mixxx version independent.
+- Synchronize full binary/package/archive/image versions, record the original branch and source commit as provenance, and verify the rebuilt binary's reported version before delivery. Never relabel an old binary. Unsuffixed versions are reserved for final releases.
+
 ## Commit Messages
 - Use Conventional Commits for every commit: `type(scope): description` (scope is optional).
 - Use appropriate types such as `feat`, `fix`, `docs`, `refactor`, `test`, `build`, or `chore`.
