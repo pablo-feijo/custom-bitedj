@@ -52,6 +52,17 @@ See [GUI_TESTING.md](GUI_TESTING.md) for reproducible commands. Historical
 fixed-name commands later in this document describe the old single-instance
 setup; replace their target with the verified owned `$CONTAINER_NAME`.
 
+## Post-Merge CI Check and Repair
+
+After every merge and push to the active SemVer branch, follow
+[the CI check and repair procedure](TESTING.md#post-merge-ci-check-and-repair).
+Record the published SHA and run links, wait for all expected jobs (including
+SemVer desktop E2E), investigate failed logs, and fix errors within the task.
+Validate each repair and recheck the resulting published SemVer commit until
+CI passes. Do not treat a merge, successful PR checks, a cancelled run, or a
+partial green job as completion. Preserve branch isolation and existing merge
+authorization; record any external blocker or unpublished repair explicitly.
+
 ## Branch Cleanup After Integration
 
 - Include branch hygiene in task completion. After an authorized merge and push,

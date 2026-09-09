@@ -154,7 +154,7 @@ jobs:
         if: ${{ !cancelled() && env.RUN_E2E == 'true' && steps.desktop_build.outcome == 'success' }}
         run: |
           docker build --build-arg BASE_IMAGE=ubuntu:24.04 -t bitedj-builder:latest -f docker/build.Dockerfile .
-          docker build -t bitedj-gui-test:latest -f docker/gui-test.Dockerfile .
+          docker build --build-arg BITEDJ_BUILDER_IMAGE=bitedj-builder:latest -t bitedj-gui-test:latest -f docker/gui-test.Dockerfile .
 
       - name: "Run desktop E2E"
         if: ${{ !cancelled() && env.RUN_E2E == 'true' && steps.e2e_runtime.outcome == 'success' }}

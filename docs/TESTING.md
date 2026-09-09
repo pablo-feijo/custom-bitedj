@@ -45,13 +45,15 @@ commands without explicit cleanup authorization.
 
 
 ```sh
-docker build -t bitedj-gui-test:latest -f docker/gui-test.Dockerfile .
+docker build --build-arg BITEDJ_BUILDER_IMAGE=bitedj-builder:latest -t bitedj-gui-test:latest -f docker/gui-test.Dockerfile .
 python3 scripts/test/run-tests.py e2e
 ```
 
-The runtime requires the matching `bitedj-builder:latest` base image. The
-existing build script may name a platform-specific builder image; tag that
-matching image as `bitedj-builder:latest` before building the GUI runtime.
+Pass the matching builder tag explicitly as `BITEDJ_BUILDER_IMAGE`. The example
+uses `bitedj-builder:latest`, which CI builds from Ubuntu 24.04; for local builds,
+substitute the platform-specific tag produced by the build script. Omitting the
+argument selects the Dockerfile's ARM64 default, which may be absent or mismatch
+the CI binary. Do not pull a local builder tag from a registry.
 E2E does not build images or application binaries implicitly. Rebuild the
 application after C++ changes; current skin/effect resources are mounted from
 this worktree. Do not use an old release binary to validate new C++ behavior.
@@ -90,6 +92,42 @@ runtime based on Ubuntu 24.04 to match the CI binary. This avoids compiling the
 application twice and avoids putting Docker startup on the fast feedback path.
 Once compilation succeeds, E2E still runs if a native assertion fails, while
 the job retains that native failure.
+
+## Post-merge CI check and repair
+
+Every merge and push to the active SemVer branch includes a CI follow-through.
+Use the active branch in [BRANCH_VERSIONING.md](BRANCH_VERSIONING.md), currently
+`codex/v0.0.7`, and the user's `origin` repository. Record the exact published
+commit, workflow run URLs, outcomes and repairs in the task checklist.
+
+```sh
+git fetch origin codex/v0.0.7
+published_sha=$(git rev-parse origin/codex/v0.0.7)
+gh run list --repo pablo-feijo/custom-bitedj --branch codex/v0.0.7 \
+  --commit "$published_sha" --json databaseId,workflowName,headSha,status,conclusion,url
+gh run view RUN_ID --repo pablo-feijo/custom-bitedj --json headSha,status,conclusion,jobs
+gh run view RUN_ID --repo pablo-feijo/custom-bitedj --log-failed
+```
+
+1. Confirm runs belong to that SHA. PR checks and earlier successful commits do
+   not validate the merged result. If no run appears, inspect workflow triggers
+   and dispatch the Tests workflow with `e2e=true` if necessary; verify its SHA.
+2. Follow all expected workflows to completion with bounded status checks. For
+   Tests, verify fast tests, native build/tests, removable integration, desktop
+   build, matching runtime build and desktop E2E all succeeded. Missing, pending,
+   cancelled or unexpectedly skipped checks are unresolved, not passes.
+3. Read failed step logs and uploaded test reports, find the cause and fix it in
+   the task's isolated feature worktree. Run the relevant local checks. Do not
+   disable tests, weaken assertions or repeatedly rerun deterministic failures
+   to obtain green CI. Retry a transient infrastructure failure only after
+   identifying and recording the reason.
+4. When integration is authorized, squash the repair into the agreed SemVer
+   branch and push, then repeat verification for the new published SHA. A newer
+   push can cancel the previous run; follow the replacement and record both SHAs.
+   Preserve other tasks' work and existing merge permissions.
+5. Finish only after all expected checks pass, or explicitly report the blocker,
+   failed/pending run links and remaining action. Keep unpublished repairs and
+   externally blocked checks open; do not claim CI success from local tests.
 
 ## Review findings and remaining coverage
 

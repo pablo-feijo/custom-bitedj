@@ -37,6 +37,16 @@ architecture, versioning, branch isolation, testing and Conventional Commits rul
 - Use Conventional Commits for every new or amended commit. Merge into the
   agreed semver branch later when requested; synchronize versions for the release.
 
+## Post-Merge CI
+
+- After every merge and push to the active SemVer branch, check CI for the exact
+  published commit and follow all expected jobs through completion, including
+  desktop E2E. Follow [the post-merge procedure](docs/TESTING.md#post-merge-ci-check-and-repair).
+- Investigate and fix failures as part of the task; do not stop at reporting red
+  CI. Validate the repair, publish it when integration is authorized, and check
+  the resulting SemVer commit again until all expected checks pass. Keep pending,
+  cancelled, missing or externally blocked checks explicitly unresolved.
+
 ## Branch Hygiene
 
 - After authorized integration and publication, clean up fully merged task
