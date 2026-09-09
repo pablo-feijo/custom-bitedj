@@ -1,5 +1,9 @@
 # Local GUI & Audio Testing Environment
 
+For automated suite selection, assertions and coverage limits, see
+[the test strategy](TESTING.md). The legacy FX/preview shell entry points now
+run the isolated desktop smoke suite.
+
 <!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
 
 This guide describes [Custom Bite DJ](../README.md), an independent fork of

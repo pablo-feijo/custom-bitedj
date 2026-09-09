@@ -1702,6 +1702,7 @@ if(BUILD_TESTING)
   )
 
   set_tests_properties(${testsuite} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+  include(cmake/BiteDJTests.cmake)
 
   if(BUILD_BENCH)
     # Benchmarking

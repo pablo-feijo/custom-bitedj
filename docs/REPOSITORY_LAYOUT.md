@@ -18,7 +18,7 @@ BiteDJ helper scripts and Docker recipes live in the directories below.
 | `scripts/test/` | GUI launcher, ownership/settings helper, capture and smoke scripts, synthetic music generator, audio server and noVNC audio snippet |
 | `scripts/legacy/` | Retained Ubuntu library extraction helpers; not part of the current build |
 | `docker/` | Builder, GUI test and legacy test Dockerfiles |
-| `tests/` | Reusable integration fixtures and feature-specific test procedures |
+| `tests/` | Fast contracts, desktop E2E, integration fixtures and feature-specific test procedures; see [test strategy](TESTING.md) |
 | `tools/` | Existing upstream development, packaging and CI utilities |
 | `packaging/`, `.github/` | Distribution packaging and CI workflows |
 | `docs/` | Guides, plans, checklists and curated documentation assets |

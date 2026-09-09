@@ -12,7 +12,9 @@ architecture, versioning, branch isolation, testing and Conventional Commits rul
 ## Required Task Workflow
 
 - Start every new task on a new `codex/<topic>` feature branch in a separate Git
-  worktree, based on the agreed semver integration branch. Reuse that worktree
+  worktree, based on the latest agreed semver integration branch (currently
+  `codex/v0.0.7`). Fetch the matching remote ref and inspect the local integration
+  tip before branching; preserve local integration commits. Reuse that worktree
   for follow-ups and record the intended merge target in the task checklist.
 - Keep build outputs, installed binaries, settings and test containers independent
   per worktree. Never switch or overwrite another task's checkout or VNC instance.

@@ -73,3 +73,9 @@ for attribution and [LICENSE](LICENSE) for the main program's GPL-2.0-or-later
 terms. The [BiteDJ skin](res/skins/BiteDJ/LICENSE) carries GPLv3 and its original
 Pioneered contributor notices; libraries, fonts and other components retain their
 own terms. See [licensing and distribution notes](docs/LICENSING.md).
+
+## Automated tests
+
+See [the test strategy](docs/TESTING.md) for fast checks, native integration tests,
+removable-drive fixtures and isolated desktop E2E. Start with
+`python3 scripts/test/run-tests.py fast`.
