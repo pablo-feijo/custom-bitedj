@@ -76,15 +76,11 @@ class DesktopE2E(unittest.TestCase):
         )
         cls.verify_owner()
         eventually(cls.window_ready, timeout=60)
-        cls.inside(
-            "xdotool",
-            "search",
-            "--onlyvisible",
-            "--name",
-            "^Mixxx$",
-            "windowactivate",
-            "--sync",
-        )
+        # The startup window can disappear between search and activation.
+        # Retry discovery as well as activation until the main window is stable.
+        eventually(lambda: cls.inside(
+            "xdotool", "search", "--onlyvisible", "--name", "^Mixxx$",
+            "windowactivate", "--sync"), timeout=60)
         # Window creation precedes skin/control initialization. Establish a
         # known page with an idempotent select action before exercising clicks.
         probe = cls("test_navigation_and_reselect")
