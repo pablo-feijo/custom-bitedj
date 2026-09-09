@@ -139,6 +139,13 @@ embedded-resource fingerprint must rebuild; the fast suite tests invalidation an
 stale-asset removal. See [actions/cache](https://github.com/actions/cache) for the
 exact-hit output and explicit restore/save actions used here.
 
+The first validated cache-populating run was
+[34347232331](https://github.com/pablo-feijo/custom-bitedj/actions/runs/34347232331)
+for `8f428a8772`: four workers, 26m 36s native compilation, 1,035 native tests,
+54 removable tests and five desktop E2E tests passed. All three caches were saved.
+The old Node 20 Action warning is absent. Compilation had 939 cache misses;
+this timing is a cold baseline, not a measured warm-cache result.
+
 ## Post-merge CI check and repair
 
 Every merge and push to the active SemVer branch includes a CI follow-through.

@@ -31,5 +31,13 @@
   the previous run; other active work is asked to hold integration pushes.
 - [x] Replace Node 20 Actions with verified Node 24 releases: checkout/setup-node
   v7, cache v6, upload-artifact v7. Register a local GCC matcher without a Node action.
-- [ ] Validate the cache strategy remotely, including a second compatible run
-  that skips compilation and still passes all native/removable/E2E checks.
+- [x] Priority squash published as `8f428a87728209cc3658be6f4ce58dab21b8d118`.
+- [x] [Cold validation run 34347232331](https://github.com/pablo-feijo/custom-bitedj/actions/runs/34347232331)
+  passed: 1,035 native tests, 42 store tests, 12 sampler tests and five desktop
+  E2E tests, plus the fast suite. The Node 20 Action warning is absent.
+- [x] Logs confirm four compiler workers. Native compilation took 26m 36s with
+  939 compiler-cache misses; compiler, binary and runtime caches were all saved.
+- [x] The original Docker builder-image mismatch is resolved by successful E2E.
+- [ ] This documentation-only follow-up must restore the exact binary/runtime
+  caches, skip both compilation commands and pass all test layers. Its CI run
+  is the warm validation; record the final URL and timing in the task result.
