@@ -68,6 +68,11 @@ our adapted Pad FX, scrolling titles, safer loading, and Rekordbox improvements;
 and to [ntamas94 and the Pioneered contributors](https://github.com/ntamas94/pioneered-by-ntamas)
 for inspiring our deck indicators, browsing, and waveform controls.
 
+Custom Bite DJ is free software: you may use, modify and redistribute the main
+program, including commercially, under GPL-2.0-or-later. Redistribution must
+preserve the GPL's source and notice requirements. Fork modifications are
+Copyright (C) 2026 Pablo Feijo and contributors.
+
 Original notices and contributor history are preserved. See [NOTICE](NOTICE.md)
 for attribution and [LICENSE](LICENSE) for the main program's GPL-2.0-or-later
 terms. The [BiteDJ skin](res/skins/BiteDJ/LICENSE) carries GPLv3 and its original

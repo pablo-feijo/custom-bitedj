@@ -2,6 +2,10 @@
 
 <!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
 
+Custom Bite DJ modifications are Copyright (C) 2026 Pablo Feijo and contributors.
+The main-program changes use GPL-2.0-or-later; skin adaptations retain GPLv3.
+These additions do not claim ownership of upstream work or replace its notices.
+
 This custom BiteDJ fork is derived from
 [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), with work by
 [Team Deckshark](https://github.com/TeamDeckshark),

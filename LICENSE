@@ -1,23 +1,14 @@
-BiteDJ 1.0, based on Mixxx 2.5.6
-Embedded Digital DJ'ing software.
-Copyright (C) 2026 Deckshark
-Copyright (C) 2001-2026 Mixxx Development Team
+Custom Bite DJ — independent fork of BiteDJ, based on Mixxx.
+Copyright (C) 2026 Pablo Feijo and contributors (fork modifications).
+Copyright (C) 2026 Deckshark.
+Copyright (C) 2001-2026 Mixxx Development Team.
 
-BiteDJ is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version. The full text of the GNU
-General Public License, version 2 can be found below. The licenses
-of software libraries distributed together with BiteDJ can be found
-below as well.
+The main program is free software under GNU GPL version 2 or any later
+version (GPL-2.0-or-later), without warranty. You may use, modify and
+redistribute it, including commercially, under those terms.
 
-BiteDJ is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-This distribution of BiteDJ may include skins that are licensed under a
-Creative Commons license. Full licensing information is available
-individually for each skin, located in their "skin.xml" file.
+The full GPL and bundled-library notices follow. The BiteDJ skin retains
+GPLv3; other components retain their own licenses. See NOTICE.md for credits.
 
 Depending on your platform, you may receive a copy of PortAudio
 (http://www.portaudio.com/) which is distributed under the

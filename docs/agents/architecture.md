@@ -36,6 +36,12 @@ BiteDJ runs on slow USB flash storage.
 
 ## Attribution and Licensing
 
+- Main-program fork changes remain GPL-2.0-or-later; skin adaptations retain
+  GPLv3. Add scoped Custom Bite DJ copyright notices while retaining upstream
+  credits and the standard license text. Keep LICENSE, COPYING and NOTICE.md
+  consistent and packaged together; do not introduce a blanket proprietary or
+  noncommercial license. Follow [the licensing policy](../LICENSING.md).
+
 - Identify this project as **Custom Bite DJ**, an independent fork of Team
   Deckshark's BiteDJ, based on Mixxx. Link upstream and distinguish inherited
   work, adaptations and local changes; do not imply endorsement or upstream support.

@@ -6,6 +6,20 @@ The original BiteDJ project is [TeamDeckshark/bitedj](https://github.com/TeamDec
 based on [Mixxx](https://github.com/mixxxdj/mixxx). This fork is maintained
 separately; project names and compatibility references do not claim endorsement.
 
+## Custom Bite DJ policy
+
+The main application and its Custom Bite DJ modifications remain
+**GPL-2.0-or-later**. Fork modifications are Copyright (C) 2026 Pablo Feijo and
+contributors; upstream authors retain their work and notices. The GPL permits
+use, modification and redistribution, including commercial redistribution,
+subject to its source-code and notice conditions. See the
+[GNU GPLv2 FAQ](https://www.gnu.org/licenses/old-licenses/gpl-2.0-faq.html).
+
+The project notice identifies this fork without changing the standard GPL text.
+The skin retains GPLv3; the separate pi-gen keeps BSD-3-Clause; other components
+retain their own licenses. Do not replace those terms with a blanket project
+license or introduce noncommercial restrictions on inherited GPL code.
+
 ## License sources
 
 | Material | Notice to retain | Scope |
@@ -64,10 +78,9 @@ for the conditions and exceptions rather than treating this summary as a grant.
 - Preserve component notices in the assembled image and check its included
   packages, fonts, skins and other assets. Review GPLv3 installation-information
   obligations if distributing a covered user product, where applicable.
-- Verify the installed distribution, not just the source checkout. At review
-  time, CMake installs LICENSE and COPYING but does not install NOTICE.md.
-  COPYING now identifies the fork independently; packaging the full NOTICE and
-  confirming all dependency notices remains a release follow-up.
+- Verify the installed distribution, not just the source checkout. CMake installs
+  LICENSE, COPYING and NOTICE.md together. Confirm component-specific notices
+  and corresponding-source delivery for the actual release artifact.
 
 This documentation review establishes clearer attribution and records the
 license notices found. It is not a complete source-header, dependency, artwork,
