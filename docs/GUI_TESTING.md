@@ -228,10 +228,11 @@ When writing tests or automating UI interactions in `bitedj-gui-test-instance`:
 | 4 | 312 | Jog | Grid |
 | 5 | 364 | Vinyl Brake | Clear |
 | 6 | 416 | Hot Cue | Played |
-| 7 | 470 | Track Load | — |
+| 7 | 470 | Track Load | Return to Play |
 
 Two-button centers: left `374, 458`; right `886, 970`. Three-button centers:
 left `360, 416, 472`; right `872, 928, 984`. Track Load: `290, 350, 410, 470`.
+Phrases toggle: `788,104` (default On); click twice to verify Off then On, including paused decks and restart persistence. Return to Play: Off `886,470`, On `970,470` (default Off).
 Played reset: `932`. See [the canonical option/control map](../AGENTS.md#d-settings---general-options-x73-y60)
 for each button's value and key. Standard rows are 52px; Track Load is 58px.
 The General footer starts at `y=520`; PAD FX alone hides it.
@@ -256,3 +257,13 @@ with open('/tmp/screen.ppm', 'rb') as f:
 General Settings typography: labels 12px, segment/action text 11px; button
 geometry and the coordinate mappings above are unchanged. This leaves clearance
 for “3 Band” on the 1024×600 display.
+
+### Rekordbox and Prepare fixtures
+
+Use the [synthetic fixture generator and procedure](../tests/rekordbox/README.md). Browse root rows are Prepare `y=52`, Computer `75`, History `99`, Rekordbox `121`; the expanded fixture child is `143`. Add tracks with **Add to Prepare** in their context menu. In Prepare, use **Move Up**, **Move Down**, or **Remove**; verify order after restarting. Loading retains queue entries and never starts playback automatically.
+
+Overview previews show A–H for hot cues and 1–8 for memories; the Play waveform keeps full names. Keep memory numbers above the optional 10px phrase strip. Check both views with Phrases Off/On and Day/Night. Store generated media, screenshots, recordings, statistics and reports only in ignored test-results paths.
+
+Compact overview cue labels retain the cue color as a small badge with contrasting text. Verify both hot-cue letters and memory numbers in Day/Night, with phrases enabled and disabled. Fixtures include distinct cue colors to make regressions visible.
+
+For top-tab automation, move to the measured button center, wait briefly for the fullscreen menu to settle, then click. Capture again if the menu bar shifts the layout; do not reuse coordinates from a shifted screenshot.

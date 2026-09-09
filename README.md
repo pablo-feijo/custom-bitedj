@@ -10,7 +10,8 @@ Development targets **v0.0.7**.
 - Touch-friendly browsing with saved column layouts and Wayland drag-and-drop.
 - Configurable Pad FX with Normal/Shift banks, saved assignments, and independent effect lanes.
 - Safer track replacement: **Lock / Fader / Stop / Live**.
-- Rekordbox USB library and analysis integration.
+- Rekordbox USB waveforms and optional phrase strips, with native analysis fallback.
+- A saved Prepare queue and optional return to Play after loading.
 - FX, key, beat-jump, linked zoom, and deck presentation controls.
 - Appliance settings for audio, display rotation, devices, and system information.
 

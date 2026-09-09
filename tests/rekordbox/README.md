@@ -1,0 +1,63 @@
+# Synthetic Rekordbox fixtures and live checks
+
+Generate all media locally with the Python standard library:
+
+```sh
+source ./gui-test-settings.sh
+verify_test_instance_owner
+python3 tests/rekordbox/make_fixture.py "$RESULTS_DIR/RekordboxFixture"
+docker cp "$RESULTS_DIR/RekordboxFixture" "$CONTAINER_NAME:/media/"
+```
+
+The generator writes a DeviceSQL export and four original, synthetic 60-second
+PCM tracks. No commercial tracks or proprietary user exports are bundled.
+The first two tracks have DAT beat grids, PWV6/PWV7 display envelopes and PSSI
+phrases. The third lacks EXT/2EX; the fourth has valid phrases/cues but damaged
+waveform analysis. Load them through Browse → Rekordbox → RekordboxFixture to
+exercise import. Loading WAV paths from the command line bypasses that path.
+
+Cue positions on the exported tracks:
+
+| Type | Position | Label | Loop end |
+| --- | --- | --- | --- |
+| Hot A | 4.1 s | A START | — |
+| Hot B | 16.1 s | B CHORUS | — |
+| Hot C | 32.1 s | C LOOP | 34.1 s |
+| Hot D | 48.1 s | D OUTRO | — |
+| Memory | 8.1 s | MEM 1 | — |
+| Memory | 24.1 s | MEM 2 | — |
+| Memory loop | 40.1 s | MEM LOOP | 44.1 s |
+| Memory | 56.1 s | MEM 4 | — |
+
+The missing-analysis fixture intentionally has no extended cues. The damaged
+fixture must warn once and still allow audio and native waveform generation.
+
+## Visual and timing procedure
+
+1. Load the first two tracks from the export onto Deck 1/2. Inspect hot cues,
+   memory cues and loops against the table above, including phrase boundaries.
+2. Check RGB and 3 Band modes, linked/unlinked zoom, and Day/Night at 1024×600.
+   Phrase and ruler strips should be discreet; cue targets must remain usable.
+3. Toggle General → Phrases Off/On. Both overview and scrolling strips update;
+   beats, cues and playback must not change. Check persistence after restart.
+4. Play both decks. Capture audio from `auto_null.monitor` in the owned ARM64
+   instance, and inspect RMS, peaks and underrun logs. Repeat with fallback tracks.
+5. For timing, launch with `--developer --logLevel debug` and
+   `BITEDJ_TEST_STATS_PATH=/tmp/rekordbox-stats.json`. Developer StatsManager
+   exports cumulative import/render timings from its worker thread. Read the
+   units field; compare two-deck render time with the configured frame budget.
+   Collect a fresh run per mode/configuration; startup and load spikes must be
+   distinguished from steady playback. Container results do not establish Pi
+   hardware performance. Run timing checks without concurrent compilation.
+6. Record exact branch, binary checksum, fixture, display mode and sampling
+   interval locally. Leave the owned VNC running with the synthetic tracks for
+   manual review; do not restart another branch's container.
+
+Use `pkill -9 mixxx` only in the verified owned instance. Use `scrot -o` for a
+fresh screenshot. All screenshots, generated exports/WAVs, benchmark JSON,
+logs and native test XML belong under ignored `test-results/<instance>/`.
+Keep generators, procedures and assertions in Git; **never commit run output**.
+Native decoder/import fixtures live in `src/test/rekordboxdisplay_test.cpp` and
+`src/test/rekordboxanlz_test.cpp`.
+
+Compact overview cue labels retain the cue color as a small badge with contrasting text. Verify both hot-cue letters and memory numbers in Day/Night, with phrases enabled and disabled. Fixtures include distinct cue colors to make regressions visible.

@@ -38,6 +38,7 @@
 #include "library/trackset/crate/cratefeature.h"
 #include "library/trackset/playlistfeature.h"
 #include "library/trackset/setlogfeature.h"
+#include "library/trackset/preparefeature.h"
 #include "library/traktor/traktorfeature.h"
 #include "mixer/playermanager.h"
 #include "moc_library.cpp"
@@ -185,6 +186,8 @@ Library::Library(
 #endif
 
     addFeature(new AutoDJFeature(this, m_pConfig, pPlayerManager));
+    m_pPrepareFeature = new PrepareFeature(this, m_pConfig);
+    addFeature(m_pPrepareFeature);
 
     m_pPlaylistFeature = new PlaylistFeature(this, UserSettingsPointer(m_pConfig));
     addFeature(m_pPlaylistFeature);
@@ -1172,4 +1175,8 @@ LibraryTableModel* Library::trackTableModel() const {
     }
 
     return m_pMixxxLibraryFeature->trackTableModel();
+}
+
+void Library::addToPrepare(const TrackPointerList& tracks) {
+    m_pPrepareFeature->add(tracks);
 }

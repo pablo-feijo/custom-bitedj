@@ -135,6 +135,7 @@ row with center `y=470`. All rows fit above the deck footer at `y=520`.
 | Left | Vinyl Brake | 364 | Off 360, Short 416, Long 472 | `[BiteDJ],vinyl_brake`: Off=0, Short=1.8, Long=3.6 |
 | Left | Hot Cue | 416 | Ungated 374, Gated 458 | `[Controls],HotcueActivatePlays`: Ungated=1, Gated=0 |
 | Left | Track Load | 470 | Lock 290, Fader 350, Stop 410, Live 470 | `[BiteDJ],track_load_policy`: Lock=0, Fader=3, Stop=2, Live=1 |
+| Right | Phrases | 104 | Toggle 788 | `[BiteDJ],show_phrases`: Off=0, On=1 (default); native two-state toggle |
 | Right | Wave | 104 | RGB 872, Filt 928, 3 Band 984 | `[Waveform],waveform_type`: RGB=17, Filt=19, 3 Band=25 |
 | Right | Apply Waveform EQ | 156 | On 886, Off 970 | `[Waveform],apply_eq_to_waveform`: On=1, Off=0 |
 | Right | Palette | 208 | BiteDJ 886, Amber 970 | `[BiteDJ],waveform_palette`: BiteDJ=0, Amber=1 |
@@ -142,6 +143,9 @@ row with center `y=470`. All rows fit above the deck footer at `y=520`.
 | Right | Grid | 312 | Compact 886, Detail 970 | `[Library],grid_layout`: Compact=0, Detail=1 |
 | Right | Clear | 364 | Cache 872, Cues 928, Meta 984 | Cache: `[Library],clear_cached_waveforms`; Cues: `[Library],clear_cue_overrides`; Meta: `[Library],clear_meta_overrides` |
 | Right | Played | 416 | Reset 932 | Reset: `[Library],reset_played_tracks` |
+| Right | Return to Play | 470 | Off 886, On 970 | `[BiteDJ],return_to_play`: Off=0 (default), On=1; successful main-deck Browse loads only |
+
+Browse root rows: Prepare `y=52`, Computer `y=75`, History `y=99`, Rekordbox `y=121` (expanded fixture child `y=143`). Overview labels use hot-cue letters and memory numbers; full names remain in the Play waveform. Phrase strips are 10px with 8px text; the overview ruler is 9px with 7px text.
 
 #### E. Settings -> Library Options (`x=219, y=60`)
 Configures visible columns and column widths (`OFF | XS | S | M | L`).
@@ -206,3 +210,13 @@ Convert screenshot to PPM (`ffmpeg -i screen.png screen.ppm`) and parse raw RGB 
 General Settings typography: labels 12px, segment/action text 11px; button
 geometry and the coordinate mappings above are unchanged. This leaves clearance
 for “3 Band” on the 1024×600 display.
+
+## Reproducible Test Assets
+
+Keep test generators, synthetic fixture definitions, reusable scripts and test
+procedures in Git. Put generated exports, audio captures, screenshots, logs,
+benchmark snapshots, caches and test reports in ignored `test-results/` (or
+other ignored runtime directories). Do not commit test-run results. Record
+instance ownership and regenerate assets instead of copying personal music.
+
+Compact overview cue labels retain the cue color as a small badge with contrasting text. Verify both hot-cue letters and memory numbers in Day/Night, with phrases enabled and disabled. Fixtures include distinct cue colors to make regressions visible.

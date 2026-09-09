@@ -1,4 +1,5 @@
 #include "woverview.h"
+#include "waveform/renderers/phrasestrip.h"
 
 #include <QBrush>
 #include <QColor>
@@ -105,6 +106,9 @@ WOverview::WOverview(
             this);
     m_pTypeControl->connectValueChanged(this, &WOverview::slotTypeControlChanged);
     slotTypeControlChanged(m_pTypeControl->get());
+    m_pShowPhrasesControl = make_parented<ControlProxy>(ConfigKey("[BiteDJ]", "show_phrases"), this);
+    connect(m_pShowPhrasesControl.get(), &ControlProxy::valueChanged, this, [this](double) { update(); });
+
 
     // Update immediately when the normalize option or the visual gain have been
     // changed in the preferences.
@@ -271,6 +275,7 @@ void WOverview::setup(const QDomNode& node, const SkinContext& context) {
     }
 
     m_bShowCueTimes = context.selectBool(node, "ShowCueTimes", true);
+    m_compactCueLabels = context.selectBool(node, "CompactCueLabels", false);
 
     // qDebug() << "WOverview : std::as_const(m_marks)" << m_marks.size();
     // qDebug() << "WOverview : m_markRanges" << m_markRanges.size();
@@ -399,6 +404,8 @@ void WOverview::slotLoadingTrack(TrackPointer pNewTrack, TrackPointer pOldTrack)
     //qDebug() << this << "WOverview::slotLoadingTrack" << pNewTrack.get() << pOldTrack.get();
     DEBUG_ASSERT(m_pCurrentTrack == pOldTrack);
     if (m_pCurrentTrack != nullptr) {
+        disconnect(m_pCurrentTrack.get(), &Track::phrasesUpdated, this,
+                QOverload<>::of(&WOverview::update));
         disconnect(m_pCurrentTrack.get(),
                 &Track::waveformSummaryUpdated,
                 this,
@@ -429,6 +436,8 @@ void WOverview::slotLoadingTrack(TrackPointer pNewTrack, TrackPointer pOldTrack)
                 this,
                 &WOverview::slotWaveformSummaryUpdated);
         slotWaveformSummaryUpdated();
+        connect(pNewTrack.get(), &Track::phrasesUpdated, this,
+                QOverload<>::of(&WOverview::update));
         connect(pNewTrack.get(), &Track::cuesUpdated, this, &WOverview::receiveCuesUpdated);
     } else {
         m_pCurrentTrack.reset();
@@ -514,7 +523,15 @@ void WOverview::updateCues(const QList<CuePointer> &loadedCues) {
                     hotcueNumber != Cue::kNoHotCue) {
                 // Prepend the hotcue number to hotcues' labels
                 QString newLabel = currentCue->getLabel();
-                if (newLabel.isEmpty()) {
+                if (m_compactCueLabels) {
+                    if (hotcueNumber >= 16 && hotcueNumber < 24) {
+                        newLabel = QString::number(hotcueNumber - 16 + 1);
+                    } else if (hotcueNumber >= 0 && hotcueNumber < 8) {
+                        newLabel = QString(QChar('A' + hotcueNumber));
+                    } else {
+                        newLabel = QString::number(hotcueNumber + 1);
+                    }
+                } else if (newLabel.isEmpty()) {
                     newLabel = QString::number(hotcueNumber + 1);
                 } else {
                     newLabel = QString("%1: %2").arg(hotcueNumber + 1).arg(newLabel);
@@ -720,6 +737,11 @@ void WOverview::paintEvent(QPaintEvent* pEvent) {
         drawAxis(&painter);
         drawWaveformPixmap(&painter);
         drawPlayedOverlay(&painter);
+        // BiteDJ clips the summary widget vertically. Anchor the read-only
+        // phrase strip to its visible area, keeping layout and cue hit targets.
+        mixxx::paintPhraseStrip(painter, m_pCurrentTrack->getPhrases(),
+                visibleRegion().boundingRect(), m_orientation, 0,
+                m_pCurrentTrack->getDuration(), m_scaleFactor);
         drawPlayPosition(&painter);
         drawEndOfTrackFrame(&painter);
         drawAnalyzerProgress(&painter);
@@ -949,6 +971,11 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
     QFont markerFont = pPainter->font();
     markerFont.setPixelSize(static_cast<int>(m_iLabelFontSize * m_scaleFactor));
     QFontMetricsF fontMetrics(markerFont);
+    const QRectF visible = visibleRegion().boundingRect();
+    const double phraseClearance = mixxx::showWaveformPhrases() && m_pCurrentTrack &&
+                    !m_pCurrentTrack->getPhrases().isEmpty()
+            ? std::min(10 * m_scaleFactor, visible.height() / 3) : 0;
+
 
     // Text labels are rendered so they do not overlap with other WaveformMarks'
     // labels. If the text would be too wide, it is elided. However, the user
@@ -1065,7 +1092,7 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
                 } else if (valign == Qt::AlignVCenter) {
                     textPoint.setY((textRect.height() + height()) / 2);
                 } else { // AlignBottom
-                    textPoint.setY(float(height()) - 0.5f);
+                    textPoint.setY(visible.bottom() - phraseClearance - 0.5);
                 }
             } else { // Vertical
                 if (halign == Qt::AlignLeft) {
@@ -1089,8 +1116,10 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
                     QPixmap(),
                     text,
                     markerFont,
-                    m_labelTextColor,
-                    m_labelBackgroundColor,
+                    m_compactCueLabels && pMark->getHotCue() != Cue::kNoHotCue
+                            ? pMark->labelColor() : m_labelTextColor,
+                    m_compactCueLabels && pMark->getHotCue() != Cue::kNoHotCue
+                            ? pMark->fillColor() : m_labelBackgroundColor,
                     width(),
                     devicePixelRatioF());
         }

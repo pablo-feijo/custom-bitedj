@@ -93,7 +93,7 @@ stale duplicate coordinates.
 If the user asks you to compile or test the application, use the scripts provided in the root directory:
 
 - **Compiling for the Pi**: Run `./docker-build.sh --platform linux/arm64`. This uses a custom Docker container to cross-compile the binary into `dist-linux/`. Do not try to compile natively on a Mac or Windows machine using standard `CMake` unless you are explicitly building a local debug version.
-- **Local GUI & Audio Testing**: Before deploying changes or building an OS image, run `./test-gui-automated.sh` to automatically verify the 1024x600 GUI, skin layouts, FX rack DSP, and live audio stream without touching hardware. Run `./run-gui-test.sh` for interactive testing via browser at `http://localhost:6080/` and live audio at `http://localhost:8000/`. Full details in `docs/GUI_TESTING.md`.
+- **Local GUI & Audio Testing**: Before deploying changes or building an OS image, verify the 1024×600 GUI and affected audio paths in the owned instance using [GUI_TESTING.md](GUI_TESTING.md), [PAD_FX_TESTING.md](PAD_FX_TESTING.md), and the [Rekordbox fixture procedure](../tests/rekordbox/README.md) as applicable. Start interactive testing with `./run-gui-test.sh` and use its printed VNC/audio endpoints; never assume ports belong to this task.
 - **Hot-Deploying**: Use `./deploy-ssh.sh` to push a newly compiled ARM64 binary to a live Raspberry Pi over the network.
 - **Flashing the OS**: The complete Raspberry Pi OS is generated using `./generate-pi-image.sh`, which leverages the `mixxx-pi-gen` submodule.
 
@@ -137,3 +137,11 @@ in the body for adapted upstream work.
 Before finishing a task, check the commits created by that task and amend
 any nonconforming messages. Do not rewrite unrelated or already-published
 history unless the user explicitly requests it.
+
+## Reproducible Test Assets
+
+Keep test generators, synthetic fixture definitions, reusable scripts and test
+procedures in Git. Put generated exports, audio captures, screenshots, logs,
+benchmark snapshots, caches and test reports in ignored `test-results/` (or
+other ignored runtime directories). Do not commit test-run results. Record
+instance ownership and regenerate assets instead of copying personal music.

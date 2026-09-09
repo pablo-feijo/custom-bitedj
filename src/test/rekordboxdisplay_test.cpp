@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include <kaitai/kaitaistream.h>
 #include <QElapsedTimer>
+#include <QTest>
+#include <QDateTime>
 #include "library/rekordbox/rekordboxwaveform.h"
 #include "library/rekordbox/rekordboxphrases.h"
 using namespace mixxx::rekordbox;
@@ -80,4 +82,177 @@ TEST(RekordboxDisplayTest, TenMinuteEnvelopeTimingAndAllocation) {
     EXPECT_EQ(wave[columns*2].m_i,0);
     // Generous hang/regression bound, not a hardware performance claim.
     EXPECT_LT(timer.elapsed(),5000);
+}
+
+#include <QFile>
+#include <QTemporaryDir>
+#include "test/mixxxtest.h"
+#include "library/rekordbox/rekordboxanlz.h"
+#include "track/track.h"
+#include "control/controlobject.h"
+#include "waveform/renderers/waveformwidgetrenderer.h"
+#include "waveform/renderers/phrasestrip.h"
+
+namespace {
+std::string section(const std::string& type, const std::string& body, int header = 12) {
+    std::string out = type;
+    u32(out, header); u32(out, 12 + body.size());
+    return out + body;
+}
+std::string waveSection(const std::string& type, int peak = 125, int stride = 3) {
+    std::string body;
+    u32(body, stride); u32(body, 450);
+    if (type == "PWV7") u32(body, 0);
+    body += std::string(450 * 3, char(peak));
+    return section(type, body, type == "PWV7" ? 24 : 20);
+}
+void writeAnalysis(const QString& path, const std::string& sections) {
+    std::string bytes = "PMAI";
+    u32(bytes, 28); u32(bytes, 28 + sections.size());
+    bytes += std::string(16, 0) + sections;
+    QFile file(path);
+    ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+    ASSERT_EQ(file.write(bytes.data(), bytes.size()), qint64(bytes.size()));
+    ASSERT_TRUE(file.flush());
+    // Give each export revision a distinct timestamp, including same-size edits.
+    static qint64 revision = QDateTime::currentMSecsSinceEpoch();
+    ASSERT_TRUE(file.setFileTime(QDateTime::fromMSecsSinceEpoch(++revision),
+            QFileDevice::FileModificationTime));
+}
+class RekordboxImportTest : public MixxxTest {
+  protected:
+    TrackPointer track() {
+        auto result = Track::newTemporary(mixxx::FileAccess(
+                mixxx::FileInfo(getTestDir().filePath("sine-30.wav"))));
+        result->setAudioProperties(mixxx::audio::ChannelCount(2),
+                mixxx::audio::SampleRate(44100), mixxx::audio::Bitrate(),
+                mixxx::Duration::fromSeconds(3));
+        return result;
+    }
+};
+}
+TEST_F(RekordboxImportTest, PublishPairTogetherReuseAndPreserveOnInvalidExport) {
+    QTemporaryDir dir;
+    ASSERT_TRUE(dir.isValid());
+    const auto path = dir.filePath("ANLZ.2EX"), dat = dir.filePath("ANLZ.DAT");
+    auto t = track();
+    EXPECT_TRUE(readThreeBandWaveforms(t, t->getSampleRate(), 0, dat).isEmpty());
+    EXPECT_FALSE(t->getWaveform()); // absent file leaves native fallback available
+    writeAnalysis(path, waveSection("PWV6", 58) + waveSection("PWV7"));
+    bool bothPublished = false;
+    auto connection = QObject::connect(t.get(), &Track::waveformUpdated, [&] {
+        bothPublished = bool(t->getWaveform()) && bool(t->getWaveformSummary());
+    });
+    EXPECT_TRUE(readThreeBandWaveforms(t, t->getSampleRate(), 0, dat).isEmpty());
+    EXPECT_TRUE(bothPublished);
+    ASSERT_TRUE(t->getWaveform());
+    ASSERT_TRUE(t->getWaveformSummary());
+    const auto original = t->getWaveform(), summary = t->getWaveformSummary();
+    EXPECT_EQ(original->data()[0].filtered.all, 255);
+    EXPECT_EQ(summary->data()[0].filtered.all, 255);
+    EXPECT_EQ(original->saveState(), Waveform::SaveState::Saved);
+    EXPECT_TRUE(readThreeBandWaveforms(t, t->getSampleRate(), 0, dat).isEmpty());
+    EXPECT_EQ(t->getWaveform(), original);
+    for (const auto& invalid : {waveSection("PWV6"),
+            waveSection("PWV6") + waveSection("PWV7", 125, 4),
+            waveSection("PWV6") + waveSection("PWV7") + waveSection("PWV7"),
+            std::string("PWV7")}) {
+        writeAnalysis(path, invalid);
+        EXPECT_FALSE(readThreeBandWaveforms(t, t->getSampleRate(), 0, dat).isEmpty());
+        EXPECT_EQ(t->getWaveform(), original);
+        EXPECT_EQ(t->getWaveformSummary(), summary);
+    }
+    writeAnalysis(path, waveSection("PWV6") + waveSection("PWV7"));
+    EXPECT_TRUE(readThreeBandWaveforms(t, t->getSampleRate(), 50, dat).isEmpty());
+    EXPECT_NE(t->getWaveform(), original);
+    EXPECT_EQ(t->getWaveform()->data()[t->getWaveform()->getDataSize() - 1].m_i, 0);
+    QObject::disconnect(connection);
+}
+TEST_F(RekordboxImportTest, PhraseImportTracksEditedGridAndUndoWithoutDirtyingCues) {
+    QTemporaryDir dir;
+    const auto dat = dir.filePath("ANLZ.DAT"), ext = dir.filePath("ANLZ.EXT");
+    std::string grid(8, 0); u32(grid, 4);
+    QVector<mixxx::audio::FramePos> positions;
+    int i = 0;
+    for (int ms : {100, 600, 1200, 1900}) {
+        u16(grid, ++i); u16(grid, 12000); u32(grid, ms);
+        positions.append(mixxx::audio::FramePos(ms * 44.1));
+    }
+    writeAnalysis(dat, section("PQTZ", grid));
+    writeAnalysis(ext, section("PSSI", fixture(2, 9, 1, 4, 3, true)));
+    auto t = track();
+    const auto source = mixxx::Beats::fromBeatPositions(t->getSampleRate(), positions);
+    ASSERT_TRUE(t->trySetBeats(source)); t->markClean();
+    EXPECT_TRUE(readPhrases(t, 0, dat).isEmpty());
+    EXPECT_FALSE(t->isDirty());
+    const auto original = t->getPhrases();
+    ASSERT_EQ(original.size(), 1);
+    EXPECT_NEAR(original[0].startSeconds, .1, 1e-9);
+    for (auto& pos : positions) pos += 22050;
+    auto edited = mixxx::Beats::fromBeatPositions(t->getSampleRate(), positions);
+    // Track groups beat edits within 800 ms into one undo action.
+    QTest::qWait(850);
+    ASSERT_TRUE(t->trySetBeats(edited));
+    ASSERT_TRUE(t->canUndoBeatsChange());
+    EXPECT_NEAR(t->getPhrases()[0].startSeconds, .6, 1e-9);
+    EXPECT_NEAR(t->getPhrases()[0].fillSeconds, 1.7, 1e-9);
+    t->undoBeatsChange();
+    EXPECT_EQ(t->getPhrases(), original);
+    writeAnalysis(ext, section("PSSI", fixture(2, 1, 1, 9)));
+    EXPECT_FALSE(readPhrases(t, 0, dat).isEmpty());
+    EXPECT_EQ(t->getPhrases(), original);
+    ASSERT_TRUE(QFile::remove(ext));
+    EXPECT_TRUE(readPhrases(t, 0, dat).isEmpty());
+    EXPECT_TRUE(t->getPhrases().isEmpty());
+}
+TEST_F(RekordboxImportTest, NativeAndExportedWaveformsShareSecondsPerPixel) {
+    const QString group("[Channel1]");
+    ControlObject samples(ConfigKey(group,"track_samples"));
+    ControlObject rate(ConfigKey(group,"rate_ratio"));
+    ControlObject gain(ConfigKey(group,"total_gain"));
+    rate.set(1); gain.set(1);
+    WaveformWidgetRenderer renderer(group);
+    ASSERT_TRUE(renderer.init());
+    renderer.resizeRenderer(720, 192, 1);
+    auto t = track();
+    samples.set(3 * 44100 * 2);
+    renderer.setTrack(t);
+    for (double zoom : {1., 2., 4.}) {
+        renderer.setZoom(zoom);
+        for (int visualRate : {441, 150}) {
+            t->setWaveform(WaveformPointer(new Waveform(44100, 3 * 44100, visualRate, -1)));
+            renderer.onPreRender(nullptr); // invalid transport does not query vsync
+            EXPECT_NEAR(renderer.getAudioSamplePerPixel(), zoom * 100, 1e-9);
+            EXPECT_NEAR(renderer.getVisualSamplePerPixel() *
+                    t->getWaveform()->getAudioVisualRatio(), zoom * 100, 1e-9);
+        }
+    }
+    renderer.setTrack({}); renderer.onPreRender(nullptr);
+    EXPECT_EQ(renderer.getAudioSamplePerPixel(), 0);
+}
+TEST_F(RekordboxImportTest, PhraseStripStaysInsideVisibleBoundsInDayAndNight) {
+    ControlObject visibility(ConfigKey("[BiteDJ]", "show_phrases"));
+    visibility.set(1);
+    mixxx::Phrase phrase;
+    phrase.kind = mixxx::Phrase::Kind::Chorus;
+    phrase.label = "Chorus"; phrase.startSeconds = 0; phrase.endSeconds = 3;
+    for (const QColor background : {QColor(Qt::white), QColor(Qt::black)}) {
+        QImage image(200, 100, QImage::Format_ARGB32);
+        image.fill(background);
+        QPainter painter(&image);
+        mixxx::paintPhraseStrip(painter, {phrase}, QRectF(0, 20, 200, 60),
+                Qt::Horizontal, 0, 3);
+        painter.end();
+        EXPECT_EQ(image.pixelColor(100, 10), background);
+        EXPECT_EQ(image.pixelColor(100, 90), background);
+        EXPECT_EQ(image.pixelColor(150, 78), mixxx::phraseColor(phrase.kind));
+        EXPECT_EQ(image.pixelColor(150, 69), background); // 10px strip only
+        visibility.set(0);
+        image.fill(background);
+        QPainter hiddenPainter(&image);
+        mixxx::paintPhraseStrip(hiddenPainter, {phrase}, QRectF(0, 20, 200, 60), Qt::Horizontal, 0, 3);
+        hiddenPainter.end();
+        EXPECT_EQ(image.pixelColor(150, 78), background);
+        visibility.set(1);
+    }
 }

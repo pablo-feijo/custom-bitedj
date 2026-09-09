@@ -20,6 +20,7 @@
 #include "library/dlgtrackmetadataexport.h"
 #include "library/externaltrackcollection.h"
 #include "library/library.h"
+#include "library/trackset/preparefeature.h"
 #include "library/trackcollection.h"
 #include "library/trackcollectionmanager.h"
 #include "library/trackmodel.h"
@@ -579,6 +580,13 @@ void WTrackMenu::createActions() {
 }
 
 void WTrackMenu::setupActions() {
+    if (auto* prepare = dynamic_cast<PrepareModel*>(m_pTrackModel)) {
+        addAction(tr("Move up in Prepare"), this, [this, prepare] { prepare->moveSelection(m_trackIndexList, -1); });
+        addAction(tr("Move down in Prepare"), this, [this, prepare] { prepare->moveSelection(m_trackIndexList, 1); });
+    } else if (featureIsEnabled(Feature::LoadTo) || featureIsEnabled(Feature::Playlist)) {
+        addAction(tr("Add to Prepare"), this, [this] { m_pLibrary->addToPrepare(getTrackPointers()); });
+    }
+
     if (featureIsEnabled(Feature::SearchRelated)) {
         addMenu(m_pSearchRelatedMenu);
     }

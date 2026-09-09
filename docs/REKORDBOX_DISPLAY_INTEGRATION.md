@@ -15,35 +15,36 @@ PSSI phrase positions use absolute one-based beat indices from the exported
 variable-tempo grid. Decode masked and unmasked tags with the real Kaitai
 parser. Unknown kinds remain unknown; invalid optional fills do not discard
 valid boundaries. Only the final N+1 endpoint may use the final exported
-beat's tempo. These helpers are not yet enabled in track loading.
+beat's tempo. The import now invokes these helpers when loading from a Rekordbox device.
 
 Native `RekordboxDisplayTest` covers band ordering, stereo mirroring, shared
 normalization, silence, offsets, padding, malformed inputs, masked phrases,
 variable tempo and final boundaries. It records decode time for a ten-minute
 150 Hz envelope; a generous five-second timeout catches gross regressions,
-not a claim about physical Pi performance. The ARM64 fixture run passed all
-three decoder tests; the ten-minute envelope recorded under one millisecond
-at timer resolution in the container.
+not a claim about physical Pi performance.
 
 ## Stage 2: transactional import and alignment
 
-- [ ] Publish only a complete validated detail/overview pair; preserve native
+- [x] Publish only a complete validated detail/overview pair; preserve native
   analysis when 2EX is missing, corrupt, duplicated or incomplete.
-- [ ] Reuse validated data by file identity, sample rate, duration and offset.
-- [ ] Avoid writing exported display envelopes into the native waveform cache.
-- [ ] Keep phrases separate from cues and retain an immutable exported grid
+- [x] Reuse validated data by file identity, sample rate, duration and offset.
+- [x] Avoid writing exported display envelopes into the native waveform cache.
+- [x] Keep phrases separate from cues and retain an immutable exported grid
   for exact projection when the local beatgrid is edited or undone.
-- [ ] Protect already loaded tracks from import side effects.
-- [ ] Verify real DAT/EXT/2EX fixtures at the import boundary.
+- [x] Protect already loaded tracks from import side effects.
+- [x] Verify real DAT/EXT/2EX fixtures at the import boundary.
 
 ## Stage 3: render and benchmark
 
-- [ ] Preserve seconds per pixel at native 441 Hz and imported 150 Hz at every
+- [x] Preserve seconds per pixel at native 441 Hz and imported 150 Hz at every
   zoom level; retain existing stacked-band mode.
-- [ ] Render phrases beneath cue labels without altering cue hit targets.
-- [ ] Check two-deck Play and summary geometry at 1024×600 in Day/Night.
-- [ ] Measure frame time and import latency with two decks playing on ARM64.
-- [ ] Verify missing-analysis fallback and repeat the native/audio regressions.
+- [x] Render phrases beneath cue labels without altering cue hit targets.
+- [x] Check two-deck Play and summary geometry at 1024×600 in Day/Night.
+- [x] Measure frame time and import latency with two decks playing on ARM64.
+- [x] Verify missing-analysis fallback and repeat native regressions.
+- [ ] Complete a clean sustained audio run and investigate virtual-device underruns before closing the performance gate.
 
 Do not import four-deck layouts, analysis-policy settings, streaming services
 or appliance changes as part of this display integration.
+
+Reproduce checks with [synthetic fixtures](../tests/rekordbox/README.md), including hot cues, memories and loops. Settings → General → Phrases toggles both main and overview strips and persists across restart. Overview annotations use letters/numbers only; full cue names remain in Play. Generated test results are deliberately excluded from source control.

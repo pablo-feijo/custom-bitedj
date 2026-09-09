@@ -232,6 +232,8 @@ class SystemSettings : public QObject {
     // config; read by the controller mapping to toggle jog-touch scratching.
     std::unique_ptr<ControlObject> m_pCoVinylMode;
     std::unique_ptr<ControlObject> m_pCoTrackLoadPolicy;
+    std::unique_ptr<ControlObject> m_pCoReturnToPlay;
+    std::unique_ptr<ControlPushButton> m_pCoShowPhrases;
     // [BiteDJ],vinyl_brake — vinyl-brake time in seconds: how long a jog wheel
     // released at normal (1x) speed takes to coast to a standstill. 0 disables
     // the brake. Persisted to config; read by ControllerScriptInterfaceLegacy

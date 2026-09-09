@@ -445,6 +445,8 @@
         <Size>0me,38f</Size>
         <Children>
           <Overview>
+            <LabelFontSize>8</LabelFontSize>
+            <CompactCueLabels>true</CompactCueLabels>
             <BiteDJPalette>true</BiteDJPalette>
             <ObjectName>DeckOverview</ObjectName>
             <Size>0me,38f</Size>
@@ -619,7 +621,7 @@
           </Overview>
         </Children>
       </WidgetGroup>
-      <OverviewRuler><ObjectName>OverviewRuler</ObjectName><Size>0me,12f</Size><Channel><Variable name="channel"/></Channel></OverviewRuler>
+      <OverviewRuler><ObjectName>OverviewRuler</ObjectName><Size>0me,9f</Size><Channel><Variable name="channel"/></Channel></OverviewRuler>
     </Children>
   </WidgetGroup>
 </Template>

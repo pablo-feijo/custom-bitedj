@@ -361,6 +361,14 @@
                         <Text>Wave</Text>
                         <Size>0me,0me</Size>
                       </Label>
+                      <WidgetGroup><ObjectName>PhraseVisibility</ObjectName><Layout>horizontal</Layout><Size>112f,40f</Size><Children>
+                      <PushButton>
+                        <ObjectName>SettingsSegmentLeft</ObjectName><Size>0me,0me</Size><NumberStates>2</NumberStates>
+                        <State><Number>0</Number><Text>Phrases Off</Text></State>
+                        <State><Number>1</Number><Text>Phrases On</Text></State>
+                        <Connection><ConfigKey>[BiteDJ],show_phrases</ConfigKey><EmitOnDownPress>true</EmitOnDownPress></Connection>
+                      </PushButton>
+                      </Children></WidgetGroup>
                       <WidgetGroup>
                         <ObjectName>SettingsSegmented</ObjectName>
                         <Layout>horizontal</Layout>
@@ -575,6 +583,16 @@
                           <EmitOnDownPress>true</EmitOnDownPress>
                         </Connection>
                       </PushButton>
+                    </Children>
+                  </WidgetGroup>
+                  <WidgetGroup>
+                    <ObjectName>SettingsRow</ObjectName><Layout>horizontal</Layout><Size>0me,58f</Size>
+                    <Children>
+                      <Label><ObjectName>SettingsRowLabel</ObjectName><Text>Return to Play</Text></Label>
+                      <WidgetGroup><ObjectName>SettingsSegmented</ObjectName><Layout>horizontal</Layout><Size>168f,40f</Size><Children>
+                        <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable><SetVariable name="Text">Off</SetVariable><SetVariable name="ConfigKey">[BiteDJ],return_to_play</SetVariable><SetVariable name="Value">0</SetVariable></Template>
+                        <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentRight</SetVariable><SetVariable name="Text">On</SetVariable><SetVariable name="ConfigKey">[BiteDJ],return_to_play</SetVariable><SetVariable name="Value">1</SetVariable></Template>
+                      </Children></WidgetGroup>
                     </Children>
                   </WidgetGroup>
                   <WidgetGroup>

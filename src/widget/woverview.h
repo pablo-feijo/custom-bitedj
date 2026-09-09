@@ -179,6 +179,7 @@ class WOverview : public WWidget, public TrackDropTarget {
 
     parented_ptr<WCueMenuPopup> m_pCueMenuPopup;
     bool m_bShowCueTimes;
+    bool m_compactCueLabels = false;
 
     int m_iPosSeconds;
     // True if pick-up is dragged. Only used when m_bEventWhileDrag is false
@@ -219,6 +220,7 @@ class WOverview : public WWidget, public TrackDropTarget {
     PollingControlProxy m_timeRemainingControl;
     parented_ptr<ControlProxy> m_pPassthroughControl;
     parented_ptr<ControlProxy> m_pTypeControl;
+    parented_ptr<ControlProxy> m_pShowPhrasesControl;
 
     QPointF m_timeRulerPos;
     WaveformMarkLabel m_timeRulerPositionLabel;

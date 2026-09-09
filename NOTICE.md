@@ -38,5 +38,6 @@ Elapsed-time scrolling labels and the shared deck-load policy adapt the same
 pinned xsploit revision. This build retains two decks and defaults to Lock;
 checks at the player boundary cover controller and clone requests as well as
 UI loading. Rekordbox PWV6/PWV7 and PSSI decoder helpers and binary fixtures
-also adapt that revision. Decoder tests are the first integration stage;
-import publication and phrase rendering are tracked separately.
+also adapt that revision, together with validated import and phrase rendering.
+Thank you to xsploit for sharing this work. Custom Bite DJ keeps its two-deck
+layout, compact annotations, optional phrase visibility, and native fallback.

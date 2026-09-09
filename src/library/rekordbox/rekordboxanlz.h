@@ -30,6 +30,12 @@ void readAnalyze(TrackPointer track,
         bool ignoreCues,
         const QString& anlzPath);
 
+// Empty result means success or legitimately absent optional analysis.
+// On failure return the affected path and preserve the previously published data.
+QString readPhrases(TrackPointer track, int timingOffset, const QString& anlzPath);
+QString readThreeBandWaveforms(TrackPointer track, audio::SampleRate sampleRate,
+        int timingOffset, const QString& anlzPath);
+
 // Import independent beat/cue passes and report failures without preventing
 // audio loading. A corrupt EXT is not silently replaced with stale DAT cues.
 QStringList readAnalyzeFiles(TrackPointer track,
