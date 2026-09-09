@@ -9,7 +9,16 @@ UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 [Browse with previews](docs/UI_SCREENSHOTS.md#browse-preview), and
 [all Settings screens](docs/UI_SCREENSHOTS.md#settings-general).
 
+### Fixed
+
+- noVNC preview startup: repair malformed and duplicate WebCodecs exports in fresh and cached GUI images.
+
 ### Added
+
+- Touch the cue drawer header to cycle Hot Cues, Memory, Beat Jump, Pad FX and Beat Loop independently per deck.
+
+- Controller-selected Pad FX, Beat Jump and Beat Loop legends in the cue drawer,
+  independently for each deck. See [controller drawer screenshots](docs/UI_SCREENSHOTS.md#controller-pad-drawer).
 
 - System-owned Pad FX presets and a compact eight-pad Settings editor, with
   independent effect lanes and DDJ-400 Normal/Shift banks

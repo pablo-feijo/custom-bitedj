@@ -158,6 +158,7 @@ PioneerDDJ400.toggleLight = function(midiIn, active) {
 
 PioneerDDJ400.init = function() {
     PiFlexPadFx.init(2);
+    PioneerDDJ400.resetPadDisplay();
     engine.setValue("[EffectRack1_EffectUnit1]", "show_focus", 1);
 
     engine.makeUnbufferedConnection("[Channel1]", "vu_meter", PioneerDDJ400.vuMeterUpdate);
@@ -713,6 +714,9 @@ PioneerDDJ400.jogTouch = function(channel, _control, value) {
 
 PioneerDDJ400.shiftPressed = function(channel, _control, value, _status, _group) {
     PioneerDDJ400.shiftButtonDown[channel] = value === 0x7F;
+    if (channel === 0 || channel === 1) {
+        engine.setValue("[PadFX]", "d" + (channel + 1) + "_shift", value === 0x7F ? 1 : 0);
+    }
 };
 
 
@@ -762,6 +766,7 @@ PioneerDDJ400.increaseBeatjumpSizes = function(_channel, control, value, _status
         PioneerDDJ400.beatjumpSizeForPad[pad] = PioneerDDJ400.beatjumpSizeForPad[pad] * 16;
     });
     engine.setValue(group, "beatjump_size", PioneerDDJ400.beatjumpSizeForPad[0x21]);
+    PioneerDDJ400.updateJumpDisplay();
 };
 
 PioneerDDJ400.decreaseBeatjumpSizes = function(_channel, control, value, _status, group) {
@@ -772,6 +777,7 @@ PioneerDDJ400.decreaseBeatjumpSizes = function(_channel, control, value, _status
         PioneerDDJ400.beatjumpSizeForPad[pad] = PioneerDDJ400.beatjumpSizeForPad[pad] / 16;
     });
     engine.setValue(group, "beatjump_size", PioneerDDJ400.beatjumpSizeForPad[0x21]);
+    PioneerDDJ400.updateJumpDisplay();
 };
 
 //
@@ -866,6 +872,7 @@ PioneerDDJ400.quickJumpBack = function(_channel, _control, value, _status, group
 
 PioneerDDJ400.shutdown = function() {
     PiFlexPadFx.shutdown();
+    PioneerDDJ400.resetPadDisplay();
     // reset vumeter
     PioneerDDJ400.toggleLight(PioneerDDJ400.lights.deck1.vuMeter, false);
     PioneerDDJ400.toggleLight(PioneerDDJ400.lights.deck2.vuMeter, false);
@@ -940,5 +947,39 @@ PioneerDDJ400.filterKnob = function(channel, control, value, status, group) {
     } else {
         // Normal Filter knob controls the channel QuickEffect (super1)
         engine.setValue(group, "super1", normVal);
+    }
+};
+
+// DDJ-400 MIDI message list v1.00, page 3: mode buttons use deck channels
+// 0/1, unlike the performance pads on channels 7/8/9/10. Releases are not
+// deactivation: the hardware mode remains selected until another mode is chosen.
+PioneerDDJ400.resetPadDisplay = function() {
+    for (let deck = 1; deck <= 2; ++deck) {
+        engine.setValue("[PadFX]", "d" + deck + "_mode", 0);
+        engine.setValue("[PadFX]", "d" + deck + "_shift", 0);
+    }
+    PioneerDDJ400.updateJumpDisplay();
+};
+PioneerDDJ400.updateJumpDisplay = function() {
+    const size = PioneerDDJ400.beatjumpSizeForPad[0x21];
+    const bank = size < 1 ? 0 : size > 1 ? 2 : 1;
+    // The existing mapping shares jump sizes across decks.
+    for (let deck = 1; deck <= 2; ++deck) {
+        engine.setValue("[PadFX]", "d" + deck + "_jump_bank", bank);
+    }
+};
+PioneerDDJ400.padModeSelected = function(channel, control, value, status, group) {
+    if (value === 0 || (status & 0xF0) !== 0x90 || channel < 0 || channel > 1) return;
+    const modes = {0x1B: 0, 0x1E: 1, 0x20: 2, 0x6D: 3};
+    const deck = channel + 1;
+    if (Object.prototype.hasOwnProperty.call(modes, control)) {
+        engine.setValue("[PadFX]", "d" + deck + "_mode", modes[control]);
+        engine.setValue("[Skin]", "cue_deck" + deck, 1);
+    } else if ([0x69, 0x6B, 0x22, 0x6F].indexOf(control) !== -1) {
+        // Unsupported/other pad modes must not leave an unrelated panel shown.
+        engine.setValue("[PadFX]", "d" + deck + "_mode", 0);
+        if (engine.getValue("[Skin]", "cue_panel") === deck) {
+            engine.setValue("[Skin]", "cue_close", 1);
+        }
     }
 };

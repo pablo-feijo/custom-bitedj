@@ -2,6 +2,8 @@
 #include "preferences/padfxsettings.h"
 #include "skin/legacy/skincontext.h"
 #include "widget/wpadfxeditor.h"
+#include "widget/wcontrollerpaddisplay.h"
+#include <QDomDocument>
 #include <QDomNode>
 
 class PadFxEditorTest : public MixxxTest {};
@@ -65,4 +67,43 @@ TEST_F(PadFxEditorTest, DaylightLabelUsesDarkForeground) {
     EXPECT_EQ(bounds.bottom(), editor.height() - 13);
     EXPECT_GE(bounds.left(), 16);
     EXPECT_LE(bounds.right(), editor.width() - 17);
+}
+
+// The controller legend must follow live assignments without writing them.
+
+TEST_F(PadFxEditorTest, ControllerLegendTracksDeckAssignmentsAndFitsDrawer) {
+    PadFxSettings settings(config());
+    SkinContext context(config(), "");
+    QDomDocument document;
+    auto root = document.createElement("ControllerPadDisplay");
+    auto channel = document.createElement("Channel");
+    channel.appendChild(document.createTextNode("2"));
+    root.appendChild(channel);
+    document.appendChild(root);
+    WControllerPadDisplay display;
+    display.setup(root, context);
+    display.resize(1000, 116);
+    display.show();
+    ControlProxy mode("[PadFX]", "d2_mode");
+    ControlProxy effect("[PadFX]", "d2_s0_effect");
+    ControlProxy strength("[PadFX]", "d2_s0_strength");
+    mode.set(1);
+    effect.set(6);
+    QCoreApplication::processEvents();
+    const auto labels = display.findChildren<QLabel*>();
+    ASSERT_EQ(labels.size(), 8);
+    EXPECT_TRUE(labels[0]->text().contains("Reverb"));
+    strength.set(0);
+    QCoreApplication::processEvents();
+    EXPECT_TRUE(labels[0]->text().contains("Off"));
+    EXPECT_EQ(effect.get(), 6);
+    mode.set(3);
+    QCoreApplication::processEvents();
+    EXPECT_TRUE(labels[0]->text().contains("roll"));
+    EXPECT_TRUE(labels[4]->text().contains("loop"));
+    for (auto* label : labels) {
+        EXPECT_TRUE(display.rect().contains(label->geometry()));
+        EXPECT_GE(label->height(), 44);
+    }
+    EXPECT_LE(display.minimumSizeHint().height(), 116);
 }

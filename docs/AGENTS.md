@@ -16,8 +16,12 @@ BiteDJ is a highly-customized fork of Mixxx, specifically engineered to run as a
   target for the PiFlex first batch is `codex/v0.0.7`. Do not substitute `main`
   or an older release branch. If the target does not yet exist, preserve the
   agreed base and document the future target; do not invent its starting state.
-- Keep application version numbers at the feature branch's inherited version
-  until preparing the semver release. Then apply the synchronization protocol below.
+- Active integration base: `origin/codex/v0.0.7`. Fetch its latest tip before
+  creating a new task worktree. Update this record and the root agent instructions
+  whenever the user advances the active SemVer branch.
+- Before building deliverable artifacts, assign a branch-specific SemVer prerelease
+  and synchronize binary/package/image versions. Record branch and commit and
+  verify the built binary version; do not relabel existing binaries.
 - Every worktree must have its own `build-linux/`, `dist-linux/`, test settings,
   results, and GUI container. Never share writable build/install/config directories
   between branches. A shared compiler cache and immutable Docker image are fine.
@@ -126,20 +130,14 @@ Before attempting large refactors or upstream cherry-picking from `mixxxdj/mixxx
 - `docs/DDJ400_MAPPING.md`: Explains the custom Pioneer DDJ-400 Pad FX logic and Hardware UI interception.
 
 ## 4. Versioning Protocol
-When preparing a new release or branch (e.g., `v0.0.4`), agents must explicitly synchronize the Semantic Version (semver) across the entire stack:
-1. **Source Code**: Ensure `BITEDJ_VERSION` in `CMakeLists.txt` matches the target branch semver (e.g., `0.0.4`). This updates the `WVersionLabel` in the Settings UI automatically.
-2. **OS Image output**: Ensure `IMG_NAME` in `mixxx-pi-gen/config` includes the semver suffix (e.g., `IMG_NAME="bitedj-pi-v0.0.4"`).
-3. **Flashing Scripts**: Update `scripts/deploy/flash-sdcard.sh` dynamically or explicitly so `ZIP_FILE` and `IMG_FILE` point to the freshly versioned output targets.
 
-For the 0.0.7 working release, pi-gen uses `codex/v007-custom-defaults`;
-`codex/v0.0.7` is only the later merge target in both repositories. Commit on
-the feature branch, publish it, then commit the parent `mixxx-pi-gen` gitlink.
-Do not advance either semver branch without an explicit merge request.
-Keep `.gitmodules` URL/branch valid so a recursive clone resolves the pinned
-commit. The flasher derives IMG_NAME from the pinned config; use
-`BITEDJ_IMAGE_DATE=YYYY-MM-DD` to select a build from a different day.
-Do not copy UI resources into pi-gen: it consumes the matching parent ARM64
-`dist-linux` build. Its sample mixxx.cfg is not installed on first boot.
+Active unreleased integration base: `origin/codex/v0.0.7` (target `0.0.7`).
+Follow [Branch bases and binary versioning](BRANCH_VERSIONING.md) for the canonical
+active-release record, branch creation procedure, build version format and release
+transition history. Update that record and root `agents.md` when the target changes.
+Every work-branch binary must compile a branch-specific SemVer prerelease, e.g.
+`0.0.7-codex-controller-pad-drawer.1`; filenames alone are insufficient.
+Synchronize all produced artifacts and verify the actual rebuilt binary version.
 
 ## 5. Prevent Configuration Drift (Infrastructure as Code)
 When resolving bugs on live hardware or applying hot-patches over SSH (e.g., editing `~/.config/sway/config` or modifying `gsettings` on the Pi), you **must immediately backport those changes to the local repository.** 

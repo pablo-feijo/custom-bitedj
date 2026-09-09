@@ -41,6 +41,34 @@ PadFxSettings::PadFxSettings(UserSettingsPointer config)
                     [this, field, slot](double value) { setSlot(slot, field, value); });
         }
     }
+    // Runtime controller display state. Never persisted with assignments.
+    for (int deck = 1; deck <= 2; ++deck) {
+        const auto prefix = QStringLiteral("d%1_").arg(deck);
+        auto* mode = addControl(prefix + "mode", 5, 0); // Existing IDs; append Memory=4.
+        auto* performance = addControl(prefix + "performance_visible", 2, 0);
+        auto* cycle = addControl(prefix + "cycle", 0, 0);
+        connect(mode, &ControlObject::valueChanged, this, [mode, performance](double value) {
+            if (!valid(value, 5)) {
+                mode->set(0);
+                performance->set(0);
+                return;
+            }
+            performance->set(value > 0 && value < 4 ? 1 : 0);
+        });
+        connect(cycle, &ControlObject::valueChanged, this, [mode, performance](double value) {
+            if (value != 1) return;
+            // Touch order: Hot Cues -> Memory -> Beat Jump -> Pad FX -> Beat Loop.
+            constexpr int next[] = {4, 3, 1, 0, 2};
+            const double current = mode->get();
+            const int selected = valid(current, 5) ? next[static_cast<int>(current)] : 0;
+            // ControlObject suppresses callbacks to the object that made the write.
+            // Publish the derived flag here too, not just on external mode changes.
+            performance->set(selected > 0 && selected < 4 ? 1 : 0);
+            mode->set(selected);
+        });
+        addControl(prefix + "shift", 2, 0);
+        addControl(prefix + "jump_bank", 3, 1); // 1/16, 1, 16 multiplier
+    }
     // Reset commands live with the system defaults, independent of any skin.
     for (int slot = 0; slot < 64; ++slot) {
         auto* reset = addControl(QStringLiteral("d%1_s%2_reset")

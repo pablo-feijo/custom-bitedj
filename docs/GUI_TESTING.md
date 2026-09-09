@@ -312,3 +312,43 @@ in [the canonical screenshot policy](../AGENTS.md#published-ui-screenshots).
 During 0.0.7 development, refresh its gallery in place. After release, preserve
 it and its image directory; create a separate gallery and image directory for
 the next version and point new changelog/README links there.
+
+## Controller pad drawer
+
+The Overview cue drawer follows the DDJ-400 mode selected on either deck.
+Hot Cue restores the existing Hot Cues/Memory controls; Pad FX, Beat Jump and
+Beat Loop replace the pad grid with a **read-only controller legend**. Use the
+physical pads to perform the displayed actions. X still closes the drawer;
+selecting a controller mode opens that deck again. Mode button release does
+not close it. Other modes close only their own deck's visible drawer.
+
+Runtime controls (not saved): `[PadFX],dN_mode` = 0 Hot Cue, 1 Pad FX,
+2 Beat Jump, 3 Beat Loop, 4 Memory; `dN_shift` = 0/1; `dN_jump_bank` = 0/1/2 for
+1/16, 1, 16 multipliers. The existing mapping shares jump sizes across decks.
+The header stays 30px high; the legend uses the existing four-column/two-row
+area, with a 44px minimum row height. Verified at 1024×600: header y=450–481, X center (1000,467);
+legend columns centered at x=128/384/640/896, rows at y=510/570.
+Each legend cell is 252×56px. The waveform area stays at y=39–449.
+See [controller drawer screenshots](UI_SCREENSHOTS.md#controller-pad-drawer).
+
+The legend follows saved Normal/Shift assignments, timing overrides, strength
+and toggle settings. Beat Loop shows four held rolls and four toggle loops;
+holding Shift shows its mapped shifted Pad FX assignments. Beat Jump's Shift
+bank shows size ÷16 / ×16 on pads 7/8. Modes are independent per deck.
+
+### noVNC module startup
+
+The image build and launcher both run `scripts/test/repair-novnc.py`. It removes
+an old malformed literal `\n` injection, avoids duplicate capability exports and
+keeps the WebCodecs probe disabled. This also repairs cached GUI images without
+rebuilding the application or replacing another task's container.
+Run `python3 tests/novnc/test_repair.py` for the regression. Verify the served
+JavaScript parses and connect in the browser; a desktop screenshot alone does
+not verify the noVNC client. Reload a browser tab after repairing its served files.
+
+Touch drawer navigation: tap the header at (530,467) to cycle Hot Cues → Memory
+→ Beat Jump → Pad FX → Beat Loop → Hot Cues. `[PadFX],dN_cycle` is a momentary
+command; release does not advance. Controller and touch selection share
+`dN_mode`, while the two decks keep independent selections. Touch navigation
+works without a connected controller. The performance legend remains read-only;
+this change adds header navigation, not new touch performance actions.

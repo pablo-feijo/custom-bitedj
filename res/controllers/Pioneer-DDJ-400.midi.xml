@@ -13,6 +13,134 @@
             <file functionprefix="PioneerDDJ400" filename="Pioneer-DDJ-400-script.js"/>
         </scriptfiles>
         <controls>
+            <control>
+                <description>Deck 1 pad mode selection</description>
+                <group>[Channel1]</group>
+                <key>PioneerDDJ400.padModeSelected</key>
+                <status>0x90</status>
+                <midino>0x1B</midino>
+                <options><Script-Binding/></options>
+            </control>
+            <control>
+                <description>Deck 1 pad mode selection</description>
+                <group>[Channel1]</group>
+                <key>PioneerDDJ400.padModeSelected</key>
+                <status>0x90</status>
+                <midino>0x1E</midino>
+                <options><Script-Binding/></options>
+            </control>
+            <control>
+                <description>Deck 1 pad mode selection</description>
+                <group>[Channel1]</group>
+                <key>PioneerDDJ400.padModeSelected</key>
+                <status>0x90</status>
+                <midino>0x20</midino>
+                <options><Script-Binding/></options>
+            </control>
+            <control>
+                <description>Deck 1 pad mode selection</description>
+                <group>[Channel1]</group>
+                <key>PioneerDDJ400.padModeSelected</key>
+                <status>0x90</status>
+                <midino>0x6D</midino>
+                <options><Script-Binding/></options>
+            </control>
+            <control>
+                <description>Deck 1 pad mode selection</description>
+                <group>[Channel1]</group>
+                <key>PioneerDDJ400.padModeSelected</key>
+                <status>0x90</status>
+                <midino>0x69</midino>
+                <options><Script-Binding/></options>
+            </control>
+            <control>
+                <description>Deck 1 pad mode selection</description>
+                <group>[Channel1]</group>
+                <key>PioneerDDJ400.padModeSelected</key>
+                <status>0x90</status>
+                <midino>0x6B</midino>
+                <options><Script-Binding/></options>
+            </control>
+            <control>
+                <description>Deck 1 pad mode selection</description>
+                <group>[Channel1]</group>
+                <key>PioneerDDJ400.padModeSelected</key>
+                <status>0x90</status>
+                <midino>0x22</midino>
+                <options><Script-Binding/></options>
+            </control>
+            <control>
+                <description>Deck 1 pad mode selection</description>
+                <group>[Channel1]</group>
+                <key>PioneerDDJ400.padModeSelected</key>
+                <status>0x90</status>
+                <midino>0x6F</midino>
+                <options><Script-Binding/></options>
+            </control>
+            <control>
+                <description>Deck 2 pad mode selection</description>
+                <group>[Channel2]</group>
+                <key>PioneerDDJ400.padModeSelected</key>
+                <status>0x91</status>
+                <midino>0x1B</midino>
+                <options><Script-Binding/></options>
+            </control>
+            <control>
+                <description>Deck 2 pad mode selection</description>
+                <group>[Channel2]</group>
+                <key>PioneerDDJ400.padModeSelected</key>
+                <status>0x91</status>
+                <midino>0x1E</midino>
+                <options><Script-Binding/></options>
+            </control>
+            <control>
+                <description>Deck 2 pad mode selection</description>
+                <group>[Channel2]</group>
+                <key>PioneerDDJ400.padModeSelected</key>
+                <status>0x91</status>
+                <midino>0x20</midino>
+                <options><Script-Binding/></options>
+            </control>
+            <control>
+                <description>Deck 2 pad mode selection</description>
+                <group>[Channel2]</group>
+                <key>PioneerDDJ400.padModeSelected</key>
+                <status>0x91</status>
+                <midino>0x6D</midino>
+                <options><Script-Binding/></options>
+            </control>
+            <control>
+                <description>Deck 2 pad mode selection</description>
+                <group>[Channel2]</group>
+                <key>PioneerDDJ400.padModeSelected</key>
+                <status>0x91</status>
+                <midino>0x69</midino>
+                <options><Script-Binding/></options>
+            </control>
+            <control>
+                <description>Deck 2 pad mode selection</description>
+                <group>[Channel2]</group>
+                <key>PioneerDDJ400.padModeSelected</key>
+                <status>0x91</status>
+                <midino>0x6B</midino>
+                <options><Script-Binding/></options>
+            </control>
+            <control>
+                <description>Deck 2 pad mode selection</description>
+                <group>[Channel2]</group>
+                <key>PioneerDDJ400.padModeSelected</key>
+                <status>0x91</status>
+                <midino>0x22</midino>
+                <options><Script-Binding/></options>
+            </control>
+            <control>
+                <description>Deck 2 pad mode selection</description>
+                <group>[Channel2]</group>
+                <key>PioneerDDJ400.padModeSelected</key>
+                <status>0x91</status>
+                <midino>0x6F</midino>
+                <options><Script-Binding/></options>
+            </control>
             <!--
                 BROWSER Section START
             -->

@@ -1,5 +1,13 @@
 # Agent Instructions
 
+## Active Unreleased Branch and Binary Versions
+- Current active unreleased base: `origin/codex/v0.0.7`, target SemVer `0.0.7`.
+- Follow [the branch and version guide](docs/BRANCH_VERSIONING.md). Fetch the active remote tip before each new task; create an isolated `codex/<topic>` worktree from that tip. Reuse the task worktree for follow-ups.
+- Track the base branch, resolved commit, feature branch, worktree, binary version and merge target in the task checklist. When the user advances the active release, update this record, `docs/AGENTS.md` and the guide's active-release table/history together.
+- Every work-branch binary must embed `MAJOR.MINOR.PATCH-<full-branch-slug>.<build-number>` using `BITEDJ_VERSION` and `BITEDJ_VERSION_PRERELEASE`; for example `0.0.7-codex-controller-pad-drawer.1`. Increment the build number for new deliverable builds. Keep the upstream Mixxx version independent.
+- Synchronize full binary/package/archive/image versions, record the original branch and source commit as provenance, and verify the rebuilt binary's reported version before delivery. Never relabel an old binary. Unsuffixed versions are reserved for final releases.
+
+
 ## Commit Messages
 - Use Conventional Commits for every commit: `type(scope): description` (scope is optional).
 - Use appropriate types such as `feat`, `fix`, `docs`, `refactor`, `test`, `build`, or `chore`.
@@ -257,3 +265,40 @@ Bottom-preview cue priority: use 2px colored marker lines with a contrasting bor
 The main `cue_point` is shown as an orange **CUE** marker in both bottom previews, matching Play (`#ff6000`). It remains visible when the playhead is exactly on the cue. Verify this separately from hot-cue letters and memory-cue numbers, with phrases On/Off.
 
 At overlapping positions, the orange main **CUE** line and label paint last, above hot cues and memory cues. Keep the CUE label unabridged; cue metadata and existing edit targets are unchanged. Test exact overlaps with a hot cue and a memory cue separately.
+
+## Controller pad drawer
+
+The Overview cue drawer follows the DDJ-400 mode selected on either deck.
+Hot Cue restores the existing Hot Cues/Memory controls; Pad FX, Beat Jump and
+Beat Loop replace the pad grid with a **read-only controller legend**. Use the
+physical pads to perform the displayed actions. X still closes the drawer;
+selecting a controller mode opens that deck again. Mode button release does
+not close it. Other modes close only their own deck's visible drawer.
+
+Runtime controls (not saved): `[PadFX],dN_mode` = 0 Hot Cue, 1 Pad FX,
+2 Beat Jump, 3 Beat Loop, 4 Memory; `dN_shift` = 0/1; `dN_jump_bank` = 0/1/2 for
+1/16, 1, 16 multipliers. The existing mapping shares jump sizes across decks.
+The header stays 30px high; the legend uses the existing four-column/two-row
+area, with a 44px minimum row height. Verified at 1024×600: header y=450–481, X center (1000,467);
+legend columns centered at x=128/384/640/896, rows at y=510/570.
+Each legend cell is 252×56px. The waveform area stays at y=39–449.
+See [controller drawer screenshots](docs/UI_SCREENSHOTS.md#controller-pad-drawer).
+
+The legend follows saved Normal/Shift assignments, timing overrides, strength
+and toggle settings. Beat Loop shows four held rolls and four toggle loops;
+holding Shift shows its mapped shifted Pad FX assignments. Beat Jump's Shift
+bank shows size ÷16 / ×16 on pads 7/8. Modes are independent per deck.
+
+## Docker Disk Maintenance
+- Before and after large builds, inspect `df -h .` and `docker system df`; aim for at least 10 GiB of free host space before starting.
+- Keep build outputs, logs and captures in ignored worktree-local directories. Routinely remove only this task's obsolete disposable outputs; preserve other tasks, running containers and named data volumes.
+- Run global `docker system prune --all --volumes --force` only with explicit full-cleanup authorization. Never stop running containers to make them eligible for pruning, or restart a healthy Docker engine.
+- After a prune, recreate only the owned GUI instance with `scripts/test/run-gui-test.sh`, verify ownership and read its newly assigned ports. Host source and test settings are preserved.
+- The shared maintenance guide is being developed on `codex/ddj400-shift-fx-back` in `docs/DOCKER_MAINTENANCE.md`; incorporate its committed version when integrating that branch.
+
+Touch drawer navigation: tap the header at (530,467) to cycle Hot Cues → Memory
+→ Beat Jump → Pad FX → Beat Loop → Hot Cues. `[PadFX],dN_cycle` is a momentary
+command; release does not advance. Controller and touch selection share
+`dN_mode`, while the two decks keep independent selections. Touch navigation
+works without a connected controller. The performance legend remains read-only;
+this change adds header navigation, not new touch performance actions.

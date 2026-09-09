@@ -2,6 +2,8 @@ FROM bitedj-builder:latest
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+COPY scripts/test/repair-novnc.py /usr/local/lib/bitedj/repair-novnc.py
+
 RUN apt-get update && apt-get install -y \
     xvfb \
     openbox \
@@ -17,7 +19,7 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     curl \
     procps \
-    && sed -i '1s/^/export let supportsWebCodecsH264Decode = false;\\n/' /usr/share/novnc/core/util/browser.js \
+    && python3 /usr/local/lib/bitedj/repair-novnc.py \
     && sed -i "s/supportsWebCodecsH264Decode = await _checkWebCodecsH264DecodeSupport();/supportsWebCodecsH264Decode = false;/" /usr/share/novnc/core/util/browser.js \
     && sed -i "s/import { dragThreshold, supportsWebCodecsH264Decode } from '.\/util\/browser.js';/import { dragThreshold } from '.\/util\/browser.js?v=20260906'; const supportsWebCodecsH264Decode = false;/" /usr/share/novnc/core/rfb.js \
     && sed -i 's|\"./app/ui.js\"|\"./app/ui.js?v=20260906\"|g' /usr/share/novnc/vnc.html \

@@ -79,3 +79,42 @@ The DDJ-400 mapping has been verified end-to-end on physical hardware connected 
 - **Beat FX**: Level/Depth simultaneous mix/meta sweep, ON/OFF toggle, Beat FX channel assignment.
 - **Pad FX**: Instant punch-in profiles on Pads 1–8 with automatic clean restoration on release.
 - **In-Skin Device Picker**: Discovered and enabled under **Settings -> Devices**.
+
+## Controller pad drawer
+
+The Overview cue drawer follows the DDJ-400 mode selected on either deck.
+Hot Cue restores the existing Hot Cues/Memory controls; Pad FX, Beat Jump and
+Beat Loop replace the pad grid with a **read-only controller legend**. Use the
+physical pads to perform the displayed actions. X still closes the drawer;
+selecting a controller mode opens that deck again. Mode button release does
+not close it. Other modes close only their own deck's visible drawer.
+
+Runtime controls (not saved): `[PadFX],dN_mode` = 0 Hot Cue, 1 Pad FX,
+2 Beat Jump, 3 Beat Loop, 4 Memory; `dN_shift` = 0/1; `dN_jump_bank` = 0/1/2 for
+1/16, 1, 16 multipliers. The existing mapping shares jump sizes across decks.
+The header stays 30px high; the legend uses the existing four-column/two-row
+area, with a 44px minimum row height. Verified at 1024×600: header y=450–481, X center (1000,467);
+legend columns centered at x=128/384/640/896, rows at y=510/570.
+Each legend cell is 252×56px. The waveform area stays at y=39–449.
+See [controller drawer screenshots](UI_SCREENSHOTS.md#controller-pad-drawer).
+
+The legend follows saved Normal/Shift assignments, timing overrides, strength
+and toggle settings. Beat Loop shows four held rolls and four toggle loops;
+holding Shift shows its mapped shifted Pad FX assignments. Beat Jump's Shift
+bank shows size ÷16 / ×16 on pads 7/8. Modes are independent per deck.
+
+Mode selection uses MIDI status `0x90`/`0x91`: Hot Cue `0x1B`, Beat Loop
+`0x6D`, Beat Jump `0x20`, Pad FX1 `0x1E`. Keyboard `0x69`, Pad FX2 `0x6B`,
+Sampler `0x22`, and Key Shift `0x6F` dismiss this legend; these secondary modes
+are not newly implemented by this display change.
+Source: [AlphaTheta DDJ-400 MIDI message list, page 3](https://downloads.support.alphatheta.com/software_info/dj-controllers/DDJ-400/DDJ-400_MIDI_Message_List_E1.pdf).
+
+Run `node tests/padfx/test_controller_pad_display.cjs` and
+`node tests/padfx/test_padfx.cjs` for the mapping regressions.
+
+Touch drawer navigation: tap the header at (530,467) to cycle Hot Cues → Memory
+→ Beat Jump → Pad FX → Beat Loop → Hot Cues. `[PadFX],dN_cycle` is a momentary
+command; release does not advance. Controller and touch selection share
+`dN_mode`, while the two decks keep independent selections. Touch navigation
+works without a connected controller. The performance legend remains read-only;
+this change adds header navigation, not new touch performance actions.

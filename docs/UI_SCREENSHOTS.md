@@ -93,3 +93,27 @@ and [agent screenshot policy](../AGENTS.md#published-ui-screenshots). Refresh
 screens affected by UI changes in the same commit and link their sections from
 the changelog. Raw captures remain ignored; only reviewed publication images
 are stored here. Preserve this gallery once 0.0.7 is released.
+
+<a id="controller-pad-drawer"></a>
+
+## Controller pad drawer
+
+Branch `codex/controller-pad-drawer`, based on `559edc3def`; compiled version
+`0.0.7-codex-controller-pad-drawer.2`. Captured at 1024×600 with synthetic music
+and the actual DDJ-400 mapping receiving simulated MIDI, not physical hardware.
+The legend occupies the existing cue drawer, follows each deck's selected mode
+and shows the current saved assignments. Use the controller pads to perform;
+the new legend cells are read-only. The touch header cycles Hot Cues → Memory →
+Beat Jump → Pad FX → Beat Loop. Hot Cue restores the existing touch controls.
+
+![Deck 1 Pad FX: eight default assignments in the cue drawer.](images/ui/0.0.7/controller-pad-fx.png)
+
+![Deck 2 Beat Jump: four backward/forward beat distances.](images/ui/0.0.7/controller-beat-jump.png)
+
+![Deck 1 Beat Loop: four held rolls above four toggle loops.](images/ui/0.0.7/controller-beat-loop.png)
+
+![Shift follows the alternate saved Pad FX bank.](images/ui/0.0.7/controller-pad-fx-shift.png)
+
+![Day theme with the touch-selectable Pad FX header.](images/ui/0.0.7/controller-pad-fx-day.png)
+
+![Touch cycles from Hot Cues to the Memory bank.](images/ui/0.0.7/touch-memory.png)
