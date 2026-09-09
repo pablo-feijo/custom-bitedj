@@ -16,6 +16,16 @@
   Check RGB, FILT and 3 BAND after changing overview rendering. Stacked rendering
   uses bottom-origin image coordinates and must not get the symmetric translation.
 
+## Waveform renderer defaults
+
+The BiteDJ Wave buttons select regular renderers: RGB=17, Filt=19 and
+3 Band=25 on `[Waveform],waveform_type`. Do not replace these with high-detail
+textured IDs 22/23/24 (or legacy 7/12/16). High detail renders a 4×-width,
+4×-height intermediate buffer and remains an explicit desktop preference.
+Fresh Qt6 settings choose regular RGB=17; legacy Qt uses RGB GL=11.
+An existing `[Waveform],WaveformType` preference is preserved: selecting RGB
+in the skin returns a saved high-detail RGB choice to regular RGB.
+
 ## Cue rendering
 
 Overview labels use hot-cue letters and memory numbers; full names remain in

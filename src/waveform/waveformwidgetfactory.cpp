@@ -966,7 +966,9 @@ void WaveformWidgetFactory::slotFrameSwapped() {
 WaveformWidgetType::Type WaveformWidgetFactory::autoChooseWidgetType() const {
     if (isOpenGlShaderAvailable()) {
 #ifndef MIXXX_USE_QOPENGL
-        return WaveformWidgetType::GLSLRGBWaveform;
+        // The legacy GLSL RGB renderer is the supersampled high-detail path.
+        // Keep high detail opt-in, as with the regular all-shader default below.
+        return WaveformWidgetType::GLRGBWaveform;
 #else
         return WaveformWidgetType::AllShaderRGBWaveform;
 #endif

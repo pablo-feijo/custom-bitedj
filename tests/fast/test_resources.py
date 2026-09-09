@@ -42,3 +42,15 @@ class SkinContracts(unittest.TestCase):
         self.assertEqual("true", button.findtext("LeftClickIsPushButton"))
         connection = button.find("Connection")
         self.assertEqual("true", connection.findtext("EmitOnDownPress"))
+
+    def test_skin_waveform_choices_keep_high_detail_opt_in(self):
+        # Saved renderer IDs are a public skin/control contract. High-detail
+        # legacy (7/12/16) and textured (22/23/24) types must not become the
+        # choices exposed by the appliance skin.
+        choices = {}
+        for path in SKIN.rglob("*.xml"):
+            for template in ET.parse(path).iter("Template"):
+                variables = {v.get("name"): v.text for v in template.findall("SetVariable")}
+                if variables.get("ConfigKey") == "[Waveform],waveform_type":
+                    choices[variables["Text"]] = int(variables["Value"])
+        self.assertEqual({"RGB": 17, "Filt": 19, "3 Band": 25}, choices)
