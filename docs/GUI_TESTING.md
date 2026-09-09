@@ -241,6 +241,11 @@ Update this guide, the root mapping and affected automation in the same commit
 whenever UI options change. Remeasure after layout changes; these positions
 are for the current 1024×600 skin.
 
+Library column settings use independent visibility and width controls with
+48px row spacing. See the [verified Library mapping](../AGENTS.md#e-settings---library-options-x219-y60)
+and [Library screenshot](UI_SCREENSHOTS.md#settings-library); the Preview row
+is at `y=390`, with ON/OFF at `820` and L width at `988`.
+
 ### C. Zero-Dependency Pixel Scanning Recipe
 Dump a screenshot to PPM and scan raw RGB values in standard Python to find exact widget bounds before issuing `xdotool` clicks:
 ```bash
@@ -273,3 +278,37 @@ Bottom-preview cue priority: use 2px colored marker lines with a contrasting bor
 The main `cue_point` is shown as an orange **CUE** marker in both bottom previews, matching Play (`#ff6000`). It remains visible when the playhead is exactly on the cue. Verify this separately from hot-cue letters and memory-cue numbers, with phrases On/Off.
 
 At overlapping positions, the orange main **CUE** line and label paint last, above hot cues and memory cues. Keep the CUE label unabridged; cue metadata and existing edit targets are unchanged. Test exact overlaps with a hot cue and a memory cue separately.
+
+## Documentation screenshots
+
+The [0.0.7 UI gallery](UI_SCREENSHOTS.md) contains publication images, linked
+from the README and changelog. These curated assets are the exception to the
+rule excluding raw test screenshots from Git. Agent refresh requirements live
+in [the canonical screenshot policy](../AGENTS.md#published-ui-screenshots).
+
+1. Build and launch an isolated worktree with the commands above. Use the
+   inherited application version; do not bump it for a documentation change.
+2. Use the launcher's synthetic music or the [Rekordbox fixture](../tests/rekordbox/README.md).
+   Load both decks and let analysis finish. Pause playback for stable captures.
+3. Open Browse, choose the synthetic music folder/export and make the waveform
+   **Preview** column visible in Settings → Library (ON/OFF: `820,390`;
+   L width: `988,390`, measured in the current 1024×600 capture). Return to
+   Browse and confirm the table contains actual waveforms and both deck previews.
+4. Close dialogs and menus; wait for notifications and analysis overlays to clear.
+   Keep the native 1024×600 window, with the Night theme for the primary gallery.
+5. Run `./scripts/test/capture-ui-docs.sh`. It verifies instance ownership, captures
+   Play, the prepared Browse table and all seven Settings tabs with `scrot`, and
+   saves raw PNGs plus source/binary provenance in ignored
+   `test-results/<instance>/ui-docs/`. It leaves the instance on Play.
+6. View every PNG at full size. Confirm the selected tab, text, waveform previews,
+   padding and footer: PAD FX alone hides the Settings deck footer. Reject blank,
+   loading, tooltip-covered or unintended pages. For styling changes also inspect
+   Day mode and publish additional images when needed to explain the change.
+7. Copy only reviewed publication PNGs into `docs/images/ui/0.0.7/`. Update the
+   gallery's source revision, captions and README previews; link the affected
+   gallery anchors from the UI change's changelog entry. Verify PNG dimensions and
+   all relative links. Never copy logs, settings, databases or audio into docs.
+
+During 0.0.7 development, refresh its gallery in place. After release, preserve
+it and its image directory; create a separate gallery and image directory for
+the next version and point new changelog/README links there.

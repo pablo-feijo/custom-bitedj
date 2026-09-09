@@ -79,6 +79,13 @@ When developing or testing in `bitedj-gui-test-instance`:
    - When fixing cramped margins, measure both opposing gaps (`gap_above` and `gap_below`) and target the visual midpoint `(gap_above + gap_below) / 2` on the first iteration rather than testing tentative 2px increments.
 
 ### E. Keep UI Guides in Sync
+
+For every visible UI change, follow the root
+[published screenshot policy](../AGENTS.md#published-ui-screenshots): recapture
+all affected documentation images, update gallery captions and link the affected
+gallery section from that change's changelog entry in the same commit. Preserve
+released galleries. Curated documentation screenshots are committed assets;
+raw test screenshots and logs remain ignored.
 Every UI option addition, removal, rename, move or resize must update the root
 [UI guide](../AGENTS.md) and [GUI testing guide](GUI_TESTING.md) in the same
 commit. Record option order, measured 1024×600 coordinates and control/value

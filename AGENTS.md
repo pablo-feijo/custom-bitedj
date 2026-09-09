@@ -43,6 +43,22 @@ architecture, versioning, branch isolation, testing and Conventional Commits rul
 - Verify the changed page in the owned VNC instance at 1024×600, including labels,
   touch targets, padding and footer visibility; check Day/Night when styles change.
 
+## Published UI Screenshots
+
+- UI changes must refresh every affected image in `docs/images/ui/0.0.7/`
+  and its caption in [the UI gallery](docs/UI_SCREENSHOTS.md) in the same commit.
+  This includes visible labels, controls, layout, styling and waveform rendering.
+- Follow [the capture procedure](docs/GUI_TESTING.md#documentation-screenshots).
+  Use an owned 1024×600 instance and synthetic fixtures; inspect each final image.
+- Link the affected gallery section from the corresponding UI changelog entry.
+  Keep README previews and gallery links valid when moving or renaming images.
+- Curated documentation images are committed assets, explicitly requested for
+  the README/docs. Raw captures and other test-run results remain ignored under
+  `test-results/`; do not commit those.
+- Refresh the current unreleased version's gallery in place. When starting a new
+  release, retain released images and use a new version directory and gallery so
+  historical changelog links continue to show their release's UI.
+
 ## Repository Organization
 
 - Follow [the canonical repository layout](docs/REPOSITORY_LAYOUT.md) for every new file.
@@ -163,25 +179,25 @@ row with center `y=470`. All rows fit above the deck footer at `y=520`.
 Browse root rows: Prepare `y=52`, Computer `y=75`, History `y=99`, Rekordbox `y=121` (expanded fixture child `y=143`). Overview labels use hot-cue letters and memory numbers; full names remain in the Play waveform. Phrase strips are 10px with 8px text; the overview ruler is 9px with 7px text.
 
 #### E. Settings -> Library Options (`x=219, y=60`)
-Configures visible columns and column widths (`OFF | XS | S | M | L`).
-- **Left Column (`x=0..512`)**:
-  - Column buttons at: `OFF (x=296)`, `XS (x=346)`, `S (x=386)`, `M (x=426)`, `L (x=466)`
-  - Row 0 (`y=104`): `#`
-  - Row 1 (`y=156`): `TITLE`
-  - Row 2 (`y=208`): `ARTIST`
-  - Row 3 (`y=260`): `ALBUM`
-  - Row 4 (`y=312`): `BPM`
-  - Row 5 (`y=364`): `KEY`
-  - Row 6 (`y=416`): `TIME`
-- **Right Column (`x=512..1024`)**:
-  - Column buttons at: `OFF (x=796)`, `XS (x=846)`, `S (x=886)`, `M (x=926)`, `L (x=966)`
-  - Row 0 (`y=104`): `GENRE`
-  - Row 1 (`y=156`): `YEAR`
-  - Row 2 (`y=208`): `COLOR`
-  - Row 3 (`y=260`): `RATING`
-  - Row 4 (`y=312`): `PLAYED`
-  - Row 5 (`y=364`): `COMMENT`
-  - Row 6 (`y=416`): `PREVIEW` (e.g. click `x=966, y=416` for `L` size)
+Configures column visibility (independent ON/OFF toggle) and widths (`XS | S | M | L`).
+Verified against the documentation capture at 1024×600, UI source `8f87aa338f`:
+- **Left Column**: ON/OFF `x=304`; XS `356`, S `396`, M `436`, L `476`.
+- **Right Column**: ON/OFF `x=820`; XS `868`, S `908`, M `948`, L `988`.
+- Row centers are `y=102 + 48 * row`:
+
+| Row | y | Left | Right |
+| --- | --- | --- | --- |
+| 0 | 102 | # | Genre |
+| 1 | 150 | Title | Year |
+| 2 | 198 | Artist | Color |
+| 3 | 246 | Album | Rating |
+| 4 | 294 | BPM | Played |
+| 5 | 342 | Key | Comment |
+| 6 | 390 | Time | Preview |
+
+Visibility uses `[Library],column_visible_<column>` (Off=0, On=1); width
+uses `[Library],column_weight_<column>` (XS=1, S=2, M=3, L=4). Selecting a width does not enable an
+Off column. See [the current Library screenshot](docs/UI_SCREENSHOTS.md#settings-library).
 
 #### F. Levels Page (`x=700, y=30`)
 - Master EQ buttons: `FLAT (x=845, y=240)`, `MODE (x=940, y=240)`.
