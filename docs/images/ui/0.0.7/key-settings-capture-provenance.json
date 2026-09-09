@@ -1,0 +1,17 @@
+{
+  "source_commit": "4a675dfe8d22ed75df6e56c6b21692865d294d42",
+  "source_branch": "codex/browse-header-navigation",
+  "source_hash": "114511e8feec2dc01353cab77339b096978ac2fbd27180023d4477bac9d9273a",
+  "version": "0.0.7-codex-browse-header-navigation.5",
+  "dirty": true,
+  "platform": "linux/arm64",
+  "builder_image": "sha256:67e0535d326137fd57d6d95ab67cfa94d69fde6e294c1f3fbe45b736475bc89b",
+  "binary_version": "Bite DJ 0.0.7-codex-browse-header-navigation.5",
+  "built_at": "2026-09-09T16:42:08.162915+00:00",
+  "artifact_hash": "7a6abfe0cb162554dfd18679ff91410d4b3b0fa75463cef265480dabc912f56a",
+  "binary_sha256": "0cae08c1906124c4f4d50ff207c1eb1c812f8d8c2d4488352dd74bcf2902fc72",
+  "images": {
+    "key.png": "396af2e04df786d22f701979e172a11c8ab02cb865efaf5bcb005b43ec194857",
+    "key-day.png": "6b5ce296f1d85198cccab4c8667728f6fde7dcf92109958ce2032210a9e5492d"
+  }
+}

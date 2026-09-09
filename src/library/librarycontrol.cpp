@@ -253,6 +253,11 @@ LibraryControl::LibraryControl(Library* pLibrary)
                 &LibraryControl::slotAutoDjAddBottom);
     }
 
+    m_pAutoDjAddAll = std::make_unique<ControlPushButton>(
+            ConfigKey("[Library]", "AutoDjAddAll"));
+    connect(m_pAutoDjAddAll.get(), &ControlPushButton::valueChanged,
+            this, &LibraryControl::slotAutoDjAddAll);
+
     m_pAutoDjAddReplace = std::make_unique<ControlPushButton>(
             ConfigKey("[Library]", "AutoDjAddReplace"));
     {
@@ -639,6 +644,15 @@ void LibraryControl::slotAutoDjAddBottom(double v) {
     WTrackTableView* pTrackTableView = m_pLibraryWidget->getCurrentTrackTableView();
     if (pTrackTableView) {
         pTrackTableView->addToAutoDJBottom();
+    }
+}
+
+void LibraryControl::slotAutoDjAddAll(double v) {
+    if (!m_pLibraryWidget || v <= 0) {
+        return;
+    }
+    if (auto* table = m_pLibraryWidget->getCurrentTrackTableView()) {
+        table->addAllToAutoDJ();
     }
 }
 

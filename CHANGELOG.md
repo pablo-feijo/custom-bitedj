@@ -7,6 +7,31 @@ Versioning; commit messages follow Conventional Commits.
 
 ## [0.0.7] — Unreleased
 
+- Add compact Move Up, Move Down and Remove controls to the pending Auto DJ
+  queue, with regression coverage for order, duplicate entries and live editing.
+
+- Show a compact green AUTO PLAY ON badge on Play while automatic mixing is active.
+
+- Route BiteDJ Auto Play through visible decks 1/2 even when inherited mixer
+  settings assign them to the center. Cover this physical-Pi regression in native
+  and desktop tests; preserve other skins’ deck routing.
+
+- Confirm queue additions with added/pending track counts; explain empty
+  selections and unsupported views. Add View Queue, rename the whole-list
+  action Queue All, and expose saved playlists under Folders when present.
+  Cover saved-playlist queuing and visible feedback in desktop tests.
+
+- Auto Play mixes both loaded decks automatically when its queue is empty.
+  Explain how to load decks or queue tracks when neither source is available. Starting the last
+  queued track now routes the crossfader to its deck, preventing silent playback.
+  Add native and desktop/audio regressions for queue controls and empty queues.
+
+- Add compact Browse controls for selected-track queuing, whole-playlist queuing
+  and Auto Play on/off using the existing Auto DJ engine. Its queue appears in
+  the folder tree only when nonempty or running; tapping its label opens it.
+  The toolbar is 32px high; extra Auto DJ options appear only while Auto Play
+  is on. See [Browse](docs/UI_SCREENSHOTS.md#browse-preview).
+
 - Reduce the overview time ruler to 8px with 6px labels, preserving waveform
   height and seek controls ([Play](docs/UI_SCREENSHOTS.md#play)).
 - Focus the System version footer on Custom Bite DJ and its full version, with
@@ -28,6 +53,10 @@ UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 
 ### Fixed
 
+- Clarify the [Key panel](docs/UI_SCREENSHOTS.md#grid-key-controls) with compact
+  deck sections and semitone labels; align key/BPM badges in the
+  [Settings deck previews](docs/UI_SCREENSHOTS.md#settings-general).
+
 - Bottom [performance pads](docs/UI_SCREENSHOTS.md#controller-pad-drawer) now
   respond to touch in Pad FX, Beat Jump and Beat Loop, without a controller.
   Shared FX ownership preserves overlapping MIDI/touch holds and safe release.
@@ -39,8 +68,10 @@ UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 - Beat FX period and ON/OFF controls follow the focused effect; either Shift
   disables all three slots. Next/previous preset selection is retained.
 
-- Browse table headers use smaller text and balanced padding; folder navigation
-  has 44px touch rows and expansion areas that keep the tree open.
+- [Browse](docs/UI_SCREENSHOTS.md#browse-preview) uses a clean 18px table header
+  with vertically centered 9px labels and compact 28px folder rows, tighter
+  indentation, orange source icons and a blue selection highlight. Prepare appears
+  only when its queue contains tracks, including a restored queue.
 - Beat FX selection stays inside the right panel in two columns with seven compact
   rows per page, 10px labels, and smaller action icons ([picker preview](docs/UI_SCREENSHOTS.md#beat-fx-picker)).
 

@@ -89,5 +89,16 @@ wet/dry Mix, with a scrollable area for the first effect's loaded parameters.
 Beat period buttons and controller Beat left/right share the native period and
 range metadata. Pad mode labels are 12px; arrow touch targets remain 48×44px.
 
-Key −2/+2 use
-(873/970,158) and y=306; Match/Reset use (873/970,210) and y=358.
+Key uses two bordered deck sections with 11px deck labels and centered
+18px current-key badges. The `−2 st` / `+2 st` labels clarify semitone steps.
+Key −2/+2 use (878/966,165) and y=321; Match/Reset use
+(878/966,215) and y=371. Buttons remain 44px high; sections have an 8px gap.
+
+## Auto Play status
+
+A green **AUTO PLAY ON** badge appears below the FX / KEY / JUMP / GRID tabs
+while `[AutoDJ],enabled` is on. The read-only 22px badge uses 11px centered text;
+it disappears and releases its space when off. Waveforms retain their geometry.
+At 1024×600 its green background can be checked at `(840,105)`.
+The desktop queue regression checks the badge on Play before and after disabling
+Auto Play in Browse. Verify Night and Day, and each right-side panel.

@@ -280,6 +280,152 @@ class DesktopE2E(unittest.TestCase):
             sum(value * value for value in samples) / len(samples)
         )
 
+    def test_autoplay_queue_controls(self):
+        def pixel(x, y):
+            self.inside("scrot", "-o", "/tmp/queue-control.png")
+            rgb = self.inside("ffmpeg", "-v", "error", "-i", "/tmp/queue-control.png",
+                "-f", "rawvideo", "-pix_fmt", "rgb24", "pipe:1")
+            return tuple(rgb[(y * 1024 + x) * 3:(y * 1024 + x) * 3 + 3])
+
+        # Fresh instance: no Auto DJ queue, Computer -> Quick Links -> Music.
+        self.click(300, 20)
+        self.click(120, 55)
+        self.click(150, 83)
+        self.click(170, 111)
+        time.sleep(1)  # Browse loads its directory model asynchronously.
+        self.click(892, 56)
+        eventually(lambda: self.assertEqual(pixel(10, 10), (26, 17, 0)))
+        self.click(512, 20)  # Dismiss the in-skin notice; kiosk rejects Qt dialogs.
+        eventually(lambda: self.assert_selected_tab(1))
+        self.assertLess(self.audio_rms(), 30, "Empty queue must not start a deck")
+
+        def queue_count():
+            return int(self.inside("python3", "-c",
+                "import sqlite3; c=sqlite3.connect('file:/root/.mixxx/mixxxdb.sqlite?mode=ro',uri=True); "
+                "print(c.execute(\"select count(*) from PlaylistTracks where playlist_id="
+                "(select id from Playlists where name='Auto DJ')\").fetchone()[0])"))
+
+        self.click(600, 102)
+        self.click(683, 56)  # Selected track.
+        eventually(lambda: self.assertEqual(queue_count(), 1))
+        eventually(lambda: self.assertEqual(pixel(10, 10), (26, 17, 0)))
+        self.click(512, 20)
+        self.click(780, 56)  # The full one-track fixture playlist.
+        eventually(lambda: self.assertEqual(queue_count(), 2))
+        eventually(lambda: self.assertEqual(pixel(10, 10), (26, 17, 0)))
+        self.click(512, 20)
+        self.click(598, 56)  # View Queue opens Auto DJ directly.
+
+        header_off = pixel(10, 80)
+        self.click(892, 56)
+        try:
+            eventually(lambda: self.assertEqual(pixel(850, 47), (22, 115, 71)))
+            eventually(lambda: self.assertNotEqual(pixel(10, 80), header_off))
+            eventually(lambda: self.assertGreater(self.audio_rms(), 500), timeout=20)
+            self.click(100, 20)
+            eventually(lambda: self.assertEqual(pixel(840, 105), (22, 115, 71)))
+            self.click(300, 20)
+            self.click(892, 56)
+            eventually(lambda: self.assertNotEqual(pixel(850, 47), (22, 115, 71)))
+            eventually(lambda: self.assertEqual(pixel(10, 80), header_off))
+            self.assertGreater(self.audio_rms(), 500, "Auto Play off must leave playback running")
+            self.click(100, 20)
+            eventually(lambda: self.assertNotEqual(pixel(840, 105), (22, 115, 71)))
+            self.inside("xdotool", "key", "d")
+            eventually(lambda: self.assertLess(self.audio_rms(), 30), timeout=20)
+            self.click(300, 20)
+            # Remove the remaining queued track; both decks stay loaded.
+            self.click(600, 102)
+            self.inside("xdotool", "mousemove", "600", "102", "click", "3")
+            self.click(646, 226)
+            eventually(lambda: self.assertEqual(queue_count(), 0))
+            self.click(892, 56)
+            eventually(lambda: self.assertEqual(pixel(850, 47), (22, 115, 71)))
+            eventually(lambda: self.assertGreater(self.audio_rms(), 500), timeout=20)
+            self.assertEqual(queue_count(), 1, "Loaded decks should supply the empty queue")
+            self.click(892, 56)
+
+        finally:
+            self.click(100, 20)
+            self.inside("xdotool", "key", "d")
+        eventually(lambda: self.assertLess(self.audio_rms(), 30), timeout=20)
+
+    def test_z_saved_playlist_queue(self):
+        # Seed a saved playlist in this disposable database, then restart so
+        # the library discovers it through the normal startup path.
+        self.verify_owner()
+        self.inside("python3", "-c",
+            "import sqlite3; c=sqlite3.connect('/root/.mixxx/mixxxdb.sqlite'); "
+            "track=c.execute('select id from library limit 1').fetchone()[0]; "
+            "c.execute(\"delete from PlaylistTracks where playlist_id=(select id from Playlists where name='Auto DJ')\"); "
+            "p=c.execute(\"insert into Playlists(name,position,hidden,locked) values('Queue Test',1,0,0)\").lastrowid; "
+            "c.executemany('insert into PlaylistTracks(playlist_id,track_id,position) values(?,?,?)',[(p,track,1),(p,track,2)]); c.commit()")
+        command("docker", "restart", self.container, timeout=40)
+        eventually(self.window_ready, timeout=60)
+        def ready():
+            self.click(950, 20)
+            self.assert_selected_tab(4)
+        eventually(ready, timeout=60)
+        self.click(300, 20)
+        self.click(100, 55)  # Playlists exists because the saved playlist exists.
+        self.click(100, 83)  # Queue Test.
+        time.sleep(1)
+        self.click(780, 56)  # Queue All, with no manual row selection.
+        def queued():
+            count = int(self.inside("python3", "-c",
+                "import sqlite3; c=sqlite3.connect('file:/root/.mixxx/mixxxdb.sqlite?mode=ro',uri=True); "
+                "print(c.execute(\"select count(*) from PlaylistTracks where playlist_id=(select id from Playlists where name='Auto DJ')\").fetchone()[0])"))
+            self.assertEqual(count, 2)
+        eventually(queued)
+        self.click(512, 20)  # Dismiss the added-track count.
+        self.click(600, 102)
+        self.click(683, 56)  # Add one duplicate: entries must remain independent.
+        self.click(512, 20)
+        self.click(598, 56)
+        def order():
+            return json.loads(self.inside("python3", "-c",
+                "import sqlite3,json; c=sqlite3.connect('file:/root/.mixxx/mixxxdb.sqlite?mode=ro',uri=True); "
+                "print(json.dumps([r[0] for r in c.execute(\"select id from PlaylistTracks where playlist_id=(select id from Playlists where name='Auto DJ') order by position\")]))"))
+        original = order()
+        self.assertEqual(len(original), 3)
+        self.assertLess(self.audio_rms(), 30, "Queuing a playlist must not start playback")
+        self.click(600, 124)  # Second pending entry.
+        self.click(683, 56)  # Move Up.
+        eventually(lambda: self.assertEqual(order(), [original[1], original[0], original[2]]))
+        self.click(683, 56)  # At top: no wraparound.
+        self.assertEqual(order(), [original[1], original[0], original[2]])
+        self.click(780, 56)  # Selection follows the entry back down.
+        eventually(lambda: self.assertEqual(order(), original))
+        self.click(780, 56)
+        eventually(lambda: self.assertEqual(order(), [original[0], original[2], original[1]]))
+        self.click(780, 56)  # At bottom: no wraparound.
+        self.assertEqual(order(), [original[0], original[2], original[1]])
+        self.click(892, 56)
+        try:
+            eventually(lambda: self.assertGreater(self.audio_rms(), 500), timeout=20)
+            eventually(lambda: self.assertEqual(order(), [original[2], original[1]]))
+            self.click(600, 146)  # Second entry; options row is visible while on.
+            self.click(683, 56)
+            eventually(lambda: self.assertEqual(order(), [original[1], original[2]]))
+            self.click(780, 56)
+            eventually(lambda: self.assertEqual(order(), [original[2], original[1]]))
+            self.click(598, 56)  # Remove the selected queue entry, not its file.
+            eventually(lambda: self.assertEqual(order(), [original[2]]))
+            self.assertGreater(self.audio_rms(), 500, "Queue editing must not stop the playing deck")
+        finally:
+            self.click(892, 56)
+            self.click(100, 20)
+            self.inside("xdotool", "key", "d")
+        eventually(lambda: self.assertLess(self.audio_rms(), 30), timeout=20)
+        self.click(300, 20)
+        self.click(600, 102)
+        self.click(598, 56)  # Removing the final pending entry is safe while off.
+        eventually(lambda: self.assertEqual(order(), []))
+        remaining = json.loads(self.inside("python3", "-c",
+            "import sqlite3,json; c=sqlite3.connect('file:/root/.mixxx/mixxxdb.sqlite?mode=ro',uri=True); "
+            "print(json.dumps([c.execute('select count(*) from library').fetchone()[0], c.execute(\"select count(*) from PlaylistTracks where playlist_id=(select id from Playlists where name='Queue Test')\").fetchone()[0]]))"))
+        self.assertEqual(remaining, [1, 2], "Queue removal must preserve the library and source playlist")
+
     def test_playback_reaches_audio_output_and_stops(self):
         self.click(100, 20)
         eventually(lambda: self.assert_selected_tab(0))

@@ -40,6 +40,7 @@ class PrepareModel final : public QAbstractTableModel, public TrackModel {
     QString getModelSetting(const QString&) override { return {}; }
     bool setModelSetting(const QString&, const QVariant&) override { return false; }
     bool isReady() const { return m_ready; }
+    bool hasQueuedTracks() const { return !m_tracks.isEmpty(); }
     void add(const TrackPointerList&);
     void removeTracks(const QModelIndexList&) override;
     void moveTrack(const QModelIndex&, const QModelIndex&) override;
@@ -69,6 +70,7 @@ class PrepareFeature final : public LibraryFeature {
     QVariant title() override { return tr("Prepare"); }
     TreeItemModel* sidebarModel() const override { return m_tree; }
     bool hasTrackTable() override { return true; }
+    bool isSidebarVisibleByDefault() const override { return m_model->hasQueuedTracks(); }
     void add(const TrackPointerList& tracks) { m_model->add(tracks); }
     void activate() override;
     void clear() override { m_model->clearQueue(); }

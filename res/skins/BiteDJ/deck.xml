@@ -16,7 +16,7 @@
               <Key>
                 <ObjectName>DeckKey</ObjectName>
                 <TooltipId>visual_key</TooltipId>
-                <Size>36f,16f</Size>
+                <Size><Variable name="key_badge_size"/></Size>
                 <Alignment>center</Alignment>
                 <Channel><Variable name="channel"/></Channel>
                 <Connection>
@@ -35,7 +35,7 @@
                   <NumberBpm>
                     <ObjectName>DeckHeaderBPM</ObjectName>
                     <TooltipId>visual_bpm</TooltipId>
-                    <Size>54max,20f</Size>
+                    <Size><Variable name="bpm_badge_size"/></Size>
                     <NumberOfDigits>1</NumberOfDigits>
                     <Channel><Variable name="channel"/></Channel>
                     <Connection>

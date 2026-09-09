@@ -604,6 +604,96 @@ TEST_F(AutoDJProcessorTest, Decks34PlayingWarning) {
 TEST_F(AutoDJProcessorTest, QueueEmpty) {
     AutoDJProcessor::AutoDJError err = pProcessor->toggleAutoDJ(true);
     EXPECT_EQ(AutoDJProcessor::ADJ_QUEUE_EMPTY, err);
+    EXPECT_EQ(AutoDJProcessor::ADJ_DISABLED, pProcessor->getState());
+    EXPECT_DOUBLE_EQ(0.0, deck1.play.get());
+    EXPECT_DOUBLE_EQ(0.0, deck2.play.get());
+}
+
+TEST_F(AutoDJProcessorTest, EmptyQueueUsesBothLoadedDecks) {
+    const auto first = addTrackToCollection(kTrackLocationTest);
+    const auto second = addTrackToCollection(QStringLiteral("sine-30.wav"));
+    ASSERT_TRUE(first.isValid());
+    ASSERT_TRUE(second.isValid());
+    deck1.slotLoadTrack(trackCollectionManager()->getTrackById(first), false);
+    deck2.slotLoadTrack(trackCollectionManager()->getTrackById(second), false);
+    EXPECT_CALL(*pProcessor, emitLoadTrackToPlayer(_, QString("[Channel2]"), false));
+    EXPECT_EQ(AutoDJProcessor::ADJ_OK, pProcessor->toggleAutoDJ(true));
+    EXPECT_EQ(AutoDJProcessor::ADJ_IDLE, pProcessor->getState());
+    EXPECT_DOUBLE_EQ(1.0, deck1.play.get());
+    EXPECT_DOUBLE_EQ(-1.0, mixer.crossfader.get());
+    ASSERT_EQ(1, pProcessor->getTableModel()->rowCount());
+    EXPECT_EQ(second, pProcessor->getTableModel()->getTrackId(
+            pProcessor->getTableModel()->index(0, 0)));
+}
+
+TEST_F(AutoDJProcessorTest, EmptyQueueKeepsPlayingRightDeckAsSource) {
+    const auto first = addTrackToCollection(kTrackLocationTest);
+    const auto second = addTrackToCollection(QStringLiteral("sine-30.wav"));
+    deck1.slotLoadTrack(trackCollectionManager()->getTrackById(first), false);
+    deck2.slotLoadTrack(trackCollectionManager()->getTrackById(second), true);
+    EXPECT_CALL(*pProcessor, emitLoadTrackToPlayer(_, QString("[Channel1]"), false));
+    EXPECT_EQ(AutoDJProcessor::ADJ_OK, pProcessor->toggleAutoDJ(true));
+    EXPECT_DOUBLE_EQ(1.0, deck2.play.get());
+    EXPECT_DOUBLE_EQ(1.0, mixer.crossfader.get());
+    ASSERT_EQ(1, pProcessor->getTableModel()->rowCount());
+    EXPECT_EQ(first, pProcessor->getTableModel()->getTrackId(
+            pProcessor->getTableModel()->index(0, 0)));
+}
+
+TEST_F(AutoDJProcessorTest, LastQueuedTrackOnRightIsAudible) {
+    const TrackId id = addTrackToCollection(kTrackLocationTest);
+    auto track = trackCollectionManager()->getTrackById(id);
+    deck2.slotLoadTrack(track, false);
+    deck2.fakeTrackLoadedEvent(track);
+    deck2.playposition.set(0.0);
+    mixer.crossfader.set(-1.0);
+    pProcessor->getTableModel()->appendTrack(id);
+
+    // Consuming the final queued track ends automation, but the started deck
+    // must be audible even though there is no following track to preload.
+    EXPECT_EQ(AutoDJProcessor::ADJ_QUEUE_EMPTY, pProcessor->toggleAutoDJ(true));
+    EXPECT_DOUBLE_EQ(1.0, deck2.play.get());
+    EXPECT_DOUBLE_EQ(1.0, mixer.crossfader.get());
+    EXPECT_EQ(AutoDJProcessor::ADJ_DISABLED, pProcessor->getState());
+}
+
+TEST_F(AutoDJProcessorTest, BiteDJUsesVisibleDecksWithInheritedCenterRouting) {
+    const auto id = addTrackToCollection(kTrackLocationTest);
+    pProcessor->getTableModel()->appendTrack(id);
+    pProcessor->getTableModel()->appendTrack(id);
+    deck1.orientation.set(EngineChannel::CENTER);
+    deck2.orientation.set(EngineChannel::LEFT);
+    EXPECT_CALL(*pProcessor, emitLoadTrackToPlayer(_, QString("[Channel3]"), _)).Times(0);
+    EXPECT_CALL(*pProcessor, emitLoadTrackToPlayer(_, QString("[Channel4]"), _)).Times(0);
+    EXPECT_CALL(*pProcessor, emitLoadTrackToPlayer(_, QString("[Channel1]"), true));
+    EXPECT_EQ(AutoDJProcessor::ADJ_OK, pProcessor->toggleAutoDJ(true));
+    EXPECT_DOUBLE_EQ(EngineChannel::LEFT, deck1.orientation.get());
+    EXPECT_DOUBLE_EQ(EngineChannel::RIGHT, deck2.orientation.get());
+    EXPECT_DOUBLE_EQ(-1.0, mixer.crossfader.get());
+}
+
+TEST_F(AutoDJProcessorTest, BiteDJDoesNotSeedEmptyQueueFromHiddenDecks) {
+    const auto id = addTrackToCollection(kTrackLocationTest);
+    const auto track = trackCollectionManager()->getTrackById(id);
+    deck1.orientation.set(EngineChannel::CENTER);
+    deck3.slotLoadTrack(track, false);
+    deck2.slotLoadTrack(track, false);
+    EXPECT_CALL(*pProcessor, emitLoadTrackToPlayer(_, _, _)).Times(0);
+    EXPECT_EQ(AutoDJProcessor::ADJ_QUEUE_EMPTY, pProcessor->toggleAutoDJ(true));
+    EXPECT_EQ(0, pProcessor->getTableModel()->rowCount());
+    EXPECT_DOUBLE_EQ(0.0, deck3.play.get());
+    EXPECT_DOUBLE_EQ(EngineChannel::CENTER, deck1.orientation.get());
+}
+
+TEST_F(AutoDJProcessorTest, OtherSkinsRetainAssignedAutoDJDecks) {
+    config()->set(ConfigKey("[Config]", "ResizableSkin"), ConfigValue("LateNight"));
+    const auto id = addTrackToCollection(kTrackLocationTest);
+    pProcessor->getTableModel()->appendTrack(id);
+    pProcessor->getTableModel()->appendTrack(id);
+    deck1.orientation.set(EngineChannel::CENTER);
+    EXPECT_CALL(*pProcessor, emitLoadTrackToPlayer(_, QString("[Channel3]"), true));
+    EXPECT_EQ(AutoDJProcessor::ADJ_OK, pProcessor->toggleAutoDJ(true));
+    EXPECT_DOUBLE_EQ(EngineChannel::CENTER, deck1.orientation.get());
 }
 
 TEST_F(AutoDJProcessorTest, EnabledSuccess_DecksStopped) {

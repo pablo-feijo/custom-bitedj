@@ -222,8 +222,7 @@ void WLibrarySidebar::toggleSelectedItem() {
 // Mirrors the leaf-tap branch of mousePressEvent for callers that don't have
 // a click position (e.g. controller wheel-press routed through LibraryControl).
 // Emits leafItemActivated so the LibraryBreadcrumb updates, and collapses the
-// sidebar via [Sidebar],sidebar_visible. Skips non-leaves and AutoDJ-style
-// feature roots that own children — same gate as mousePressEvent.
+// sidebar via [Sidebar],sidebar_visible. Group-only roots remain expanded.
 void WLibrarySidebar::activateSelectedLeaf() {
     QModelIndex idx = selectedIndex();
     if (!idx.isValid()) {
@@ -235,7 +234,9 @@ void WLibrarySidebar::activateSelectedLeaf() {
 
     // Do not collapse for top-level feature roots (e.g. "Computer", "Playlists") that have children.
     // They are just grouping containers.
-    if (isTopLevel && idx.model()->hasChildren(idx)) {
+    const auto* sidebarModel = qobject_cast<const SidebarModel*>(model());
+    if (isTopLevel && idx.model()->hasChildren(idx) &&
+            (!sidebarModel || !sidebarModel->hasTrackTable(idx))) {
         return;
     }
 
@@ -412,9 +413,11 @@ void WLibrarySidebar::mousePressEvent(QMouseEvent* event) {
     }
     const bool hasChildren = model()->hasChildren(idx);
     const QString data = idx.data(SidebarModel::DataRole).toString();
-    const bool grouping = !idx.parent().isValid() ||
+    const auto* sidebarModel = qobject_cast<const SidebarModel*>(model());
+    const bool grouping = (!idx.parent().isValid() &&
+                                 (!sidebarModel || !sidebarModel->hasTrackTable(idx))) ||
             data == QUICK_LINK_NODE || data == DEVICE_NODE;
-    // Reserve the full 44px indentation cell for expansion. In particular,
+    // Reserve the full styled indentation cell for expansion. In particular,
     // expanding a directory must never open its track table and hide the tree.
     const QRect row = visualRect(idx);
     const bool branchTap = event->pos().x() < row.left();

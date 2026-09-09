@@ -83,6 +83,15 @@
           </PushButton>
         </Children>
       </WidgetGroup>
+      <Label>
+        <ObjectName>PlayAutoPlayIndicator</ObjectName>
+        <Size>0me,22f</Size>
+        <Text>AUTO PLAY ON</Text>
+        <Connection>
+          <ConfigKey>[AutoDJ],enabled</ConfigKey>
+          <BindProperty>visible</BindProperty>
+        </Connection>
+      </Label>
       <WidgetStack currentpage="[FxPanel],current">
         <ObjectName>FxPanel_Stack</ObjectName>
         <SizePolicy>me,i</SizePolicy>
@@ -497,6 +506,9 @@
               <Template src="skin:templates/keyfx_deck_row.xml">
                 <SetVariable name="channel">1</SetVariable>
               </Template>
+              <WidgetGroup>
+                <Size>0me,8f</Size>
+              </WidgetGroup>
               <Template src="skin:templates/keyfx_deck_row.xml">
                 <SetVariable name="channel">2</SetVariable>
               </Template>

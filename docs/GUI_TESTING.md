@@ -322,7 +322,7 @@ for “3 Band” on the 1024×600 display.
 
 ### Rekordbox and Prepare fixtures
 
-Use the [synthetic fixture generator and procedure](../tests/rekordbox/README.md). Browse uses 44px rows: collapsed roots are Prepare `y=63`, Computer `107`, History `151`, Rekordbox `195`; its expanded fixture child is `239`. Each expanded child shifts subsequent rows by 44px. Add tracks with **Add to Prepare** in their context menu. In Prepare, use **Move Up**, **Move Down**, or **Remove**; verify order after restarting. Loading retains queue entries and never starts playback automatically.
+Use the [synthetic fixture generator and procedure](../tests/rekordbox/README.md). With a nonempty queue, Browse uses 28px rows: collapsed roots are Prepare `y=55`, Computer `83`, History `111`, Rekordbox `139`; its expanded fixture child is `167`. Each expanded child shifts subsequent rows by 28px. Add tracks with **Add to Prepare** in their context menu. In Prepare, use **Move Up**, **Move Down**, or **Remove**; verify order after restarting. Loading retains queue entries and never starts playback automatically.
 
 Overview previews show A–H for hot cues and 1–8 for memories; the Play waveform keeps full names. Keep memory numbers above the optional 10px phrase strip. Check both views with Phrases Off/On and Day/Night. Store generated media, screenshots, recordings, statistics and reports only in ignored test-results paths.
 
@@ -496,14 +496,35 @@ x11vnc and the application. Shell background jobs must not bypass this gate;
 a browser connection refusal can mean x11vnc exited before the display existed.
 ### Browse touch navigation
 
+The desktop E2E `test_autoplay_queue_controls` covers empty-queue feedback,
+selected-track and whole-playlist appends, audible start, on/off state and
+conditional options visibility. With both decks loaded, an empty queue is seeded from the decks (playing deck
+first). With fewer than two loaded decks and no queue, the in-skin notification explains how to
+load decks or add queued tracks. Native tests cover both stopped and right-deck
+playing starts, plus audibility when consuming the last queued track.
+
+Queue checks: select one track and tap **+ Queue** `(683,56)`, then open Folders
+and verify Auto DJ appears with that track. Open a playlist and tap **Queue
+All** `(780,56)`; all displayed tracks must append in order without changing
+the selection or starting a deck. Verify **Auto Play** `(892,56)` turns on,
+advances through the queue, and turns off while leaving current playback intact.
+Verify the extra Auto DJ options row appears only while Auto Play is on and
+collapses when off, including after a skin reload. Remove queued tracks and
+check the Auto DJ root disappears once empty and off.
+Check the queue again after restart to confirm persistence. Triple taps retain
+the existing double-click behavior; queuing uses explicit buttons.
+
+
 Use the [canonical Browse coordinates](../.agents/skills/bitedj-ui/references/settings.md#b-browse--library-navigation).
-With the synthetic `/music` Quick Link configured, tap Computer `(150,107)`,
-Quick Links `(150,151)`, then Music `(200,195)`. Group labels must expand
+With an empty Prepare queue and the synthetic `/music` Quick Link configured,
+tap Computer `(150,55)`, Quick Links `(150,83)`, then Music `(200,111)`.
+A nonempty Prepare queue adds its row at `y=55`, shifting later rows down 28px. Group labels must expand
 without switching to a table; a folder's indentation cell expands its
 subfolders without opening its tracks. Tap its label to open tracks, then
-Folders `(980,62)` to return. Drag a long tree without opening any row.
-Headers at `y=84..117` use 11px text with 8px padding; verify sorting at
-header center `y=101`, compact rows at `y=129,151`, and footer visibility.
+Folders `(986,56)` to return. Drag a long tree without opening any row.
+Headers at `y=73..90` use 9px bold text with 8px horizontal padding and
+vertical centering; verify sorting at header center `y=82`, compact rows at
+`y=102,124`, and footer visibility.
 In Settings → Library, Preview enable is `(816,391)` and L width `(988,391)`.
 Both are needed to show wide preview waveforms in a fresh test configuration.
 Check Browse and the FX picker in Day and Night modes.
@@ -513,13 +534,18 @@ starting the owned instance so its lazy directory cache sees them:
 
 ```sh
 mkdir -p "test-music/Touch navigation/Nested"
-for i in $(seq 1 16); do mkdir -p "test-music/Touch navigation/Nested/Folder $i"; done
+for i in $(seq 1 24); do mkdir -p "test-music/Touch navigation/Nested/Folder $i"; done
 ```
 
-After Computer and Quick Links, use expansion cells `(110,195)`, `(154,239)`
-and `(198,283)` for Music, Touch navigation and Nested. Drag from `(300,459)`
+After Computer and Quick Links, use expansion cells `(51,111)`, `(71,139)`
+and `(91,167)` with an empty Prepare queue for Music, Touch navigation and Nested. Drag from `(300,459)`
 to `(300,239)`; the tree must scroll and remain open. Restore the scroll and
 tap Music's label to verify that a folder with children can still open tracks.
+
+Verify Prepare is absent for an empty queue. Add a synthetic track through
+**Add to Prepare**, return to Folders and confirm Prepare appears. Restart to
+verify restoration, then remove the last queued track and confirm Prepare
+disappears again. Loading a queued track does not remove it automatically.
 
 Picker actions use 10px text: Erase, Close, Prev and Next. Erase and Close
 share the second header row. Erase clears the current FX without deleting its
@@ -608,8 +634,10 @@ wet/dry Mix, with a scrollable area for the first effect's loaded parameters.
 Beat period buttons and controller Beat left/right share the native period and
 range metadata. Pad mode labels are 12px; arrow touch targets remain 48×44px.
 
-Key −2/+2 use
-(873/970,158) and y=306; Match/Reset use (873/970,210) and y=358.
+Key uses two bordered deck sections with 11px deck labels and centered
+18px current-key badges. The `−2 st` / `+2 st` labels clarify semitone steps.
+Key −2/+2 use (878/966,165) and y=321; Match/Reset use
+(878/966,215) and y=371. Buttons remain 44px high; sections have an 8px gap.
 Compact FX selector is (922,116); routing 1/2 and activation share y=152
 at x=858/922/986. Echo’s Beat buttons use x=858/922/986, y=204/236.
 Feedback/Ping Pong/Send knobs are (1001,265/295/325), Quantize/Triplets
@@ -655,6 +683,22 @@ real virtual-PortMidi messages. It asserts both decks' Loop Shift/release,
 FX 1/2 selection, FX 2 persistence after Shift release, all three Jump banks,
 and touch Next continuing from the MIDI-selected FX 2 page. Screenshot/result
 artifacts are saved under the owned instance's `test-results/` directory.
+
+
+Queue feedback: no selection and unsupported views show an in-skin explanation;
+success shows the added-track and pending-queue counts. **View Queue** `(598,56)`
+uses `[AutoDJ],show_queue` to open Auto DJ directly, including an empty queue.
+Saved playlists appear under **Folders → Playlists** when any exist; Rekordbox
+playlists remain under their source. Open the playlist, then tap **Queue All**
+to append its displayed tracks. Clear search to include the full playlist.
+The desktop regression also seeds a saved playlist and queues both its entries.
+
+### Settings preview badges
+
+On General, Library, Device, Audio, System and Info, verify the bottom key and
+BPM badges have matching 20px heights, centered 11px text and no clipping.
+Check Traditional and Camelot key notation, shifted-key highlighting, and
+Day/Night. PAD FX continues to use the whole page without a deck footer.
 
 ### Compact overview time ruler
 
@@ -710,3 +754,18 @@ and timedatectl commands to check that path. BootSettingsTest validates the
 headless helper request hash, numeric bounds, stale snapshots and original backup.
 The helper must reject non-root invocation and malformed requests before any GUI
 initialization; an invalid `QT_QPA_PLATFORM` is useful for checking this boundary.
+
+Auto Play assigns visible BiteDJ decks 1/2 to the left/right crossfader sides
+before starting. An inherited center assignment must never choose hidden decks
+3/4. Hidden-deck playback prevents startup; other skins retain their routing.
+The desktop fixture starts deck 1 centered to cover the physical-Pi regression.
+
+On the Auto DJ queue itself, the compact toolbar shows **Remove** `(598,56)`,
+**Move Up** `(683,56)`, and **Move Down** `(780,56)` instead of queue-add actions.
+These use `[AutoDJ],remove_selected`, `move_up`, and `move_down`; `queue_view`
+tracks native view visibility. Select a pending entry, then move or remove it.
+Selection follows the moved entry; moves at either end do nothing. These actions
+work with Auto Play on or off and use the existing playlist model, including its
+next-track reload signal. Removing entries preserves the source playlist and file.
+The desktop regression checks entry IDs/order, duplicates, boundaries, live
+playback, and deleting the final pending entry.

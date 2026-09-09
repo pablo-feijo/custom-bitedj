@@ -3,11 +3,14 @@
 #include <QMenu>
 #include <QtDebug>
 
+#include "control/controlpushbutton.h"
 #include "library/autodj/autodjprocessor.h"
 #include "library/autodj/dlgautodj.h"
 #include "library/dao/trackschema.h"
 #include "library/library.h"
 #include "library/parser.h"
+#include "notifications/notifications.h"
+#include "library/playlisttablemodel.h"
 #include "library/trackcollection.h"
 #include "library/trackcollectionmanager.h"
 #include "library/trackset/crate/cratestorage.h"
@@ -71,6 +74,62 @@ AutoDJFeature::AutoDJFeature(Library* pLibrary,
             Qt::QueuedConnection);
 
     m_playlistDao.setAutoDJProcessor(m_pAutoDJProcessor);
+    // Register before the skin parses its toolbar bindings. The native view
+    // uses proxies so skin-created placeholder controls cannot shadow these.
+    m_queueView = std::make_unique<ControlObject>(
+            ConfigKey(QStringLiteral("[AutoDJ]"), QStringLiteral("queue_view")));
+    m_moveUp = std::make_unique<ControlPushButton>(
+            ConfigKey(QStringLiteral("[AutoDJ]"), QStringLiteral("move_up")));
+    m_moveDown = std::make_unique<ControlPushButton>(
+            ConfigKey(QStringLiteral("[AutoDJ]"), QStringLiteral("move_down")));
+    m_removeSelected = std::make_unique<ControlPushButton>(
+            ConfigKey(QStringLiteral("[AutoDJ]"), QStringLiteral("remove_selected")));
+    m_showQueue = std::make_unique<ControlPushButton>(
+            ConfigKey(QStringLiteral("[AutoDJ]"), QStringLiteral("show_queue")));
+    connect(m_showQueue.get(), &ControlPushButton::valueChanged, this, [this](double value) {
+        if (value <= 0) {
+            return;
+        }
+        activate();
+        emit m_pLibrary->sidebarLeafItemActivated(title().toString());
+        ControlObject::set(ConfigKey(QStringLiteral("[Sidebar]"),
+                                   QStringLiteral("sidebar_visible")), 0);
+    });
+
+    // Kiosk mode suppresses Qt dialogs; report start failures in the skin.
+    connect(m_pAutoDJProcessor, &AutoDJProcessor::autoDJError, this,
+            [](AutoDJProcessor::AutoDJError error) {
+                QString message;
+                switch (error) {
+                case AutoDJProcessor::ADJ_QUEUE_EMPTY:
+                    message = tr("Auto Play: load both decks or add tracks using + Queue / Queue All.");
+                    break;
+                case AutoDJProcessor::ADJ_BOTH_DECKS_PLAYING:
+                case AutoDJProcessor::ADJ_UNUSED_DECK_PLAYING:
+                    message = tr("Auto Play: stop one deck before starting automatic mixing.");
+                    break;
+                case AutoDJProcessor::ADJ_NOT_TWO_DECKS:
+                    message = tr("Auto Play: assign Deck 1 and Deck 2 to opposite crossfader sides.");
+                    break;
+                default:
+                    return;
+                }
+                if (auto* notifications = Notifications::tryInstance()) {
+                    notifications->publish(message, Notifications::Severity::Warning);
+                }
+            });
+
+    // Keep a running queue reachable even after its last track has been loaded.
+    auto updateVisibility = [this] {
+        emit requestSidebarVisibility(this, isSidebarVisibleByDefault());
+    };
+    auto* queueModel = m_pAutoDJProcessor->getTableModel();
+    connect(queueModel, &QAbstractItemModel::modelReset, this, updateVisibility);
+    connect(queueModel, &QAbstractItemModel::rowsInserted, this, updateVisibility);
+    connect(queueModel, &QAbstractItemModel::rowsRemoved, this, updateVisibility);
+    connect(m_pAutoDJProcessor, &AutoDJProcessor::autoDJStateChanged,
+            this, updateVisibility);
+
 
     // Create the "Crates" tree-item under the root item.
     std::unique_ptr<TreeItem> pRootItem = TreeItem::newRoot(this);
@@ -122,6 +181,11 @@ AutoDJFeature::AutoDJFeature(Library* pLibrary,
 
 AutoDJFeature::~AutoDJFeature() {
     delete m_pAutoDJProcessor;
+}
+
+bool AutoDJFeature::isSidebarVisibleByDefault() const {
+    return m_pAutoDJProcessor->getTableModel()->rowCount() > 0 ||
+            m_pAutoDJProcessor->getState() != AutoDJProcessor::ADJ_DISABLED;
 }
 
 QVariant AutoDJFeature::title() {

@@ -24,6 +24,7 @@
 #include <QUrl>
 
 #include "control/controlobject.h"
+#include "notifications/notifications.h"
 #include "library/dao/trackschema.h"
 #include "library/library.h"
 #include "library/librarycolumncontrol.h"
@@ -309,7 +310,7 @@ void WTrackTableView::loadTrackModel(QAbstractItemModel* pNewModel, bool restore
     // even useful to indicate the focused column because all columns are highlighted.
     header->setHighlightSections(false);
     header->setSortIndicatorShown(m_sorting);
-    header->setDefaultAlignment(Qt::AlignLeft);
+    header->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
     // Initialize all column-specific things
     for (int i = 0; i < pNewModel->columnCount(); ++i) {
@@ -1584,24 +1585,60 @@ bool WTrackTableView::setCurrentTrackId(const TrackId& trackId, int column, bool
 }
 
 void WTrackTableView::addToAutoDJ(PlaylistDAO::AutoDJSendLoc loc) {
+    auto notify = [](const QString& message, Notifications::Severity severity) {
+        if (auto* notifications = Notifications::tryInstance()) {
+            notifications->publish(message, severity);
+        }
+    };
     auto* pTrackModel = getTrackModel();
     if (!pTrackModel || !pTrackModel->hasCapabilities(TrackModel::Capability::AddToAutoDJ)) {
+        notify(tr("Open a playlist or music folder to add tracks to Auto DJ."),
+                Notifications::Severity::Warning);
         return;
     }
 
     const QList<TrackId> trackIds = getSelectedTrackIds();
     if (trackIds.isEmpty()) {
-        qWarning() << "No tracks selected for AutoDJ";
+        notify(tr("Select a track, then tap + Queue. Use Queue All for the whole list."),
+                Notifications::Severity::Warning);
         return;
     }
 
     PlaylistDAO& playlistDao = m_pLibrary->trackCollectionManager()
                                        ->internalCollection()
                                        ->getPlaylistDAO();
-
-    // TODO(XXX): Care whether the append succeeded.
+    const int queueId = playlistDao.getPlaylistIdFromName(QStringLiteral("Auto DJ"));
+    const int before = playlistDao.tracksInPlaylist(queueId);
     m_pLibrary->trackCollectionManager()->unhideTracks(trackIds);
     playlistDao.addTracksToAutoDJQueue(trackIds, loc);
+    const int after = playlistDao.tracksInPlaylist(queueId);
+    if (loc != PlaylistDAO::AutoDJSendLoc::REPLACE && after < before + trackIds.size()) {
+        notify(tr("Could not add all tracks. Tap View Queue to check."),
+                Notifications::Severity::Warning);
+        return;
+    }
+    notify(tr("Added %1. Queue: %2 tracks. Tap View Queue to see them.")
+                    .arg(trackIds.size()).arg(after), Notifications::Severity::Info);
+}
+
+void WTrackTableView::addAllToAutoDJ() {
+    auto* trackModel = getTrackModel();
+    if (!trackModel || !trackModel->hasCapabilities(TrackModel::Capability::AddToAutoDJ)) {
+        addToAutoDJ(PlaylistDAO::AutoDJSendLoc::BOTTOM);
+        return;
+    }
+    if (model()->rowCount() == 0) {
+        if (auto* notifications = Notifications::tryInstance()) {
+            notifications->publish(tr("This list is empty. Open a playlist or music folder first."),
+                    Notifications::Severity::Warning);
+        }
+        return;
+    }
+    // Queue the displayed playlist in its current order, preserving selection.
+    const QItemSelection previousSelection = selectionModel()->selection();
+    selectAll();
+    addToAutoDJ(PlaylistDAO::AutoDJSendLoc::BOTTOM);
+    selectionModel()->select(previousSelection, QItemSelectionModel::ClearAndSelect);
 }
 
 void WTrackTableView::addToAutoDJBottom() {

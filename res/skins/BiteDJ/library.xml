@@ -11,7 +11,7 @@
           <WidgetGroup>
             <ObjectName>SidebarContainer</ObjectName>
             <Layout>horizontal</Layout>
-            <Size>0me,44max</Size>
+            <Size>0me,32max</Size>
             <Connection>
               <ConfigKey>[Sidebar],sidebar_visible</ConfigKey>
               <BindProperty>visible</BindProperty>
@@ -25,8 +25,67 @@
                 <Elide>left</Elide>
               </LibraryBreadcrumb>
               <PushButton>
+                <ObjectName>QueueRemoveButton</ObjectName>
+                <Size>88f,32f</Size>
+                <NumberStates>1</NumberStates>
+                <State><Number>0</Number><Text>Remove</Text></State>
+                <Connection><ConfigKey>[AutoDJ],queue_view</ConfigKey><BindProperty>visible</BindProperty></Connection>
+                <Connection><ConfigKey>[AutoDJ],remove_selected</ConfigKey><ButtonState>LeftButton</ButtonState></Connection>
+              </PushButton>
+              <PushButton>
+                <ObjectName>ViewQueueButton</ObjectName>
+                <Connection><ConfigKey>[AutoDJ],queue_view</ConfigKey><BindProperty>visible</BindProperty><Transform><Not/></Transform></Connection>
+                <Size>88f,32f</Size>
+                <NumberStates>1</NumberStates>
+                <State><Number>0</Number><Text>View Queue</Text></State>
+                <Connection><ConfigKey>[AutoDJ],show_queue</ConfigKey><ButtonState>LeftButton</ButtonState></Connection>
+              </PushButton>
+              <PushButton>
+                <ObjectName>QueueMoveUpButton</ObjectName>
+                <Size>82f,32f</Size>
+                <NumberStates>1</NumberStates>
+                <State><Number>0</Number><Text>Move Up</Text></State>
+                <Connection><ConfigKey>[AutoDJ],queue_view</ConfigKey><BindProperty>visible</BindProperty></Connection>
+                <Connection><ConfigKey>[AutoDJ],move_up</ConfigKey><ButtonState>LeftButton</ButtonState></Connection>
+              </PushButton>
+              <PushButton>
+                <ObjectName>QueueAddButton</ObjectName>
+                <Connection><ConfigKey>[AutoDJ],queue_view</ConfigKey><BindProperty>visible</BindProperty><Transform><Not/></Transform></Connection>
+                <Size>82f,32f</Size>
+                <NumberStates>1</NumberStates>
+                <Tooltip>Select tracks, then add them to the Auto DJ queue.</Tooltip>
+                <State><Number>0</Number><Text>+ Queue</Text></State>
+                <Connection><ConfigKey>[Library],AutoDjAddBottom</ConfigKey><ButtonState>LeftButton</ButtonState></Connection>
+              </PushButton>
+              <PushButton>
+                <ObjectName>QueueMoveDownButton</ObjectName>
+                <Size>112f,32f</Size>
+                <NumberStates>1</NumberStates>
+                <State><Number>0</Number><Text>Move Down</Text></State>
+                <Connection><ConfigKey>[AutoDJ],queue_view</ConfigKey><BindProperty>visible</BindProperty></Connection>
+                <Connection><ConfigKey>[AutoDJ],move_down</ConfigKey><ButtonState>LeftButton</ButtonState></Connection>
+              </PushButton>
+              <PushButton>
+                <ObjectName>QueuePlaylistButton</ObjectName>
+                <Connection><ConfigKey>[AutoDJ],queue_view</ConfigKey><BindProperty>visible</BindProperty><Transform><Not/></Transform></Connection>
+                <Size>112f,32f</Size>
+                <NumberStates>1</NumberStates>
+                <Tooltip>Add all displayed tracks to the Auto DJ queue in their current order. Clear any search to queue the whole playlist.</Tooltip>
+                <State><Number>0</Number><Text>Queue All</Text></State>
+                <Connection><ConfigKey>[Library],AutoDjAddAll</ConfigKey><ButtonState>LeftButton</ButtonState></Connection>
+              </PushButton>
+              <PushButton>
+                <ObjectName>AutoPlayButton</ObjectName>
+                <Size>112f,32f</Size>
+                <NumberStates>2</NumberStates>
+                <Tooltip>Automatically mix the loaded decks when the queue is empty, or play the queued tracks. Turning off leaves the current decks playing.</Tooltip>
+                <State><Number>0</Number><Text>Auto Play OFF</Text></State>
+                <State><Number>1</Number><Text>Auto Play ON</Text></State>
+                <Connection><ConfigKey>[AutoDJ],enabled</ConfigKey><ButtonState>LeftButton</ButtonState></Connection>
+              </PushButton>
+              <PushButton>
                 <ObjectName>SidebarButton</ObjectName>
-                <Size>88p,44p</Size>
+                <Size>76f,32f</Size>
                 <NumberStates>2</NumberStates>
                 <State>
                   <Number>0</Number>
@@ -74,7 +133,7 @@
                   <LibrarySidebar>
                     <ObjectName>LibrarySidebar</ObjectName>
                     <Size>0me,0me</Size>
-                    <HiddenFeatures>Tracks,Auto DJ,Playlists,Crates</HiddenFeatures>
+                    <HiddenFeatures>Tracks,Crates</HiddenFeatures>
                   </LibrarySidebar>
                 </Children>
                 <Connection>
@@ -95,9 +154,13 @@
         <Size>0me,50max</Size>
         <Children>
           <Template src="skin:deck.xml">
+            <SetVariable name="key_badge_size">36f,16f</SetVariable>
+            <SetVariable name="bpm_badge_size">54max,20f</SetVariable>
             <SetVariable name="channel">1</SetVariable>
           </Template>
           <Template src="skin:deck.xml">
+            <SetVariable name="key_badge_size">36f,16f</SetVariable>
+            <SetVariable name="bpm_badge_size">54max,20f</SetVariable>
             <SetVariable name="channel">2</SetVariable>
           </Template>
         </Children>

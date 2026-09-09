@@ -36,8 +36,8 @@
           <Key>
             <ObjectName>KeyFX_DeckKey</ObjectName>
             <TooltipId>visual_key</TooltipId>
-            <Size>56max,28f</Size>
-            <Alignment>right</Alignment>
+            <Size>56f,28f</Size>
+            <Alignment>center</Alignment>
             <Channel><Variable name="channel"/></Channel>
             <Connection>
               <ConfigKey>[Channel<Variable name="channel"/>],visual_key</ConfigKey>
@@ -58,11 +58,12 @@
 
           <PushButton>
             <ObjectName>KeyFX_Down</ObjectName>
+            <Tooltip>Lower this deck by 2 semitones.</Tooltip>
             <Size>0me,44f</Size>
             <NumberStates>1</NumberStates>
             <State>
               <Number>0</Number>
-              <Text>&#8722;2</Text>
+              <Text>&#8722;2 st</Text>
             </State>
             <Connection>
               <ConfigKey>[Channel<Variable name="channel"/>],pitch_down_2</ConfigKey>
@@ -73,11 +74,12 @@
 
           <PushButton>
             <ObjectName>KeyFX_Up</ObjectName>
+            <Tooltip>Raise this deck by 2 semitones.</Tooltip>
             <Size>0me,44f</Size>
             <NumberStates>1</NumberStates>
             <State>
               <Number>0</Number>
-              <Text>+2</Text>
+              <Text>+2 st</Text>
             </State>
             <Connection>
               <ConfigKey>[Channel<Variable name="channel"/>],pitch_up_2</ConfigKey>

@@ -161,7 +161,14 @@ void PrepareModel::save() {
 PrepareFeature::PrepareFeature(Library* lib,UserSettingsPointer config)
         : LibraryFeature(lib,config,QStringLiteral("playlist")),
           m_model(new PrepareModel(this,QDir(config->getSettingsPath()).filePath("prepare.json"),lib->trackCollectionManager())),
-          m_tree(new TreeItemModel(this)) { m_tree->setRootItem(TreeItem::newRoot(this)); }
+          m_tree(new TreeItemModel(this)) {
+    m_tree->setRootItem(TreeItem::newRoot(this));
+    connect(m_model, &QAbstractItemModel::modelReset, this, [this] {
+        // Search results may be empty while the underlying queue still has tracks.
+        // Restoration, additions and removals all rebuild the model on this thread.
+        emit requestSidebarVisibility(this, m_model->hasQueuedTracks());
+    });
+}
 void PrepareFeature::activate() { emit saveModelState(); emit showTrackModel(m_model); emit enableCoverArtDisplay(false); }
 bool PrepareFeature::dragMoveAccept(const QUrl& url) { return SoundSourceProxy::isUrlSupported(url); }
 bool PrepareFeature::dropAccept(const QList<QUrl>& urls,QObject*) {

@@ -21,6 +21,7 @@ class PlaylistFeature : public BasePlaylistFeature {
     ~PlaylistFeature() override = default;
 
     QVariant title() override;
+    bool isSidebarVisibleByDefault() const override;
 
     bool dropAcceptChild(const QModelIndex& index,
             const QList<QUrl>& urls,

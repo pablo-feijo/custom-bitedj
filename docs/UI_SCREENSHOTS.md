@@ -37,7 +37,12 @@ Deck routing, activation, supported beat periods and effect parameters.
 
 ## Grid and Key
 
-Per-deck beat-grid editing and key adjustment. [Control mappings](GUI_TESTING.md).
+Per-deck beat-grid editing and key adjustment. Key uses two compact deck
+sections, a centered current-key badge, semitone step labels and secondary
+Match/Reset actions. Key and the Settings previews were refreshed with
+`0.0.7-codex-browse-header-navigation.5`
+([capture provenance](images/ui/0.0.7/key-settings-capture-provenance.json)).
+[Control mappings](GUI_TESTING.md).
 
 ![Per-deck Grid controls](images/ui/0.0.7/grid.png)
 ![Per-deck Key controls](images/ui/0.0.7/key.png)
@@ -82,21 +87,74 @@ labels now display as COLOR FILTER and RHYTHMIC FILTER.
 
 ## Browse with previews
 
-Synthetic tracks in the compact library table, with smaller padded headers, the
-waveform Preview column enabled, a 44px Folders control and both deck overviews.
+Synthetic tracks in the compact library table, with a 18px header, vertically
+centered 9px labels, waveform previews and both deck overviews. The compact 32px toolbar provides
+**+ Queue**, **Queue Playlist**, **Auto Play OFF/ON** and **Folders**. Open a
+playlist and tap Queue Playlist to append its displayed tracks in order; clear
+search first to include the whole playlist. Auto Play switches automatic mixing
+on/off; disabling it leaves current deck playback intact and hides the extra
+Auto DJ options row. Browse captures use
+`0.0.7-codex-browse-header-navigation.7`
+([Browse capture provenance](images/ui/0.0.7/browse-capture-provenance.json)).
 
 ![Browse with previews](images/ui/0.0.7/browse-preview.png)
 
-Folder navigation uses 44px rows and expansion areas. Tapping a grouping label
-expands it; tapping a track folder opens its table.
+Folder navigation uses 28px rows, 20px indentation, 18px orange source icons
+and a blue selection highlight. Tapping a grouping label expands it; tapping
+a track folder opens its table. Indentation cells expand nested folders.
+Prepare appears only while its saved queue contains tracks. Auto DJ appears
+while its playback queue has tracks or is running; its label opens the queue.
 
-![Browse folder navigation](images/ui/0.0.7/browse-folders.png)
+![Browse folder navigation with an empty Prepare queue hidden](images/ui/0.0.7/browse-folders.png)
+
+![Prepare appears when its queue contains a track](images/ui/0.0.7/browse-prepare.png)
+
+Auto DJ options are hidden while off and shown while running. When the queue is empty,
+Auto Play assigns visible decks 1/2 to left/right and uses their loaded tracks, keeping any playing deck
+first. If neither a queue nor both loaded decks are available, a tappable
+notification explains how to start. The queue and Play indicator captures use
+`0.0.7-codex-browse-header-navigation.15`
+([Auto DJ capture provenance](images/ui/0.0.7/autodj-capture-provenance.json)).
+
+![Auto DJ queue with extra options hidden](images/ui/0.0.7/browse-autodj.png)
+
+![Auto Play on with Auto DJ options visible](images/ui/0.0.7/browse-autodj-on.png)
+
+In the Auto DJ queue, select a pending track and use **Move Up**, **Move Down**,
+or **Remove**. Reordering follows the selected entry, including duplicate tracks,
+and works during playback. Remove preserves the source playlist and music file.
+Play shows a compact green status badge while Auto Play is on.
+
+![Play with Auto Play enabled](images/ui/0.0.7/play-autoplay-on.png)
+
+![Play with Auto Play disabled](images/ui/0.0.7/play-autoplay-off.png)
+
+The Browse toolbar adds **View Queue** and labels the whole-list action
+**Queue All**. Open **Folders → Playlists → Demo Playlist**, then tap Queue All.
+The confirmation reports added tracks and total pending tracks; View Queue
+opens that list directly. Captures below use `0.0.7-codex-browse-header-navigation.12`
+([queue capture provenance](images/ui/0.0.7/queue-capture-provenance.json)).
+
+![Saved Demo Playlist in folder navigation](images/ui/0.0.7/demo-playlist-folders.png)
+
+![Demo Playlist ready for Queue All](images/ui/0.0.7/demo-playlist.png)
+
+![Confirmation after adding both playlist tracks](images/ui/0.0.7/queue-feedback.png)
+
+![View Queue displays pending tracks](images/ui/0.0.7/queue-view.png)
+
+<details><summary>Browse in Day mode</summary>
+
+![Compact Browse header in Day mode](images/ui/0.0.7/browse-preview-day.png)
+
+</details>
 
 <a id="settings-general"></a>
 
 ## Settings — General
 
 Mixer and playback options on the left; waveform, display and cleanup options on the right.
+The Settings footer aligns key and BPM in matching 20px badges with 11px text.
 
 ![Settings — General](images/ui/0.0.7/settings-general.png)
 

@@ -35,11 +35,9 @@
       "binary_sha256": "9f4865e7fd234d050dd693a2cbbdb682df40f582b581be4d7a1935a5731734e9",
       "images": {
         "grid.png": "4652d28012f2dac8857774f02eafb53fed5deb30daf3e3d74dde086f67761fb6",
-        "key.png": "d1eba9e838ce5f5941b866e5c6c91d0a5fd4db1699466548ace139f0bbd8d08a",
         "fx-empty.png": "98307257925cd58047805fc5d5e74837b10a1c7a25de7a903dfaade3383cf166",
         "fx-parameters.png": "921058f4036f795d3db0244e5f5c8bf18ecd1f4bd8277b319b843706ab7502af",
         "grid-day.png": "784ff5a2581b2e707afd593b347f5d7b87e4b643a53e5bef26968bcad37f0ceb",
-        "key-day.png": "ad71186ef1d13f5f93bbb3c581d60a1a79b47bbb20138f9e289db9306e221ee0",
         "fx-echo-day.png": "dc15a985b7825585c3f4dbbbe571abde061f63e29c0eca1f02ed71b5c37df136",
         "fx-controls-day.png": "588c9102eb5cd87786f17183e50ebaf14d551afb9e2a00deaa17b087a716efa2",
         "beat-fx-day.png": "e920962e39fd782675c4753956b1ae7cf87d522990812c16cb05a44cc110d78a",
@@ -63,8 +61,6 @@
       "artifact_hash": "593158fe700f8db684b7960a1d526fe5c915600340ec25ad0070d266a3135baa",
       "binary_sha256": "7d2b60c878db6b8592ced600b2a92ef2dd41ce313330f5a731cf016773a8af0c",
       "images": {
-        "browse-preview.png": "cd9475810efa6553c0bccfd20b6d4ef553e16759f90f812cc519be1b0f59235c",
-        "browse-folders.png": "6d970a476f02d9eba060098ab46b4f9b2d478d036aa6eb689644c23c09bf6ea5",
         "browse-day.png": "4906ad382b00dd233969abe78a8e7546b5da55437af58943b8c22a94fbc7429e",
         "settings-general.png": "5dd0d685884d87f273eee50d29acb12fab35f02d3710872e32d64439b92613eb",
         "settings-library.png": "f93475175484d1a322fa1ed0e5a799cf3f132983204abdb6346be0648d6432ac",

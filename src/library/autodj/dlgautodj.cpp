@@ -3,6 +3,10 @@
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QShowEvent>
+#include <QHideEvent>
+
+#include "notifications/notifications.h"
 
 #include "controllers/keyboard/keyboardeventfilter.h"
 #include "library/library.h"
@@ -26,6 +30,10 @@ DlgAutoDJ::DlgAutoDJ(WLibrary* parent,
         KeyboardEventFilter* pKeyboard)
         : QWidget(parent),
           Ui::DlgAutoDJ(),
+          m_queueView(ConfigKey(QStringLiteral("[AutoDJ]"), QStringLiteral("queue_view"))),
+          m_moveUp(ConfigKey(QStringLiteral("[AutoDJ]"), QStringLiteral("move_up"))),
+          m_moveDown(ConfigKey(QStringLiteral("[AutoDJ]"), QStringLiteral("move_down"))),
+          m_removeSelected(ConfigKey(QStringLiteral("[AutoDJ]"), QStringLiteral("remove_selected"))),
           m_pConfig(pConfig),
           m_pAutoDJProcessor(pProcessor),
           m_pTrackTableView(new WTrackTableView(this,
@@ -79,6 +87,35 @@ DlgAutoDJ::DlgAutoDJ(WLibrary* parent,
     // We do _NOT_ take ownership of this from AutoDJProcessor.
     m_pAutoDJTableModel = m_pAutoDJProcessor->getTableModel();
     m_pTrackTableView->loadTrackModel(m_pAutoDJTableModel);
+
+    auto editQueue = [this](double value, int key) {
+        if (value <= 0 || !isVisible()) {
+            return;
+        }
+        if (m_pTrackTableView->selectionModel()->selectedRows().isEmpty()) {
+            if (auto* notifications = Notifications::tryInstance()) {
+                notifications->publish(tr("Select a queued track first."),
+                        Notifications::Severity::Info);
+            }
+            return;
+        }
+        if (m_pAutoDJTableModel->isLocked()) {
+            return;
+        }
+        if (key == Qt::Key_Delete) {
+            m_pTrackTableView->removeSelectedTracks();
+        } else {
+            QKeyEvent event(QEvent::KeyPress, key, Qt::AltModifier);
+            m_pTrackTableView->moveSelectedTracks(&event);
+        }
+    };
+    m_moveUp.connectValueChanged(this,
+            [editQueue](double value) { editQueue(value, Qt::Key_Up); });
+    m_moveDown.connectValueChanged(this,
+            [editQueue](double value) { editQueue(value, Qt::Key_Down); });
+    m_removeSelected.connectValueChanged(this,
+            [editQueue](double value) { editQueue(value, Qt::Key_Delete); });
+
 
     // Do not set this because it disables auto-scrolling
     //m_pTrackTableView->setDragDropMode(QAbstractItemView::InternalMove);
@@ -207,11 +244,6 @@ DlgAutoDJ::DlgAutoDJ(WLibrary* parent,
             &DlgAutoDJ::transitionTimeChanged);
 
     connect(m_pAutoDJProcessor,
-            &AutoDJProcessor::autoDJError,
-            this,
-            &DlgAutoDJ::autoDJError);
-
-    connect(m_pAutoDJProcessor,
             &AutoDJProcessor::autoDJStateChanged,
             this,
             &DlgAutoDJ::autoDJStateChanged);
@@ -235,6 +267,16 @@ void DlgAutoDJ::setupActionButton(QPushButton* pButton,
     if (m_bShowButtonText) {
         pButton->setText(fallbackText);
     }
+}
+
+void DlgAutoDJ::showEvent(QShowEvent* event) {
+    QWidget::showEvent(event);
+    m_queueView.set(1.0);
+}
+
+void DlgAutoDJ::hideEvent(QHideEvent* event) {
+    QWidget::hideEvent(event);
+    m_queueView.set(0.0);
 }
 
 void DlgAutoDJ::onShow() {
@@ -305,6 +347,14 @@ void DlgAutoDJ::transitionSliderChanged(int value) {
 }
 
 void DlgAutoDJ::autoDJStateChanged(AutoDJProcessor::AutoDJState state) {
+    // BiteDJ exposes its persistent Auto Play toggle in the Browse toolbar.
+    // Other skins still need this row's Enable button to start Auto DJ.
+    const bool compactControls = m_pConfig->getValue(
+            ConfigKey(QStringLiteral("[Config]"), QStringLiteral("ResizableSkin")),
+            QStringLiteral("BiteDJ")) == QStringLiteral("BiteDJ");
+    LibraryFeatureControls->setVisible(
+            !compactControls || state != AutoDJProcessor::ADJ_DISABLED);
+
     if (state == AutoDJProcessor::ADJ_DISABLED) {
         pushButtonAutoDJ->setChecked(false);
         pushButtonAutoDJ->setToolTip(m_enableBtnTooltip);

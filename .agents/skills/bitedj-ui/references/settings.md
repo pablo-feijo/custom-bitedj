@@ -12,25 +12,40 @@
 
 ## B. Browse / Library Navigation
 
-These are the 44px touch-navigation fixture coordinates. The compact table
-variant was also documented with breadcrumb y=40..72, header y=72..94 and
-track centers y=104/126. Confirm the current fixture/layout from a screenshot
-before interacting; do not mix coordinates from those captures.
-
-At 1024×600, folder rows are 44px high. With Computer and Quick Links
-expanded: Prepare `(150,63)`, Computer `(150,107)`, Quick Links `(150,151)`,
-Music `(200,195)`, Removable Devices `(180,239)`, History `(150,283)`.
-Rows below expanded children move by 44px per child; remeasure other trees.
+At 1024×600, compact folder rows are 28px high with 20px indentation.
+With a nonempty Prepare queue, Computer and Quick Links expanded: Prepare `(150,55)`, Computer
+`(150,83)`, Quick Links `(150,111)`, Music `(200,139)`, Removable Devices
+`(180,167)`, History `(150,195)`. Expanded children shift later rows by 28px.
+Prepare is absent when its underlying queue is empty, including at startup.
+In that case all subsequent rows shift up by 28px: Computer `y=55`,
+Quick Links `83`, Music `111`, Removable Devices `139`, History `167`.
+A search with no results does not hide a nonempty queue.
+Confirm the current fixture from a screenshot before interacting.
 Tap a grouping row to expand/collapse. For folders with tracks and subfolders,
-tap the 44px indentation cell to expand; tap the label to open tracks.
-Arrow-cell centers are `x=22` for roots, `66` for their children and `110`
+tap the indentation cell to expand; tap the label to open tracks.
+Arrow-cell centers are `x=11` for roots, `31` for their children and `51`
 for grandchildren. Drag vertically to scroll without selecting.
 
-The track table's **Folders** button `(980,62)` restores navigation using
+The track table's **Folders** button `(986,56)` restores navigation using
 `[Sidebar],sidebar_visible`; opening a folder sets it to 0. Table headers
-use 11px text with 8px padding, at `y=84..117`. Compact track centers are
-`y=129,151` (22px spacing). Column visibility, sort and size controls retain
-their existing values. See [GUI testing](../../../../docs/GUI_TESTING.md#browse-touch-navigation).
+use 9px bold text, 8px horizontal padding and centered vertical alignment
+in an 18px band at `y=73..90`. Compact track centers are `y=102,124`
+(22px spacing). Column visibility, sorting and sizes retain their saved values.
+The toolbar is 32px high with 11px button text. **+ Queue** `(683,56)`
+uses `[Library],AutoDjAddBottom` for selected tracks; **Queue All**
+`(780,56)` uses `[Library],AutoDjAddAll` for every displayed track in the current
+order, retaining selection. Clear search first to include the whole playlist.
+Both append without starting playback. **Auto Play OFF/ON** `(892,56)` binds
+`[AutoDJ],enabled`; with an empty queue and two loaded decks it automatically
+queues the loaded tracks, keeping the playing deck first. Switching off leaves the decks playing under manual control.
+**Auto DJ** appears above Prepare only while its queue is nonempty or playback
+is automated, shifting later roots by 28px. Tap its label to open the queue;
+its arrow expands Crates. Queue playback uses the existing Auto DJ transition
+settings. Its extra Fade/Skip/transition/Shuffle/Random/Repeat row is hidden
+when Auto Play is off and shown when on. This adds a 22px row above the queue
+header while active; the main Auto Play toggle remains visible. Prepare remains
+the separate saved manual queue.
+See [GUI testing](../../../../docs/GUI_TESTING.md#browse-touch-navigation).
 
 ## C. Settings Sub-Tab Bar: `y=40..80`
 
@@ -111,6 +126,26 @@ At 1024×600 with the native service window maximized, the spin box is `(600,302
 Apply is `(974,577)`. Full option order, verified coordinates and persistence
 checks are in [GUI testing](../../../../docs/GUI_TESTING.md#service-deck-preferences-jog-smoothing).
 
+## Settings deck-preview metadata
+
+General, Library, Device, Audio, System and Info retain the deck footer.
+
+Queue feedback: no selection and unsupported views show an in-skin explanation;
+success shows the added-track and pending-queue counts. **View Queue** `(598,56)`
+uses `[AutoDJ],show_queue` to open Auto DJ directly, including an empty queue.
+Saved playlists appear under **Folders → Playlists** when any exist; Rekordbox
+playlists remain under their source. Open the playlist, then tap **Queue All**
+to append its displayed tracks. Clear search to include the full playlist.
+The desktop regression also seeds a saved playlist and queues both its entries.
+
+Key and BPM badges both have a 20px height and centered 11px text, with
+38px and 54px widget widths. Traditional and Camelot keys fit the same badge;
+shifted key and altered BPM retain their existing highlight controls.
+The shared deck template accepts `key_badge_size` and `bpm_badge_size`;
+other pages pass their original dimensions. Scope footer QSS through
+`#Settings_Singleton`: the singleton parser replaces the root `Settings` ID.
+PAD FX still hides this footer.
+
 ## G. System and Info dashboard
 
 System retains its saved stack index 3 and Info retains index 5. Screen rotation,
@@ -165,3 +200,18 @@ GL surfaces on the Pi, then restored with its previous window state on return.
 
 Clock selection lists countries and a curated shortlist of main cities. Qt tzdata
 supplies offsets/DST; an existing timezone outside the shortlist remains selectable.
+
+Auto Play assigns visible BiteDJ decks 1/2 to the left/right crossfader sides
+before starting. An inherited center assignment must never choose hidden decks
+3/4. Hidden-deck playback prevents startup; other skins retain their routing.
+The desktop fixture starts deck 1 centered to cover the physical-Pi regression.
+
+On the Auto DJ queue itself, the compact toolbar shows **Remove** `(598,56)`,
+**Move Up** `(683,56)`, and **Move Down** `(780,56)` instead of queue-add actions.
+These use `[AutoDJ],remove_selected`, `move_up`, and `move_down`; `queue_view`
+tracks native view visibility. Select a pending entry, then move or remove it.
+Selection follows the moved entry; moves at either end do nothing. These actions
+work with Auto Play on or off and use the existing playlist model, including its
+next-track reload signal. Removing entries preserves the source playlist and file.
+The desktop regression checks entry IDs/order, duplicates, boundaries, live
+playback, and deleting the final pending entry.

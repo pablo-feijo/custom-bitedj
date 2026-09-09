@@ -12,6 +12,12 @@ Qt6 Wayland currently suffers from severe grab-serial desynchronization bugs whe
 - If you are asked to fix or modify Drag-and-Drop, **do not** attempt to use `QMimeData` or `QDrag`.
 - We use a **Custom Overlay UI** (a floating `QLabel`) intercepting `mouseMoveEvent` and `mouseReleaseEvent` in `src/widget/wtracktableview.cpp`. Maintain this pattern.
 
+### Use in-skin notifications
+
+`MixxxApplication::notify` automatically rejects modal dialogs in kiosk mode.
+Use `Notifications::publish` for operational feedback; do not add QMessageBox
+prompts. The notification strip covers the topbar and can be tapped to dismiss.
+
 ### Do Not Modify UI Geometry Manually
 
 Sway is a tiling window manager. The application runs natively in fullscreen, and dialogs (like Preferences) are meant to spawn in fullscreen as well.

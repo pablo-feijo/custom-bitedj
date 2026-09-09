@@ -35,3 +35,35 @@ TEST_F(PrepareTest, UniqueOrderedQueuePersistsAndRemovalDoesNotDeleteFiles) {
     QTRY_COMPARE_WITH_TIMEOUT(finalModel.rowCount(), 1, 3000);
     EXPECT_EQ(finalModel.getTrack(finalModel.index(0, 0))->getTitle(), "First");
 }
+
+TEST_F(PrepareTest, QueuePresenceIgnoresSearchAndTracksRestorationAndRemoval) {
+    QTemporaryDir dir;
+    const auto path = dir.filePath("prepare.json");
+    auto track = Track::newTemporary(mixxx::FileAccess(
+            mixxx::FileInfo(getTestDir().filePath("sine-30.wav"))));
+    track->setTitle("Queued track");
+    {
+        PrepareModel model(nullptr, path);
+        QTRY_VERIFY_WITH_TIMEOUT(model.isReady(), 3000);
+        EXPECT_FALSE(model.hasQueuedTracks());
+        model.add({track});
+        EXPECT_TRUE(model.hasQueuedTracks());
+        model.search("no matching queued track");
+        EXPECT_EQ(model.rowCount(), 0);
+        EXPECT_TRUE(model.hasQueuedTracks());
+    }
+    {
+        PrepareModel restored(nullptr, path);
+        QTRY_VERIFY_WITH_TIMEOUT(restored.isReady(), 3000);
+        EXPECT_TRUE(restored.hasQueuedTracks());
+        restored.removeTracks({restored.index(0, 0)});
+        EXPECT_FALSE(restored.hasQueuedTracks());
+        restored.add({track});
+        EXPECT_TRUE(restored.hasQueuedTracks());
+        restored.clearQueue();
+        EXPECT_FALSE(restored.hasQueuedTracks());
+    }
+    PrepareModel emptyRestore(nullptr, path);
+    QTRY_VERIFY_WITH_TIMEOUT(emptyRestore.isReady(), 3000);
+    EXPECT_FALSE(emptyRestore.hasQueuedTracks());
+}

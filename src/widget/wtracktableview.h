@@ -59,6 +59,7 @@ class WTrackTableView : public WLibraryTableView {
     bool setCurrentTrackId(const TrackId& trackId, int column = 0, bool scrollToTrack = false);
 
     void addToAutoDJBottom();
+    void addAllToAutoDJ();
     void addToAutoDJTop();
     void addToAutoDJReplace();
     void selectTrack(const TrackId&);
