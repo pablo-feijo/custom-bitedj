@@ -1,5 +1,9 @@
 # Deck status and INFO validation
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
+
 Branch: `codex/deck-status-stems-system-info`.
 Later merge target: `codex/v0.0.7`. No merge or version bump performed.
 

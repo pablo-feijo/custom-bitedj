@@ -1,5 +1,9 @@
 # PiFlex fork review and selective adoption plan
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
+
 Reviewed **2026-09-08**. This is a source/documentation review, not a runtime,
 security, or hardware qualification. The user selected the first batch: DOC-01, FX-01, LIB-01 and RB-01.
 Other functional candidates remain proposals. Implementation and verification

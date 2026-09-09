@@ -1,5 +1,7 @@
 # Agent Instructions
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
 ## Commit Messages
 - Use Conventional Commits for every commit: `type(scope): description` (scope is optional).
 - Use appropriate types such as `feat`, `fix`, `docs`, `refactor`, `test`, `build`, or `chore`.
@@ -70,6 +72,14 @@ architecture, versioning, branch isolation, testing and Conventional Commits rul
 - Refresh the current unreleased version's gallery in place. When starting a new
   release, retain released images and use a new version directory and gallery so
   historical changelog links continue to show their release's UI.
+
+## Fork Attribution
+
+Identify this repository as Custom Bite DJ, an independent fork of Team
+Deckshark's BiteDJ, based on Mixxx. Preserve upstream copyright and license
+notices; follow the [attribution rules](docs/AGENTS.md#attribution-and-licensing)
+and [licensing notes](docs/LICENSING.md). Never claim upstream endorsement or
+replace technical identifiers and historical credits as a branding cleanup.
 
 ## Repository Organization
 

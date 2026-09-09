@@ -1,5 +1,9 @@
 # Approved first batch
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
+
 Branch: `codex/xsploit-readme-feature-map`, based on local `v0.0.6`.
 The user designated **`codex/v0.0.7`** as the eventual merge target.
 Source: xsploit/bitedj at `4c1dfec590f98851159fe7a64e3348e8aad306a5`.

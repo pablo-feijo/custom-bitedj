@@ -1,8 +1,10 @@
 # AI Agent Instructions
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
 Hello! If you are an AI assistant or autonomous agent (like Antigravity, Claude, or GitHub Copilot) working on this codebase, **read this document before making changes.**
 
-BiteDJ is a highly-customized fork of Mixxx, specifically engineered to run as a headless **Raspberry Pi OS Appliance** using the **Sway/Wayland compositor** and a multi-touch screen.
+Custom Bite DJ is an independent fork of [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), itself based on [Mixxx](https://github.com/mixxxdj/mixxx), specifically engineered to run as a headless **Raspberry Pi OS Appliance** using the **Sway/Wayland compositor** and a multi-touch screen.
 
 ## Branch and Test Isolation — Required for Every New Task
 
@@ -133,6 +135,20 @@ values and saved page indices for layout-only changes. Verify labels, touch
 clearance, padding and footer visibility in the owned VNC instance; include
 Day/Night checks when styling changes. Prefer a canonical mapping link over
 stale duplicate coordinates.
+
+## Attribution and Licensing
+
+- Identify this project as **Custom Bite DJ**, an independent fork of Team
+  Deckshark's BiteDJ, based on Mixxx. Link upstream and distinguish inherited
+  work, adaptations and local changes; do not imply endorsement or upstream support.
+- Preserve copyright notices, author credits and license texts. Keep source
+  identifiers, paths and historical documents accurate; never globally replace
+  “BiteDJ” or “Mixxx” inside notices, code keys or third-party material.
+- Follow [LICENSING.md](LICENSING.md) when changing attribution or preparing
+  distribution. The program and skin have distinct license notices. Document
+  upstream paths/revisions and dated modifications when adapting material.
+- Recheck component terms before importing code or artwork. Credits alone are
+  not permission, and a documentation review is not a complete release audit.
 
 ## Repository Organization
 

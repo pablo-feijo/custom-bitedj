@@ -1,5 +1,12 @@
 # Custom Bite DJ
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+An independent fork of [BiteDJ by Team Deckshark](https://github.com/TeamDeckshark/bitedj),
+which is based on [Mixxx](https://github.com/mixxxdj/mixxx).
+This repository is maintained separately; it is not an official Deckshark or Mixxx release.
+Report fork-specific issues [here](https://github.com/pablo-feijo/custom-bitedj/issues).
+
 A two-deck DJ appliance for Raspberry Pi, with a **1024×600 touchscreen**,
 USB-centered music browsing, and a custom **Pioneer DDJ-400** workflow.
 The working integration branch is **`codex/v0.0.7`**.
@@ -62,5 +69,7 @@ and to [ntamas94 and the Pioneered contributors](https://github.com/ntamas94/pio
 for inspiring our deck indicators, browsing, and waveform controls.
 
 Original notices and contributor history are preserved. See [NOTICE](NOTICE.md)
-for attribution and [LICENSE](LICENSE) for GPL-2.0-or-later terms; bundled
-components retain their own licenses.
+for attribution and [LICENSE](LICENSE) for the main program's GPL-2.0-or-later
+terms. The [BiteDJ skin](res/skins/BiteDJ/LICENSE) carries GPLv3 and its original
+Pioneered contributor notices; libraries, fonts and other components retain their
+own terms. See [licensing and distribution notes](docs/LICENSING.md).

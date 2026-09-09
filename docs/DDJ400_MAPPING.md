@@ -1,11 +1,16 @@
-# DDJ-400 Kiosk Mapping for BiteDJ
+# DDJ-400 Kiosk Mapping for Custom Bite DJ
+
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+This guide describes [Custom Bite DJ](../README.md), an independent fork of
+[Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on Mixxx.
 
 The Pioneer DDJ-400 mapping has been significantly overhauled to optimize performance for a standalone, touchscreen-driven workflow, mirroring modern club setups.
 
 ## 1. Simultaneous Beat FX Super & Mix Control
 In upstream Mixxx, adjusting both the effect parameter (`super`) and the wet/dry ratio (`mix`) required toggling Shift on the single Level/Depth knob, preventing simultaneous dual-parameter sweeps.
 
-**BiteDJ Modification:**
+**Custom fork modification:**
 - **Shift + Filter Knob** (on either Deck 1 or Deck 2): Dynamically controls the main Beat FX **SUPER** knob (`[EffectRack1_EffectUnit1], super1`) with full 14-bit resolution.
 - **Level/Depth Knob**: Directly controls the Beat FX **MIX** knob (`[EffectRack1_EffectUnit1], mix`).
 - **Two-Handed Live Sweeps**: A DJ can hold Shift with their thumb and simultaneously sweep the **SUPER** knob with one hand (using either Filter knob) and the **MIX** knob with the other hand (using the Level/Depth knob).
@@ -54,8 +59,11 @@ new implementation; the historical verification below predates it.
 - **Tab Toggling**: Pressing the Browse rotary encoder while holding SHIFT natively toggles the UI layout tab (`[Tab],current`), allowing you to expand the library to full-screen from the controller.
 - **Crossfader Hardware Neutralization**: The JS callback explicitly intercepts physical MIDI slider inputs and drops them if the BiteDJ `[BiteDJ],crossfader_enabled` setting is disabled. This physically disconnects the controller's crossfader to prevent accidental bumps from bleeding audio.
 
-## 5. Bundled Pioneer Effect Chains
-BiteDJ bundles the complete standard Pioneer DJ club mixer effect chains in `res/effects/chains/`:
+## 5. Bundled Mixxx Effect Chains
+Custom Bite DJ bundles Mixxx effect-chain presets in `res/effects/chains/` for
+familiar club-style workflows. These are community implementations and
+approximations, not official Pioneer DJ/AlphaTheta effect code or a claim of
+identical DSP. Hardware and product names describe compatibility or inspiration:
 - **Color FX (QuickEffect Racks)**:
   - `C_Crush`: Bitcrusher downsampling curve tailored for filter sweeps.
   - `C_Filter`: Standard club bipolar resonant low-pass / high-pass sweep.

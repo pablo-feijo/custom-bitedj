@@ -1,5 +1,10 @@
 # Building and Deploying BiteDJ
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+This guide describes [Custom Bite DJ](../README.md), an independent fork of
+[Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on Mixxx.
+
 This guide outlines the workflows for building the BiteDJ binary and generating the Raspberry Pi OS image.
 
 ## Prerequisites

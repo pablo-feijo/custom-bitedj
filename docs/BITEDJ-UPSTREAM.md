@@ -1,5 +1,7 @@
 # Preserved BiteDJ background
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
 This is the README inherited by our local `v0.0.6` branch at
 `3884c904b4` before the fork documentation review on 2026-09-08.
 It contains the Deckshark project description and build notes already present
@@ -7,6 +9,13 @@ in our branch; it is not a pristine snapshot of the current upstream README.
 Historical statements below are background, not a current compatibility or
 validation guarantee. See the [current README](../README.md) and
 [local change ledger](DIFFS_FROM_BASE.md) for this fork.
+
+The upstream BiteDJ project is [TeamDeckshark/bitedj](https://github.com/TeamDeckshark/bitedj).
+“By Deckshark,” community links and product statements in the preserved material
+below refer to that upstream background, not to ownership, support or endorsement
+of this custom fork. The main program's authoritative license grant is
+[GPL-2.0-or-later](../LICENSE); see the [component licensing notes](LICENSING.md)
+for the skin and other bundled material.
 
 ---
 

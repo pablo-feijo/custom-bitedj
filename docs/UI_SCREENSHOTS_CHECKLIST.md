@@ -1,5 +1,9 @@
 # UI documentation task
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
+Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
+
 - Branch: `codex/ui-screenshots-docs`
 - Worktree: `bitedj-ui-docs`
 - Merge target: `codex/v0.0.7` (merge authorized by the user)

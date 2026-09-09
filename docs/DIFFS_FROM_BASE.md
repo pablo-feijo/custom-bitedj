@@ -1,7 +1,9 @@
 # Differences from Upstream Mixxx & Cherry-Picking Ledger
 
+<!-- Modified for Custom Bite DJ on 2026-09-09: clarify fork identity and attribution. -->
+
 This document tracks all divergences from upstream Mixxx, specifically formatted to assist in evaluating upstream commits for cherry-picking. It is divided into two distinct layers:
-1. **Base BiteDJ (v1.0-1)**: The foundational fork that optimized Mixxx for standalone hardware, focusing on audio path resilience, USB stability, and SQLite threading.
+1. **Base BiteDJ (v1.0-1)**: [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), the foundational fork that optimized Mixxx for standalone hardware, focusing on audio path resilience, USB stability, and SQLite threading.
 2. **Custom BiteDJ (v0.0.6)**: Our tailored branch built on top of Base BiteDJ, specifically engineered for native Wayland integration, screen rotation persistence, DRM hardware cursor workarounds, touchscreen drag-and-drop, and club-ready DDJ-400 mappings.
 
 ## Pending integration: selected PiFlex fixes
