@@ -146,29 +146,20 @@ so remeasure those from a current screenshot before clicking.
 - `SETTINGS`: `x=900..970, y=30` (recommended: `x=950, y=30`)
 
 #### B. Browse / Library Navigation
-- **Breadcrumb Back Button (toggles sidebar tree / library view)**: `x=963, y=79`
-- **Sidebar Tree Rows (when sidebar is visible)**:
-  - `COMPUTER`: `x=100, y=107`
-  - `QUICK LINKS`: `x=100, y=135` (expands to show Music)
-  - `MUSIC`: `x=100, y=142` (under Quick Links; loads `/music` directory table)
-  - `REMOVABLE DEVICES`: `x=100, y=170`
-  - `HISTORY`: `x=100, y=205`
-  - *(Note: iTunes, Traktor, Rhythmbox, and Banshee are disabled by default to avoid clutter)*
-- **Reliable Keyboard Navigation Flow to load `/music`**:
-  ```bash
-  # 1. Ensure in Browse tab
-  docker exec "$CONTAINER_NAME" bash -c "DISPLAY=:99 xdotool mousemove 300 30 click 1"
-  # 2. Click Back button to reveal sidebar tree if currently in table view
-  docker exec "$CONTAINER_NAME" bash -c "DISPLAY=:99 xdotool mousemove 963 79 click 1"
-  # 3. Direct click on MUSIC under Quick Links (once expanded)
-  docker exec "$CONTAINER_NAME" bash -c "DISPLAY=:99 xdotool mousemove 100 142 click 1"
-  # Alternatively, keyboard sequence from sidebar focus:
-  docker exec "$CONTAINER_NAME" bash -c "DISPLAY=:99 xdotool key Up Up Right Down Right Down Return"
-  ```
-- **Track Table Geometry (when music loaded)**:
-  - Table Header: `y=195`
-  - Track Row 0: `y=218`
-  - Track Row 1: `y=240` (row spacing = +22px in Compact, +38px in Detail)
+At 1024×600, folder rows are 44px high. With Computer and Quick Links
+expanded: Prepare `(150,63)`, Computer `(150,107)`, Quick Links `(150,151)`,
+Music `(200,195)`, Removable Devices `(180,239)`, History `(150,283)`.
+Rows below expanded children move by 44px per child; remeasure other trees.
+Tap a grouping row to expand/collapse. For folders with tracks and subfolders,
+tap the 44px indentation cell to expand; tap the label to open tracks.
+Arrow-cell centers are `x=22` for roots, `66` for their children and `110`
+for grandchildren. Drag vertically to scroll without selecting.
+
+The track table's **Folders** button `(980,62)` restores navigation using
+`[Sidebar],sidebar_visible`; opening a folder sets it to 0. Table headers
+use 11px text with 8px padding, at `y=84..117`. Compact track centers are
+`y=129,151` (22px spacing). Column visibility, sort and size controls retain
+their existing values. See [GUI testing](docs/GUI_TESTING.md#browse-touch-navigation).
 
 #### C. Settings Sub-Tab Bar: `y=40..80`
 Visible order and verified button centers at 1024×600:
@@ -301,8 +292,9 @@ Never silently claim reverse, freeze, slip or transport behavior for delay chain
 Generate factory XML with `scripts/build/generate-beatfx.py`; keep tests in
 `tests/effects/` and native audio/control regressions in `src/test/`.
 
-The picker uses two columns and seven rows per page, with minimum 50px effect
-buttons, 8px gaps and 16px outside padding. Preserve that touch clearance;
+The picker uses two columns and seven rows per page, with fixed 44px effect
+buttons, 10px labels, 4px gaps and 4px outside padding. Utility buttons are
+30px high and the page counter uses 9px text;
 page changes and Close must never load an effect. Match selected state to the
 live chain. Refresh the [picker gallery](docs/UI_SCREENSHOTS.md#beat-fx-picker)
 and Play image for visible changes, together with changelog links.
@@ -380,3 +372,18 @@ completion and waveform identity in the bounded pixmap cache.
 
 - Before delivering a test GUI URL, follow [the noVNC delivery gate](docs/GUI_TESTING.md#novnc-delivery-gate): pass fast and E2E JavaScript checks, then verify the connected desktop in a real browser. HTTP success alone does not establish a working client.
 - Keep cached-image repair shared by automated and manual launch paths. Test fresh, malformed and repeatedly repaired sources; invalidate the full module graph when changing cached assets.
+
+### Panel-contained Beat FX picker
+The FX selector `(934,122)` opens a child picker bounded by
+`x=852..1015, y=100..599`. Standard/Saved centers are `(894,119)` /
+`(974,119)`, Clear FX/Close `(894,153)` / `(974,153)`. Effect columns are
+`x=894,974`, row centers `y=194,242,290,338,386,434,482`; each target is
+44px tall with 10px labels. Utility controls are 30px tall; the page counter
+uses 9px text at `(934,557)`. Prev/Next: `(894,581)` / `(974,581)`. Standard pages contain
+14/11 entries in row-major order. Saved identifiers and controller order
+are unchanged. Page changes and cancellation preserve selection; leaving
+FX dismisses the picker. See [the gallery](docs/UI_SCREENSHOTS.md#beat-fx-picker).
+
+Compact FX actions: eraser = Clear FX, × = Close, left/right chevrons =
+Prev/Next. Tooltips and accessible names retain the action labels. Standard
+and Saved remain labeled tabs; the 9px page counter reads `1 / 2`.

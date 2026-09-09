@@ -643,12 +643,18 @@ WEffectChainPresetSelector QAbstractItemView {
   width: 0;
 }
 
-#LibraryWrapper WTrackTableViewHeader::section {
+#LibraryWrapper QHeaderView {
+  font-size: 11px;
+}
+
+#LibraryWrapper QHeaderView::section {
   background-color: #32323c;
   color: #e5e6ea;
   font-weight: bold;
-  font-size: 12px;
-  margin: 1px;
+  font-size: 11px;
+  padding: 8px 8px;
+  border: none;
+  border-right: 1px solid #555;
   text-transform: uppercase;
 }
 
@@ -1858,3 +1864,9 @@ WBeatSpinBox::up-button {
 #LoadPolicySegmented #SettingsSegmentLeft,
 #LoadPolicySegmented #SettingsSegmentMid,
 #LoadPolicySegmented #SettingsSegmentRight { min-width: 52px; }
+
+/* A full finger-height row and indentation cell for folder navigation. */
+#LibraryWrapper WLibrarySidebar::item {
+  min-height: 44px;
+  padding: 0px 8px;
+}

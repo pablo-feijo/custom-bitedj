@@ -2,6 +2,10 @@
 // the content instead of dragging items out of the view, while a press that
 // doesn't move still reaches the view as an ordinary click.
 #include "widget/touchscrollfilter.h"
+#include "widget/wlibrarysidebar.h"
+#include "control/controlobject.h"
+#include "library/sidebarmodel.h"
+#include "library/browse/browsefeature.h"
 
 #include <gtest/gtest.h>
 
@@ -204,3 +208,60 @@ TEST_F(TouchScrollFilterTest, RightPressIsNotHeldBack) {
 }
 
 } // anonymous namespace
+
+// Regression: expanding a nested folder must keep navigation visible, while
+// tapping its label still opens its tracks. A swipe must do neither.
+TEST(LibrarySidebarTouchTest, ExpansionAndScrollingDoNotActivateFolder) {
+    ControlObject visible(ConfigKey("[Sidebar]", "sidebar_visible"));
+    visible.set(1);
+    QStandardItemModel model;
+    auto* root = new QStandardItem("Computer");
+    auto* folder = new QStandardItem("Music");
+    for (int i = 0; i < 30; ++i) {
+        folder->appendRow(new QStandardItem(QString::number(i)));
+    }
+    auto* links = new QStandardItem("Quick Links");
+    links->setData(QStringLiteral(QUICK_LINK_NODE), SidebarModel::DataRole);
+    links->appendRow(folder);
+    root->appendRow(links);
+    model.appendRow(root);
+    WLibrarySidebar view;
+    view.setModel(&model);
+    view.setStyleSheet("QTreeView::item { min-height: 44px; }");
+    view.resize(500, 300);
+    view.show();
+    QCoreApplication::processEvents();
+    int activations = 0;
+    QObject::connect(&view, &WLibrarySidebar::leafItemActivated,
+            [&]() { ++activations; });
+    const auto tap = [&](QPoint point) {
+        sendMouse(view.viewport(), QEvent::MouseButtonPress, point,
+                Qt::LeftButton, Qt::LeftButton);
+        sendMouse(view.viewport(), QEvent::MouseButtonRelease, point,
+                Qt::LeftButton, Qt::NoButton);
+        QCoreApplication::processEvents();
+    };
+    tap(view.visualRect(root->index()).center());
+    ASSERT_TRUE(view.isExpanded(root->index()));
+    tap(view.visualRect(links->index()).center());
+    ASSERT_TRUE(view.isExpanded(links->index()));
+    EXPECT_EQ(activations, 0);
+    const QRect folderRect = view.visualRect(folder->index());
+    tap(QPoint(folderRect.left() - 22, folderRect.center().y()));
+    EXPECT_TRUE(view.isExpanded(folder->index()));
+    EXPECT_EQ(activations, 0);
+    EXPECT_EQ(visible.get(), 1);
+    sendMouse(view.viewport(), QEvent::MouseButtonPress, QPoint(200, 220),
+            Qt::LeftButton, Qt::LeftButton);
+    sendMouse(view.viewport(), QEvent::MouseMove, QPoint(200, 120),
+            Qt::NoButton, Qt::LeftButton);
+    sendMouse(view.viewport(), QEvent::MouseButtonRelease, QPoint(200, 120),
+            Qt::LeftButton, Qt::NoButton);
+    EXPECT_GT(view.verticalScrollBar()->value(), 0);
+    EXPECT_EQ(activations, 0);
+    EXPECT_EQ(visible.get(), 1);
+    view.scrollTo(folder->index(), QAbstractItemView::PositionAtTop);
+    tap(view.visualRect(folder->index()).center());
+    EXPECT_EQ(activations, 1);
+    EXPECT_EQ(visible.get(), 0);
+}

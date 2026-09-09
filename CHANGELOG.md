@@ -13,6 +13,11 @@ UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 
 ### Fixed
 
+- Browse table headers use smaller text and balanced padding; folder navigation
+  has 44px touch rows and expansion areas that keep the tree open.
+- Beat FX selection stays inside the right panel in two columns with seven compact
+  rows per page, 10px labels, and smaller action icons ([picker preview](docs/UI_SCREENSHOTS.md#beat-fx-picker)).
+
 - noVNC preview startup: repair malformed and duplicate WebCodecs exports in fresh and cached GUI images.
 
 ### Added

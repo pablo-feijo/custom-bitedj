@@ -128,9 +128,9 @@ click 88 407
 capture 01_cued
 click 878 70
 click 934 122
-click 564 40
+click 894 119
 capture 02_picker
-click 762 131 # ECHO, starts Off; default fixture routes FX to Deck 1.
+click 974 194 # ECHO, starts Off; default fixture routes FX to Deck 1.
 capture 03_fx_off
 
 log_step "5. Recording clean and FX playback for review"

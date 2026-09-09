@@ -5,6 +5,8 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QPainter>
+#include <QPolygonF>
 #include <QVBoxLayout>
 #include <array>
 #include <algorithm>
@@ -20,6 +22,65 @@
 #include "skin/highcontrast.h"
 
 class QPaintEvent;
+
+namespace {
+enum class PickerAction { Clear, Close, Previous, Next };
+
+void setPickerAction(QPushButton* button, PickerAction action) {
+    button->setAccessibleName(button->text());
+    button->setToolTip(button->text());
+    button->setText(QString());
+    constexpr int size = 20;
+    const qreal scale = button->devicePixelRatioF();
+    QPixmap pixmap(qRound(size * scale), qRound(size * scale));
+    pixmap.setDevicePixelRatio(scale);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(QPen(HighContrast::mapColor(QColor("#dddddd")),
+            1.6, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    switch (action) {
+    case PickerAction::Clear:
+        // Eraser: unload the current chain, without deleting its preset.
+        painter.drawPolygon(QPolygonF{QPointF(3, 11), QPointF(11, 3),
+                QPointF(17, 9), QPointF(9, 17), QPointF(6, 17)});
+        painter.drawLine(QPointF(6, 8), QPointF(12, 14));
+        painter.drawLine(QPointF(9, 17), QPointF(18, 17));
+        break;
+    case PickerAction::Close:
+        painter.drawLine(QPointF(5, 5), QPointF(15, 15));
+        painter.drawLine(QPointF(15, 5), QPointF(5, 15));
+        break;
+    case PickerAction::Previous:
+        painter.drawPolyline(QPolygonF{QPointF(13, 4), QPointF(7, 10), QPointF(13, 16)});
+        break;
+    case PickerAction::Next:
+        painter.drawPolyline(QPolygonF{QPointF(7, 4), QPointF(13, 10), QPointF(7, 16)});
+        break;
+    }
+    painter.end();
+    button->setIcon(QIcon(pixmap));
+    button->setIconSize(QSize(size, size));
+}
+
+class PanelEffectPicker : public QDialog {
+  public:
+    explicit PanelEffectPicker(QWidget* parent) : QDialog(parent) {
+        setWindowFlags(Qt::Widget);
+        setAttribute(Qt::WA_StyledBackground);
+    }
+
+  protected:
+    bool eventFilter(QObject* watched, QEvent* event) override {
+        // Switching pages or reloading the skin dismisses the child picker.
+        if (event->type() == QEvent::Hide) {
+            reject();
+        }
+        return QDialog::eventFilter(watched, event);
+    }
+};
+} // namespace
+
 
 WEffectChainPresetSelector::WEffectChainPresetSelector(
         QWidget* pParent, EffectsManager* pEffectsManager)
@@ -120,15 +181,16 @@ void WEffectChainPresetSelector::showPopup() {
         return;
     }
 
-    // A fullscreen layout is intentional on the appliance's Wayland compositor.
-    // Paging avoids small scrolling targets and never changes the loaded effect.
-    QDialog picker(this, Qt::Dialog | Qt::FramelessWindowHint);
+    // Embed the picker in the skin so Wayland cannot tile it as another window.
+    // Its bounds follow the selector and leave the decks visible.
+    PanelEffectPicker picker(window());
+    installEventFilter(&picker);
     picker.setObjectName(QStringLiteral("BeatFxPicker"));
     picker.setWindowTitle(tr("Beat FX"));
     picker.setStyleSheet(HighContrast::mapStyleSheet(QStringLiteral(
             "QDialog#BeatFxPicker { background: #111111; color: #dddddd; }"
-            "QDialog#BeatFxPicker QLabel { color: #dddddd; }"
-            "QDialog#BeatFxPicker QPushButton { font-size: 16px; padding: 4px 12px;"
+            "QDialog#BeatFxPicker QLabel { color: #dddddd; font-size: 9px; }"
+            "QDialog#BeatFxPicker QPushButton { font-size: 10px; padding: 2px;"
             "border: 1px solid #444444; border-radius: 6px;"
             "background: #1a1a1a; color: #dddddd; }"
             "QDialog#BeatFxPicker QPushButton:checked { border: 2px solid #835aa0;"
@@ -136,33 +198,37 @@ void WEffectChainPresetSelector::showPopup() {
             "QDialog#BeatFxPicker QPushButton:focus { border: 2px solid #835aa0; }"
             "QDialog#BeatFxPicker QPushButton:disabled { color: #666666; }")));
     auto* layout = new QVBoxLayout(&picker);
-    layout->setContentsMargins(16, 16, 16, 16);
-    layout->setSpacing(8);
-    auto* header = new QHBoxLayout();
-    auto* title = new QLabel(tr("BEAT FX"), &picker);
-    header->addWidget(title, 1);
+    layout->setContentsMargins(4, 4, 4, 4);
+    layout->setSpacing(4);
+    auto* header = new QGridLayout();
+    header->setSpacing(4);
     auto* standard = new QPushButton(tr("Standard"), &picker);
     auto* saved = new QPushButton(tr("Saved"), &picker);
     auto* clear = new QPushButton(tr("Clear FX"), &picker);
     auto* close = new QPushButton(tr("Close"), &picker);
     for (auto* button : {standard, saved, clear, close}) {
-        button->setMinimumSize(120, 48);
+        button->setMinimumSize(0, 30);
+        button->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
         button->setAutoDefault(false);
-        header->addWidget(button);
     }
+    header->addWidget(standard, 0, 0);
+    header->addWidget(saved, 0, 1);
+    header->addWidget(clear, 1, 0);
+    header->addWidget(close, 1, 1);
+    setPickerAction(clear, PickerAction::Clear);
+    setPickerAction(close, PickerAction::Close);
     standard->setCheckable(true);
     saved->setCheckable(true);
     layout->addLayout(header);
-    auto* note = new QLabel(tr("Native approximations • Select an effect, then use FX ON to activate."), &picker);
-    note->setMinimumHeight(24);
-    layout->addWidget(note);
     auto* grid = new QGridLayout();
-    grid->setSpacing(8);
-    std::array<QPushButton*, 14> buttons;
-    for (int i = 0; i < 14; ++i) {
+    grid->setSpacing(4);
+    grid->setAlignment(Qt::AlignTop);
+    constexpr int kPageSize = 14;
+    std::array<QPushButton*, kPageSize> buttons;
+    for (int i = 0; i < kPageSize; ++i) {
         auto* button = new QPushButton(&picker);
-        button->setMinimumHeight(50);
-        QSizePolicy policy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        button->setFixedHeight(44);
+        QSizePolicy policy(QSizePolicy::Ignored, QSizePolicy::Expanding);
         policy.setRetainSizeWhenHidden(true);
         button->setSizePolicy(policy);
         button->setCheckable(true);
@@ -172,20 +238,24 @@ void WEffectChainPresetSelector::showPopup() {
     }
     grid->setColumnStretch(0, 1);
     grid->setColumnStretch(1, 1);
-    layout->addLayout(grid, 1);
+    layout->addLayout(grid);
     auto* navigation = new QHBoxLayout();
-    auto* previous = new QPushButton(tr("Previous"), &picker);
+    auto* previous = new QPushButton(tr("Prev"), &picker);
     auto* next = new QPushButton(tr("Next"), &picker);
     auto* pageLabel = new QLabel(&picker);
     pageLabel->setAlignment(Qt::AlignCenter);
     for (auto* button : {previous, next}) {
-        button->setMinimumSize(180, 48);
+        button->setMinimumSize(0, 30);
+        button->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
         button->setAutoDefault(false);
     }
+    setPickerAction(previous, PickerAction::Previous);
+    setPickerAction(next, PickerAction::Next);
     navigation->addWidget(previous);
-    navigation->addWidget(pageLabel, 1);
     navigation->addWidget(next);
+    layout->addWidget(pageLabel);
     layout->addLayout(navigation);
+    layout->addStretch(1);
 
     QList<int> standardItems, savedItems;
     for (int i = 0; i < count(); ++i) {
@@ -196,26 +266,47 @@ void WEffectChainPresetSelector::showPopup() {
         (preset->isRekordbox7() ? standardItems : savedItems).append(i);
     }
     bool showSaved = savedItems.contains(currentIndex());
-    int page = std::max(0, static_cast<int>((showSaved ? savedItems : standardItems).indexOf(currentIndex()))) / 14;
+    int page = std::max(0, static_cast<int>((showSaved ? savedItems : standardItems).indexOf(currentIndex()))) / kPageSize;
     const auto refresh = [&]() {
         const auto& items = showSaved ? savedItems : standardItems;
-        int pages = std::max(1, (static_cast<int>(items.size()) + 13) / 14);
+        int pages = std::max(1, (static_cast<int>(items.size()) + kPageSize - 1) / kPageSize);
         page = std::clamp(page, 0, pages - 1);
         standard->setChecked(!showSaved);
         saved->setChecked(showSaved);
-        note->setText(showSaved ? tr("Saved and legacy presets • Original files and settings are preserved.") :
-                tr("Native approximations • Select an effect, then use FX ON to activate."));
-        pageLabel->setText(tr("Page %1 of %2").arg(page + 1).arg(pages));
+        pageLabel->setText(tr("%1 / %2").arg(page + 1).arg(pages));
+        pageLabel->setAccessibleName(tr("Page %1 of %2").arg(page + 1).arg(pages));
         previous->setEnabled(page > 0);
         next->setEnabled(page + 1 < pages);
-        for (int i = 0; i < 14; ++i) {
-            int offset = page * 14 + i;
+        for (int i = 0; i < kPageSize; ++i) {
+            int offset = page * kPageSize + i;
             auto* button = buttons[i];
             int index = offset < items.size() ? items[offset] : -1;
             button->setProperty("presetIndex", index);
             button->setEnabled(index >= 0);
             button->setVisible(index >= 0);
-            button->setText(index >= 0 ? QStringLiteral("%1   %2").arg(offset + 1, 2, 10, QLatin1Char('0')).arg(itemText(index)) : QString());
+            QString label = index >= 0 ? itemText(index) : QString();
+            // Wrap against the actual cell width, including Saved names with
+            // number prefixes. Long custom words remain identifiable by tooltip.
+            button->ensurePolished();
+            const QFontMetrics metrics(button->font());
+            const int textWidth = (width() - 12) / 2 - 8;
+            QStringList lines;
+            QString line;
+            for (const auto& word : label.split(QLatin1Char(' '))) {
+                const QString candidate = line.isEmpty() ? word : line + QLatin1Char(' ') + word;
+                if (!line.isEmpty() && (candidate.size() > 10 || metrics.horizontalAdvance(candidate) > textWidth - 2)) {
+                    lines.append(line);
+                    line = word;
+                } else {
+                    line = candidate;
+                }
+            }
+            lines.append(line);
+            for (auto& text : lines) {
+                text = metrics.elidedText(text, Qt::ElideRight, textWidth);
+            }
+            label = lines.join(QLatin1Char('\n'));
+            button->setText(label);
             button->setChecked(index >= 0 && index == currentIndex());
             button->setToolTip(index >= 0 ? itemData(index, Qt::ToolTipRole).toString() : QString());
         }
@@ -242,7 +333,9 @@ void WEffectChainPresetSelector::showPopup() {
     });
     connect(m_pChain.data(), &EffectChain::chainPresetChanged, &picker, [&]() { refresh(); });
     refresh();
-    picker.showFullScreen();
+    const QPoint origin = mapTo(window(), QPoint(0, 0));
+    picker.setGeometry(origin.x(), origin.y(), width(), window()->height() - origin.y());
+    picker.raise();
     picker.exec();
     // Reset QComboBox's popup state, including keyboard activation.
     QComboBox::hidePopup();

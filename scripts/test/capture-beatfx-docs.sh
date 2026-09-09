@@ -21,18 +21,18 @@ capture() {
 click 100 20
 click 878 70
 click 934 122
-click 564 40  # Standard, page 1
-click 762 131 # Echo; standard selection starts Off
+click 894 119  # Standard, page 1
+click 974 194 # Echo; standard selection starts Off
 capture play
 click 934 122
 capture beat-fx-page-1
-click 918 560
+click 974 538
 capture beat-fx-page-2
-click 692 40
+click 974 119
 capture beat-fx-saved-1
-click 918 560
+click 974 538
 capture beat-fx-saved-2
-click 948 40
+click 974 153
 {
     git -C "${REPO_DIR}" describe --always --dirty
     shasum -a 256 "${REPO_DIR}/dist-linux/bin/mixxx"

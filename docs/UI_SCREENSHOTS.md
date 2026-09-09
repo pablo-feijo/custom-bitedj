@@ -6,16 +6,13 @@ This guide describes [Custom Bite DJ](../README.md), an independent fork of
 [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on Mixxx.
 
 Native **1024×600** screenshots using synthetic music in isolated ARM64 Docker
-instances. Play, Browse, Settings and the drawer were refreshed on
-`codex/waveform-preview-fixes`, binary `0.0.7-codex-waveform-preview-fixes.2`.
-They use generated Groove 128 BPM and Techno 124 BPM tracks. Browse also shows
-the unloaded 16-second replacement fixture, read from its cached analysis after
-a restart. Unavailable previews show an em dash. No physical MIDI controller or
-USB drive is attached; runtime statistics describe the container.
-
-Beat FX picker images retain the `codex/ddj400-shift-fx-back` capture for the
-catalogue/picker changes documented here. The picker and drawer include Day
-captures; the primary Play/Browse/Settings images use Night mode.
+instances. Play, Beat FX and Browse are refreshed on `codex/browse-fx-touch-ui`
+for the compact picker and padded browser controls (verified .8 captures;
+unchanged UI in the final .9 SemVer synchronization). Settings and drawer images
+come from `codex/waveform-preview-fixes`, binary
+`0.0.7-codex-waveform-preview-fixes.2`. The tasks use generated Groove 128 BPM
+and Techno 124 BPM fixtures. No physical MIDI controller or USB drive is
+attached; runtime statistics describe the container.
 
 See the [0.0.7 changelog](../CHANGELOG.md#007--unreleased) for the changes behind
 these screens, or [return to the README](../README.md).
@@ -39,8 +36,12 @@ Every entry is a documented [native approximation](BEAT_FX.md), with differences
 from Rekordbox explained in the catalogue. Selecting an effect closes the picker
 and leaves FX Off until activated. Page navigation and Close preserve selection.
 
-Two columns provide 492px-wide effect buttons with at least 50px height and an
-8px gutter. ECHO is selected here. The second page keeps the same row spacing.
+The picker stays inside the right FX panel. Two columns provide 76px-wide
+effect buttons with 44px height, 10px labels and a 4px gutter. ECHO is selected
+here. Seven rows fit per page; both pages keep the same spacing and long names
+wrap inside their cells. Standard, Saved, Clear FX, Close, Prev and Next use
+30px controls; the page counter uses 9px text. The counter and arrows sit
+immediately below the options, with remaining panel space beneath them.
 
 ![Standard Beat FX, Night mode, page 1 with ECHO selected.](images/ui/0.0.7/beat-fx-page-1.png)
 
@@ -64,9 +65,18 @@ labels now display as COLOR FILTER and RHYTHMIC FILTER.
 
 ## Browse with previews
 
-Synthetic tracks in the compact library table, with cached waveform previews, including the unloaded 16-second replacement fixture, and both deck overviews visible below.
+Synthetic tracks in the compact library table, with smaller padded headers, the
+waveform Preview column enabled, a 44px Folders control and both deck overviews.
 
-![Browse with previews: Synthetic tracks in the compact library table, with cached waveform previews, including the unloaded 16-second replacement fixture, and both deck overviews visible below.](images/ui/0.0.7/browse-preview.png)
+![Browse with previews: Synthetic tracks in the compact library table, with smaller padded headers, the
+waveform Preview column enabled, a 44px Folders control and both deck overviews.](images/ui/0.0.7/browse-preview.png)
+
+Folder navigation uses 44px rows and expansion areas. Tapping a grouping label
+expands it; tapping a track folder opens its table.
+
+![Browse folder navigation.](images/ui/0.0.7/browse-folders.png)
+
+![Browse table in Day mode.](images/ui/0.0.7/browse-day.png)
 
 <a id="settings-general"></a>
 
@@ -149,3 +159,7 @@ and [agent screenshot policy](../AGENTS.md#published-ui-screenshots). Refresh
 screens affected by UI changes in the same commit and link their sections from
 the changelog. Raw captures remain ignored; only reviewed publication images
 are stored here. Preserve this gallery once 0.0.7 is released.
+
+Compact FX actions: eraser = Clear FX, × = Close, left/right chevrons =
+Prev/Next. Tooltips and accessible names retain the action labels. Standard
+and Saved remain labeled tabs; the 9px page counter reads `1 / 2`.

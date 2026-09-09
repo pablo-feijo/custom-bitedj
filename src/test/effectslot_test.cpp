@@ -294,7 +294,11 @@ TEST_F(EffectSlotTest, StandardPickerPopulatesAndOpensTwoColumnDialog) {
     manager.registerInputChannel(output);
     manager.registerInputChannel(deck);
     manager.setup();
-    WEffectChainPresetSelector selector(nullptr, &manager);
+    QWidget window;
+    window.resize(1024, 600);
+    WEffectChainPresetSelector selector(&window, &manager);
+    selector.setGeometry(852, 100, 164, 44);
+    window.show();
     QDomDocument doc;
     ASSERT_TRUE(doc.setContent(QStringLiteral("<EffectChainPresetSelector><EffectUnitGroup>[EffectRack1_EffectUnit1]</EffectUnitGroup></EffectChainPresetSelector>")));
     SkinContext context(config(), QString());
@@ -303,20 +307,29 @@ TEST_F(EffectSlotTest, StandardPickerPopulatesAndOpensTwoColumnDialog) {
     EXPECT_EQ(selector.itemText(1), QStringLiteral("DELAY"));
     bool opened = false;
     QTimer::singleShot(50, &selector, [&]() {
-        auto* dialog = selector.findChild<QDialog*>(QStringLiteral("BeatFxPicker"));
+        auto* dialog = window.findChild<QDialog*>(QStringLiteral("BeatFxPicker"));
         if (dialog) {
             opened = dialog->isVisible();
+            EXPECT_FALSE(dialog->isWindow());
+            EXPECT_EQ(dialog->geometry(), QRect(852, 100, 164, 500));
             int entries = 0;
             QSet<int> columns, rows;
             QPushButton* next = nullptr;
             for (auto* button : dialog->findChildren<QPushButton*>()) {
                 if (button->property("presetIndex").isValid()) {
                     ++entries;
-                    EXPECT_GE(button->height(), 50);
+                    EXPECT_EQ(button->height(), 44);
                     columns.insert(button->x());
                     rows.insert(button->y());
+                } else {
+                    EXPECT_EQ(button->height(), 30);
+                    if (!button->accessibleName().isEmpty()) {
+                        EXPECT_FALSE(button->icon().isNull());
+                        EXPECT_TRUE(button->text().isEmpty());
+                        EXPECT_EQ(button->toolTip(), button->accessibleName());
+                    }
                 }
-                if (button->text() == QStringLiteral("Next")) {
+                if (button->accessibleName() == QStringLiteral("Next")) {
                     next = button;
                 }
             }
@@ -327,7 +340,25 @@ TEST_F(EffectSlotTest, StandardPickerPopulatesAndOpensTwoColumnDialog) {
             ASSERT_TRUE(next);
             next->click();
             EXPECT_EQ(manager.getStandardEffectChain(0)->presetName(), before);
-            dialog->reject();
+            for (auto* button : dialog->findChildren<QPushButton*>()) {
+                if (button->text() == QStringLiteral("Saved")) {
+                    button->click();
+                    break;
+                }
+            }
+            const int reverseRoll = selector.findText(QStringLiteral("7. REV ROLL"));
+            ASSERT_GE(reverseRoll, 0);
+            bool foundReverseRoll = false;
+            for (auto* button : dialog->findChildren<QPushButton*>()) {
+                if (button->property("presetIndex").isValid() &&
+                        button->property("presetIndex").toInt() == reverseRoll) {
+                    EXPECT_EQ(button->text(), QStringLiteral("7. REV\nROLL"));
+                    foundReverseRoll = true;
+                }
+            }
+            EXPECT_TRUE(foundReverseRoll);
+            selector.hide();
+            EXPECT_FALSE(dialog->isVisible());
         }
     });
     selector.showPopup();

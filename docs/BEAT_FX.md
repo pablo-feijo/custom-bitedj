@@ -3,15 +3,17 @@
 BiteDJ uses the 25-name Rekordbox 7 **single-mode standard Beat FX** list below.
 Every entry is an original configuration of Mixxx native effects: **an
 approximation, not Pioneer/AlphaTheta DSP or a promise of identical sound**.
-The picker states this visibly; the table below describes each limitation.
+The table below describes each limitation.
 RMX expansion effects and Sound Color FX are outside this standard section.
 Pad FX keeps its separate saved IDs and native transport Roll.
 
 ## Two-column selection
 
 Open the selector in Play → FX. Standard presents two columns, read left to
-right across each row, with 14 effects on page 1 and 11 on page 2. Large
-Previous/Next buttons change pages without changing the loaded effect. The
+right across each row, confined to the right FX panel. Pages contain 14
+and 11 standard effects, with seven rows of compact 44px touch targets and
+10px labels.
+Prev/Next buttons change pages without changing the loaded effect. The
 current entry is highlighted. Close or Escape cancels; Clear FX unloads the
 chain. Selecting a standard preset leaves it Off until you press the FX
 activation button. All its native processing slots activate/deactivate together.

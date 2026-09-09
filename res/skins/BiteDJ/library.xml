@@ -11,7 +11,7 @@
           <WidgetGroup>
             <ObjectName>SidebarContainer</ObjectName>
             <Layout>horizontal</Layout>
-            <Size>0me,32max</Size>
+            <Size>0me,44max</Size>
             <Connection>
               <ConfigKey>[Sidebar],sidebar_visible</ConfigKey>
               <BindProperty>visible</BindProperty>
@@ -26,11 +26,11 @@
               </LibraryBreadcrumb>
               <PushButton>
                 <ObjectName>SidebarButton</ObjectName>
-                <Size>80p,32p</Size>
+                <Size>88p,44p</Size>
                 <NumberStates>2</NumberStates>
                 <State>
                   <Number>0</Number>
-                  <Text>Back</Text>
+                  <Text>Folders</Text>
                 </State>
                 <Connection>
                   <ConfigKey>[Sidebar],sidebar_visible</ConfigKey>

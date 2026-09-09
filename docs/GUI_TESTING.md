@@ -273,7 +273,7 @@ for “3 Band” on the 1024×600 display.
 
 ### Rekordbox and Prepare fixtures
 
-Use the [synthetic fixture generator and procedure](../tests/rekordbox/README.md). Browse root rows are Prepare `y=52`, Computer `75`, History `99`, Rekordbox `121`; the expanded fixture child is `143`. Add tracks with **Add to Prepare** in their context menu. In Prepare, use **Move Up**, **Move Down**, or **Remove**; verify order after restarting. Loading retains queue entries and never starts playback automatically.
+Use the [synthetic fixture generator and procedure](../tests/rekordbox/README.md). Browse uses 44px rows: collapsed roots are Prepare `y=63`, Computer `107`, History `151`, Rekordbox `195`; its expanded fixture child is `239`. Each expanded child shifts subsequent rows by 44px. Add tracks with **Add to Prepare** in their context menu. In Prepare, use **Move Up**, **Move Down**, or **Remove**; verify order after restarting. Loading retains queue entries and never starts playback automatically.
 
 Overview previews show A–H for hot cues and 1–8 for memories; the Play waveform keeps full names. Keep memory numbers above the optional 10px phrase strip. Check both views with Phrases Off/On and Day/Night. Store generated media, screenshots, recordings, statistics and reports only in ignored test-results paths.
 
@@ -331,14 +331,15 @@ correct worktree and use its freshly printed endpoints.
 ### Beat FX picker
 
 At 1024×600, Play's FX tab is `(878,70)`, selector `(934,122)`, Deck 1/2
-routing `(891,174)` / `(977,174)`, and activation `(934,226)`. The standard
-picker has two columns and seven rows: column centers `x=262,762`; row centers
-`y=131,192,254,316,378,439,501`. Buttons are 492px wide and 53–54px tall,
-with 8px gaps and 16px outside padding. Header centers: Standard `(564,40)`,
-Saved `(692,40)`, Clear FX `(820,40)`, Close `(948,40)`; footer Previous
-`(106,560)` and Next `(918,560)`. Header/footer targets are 48px tall.
+routing `(891,174)` / `(977,174)`, and activation `(934,226)`. The picker
+stays inside `x=852..1015, y=100..599`. Its two effect columns have centers
+`x=894,974`; seven row centers are `y=194,242,290,338,386,434,482`. Effect targets are
+76px wide and 44px tall with 10px labels, with 4px gaps and outside padding.
+Standard/Saved: `(894,119)` / `(974,119)`; Clear FX/Close: `(894,153)` /
+`(974,153)`; Prev/Next: `(894,538)` / `(974,538)`. Header/footer targets
+are 30px tall; the page counter is 9px at `(934,514)`. Leaving FX closes the picker, including a skin reload.
 
-Standard order is row-major, entries 1–14 then 15–25, listed in
+Standard order is row-major, entries 1–14, then 15–25, listed in
 [Beat FX](BEAT_FX.md). Saved holds legacy/custom entries. Native persisted IDs
 remain independent of labels. Page/section changes and Close/Escape must leave
 the selected chain unchanged. Selection starts a standard chain Off; the
@@ -347,12 +348,13 @@ The `parameterN_beat_period` alias uses periods in beats and converts rate-based
 parameters without changing saved raw values.
 
 Run `scripts/test/capture-beatfx-docs.sh` with two paused synthetic tracks in
-Night mode. Inspect both standard pages and both Saved pages, especially Color
+Night mode. Inspect both Standard pages and both Saved pages, especially Color
 Filter versus Rhythmic Filter, selected highlighting, last-row clearance and
 hidden empty cells. Publish reviewed Play/picker images in the
 [current gallery](UI_SCREENSHOTS.md#beat-fx-picker). Also test Day through
 Settings → System → Day `(980,312)`, then restore Night `(922,312)`; wait for
-the skin reload/notification before using the top tabs. Verify Clear and Escape
+the skin reload/notification before using the top tabs (allow 9 seconds in the
+Docker instance). Verify Clear and Escape
 separately and confirm selecting an entry closes the picker without activating FX.
 
 Focused native checks, including dialog-open geometry and page-change behavior:
@@ -422,3 +424,33 @@ exports to upstream modules that already declare them.
 The interactive launcher waits for Xvfb readiness before starting Openbox,
 x11vnc and the application. Shell background jobs must not bypass this gate;
 a browser connection refusal can mean x11vnc exited before the display existed.
+### Browse touch navigation
+
+Use the [canonical Browse coordinates](../AGENTS.md#b-browse--library-navigation).
+With the synthetic `/music` Quick Link configured, tap Computer `(150,107)`,
+Quick Links `(150,151)`, then Music `(200,195)`. Group labels must expand
+without switching to a table; a folder's indentation cell expands its
+subfolders without opening its tracks. Tap its label to open tracks, then
+Folders `(980,62)` to return. Drag a long tree without opening any row.
+Headers at `y=84..117` use 11px text with 8px padding; verify sorting at
+header center `y=101`, compact rows at `y=129,151`, and footer visibility.
+In Settings → Library, Preview enable is `(816,391)` and L width `(988,391)`.
+Both are needed to show wide preview waveforms in a fresh test configuration.
+Check Browse and the FX picker in Day and Night modes.
+
+For the nested-folder swipe check, create synthetic empty directories before
+starting the owned instance so its lazy directory cache sees them:
+
+```sh
+mkdir -p "test-music/Touch navigation/Nested"
+for i in $(seq 1 16); do mkdir -p "test-music/Touch navigation/Nested/Folder $i"; done
+```
+
+After Computer and Quick Links, use expansion cells `(110,195)`, `(154,239)`
+and `(198,283)` for Music, Touch navigation and Nested. Drag from `(300,459)`
+to `(300,239)`; the tree must scroll and remain open. Restore the scroll and
+tap Music's label to verify that a folder with children can still open tracks.
+
+Compact FX actions: eraser = Clear FX, × = Close, left/right chevrons =
+Prev/Next. Tooltips and accessible names retain the action labels. Standard
+and Saved remain labeled tabs; the 9px page counter reads `1 / 2`.
