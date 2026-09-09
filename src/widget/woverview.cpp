@@ -758,8 +758,13 @@ void WOverview::paintEvent(QPaintEvent* pEvent) {
                     static_cast<CSAMPLE_GAIN>(trackSamples);
 
             drawRangeMarks(&painter, offset, gain);
+            if (m_compactCueLabels) {
+                drawPickupPosition(&painter);
+            }
             drawMarks(&painter, offset, gain);
-            drawPickupPosition(&painter);
+            if (!m_compactCueLabels) {
+                drawPickupPosition(&painter);
+            }
             drawTimeRuler(&painter);
             drawMarkLabels(&painter, offset, gain);
         }
@@ -1040,7 +1045,8 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
         }
 
         const bool prominentCue = m_compactCueLabels &&
-                pMark->getHotCue() != Cue::kNoHotCue;
+                (pMark->getHotCue() != Cue::kNoHotCue ||
+                        pMark->getItem() == QStringLiteral("cue_point"));
         if (prominentCue) {
             pPainter->setPen(QPen(pMark->borderColor(), 4 * m_scaleFactor));
             pPainter->drawLine(line);
@@ -1064,7 +1070,8 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
             // label, but do not elide it if the next mark's label is not at the
             // same vertical position.
 
-            if (pMark != m_pHoveredMark) {
+            if (pMark != m_pHoveredMark &&
+                    !(m_compactCueLabels && pMark->getItem() == QStringLiteral("cue_point"))) {
                 float nextMarkPosition = -1.0f;
                 for (auto m = std::next(it); m != m_marks.cend(); ++m) {
                     const WaveformMarkPointer& otherMark = *m;
@@ -1130,10 +1137,8 @@ void WOverview::drawMarks(QPainter* pPainter, const float offset, const float ga
                     QPixmap(),
                     text,
                     markerFont,
-                    m_compactCueLabels && pMark->getHotCue() != Cue::kNoHotCue
-                            ? pMark->labelColor() : m_labelTextColor,
-                    m_compactCueLabels && pMark->getHotCue() != Cue::kNoHotCue
-                            ? pMark->fillColor() : m_labelBackgroundColor,
+                    prominentCue ? pMark->labelColor() : m_labelTextColor,
+                    prominentCue ? pMark->fillColor() : m_labelBackgroundColor,
                     width(),
                     devicePixelRatioF());
         }
@@ -1387,6 +1392,26 @@ void WOverview::drawMarkLabels(QPainter* pPainter, const float offset, const flo
             if (!(markRange.m_durationLabel.intersects(m_cuePositionLabel) || markRange.m_durationLabel.intersects(m_cueTimeDistanceLabel) || markRange.m_durationLabel.intersects(m_timeRulerPositionLabel) || markRange.m_durationLabel.intersects(m_timeRulerDistanceLabel))) {
                 markRange.m_durationLabel.draw(pPainter);
             }
+        }
+    }
+    // The main CUE remains identifiable even at the exact position of a
+    // hot cue, memory cue, loop or playhead. Keep the shared mark ordering
+    // (and cue editing targets) intact; this is a compact-preview paint priority.
+    if (m_compactCueLabels) {
+        PainterScope painterScope(pPainter);
+        for (const auto& pMark : std::as_const(m_marks)) {
+            if (pMark->getItem() != QStringLiteral("cue_point")) {
+                continue;
+            }
+            const double position = pMark->m_linePosition;
+            const QLineF line = m_orientation == Qt::Horizontal
+                    ? QLineF(position, 0, position, height())
+                    : QLineF(0, position, width(), position);
+            pPainter->setPen(QPen(pMark->borderColor(), 4 * m_scaleFactor));
+            pPainter->drawLine(line);
+            pPainter->setPen(QPen(pMark->fillColor(), 2 * m_scaleFactor));
+            pPainter->drawLine(line);
+            pMark->m_label.draw(pPainter);
         }
     }
 }

@@ -465,7 +465,10 @@
             <TimeRemainingScale>0.57</TimeRemainingScale>
             <Mark>
               <Control>cue_point</Control>
-              <Color>#eb870f</Color>
+              <Text>CUE</Text>
+              <Color>#ff6000</Color>
+              <TextColor>#ff6000</TextColor>
+              <Align>bottom</Align>
             </Mark>
             <!-- Hot cue bank (slots 1-8 = rekordbox pads A-H, and the eight
                  pads a controller maps). Declaring <Hotcue> rather than a
