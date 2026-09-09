@@ -4,12 +4,11 @@ Branch: `codex/rekordbox-padfx-display` in `bitedj-next-batch`.
 Initial base: completed first batch `180ab1bb60` (inherited `v0.0.6`).
 Rebased onto local `codex/v0.0.7` at `b840bf1327`, including the other task's
 deck presentation, JUMP, Info and compact-menu changes. The user subsequently
-authorized working version `0.0.7`: app metadata and pi-gen image naming are
-synchronized on feature branches. Pi-gen work lives on
-`codex/v007-custom-defaults`, pinned by the parent gitlink; `codex/v0.0.7`
-remains the later merge target in both repositories.
-Eventual merge target: `codex/v0.0.7`.
-The parent feature branch remains unmerged; no release tag or OS image was created.
+authorized working version `0.0.7`. The app branch and pi-gen defaults branch
+`codex/v007-custom-defaults` are integrated into their respective `codex/v0.0.7`
+branches with merge commits. The parent gitlink pins the pi-gen merge commit.
+Start future work on new isolated feature branches. No release tag or OS image
+was created by this integration.
 Source review pinned to xsploit/bitedj `4c1dfec590f98851159fe7a64e3348e8aad306a5`.
 
 - [x] 1. README identity, upstream credits, links and NOTICE (first batch).
@@ -55,4 +54,4 @@ Reproduction procedures and generators are tracked; screenshots, recordings,
 statistics and test reports remain local and ignored. The GUI is at
 `http://localhost:6082/vnc.html`; other branches' instances are untouched.
 
-- [ ] Merge into `codex/v0.0.7` later, only when requested.
+- [x] Integrate both repositories into `codex/v0.0.7` with merge commits, as authorized.

@@ -2,7 +2,7 @@
 
 A two-deck DJ appliance for Raspberry Pi, with a **1024×600 touchscreen**,
 USB-centered music browsing, and a custom **Pioneer DDJ-400** workflow.
-Development targets **v0.0.7**.
+The working integration branch is **`codex/v0.0.7`**.
 
 ## Features
 
@@ -32,6 +32,7 @@ Each feature branch uses its own worktree, settings, build, and VNC ports.
 - [Build and deploy](docs/BUILD_AND_DEPLOY.md)
 - [GUI and audio testing](docs/GUI_TESTING.md)
 - [Architecture](docs/INFRASTRUCTURE.md)
+- [Changelog](CHANGELOG.md)
 - [Change history](docs/DIFFS_FROM_BASE.md)
 
 ## Credits
