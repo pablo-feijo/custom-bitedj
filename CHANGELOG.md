@@ -25,6 +25,10 @@ Versioning; commit messages follow Conventional Commits.
 
 ### Changed
 
+- Include the user-approved pi-gen boot overrides (`over_voltage=6`,
+  `arm_freq=2000`, `gpu_freq=750`) in the pinned 0.0.7 image generator; preserve
+  the local library visibility and compact-row settings in its reference profile.
+
 - Reduced top-menu height and button size, with wider gaps between buttons.
 - Simplified deck metadata and aligned FX, KEY and JUMP controls.
 - Compacted the Browse table, headers and breadcrumb to leave more room for tracks.
