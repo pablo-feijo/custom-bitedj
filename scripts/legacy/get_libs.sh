@@ -1,5 +1,9 @@
-#!/bin/bash
-docker run --rm -v $(pwd):/out ubuntu:24.04 bash -c "
+#!/usr/bin/env bash
+set -euo pipefail
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+OUTPUT_DIR="${REPO_DIR}/test-results/legacy-libs"
+mkdir -p "${OUTPUT_DIR}"
+docker run --rm --platform linux/arm64 -v "${OUTPUT_DIR}:/out" ubuntu:24.04 bash -c "
 apt-get update && apt-get install -y libflac12 libtag1v5 libavcodec60 libavformat60 libavutil58 libswresample4
 mkdir -p /tmp/libs
 cp /usr/lib/aarch64-linux-gnu/libFLAC.so.12* /tmp/libs/

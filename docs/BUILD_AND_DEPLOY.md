@@ -12,10 +12,10 @@ If you need to flash a brand-new Raspberry Pi, you must bake a complete OS image
 
 Run the image generator script:
 ```bash
-./generate-pi-image.sh
+./scripts/build/generate-pi-image.sh
 ```
 This script will:
-1. Automatically compile the Linux ARM64 binary via `docker-build.sh`.
+1. Automatically compile the Linux ARM64 binary via `scripts/build/docker-build.sh`.
 2. Launch the `mixxx-pi-gen` Docker container.
 3. Build a customized Debian Trixie OS from scratch (Stages 0-3).
 4. Export a fully flashable `.zip` file into `mixxx-pi-gen/deploy/`.
@@ -23,7 +23,7 @@ This script will:
 **Flashing the SD Card:**
 Once the `.zip` is generated, insert your SD card and run:
 ```bash
-./flash-sdcard.sh
+./scripts/deploy/flash-sdcard.sh
 ```
 Follow the interactive prompts to safely write the image to your disk.
 
@@ -40,12 +40,12 @@ If you already have a working BiteDJ Raspberry Pi and just need to update the ap
 
 **Compile the binary locally:**
 ```bash
-./docker-build.sh --platform linux/arm64
+./scripts/build/docker-build.sh --platform linux/arm64
 ```
 *This creates the executable inside `dist-linux/bin/`.*
 
 **Deploy to the Pi:**
-Use the included `deploy-ssh.sh` script or run:
+Use the included `scripts/deploy/deploy-ssh.sh` script or run:
 ```bash
 scp dist-linux/bin/mixxx pi@<YOUR_PI_IP>:/tmp/bitedj
 ssh pi@<YOUR_PI_IP> "sudo mv /tmp/bitedj /usr/bin/bitedj && sudo chmod +x /usr/bin/bitedj"

@@ -23,12 +23,13 @@ See the [DDJ-400 guide](docs/DDJ400_MAPPING.md) for controls and the
 Build the ARM64 application with:
 
 ```sh
-./docker-build.sh --platform linux/arm64
+./scripts/build/docker-build.sh --platform linux/arm64
 ```
 
-Launch an isolated local GUI/audio test instance with `./run-gui-test.sh`.
+Launch an isolated local GUI/audio test instance with `./scripts/test/run-gui-test.sh`.
 Each feature branch uses its own worktree, settings, build, and VNC ports.
 
+- [Repository layout and script locations](docs/REPOSITORY_LAYOUT.md)
 - [Build and deploy](docs/BUILD_AND_DEPLOY.md)
 - [GUI and audio testing](docs/GUI_TESTING.md)
 - [Architecture](docs/INFRASTRUCTURE.md)

@@ -27,7 +27,7 @@ Later merge target: `codex/v0.0.7`. No merge or version bump performed.
 
 ## Checks
 
-- ARM64 build through `./docker-build.sh --platform linux/arm64`: passed.
+- ARM64 build through `./scripts/build/docker-build.sh --platform linux/arm64`: passed.
 - Final native test selection: **14 passed** across SystemSettingsTest,
   SystemTelemetryTest, TrackSourceWidgetTest, EngineBufferTest.OnAir* and
   EngineMixerTest. Covers path boundaries/nested mounts/unplug classification,
@@ -56,7 +56,7 @@ feature test container is also stopped. No files in the other checkout were
 replaced with this build.
 
 The documented `test-gui-automated.sh` is absent in this checkout. The available
-`test-gui-fx.sh` was exercised via a temporary harness: container/port overrides
+`scripts/test/test-gui-fx.sh` was exercised via a temporary harness: container/port overrides
 for isolation, repeatable screenshot capture and bounded stream reads (the
 original curl/head pipeline exits with a broken-pipe error under pipefail).
 Its byte-comparison check is a smoke check, not proof of effect DSP correctness;

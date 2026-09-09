@@ -57,6 +57,11 @@ Versioning; commit messages follow Conventional Commits.
 
 ### Documentation and validation
 
+- Organize helper scripts under `scripts/build/`, `scripts/deploy/`, `scripts/test/`
+  and `scripts/legacy/`, and Docker recipes under `docker/`. Update callers and
+  documentation; scripts keep outputs anchored to their worktree from any cwd.
+  See the [repository layout and agent placement rules](docs/REPOSITORY_LAYOUT.md).
+
 - Keep UI control/position maps and agent guides synchronized. Feature branches
   have independent worktrees, builds, settings and ARM64 VNC instances.
 - Retain synthetic Rekordbox and MIDI/audio fixture generators and reproduction

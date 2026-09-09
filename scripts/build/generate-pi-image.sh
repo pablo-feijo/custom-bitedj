@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DIST_DIR="${SCRIPT_DIR}/dist-linux"
-PI_GEN_DIR="${SCRIPT_DIR}/mixxx-pi-gen"
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+DIST_DIR="${REPO_DIR}/dist-linux"
+PI_GEN_DIR="${REPO_DIR}/mixxx-pi-gen"
 
 echo "============================================================"
 echo "  BiteDJ Raspberry Pi OS Image Builder"
@@ -19,8 +19,8 @@ fi
 # 2. Check if pre-built BiteDJ Linux ARM64 binary exists
 if [ ! -f "${DIST_DIR}/bin/mixxx" ] && [ ! -f "${DIST_DIR}/bin/bitedj" ]; then
     echo "==> BiteDJ build artifacts not found in dist-linux/"
-    echo "    Compiling BiteDJ Linux ARM64 binary first with ./docker-build.sh..."
-    "${SCRIPT_DIR}/docker-build.sh" --platform linux/arm64
+    echo "    Compiling BiteDJ Linux ARM64 binary first with ./scripts/build/docker-build.sh..."
+    "${REPO_DIR}/scripts/build/docker-build.sh" --platform linux/arm64
 fi
 
 if [ ! -f "${DIST_DIR}/bin/mixxx" ] && [ ! -f "${DIST_DIR}/bin/bitedj" ]; then

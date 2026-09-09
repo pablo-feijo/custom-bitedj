@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "${REPO_DIR}"
+
 if [ "$#" -ne 1 ]; then
     echo "Usage: $0 <raspberry_pi_ip>"
     echo "Example: $0 192.168.18.157"
@@ -17,7 +20,7 @@ echo "  BiteDJ Hot-Deployer"
 echo "============================================================"
 
 echo "1. Cross-compiling BiteDJ (ARM64)..."
-./docker-build.sh --platform linux/arm64
+./scripts/build/docker-build.sh --platform linux/arm64
 
 if [ ! -f "$BINARY_PATH" ]; then
     echo "ERROR: Compilation failed. $BINARY_PATH not found."

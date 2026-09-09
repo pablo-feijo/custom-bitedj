@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 IMAGE_NAME="bitedj-builder"
-BUILD_DIR="${SCRIPT_DIR}/build-linux"
-DIST_DIR="${SCRIPT_DIR}/dist-linux"
+BUILD_DIR="${REPO_DIR}/build-linux"
+DIST_DIR="${REPO_DIR}/dist-linux"
 
 PLATFORM=""
 CLEAN=false
@@ -73,13 +73,13 @@ mkdir -p "${BUILD_DIR}" "${DIST_DIR}"
 # Build Docker image if not present or requested
 if [[ "${REBUILD_IMAGE}" = true ]] || ! docker image inspect "${FULL_IMAGE_NAME}" >/dev/null 2>&1; then
     echo "==> Building Docker image: ${FULL_IMAGE_NAME} (${PLATFORM:-native})..."
-    docker build ${PLATFORM_ARG} -t "${FULL_IMAGE_NAME}" -f "${SCRIPT_DIR}/Dockerfile" "${SCRIPT_DIR}"
+    docker build ${PLATFORM_ARG} -t "${FULL_IMAGE_NAME}" -f "${REPO_DIR}/docker/build.Dockerfile" "${REPO_DIR}"
 fi
 
 echo "==> Running build in container..."
 docker run --rm \
     ${PLATFORM_ARG} \
-    -v "${SCRIPT_DIR}:/src" \
+    -v "${REPO_DIR}:/src" \
     -v bitedj-ccache:/root/.cache/ccache \
     -w /src/build-linux \
     -e CCACHE_DIR=/root/.cache/ccache \

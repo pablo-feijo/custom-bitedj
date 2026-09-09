@@ -14,10 +14,10 @@ architecture, versioning, branch isolation, testing and Conventional Commits rul
   for follow-ups and record the intended merge target in the task checklist.
 - Keep build outputs, installed binaries, settings and test containers independent
   per worktree. Never switch or overwrite another task's checkout or VNC instance.
-- Use `run-gui-test.sh`; select free ports automatically or set
+- Use `scripts/test/run-gui-test.sh`; select free ports automatically or set
   `BITEDJ_TEST_INSTANCE`, `BITEDJ_TEST_WEB_PORT`, `BITEDJ_TEST_AUDIO_PORT`, and
   `BITEDJ_TEST_VNC_PORT`. Read the printed endpoints, not assumed port 6080.
-- Before manual test commands below, run `source ./gui-test-settings.sh` and
+- Before manual test commands below, run `source ./scripts/test/gui-test-settings.sh` and
   `verify_test_instance_owner`. `$CONTAINER_NAME` must identify this task's owned
   instance. See [GUI testing](docs/GUI_TESTING.md) for the full recipe.
 - Use Conventional Commits for every new or amended commit. Merge into the
@@ -42,6 +42,21 @@ architecture, versioning, branch isolation, testing and Conventional Commits rul
   changes. If behavior changes, document the new mapping and any settings migration.
 - Verify the changed page in the owned VNC instance at 1024×600, including labels,
   touch targets, padding and footer visibility; check Day/Night when styles change.
+
+## Repository Organization
+
+- Follow [the canonical repository layout](docs/REPOSITORY_LAYOUT.md) for every new file.
+  Put BiteDJ helpers in `scripts/build/`, `scripts/deploy/`, `scripts/test/` or
+  `scripts/legacy/`; Docker recipes in `docker/`; guides and plans in `docs/`;
+  integration fixtures in `tests/`. Keep existing upstream utilities in `tools/`.
+- Do not accumulate scripts or scratch files at the root. Root additions require
+  a tool-discovery need or deliberate project entry point, explained in the change.
+- Keep generated output in ignored, worktree-local runtime directories. Curated
+  documentation images belong under `docs/images/`, never at the root.
+- For every move, update all callers, Docker paths, CI/config references, tests,
+  README/docs and agent instructions. Search tracked and hidden files, preserve
+  executable permissions, and verify path resolution from outside the repo.
+- Update the canonical map when adding a category; link to it instead of copying it.
 
 ## UI Layout
 - Overview Panel: Keep **FX**, **KEY**, and **JUMP** tabs. Beat-jump size and actions belong in JUMP, not the left waveform sidebar.
