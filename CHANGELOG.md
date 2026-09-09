@@ -15,6 +15,12 @@ UI previews: [Play](docs/UI_SCREENSHOTS.md#play),
 
 ### Fixed
 
+- Bottom [performance pads](docs/UI_SCREENSHOTS.md#controller-pad-drawer) now
+  respond to touch in Pad FX, Beat Jump and Beat Loop, without a controller.
+  Shared FX ownership preserves overlapping MIDI/touch holds and safe release.
+  Pad FX 2 now opens its second saved bank through controller selection or touch
+  navigation, with the displayed assignments matching the active page.
+
 - DDJ-400 Shift + jog aligns the beatgrid without seeking/scratching; jog release
   resumes playing decks immediately. Shift + Browse retains linked zoom.
 - Beat FX period and ON/OFF controls follow the focused effect; either Shift

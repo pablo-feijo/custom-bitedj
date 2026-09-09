@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <QCoreApplication>
+#include <QTest>
+#include "preferences/padfxsettings.h"
 #include <cmath>
 #include <vector>
 
@@ -30,6 +32,11 @@ TEST_F(PadFxRoutingTest, ProgrammaticEnableAndDisableReachAudio) {
     manager.registerInputChannel(deck);
     manager.setup();
     manager.addDeck(deck);
+    ChannelHandleAndGroup deck2(factory->getOrCreateHandle("[Channel2]"), "[Channel2]");
+    manager.registerInputChannel(deck2);
+    manager.addDeck(deck2);
+    ControlObject loaded1(ConfigKey("[Channel1]", "track_loaded"));
+    ControlObject loaded2(ConfigKey("[Channel2]", "track_loaded"));
     auto chain = manager.getEffectChain("[PadEffectRack1_[Channel1]_sweep]");
     ASSERT_TRUE(chain);
     const auto set = [&](const char* key, double value) {
@@ -72,5 +79,22 @@ TEST_F(PadFxRoutingTest, ProgrammaticEnableAndDisableReachAudio) {
     set("active", 0);
     EXPECT_NEAR(energy(), bypass, bypass * 0.01);
     set("active", 0);
+    EXPECT_NEAR(energy(), bypass, bypass * 0.01);
+
+    // Exercise the actual touch -> system JS -> native DSP path with no MIDI.
+    PadFxSettings settings(config());
+    ASSERT_TRUE(settings.startPerformance(ConfigObject<ConfigValue>::computeResourcePath()));
+    ControlObject::set(ConfigKey("[PadFX]", "d1_mode"), 1);
+    QTest::qWait(20);
+    ControlObject::set(ConfigKey("[PadFX]", "d1_touch_p1"), 1);
+    QTest::qWait(20);
+    EXPECT_LT(energy(), bypass * 0.8);
+    ControlObject::set(ConfigKey("[PadFX]", "d1_hardware_p1"), 1);
+    QTest::qWait(20);
+    ControlObject::set(ConfigKey("[PadFX]", "d1_touch_p1"), 0);
+    QTest::qWait(20);
+    EXPECT_LT(energy(), bypass * 0.8); // hardware still owns its hold
+    ControlObject::set(ConfigKey("[PadFX]", "d1_hardware_p1"), 0);
+    QTest::qWait(20);
     EXPECT_NEAR(energy(), bypass, bypass * 0.01);
 }

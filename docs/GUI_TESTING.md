@@ -415,19 +415,36 @@ Focused native checks, including dialog-open geometry and page-change behavior:
 
 The Overview cue drawer follows the DDJ-400 mode selected on either deck.
 Hot Cue restores the existing Hot Cues/Memory controls; Pad FX, Beat Jump and
-Beat Loop replace the pad grid with a **read-only controller legend**. Use the
-physical pads to perform the displayed actions. X still closes the drawer;
+Beat Loop show **touchable performance pads**. Touch or use the physical
+pads to perform the displayed actions; no controller is required for touch. X still closes the drawer;
 selecting a controller mode opens that deck again. Mode button release does
 not close it. Other modes close only their own deck's visible drawer.
 
-Runtime controls (not saved): `[PadFX],dN_mode` = 0 Hot Cue, 1 Pad FX,
-2 Beat Jump, 3 Beat Loop, 4 Memory; `dN_shift` = 0/1; `dN_jump_bank` = 0/1/2 for
+Runtime controls (not saved): `[PadFX],dN_mode` = 0 Hot Cue, 1 Pad FX 1,
+2 Beat Jump, 3 Beat Loop, 4 Memory, 5 Pad FX 2; `dN_shift` = 0/1; `dN_jump_bank` = 0/1/2 for
 1/16, 1, 16 multipliers. The existing mapping shares jump sizes across decks.
 
 The header has separate 48×44px Previous/Next buttons and a read-only mode
 label. A bounded 92px bank area holds two 44px pad rows and a 4px gap.
 Navigation coordinates and mode mappings are listed below.
 See [controller drawer screenshots](UI_SCREENSHOTS.md#controller-pad-drawer).
+
+Touch pad centers retain x=`132,385,638,891`, y=`525,574` at 1024×600.
+`[PadFX],dN_touch_p0..7` are momentary inputs, row-major. Pad FX reads saved
+assignments on press, Beat Jump seeks once, Beat Loop holds rolls 1/4–2 and
+toggles loops 4–32. Release, drawer hide, mode/Shift change and touch cancellation
+release held actions. Release Echo's configured toggle remains latched until
+its next press or Clear FX. `[PadFX],dN_hardware_p0..7` carries MIDI FX presses
+(0 release, 1 Normal, 2 Shift) into the same system runtime, with independent
+input ownership. `dN_hardware_clear` releases controller-owned FX on disconnect.
+`runtime_available=1` selects this bridge; the mapping retains its old runtime
+when used with older binaries. Shift Jump bank changes are shared with MIDI.
+
+Pad FX 1 displays slots 0–7; Pad FX 2 displays slots 8–15, the existing saved
+Shift assignments. FX 2 stays selected after Shift is released. Both touch
+arrows and controller mode selection show these same assignments. MIDI FX 2
+pads use notes `0x50..0x57` on the normal/shift pad channels, with note-on and
+note-off routed to the second bank. No saved assignments or enum IDs migrate.
 
 The legend follows saved Normal/Shift assignments, timing overrides, strength
 and toggle settings. Beat Loop shows four held rolls and four toggle loops;
@@ -567,7 +584,7 @@ The Grid panel and waveforms retain their geometry when the cue drawer opens.
 
 Touch mode transition regression: banks share a stacked layout so overlapping
 visibility notifications cannot add their heights or move the header. Cycle
-all five modes repeatedly on both decks, including a held arrow press and
+all six modes repeatedly on both decks, including a held arrow press and
 release; verify one advance per press, stable header/waveform geometry, and no
 flash when entering or leaving Memory/Hot Cues. Mode IDs remain unchanged. Verify both arrows and the read-only mode label.
 
@@ -620,3 +637,19 @@ Flanger's first knob center is `(1000,183)`, with subsequent rows 30px apart;
 Mix stays at y=424. For scroll checks use the label area `(835,340)`, not a
 knob (wheel events over knobs adjust values). Phaser's Stereo row must remain
 reachable and selecting Echo must restore the top of the parameter list.
+
+
+### Touchable performance-pad regression
+
+From a freshly started owned instance, run `python3 tests/e2e/check_touch_drawer.py`
+and `python3 tests/e2e/check_performance_pads.py`. These cover all six pages on
+both decks, forward/reverse wrap, and the actual pad hit areas/release highlight.
+`node tests/padfx/test_touch_pads.cjs` checks the selected actions, saved-bank
+snapshots and shared MIDI/touch ownership. Native `PadFxEditorTest` covers real
+multitouch/cancellation; `PadFxRoutingTest` verifies touch reaches audio DSP.
+
+`bash tests/padfx/test-live-midi-audio.sh` also runs `check_midi_pages.py` through
+real virtual-PortMidi messages. It asserts both decks' Loop Shift/release,
+FX 1/2 selection, FX 2 persistence after Shift release, all three Jump banks,
+and touch Next continuing from the MIDI-selected FX 2 page. Screenshot/result
+artifacts are saved under the owned instance's `test-results/` directory.

@@ -23,7 +23,7 @@ def capture(name):
     subprocess.run(['scrot', str(target)], env=env, check=True)
 
 for deck in (1, 2):
-    for note, name in ((0x1e, 'pad-fx'), (0x20, 'beat-jump'), (0x6d, 'beat-loop'), (0x1b, 'hot-cues')):
+    for note, name in ((0x1e, 'pad-fx'), (0x6b, 'pad-fx-2'), (0x20, 'beat-jump'), (0x6d, 'beat-loop'), (0x1b, 'hot-cues')):
         select(deck, note)
         capture(f'deck-{deck}-{name}')
 select(1, 0x1e)

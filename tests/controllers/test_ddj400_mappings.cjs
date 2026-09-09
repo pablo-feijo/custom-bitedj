@@ -143,8 +143,8 @@ test('Pad FX: every XML pad binding reaches the native adapter and preserves rel
         const g=`[Channel${deck}]`;
         h.seed(g,'play',1);h.seed(g,'bpm',128);
         for(const lane of h.fx.lanes)h.seed(h.fx.group(g,lane),'available',1);
-        for(const shifted of [false,true]) for(let pad=0;pad<8;pad++) {
-            const status=0x95+deck*2+(shifted?1:0),note=(shifted?0x60:0x10)+pad;
+        for(const [shifted,base] of [[false,0x10],[true,0x60],[false,0x50],[true,0x50]]) for(let pad=0;pad<8;pad++) {
+            const status=0x95+deck*2+(shifted?1:0),note=base+pad;
             h.send(status,note,127);
             assert.equal(Object.keys(h.fx.decks[g].held).length,1,`deck ${deck}, bank ${shifted}, pad ${pad}`);
             assert.deepEqual(h.leds.at(-1),[status,note,127]);
@@ -184,7 +184,7 @@ test('All controller modes and triple Shift dispatch through their XML bindings'
     const h=createHarness();
     for(const deck of [1,2]) {
         const status=0x8f+deck;
-        for(const [note,mode] of [[0x1b,0],[0x1e,1],[0x20,2],[0x6d,3]]) {
+        for(const [note,mode] of [[0x1b,0],[0x1e,1],[0x20,2],[0x6d,3],[0x6b,5]]) {
             h.send(status,0x3f,127);h.send(status,note,127);h.send(status,0x3f,0);
             assert.equal(h.get('[Skin]','cue_panel'),deck);
             assert.equal(h.get('[PadFX]',`d${deck}_mode`),mode);
@@ -197,7 +197,7 @@ test('All controller modes and triple Shift dispatch through their XML bindings'
             assert.equal(h.get('[Skin]','cue_panel'),0);
             assert.equal(h.get('[PadFX]',`d${deck}_mode`),mode);
         }
-        for(const note of [0x69,0x6b,0x22,0x6f]) {
+        for(const note of [0x69,0x22,0x6f]) {
             h.send(status,0x1e,127);h.send(status,note,127);
             assert.equal(h.get('[Skin]','cue_panel'),0);
             h.send(0x92-deck,0x1e,127);h.send(status,note,127);

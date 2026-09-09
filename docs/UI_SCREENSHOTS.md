@@ -175,16 +175,21 @@ Audio and system status. Readings describe the local ARM64 Docker capture instan
 ## Controller pad drawer
 
 The padded 150px drawer has independent Previous/Next touch buttons and a 44px
-header. Forward order is Hot Cues → Memory → Beat Jump → Pad FX → Beat Loop;
+header. Drawer captures use `0.0.7-codex-bottom-pad-touch.2`. Forward order is Hot Cues → Memory → Beat Jump → Pad FX 1 → Pad FX 2 → Beat Loop;
 Previous reverses and wraps. Controller mode selection and touch share the same
-per-deck display state. Performance pads are legends; Hot Cues and Memory retain
-interactive cue pads. [Coordinates and mappings](../AGENTS.md#touch-drawer-navigation-and-padding-1024600).
+per-deck display state; FX 2 uses the second saved assignment bank. Pad FX, Beat Jump and Beat Loop respond to touch without
+a controller. Held pads highlight and release safely when the drawer closes.
+Hot Cues and Memory retain their existing cue actions. [Coordinates and mappings](../AGENTS.md#touch-drawer-navigation-and-padding-1024600).
 
 ![Beat Jump with separate previous and next buttons and balanced padding.](images/ui/0.0.7/controller-beat-jump.png)
 
-![Beat Loop legend in the padded drawer.](images/ui/0.0.7/controller-beat-loop.png)
+![Touchable Beat Loop pads in the padded drawer.](images/ui/0.0.7/controller-beat-loop.png)
 
-![Pad FX legend and touch mode navigation.](images/ui/0.0.7/controller-pad-fx.png)
+![Touchable Pad FX 1 pads and mode navigation.](images/ui/0.0.7/controller-pad-fx.png)
+
+![Pad FX 2 displays the second saved bank and remains selected after releasing Shift.](images/ui/0.0.7/controller-pad-fx-2.png)
+
+![Touching Sweep highlights the held pad.](images/ui/0.0.7/controller-pad-touch.png)
 
 ![Memory cue pads with the same header and spacing.](images/ui/0.0.7/touch-memory.png)
 

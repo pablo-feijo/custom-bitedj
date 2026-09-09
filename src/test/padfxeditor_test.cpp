@@ -3,6 +3,8 @@
 #include "skin/legacy/skincontext.h"
 #include "widget/wpadfxeditor.h"
 #include "widget/wcontrollerpaddisplay.h"
+#include <QTest>
+#include "control/controlobject.h"
 #include <QDomDocument>
 #include <QDomNode>
 
@@ -97,6 +99,10 @@ TEST_F(PadFxEditorTest, ControllerLegendTracksDeckAssignmentsAndFitsDrawer) {
     QCoreApplication::processEvents();
     EXPECT_TRUE(labels[0]->text().contains("Off"));
     EXPECT_EQ(effect.get(), 6);
+    mode.set(5);
+    QCoreApplication::processEvents();
+    EXPECT_TRUE(labels[0]->text().contains("Trans"));
+    EXPECT_TRUE(labels[1]->text().contains("Crush"));
     mode.set(3);
     QCoreApplication::processEvents();
     EXPECT_TRUE(labels[0]->text().contains("roll"));
@@ -106,4 +112,93 @@ TEST_F(PadFxEditorTest, ControllerLegendTracksDeckAssignmentsAndFitsDrawer) {
         EXPECT_GE(label->height(), 44);
     }
     EXPECT_LE(display.minimumSizeHint().height(), 94);
+}
+
+TEST_F(PadFxEditorTest, TouchPerformanceRuntimeDispatchesAndCancelsWithoutController) {
+    // Real script engine + native control bridge, with no controller instance.
+    std::vector<std::unique_ptr<ControlObject>> controls;
+    for (int deck = 1; deck <= 2; ++deck) {
+        const QString group = QStringLiteral("[Channel%1]").arg(deck);
+        for (const QString& key : {QStringLiteral("track_loaded"), QStringLiteral("beatjump"),
+                     QStringLiteral("beatjump_size"), QStringLiteral("beatlooproll_0.25_activate")}) {
+            controls.push_back(std::make_unique<ControlObject>(ConfigKey(group, key)));
+        }
+        for (const QString& lane : {"sweep", "flanger", "echo", "reverb", "trans", "crush", "filterlfo", "delay", "dub", "space"}) {
+            controls.push_back(std::make_unique<ControlObject>(ConfigKey(
+                    QStringLiteral("[PadEffectRack1_%1_%2]").arg(group, lane), "available")));
+        }
+    }
+    PadFxSettings settings(config());
+    ASSERT_TRUE(settings.startPerformance(ConfigObject<ConfigValue>::computeResourcePath()));
+    EXPECT_EQ(ControlObject::get(ConfigKey("[PadFX]", "runtime_available")), 1);
+    SkinContext context(config(), "");
+    QDomDocument xml;
+    ASSERT_TRUE(xml.setContent(QStringLiteral(
+            "<ControllerPadDisplay><Channel>2</Channel></ControllerPadDisplay>")));
+    WControllerPadDisplay display;
+    display.setup(xml.documentElement(), context);
+    display.resize(1000, 92);
+    display.show();
+    ControlProxy mode("[PadFX]", "d2_mode");
+    mode.set(2);
+    QTest::qWait(20);
+    const auto pads = display.findChildren<QLabel*>();
+    ASSERT_EQ(pads.size(), 8);
+    QTest::mousePress(pads[0], Qt::LeftButton);
+    QTest::qWait(20);
+    EXPECT_EQ(ControlObject::get(ConfigKey("[Channel2]", "beatjump")), -1);
+    EXPECT_EQ(ControlObject::get(ConfigKey("[Channel1]", "beatjump")), 0);
+    QTest::mouseRelease(pads[0], Qt::LeftButton);
+    QTest::qWait(20);
+    QTest::mouseDClick(pads[1], Qt::LeftButton);
+    QTest::qWait(20);
+    EXPECT_EQ(ControlObject::get(ConfigKey("[Channel2]", "beatjump")), 1);
+    QTest::mouseRelease(pads[1], Qt::LeftButton);
+    mode.set(3);
+    QTest::qWait(20);
+    QTest::mousePress(pads[0], Qt::LeftButton);
+    QTest::qWait(20);
+    EXPECT_EQ(ControlObject::get(ConfigKey("[Channel2]", "beatlooproll_0.25_activate")), 1);
+    display.hide();
+    QTest::qWait(20);
+    EXPECT_EQ(ControlObject::get(ConfigKey("[Channel2]", "beatlooproll_0.25_activate")), 0);
+    display.show();
+    QTest::mousePress(pads[0], Qt::LeftButton);
+    QTest::qWait(20);
+    mode.set(2); // release the old roll, never trigger the new jump on release
+    QTest::qWait(20);
+    EXPECT_EQ(ControlObject::get(ConfigKey("[Channel2]", "beatlooproll_0.25_activate")), 0);
+    QTest::mouseRelease(pads[0], Qt::LeftButton);
+    EXPECT_EQ(ControlObject::get(ConfigKey("[Channel2]", "beatjump")), 1);
+}
+
+TEST_F(PadFxEditorTest, IndependentTouchPadsReleaseOnTouchCancel) {
+    PadFxSettings settings(config());
+    QWidget window;
+    auto* layout = new QGridLayout(&window);
+    WPerformancePad first(&window), second(&window);
+    first.setMinimumSize(100, 44);
+    second.setMinimumSize(100, 44);
+    layout->addWidget(&first, 0, 0);
+    layout->addWidget(&second, 0, 1);
+    window.show();
+    QTest::qWait(20);
+    first.bind("d1_touch_p0");
+    second.bind("d1_touch_p1");
+    auto* device = QTest::createTouchDevice();
+    QTest::touchEvent(&window, device)
+            .press(0, first.rect().center(), &first)
+            .press(1, second.rect().center(), &second);
+    QTest::qWait(20);
+    EXPECT_EQ(ControlObject::get(ConfigKey("[PadFX]", "d1_touch_p0")), 1);
+    EXPECT_EQ(ControlObject::get(ConfigKey("[PadFX]", "d1_touch_p1")), 1);
+    QTouchEvent cancel(QEvent::TouchCancel);
+    QApplication::sendEvent(&first, &cancel);
+    EXPECT_EQ(ControlObject::get(ConfigKey("[PadFX]", "d1_touch_p0")), 0);
+    EXPECT_EQ(ControlObject::get(ConfigKey("[PadFX]", "d1_touch_p1")), 1);
+    QTest::touchEvent(&window, device)
+            .release(0, first.rect().center(), &first)
+            .release(1, second.rect().center(), &second);
+    QTest::qWait(20);
+    EXPECT_EQ(ControlObject::get(ConfigKey("[PadFX]", "d1_touch_p1")), 0);
 }

@@ -28,12 +28,12 @@ def tap_next():
 for deck in (1, 2):
     select(deck, 0x1b)
     capture(f'deck-{deck}-hot-cues')
-    for mode in ('memory', 'beat-jump', 'pad-fx', 'beat-loop', 'hot-cues-return'):
+    for mode in ('memory', 'beat-jump', 'pad-fx', 'pad-fx-2', 'beat-loop', 'hot-cues-return'):
         tap_next()
         capture(f'deck-{deck}-{mode}')
 select(1, 0x1e)
 tap_next()
-capture('controller-fx-then-touch-loop')
+capture('controller-fx-then-touch-fx2')
 # A held touch must advance once, and release must leave Memory selected.
 select(1, 0x1b)
 subprocess.run(['xdotool', 'mousemove', '944', '477', 'mousedown', '1'], env=env, check=True)
@@ -45,7 +45,7 @@ tap_next()
 capture('next-beat-jump')
 for deck in (1, 2):
     select(deck, 0x1b)
-    for mode in ('beat-loop', 'pad-fx', 'beat-jump', 'memory', 'hot-cues'):
+    for mode in ('beat-loop', 'pad-fx-2', 'pad-fx', 'beat-jump', 'memory', 'hot-cues'):
         subprocess.run(['xdotool', 'mousemove', '116', '477', 'click', '1'], env=env, check=True)
         capture(f'deck-{deck}-previous-{mode}')
 print(out)

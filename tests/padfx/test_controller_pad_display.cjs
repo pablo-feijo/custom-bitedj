@@ -18,7 +18,7 @@ const read=(d,k)=>engine.getValue('[PadFX]',`d${d}_${k}`);
 const select=(d,n,v=127,status=0x8f+d)=>m.padModeSelected(d-1,n,v,status,`[Channel${d}]`);
 m.resetPadDisplay();
 for (const deck of [1,2]) {
-    for (const [note,mode] of [[0x1e,1],[0x20,2],[0x6d,3],[0x1b,0]]) {
+    for (const [note,mode] of [[0x1e,1],[0x20,2],[0x6d,3],[0x1b,0],[0x6b,5]]) {
         select(deck,note);
         assert.equal(read(deck,'mode'),mode);
         assert.equal(engine.getValue('[Skin]',`cue_deck${deck}`),1);
@@ -36,7 +36,7 @@ m.shiftPressed(0,0x3f,0);assert.equal(read(1,'shift'),0);
 engine.setValue('[Skin]','cue_panel',1);engine.setValue('[Skin]','cue_close',0);
 select(2,0x22);assert.equal(engine.getValue('[Skin]','cue_close'),0);
 select(1,0x22);assert.equal(engine.getValue('[Skin]','cue_close'),1);
-for (const note of [0x69,0x6b,0x6f]) {
+for (const note of [0x69,0x6f]) {
     select(1,0x1e);select(1,note);assert.equal(read(1,'mode'),0);
 }
 const count=writes.length;select(1,0x7e);assert.equal(writes.length,count);

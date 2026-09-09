@@ -126,8 +126,8 @@ the manifest range and the screen highlights the actual applied period.
 
 The Overview cue drawer follows the DDJ-400 mode selected on either deck.
 Hot Cue restores the existing Hot Cues/Memory controls; Pad FX, Beat Jump and
-Beat Loop replace the pad grid with a **read-only controller legend**. Use the
-physical pads to perform the displayed actions. X still closes the drawer;
+Beat Loop show **touchable performance pads**. Touch or use the physical
+pads to perform the displayed actions; no controller is required for touch. X still closes the drawer;
 selecting a controller mode opens that deck again. Mode button release does
 not close it. Other modes close only their own deck's visible drawer.
 
@@ -137,8 +137,8 @@ previews. Either Shift button works, including alternating sides. Mode selection
 resets the count; holding Shift or releasing it does not add presses. The gesture
 keeps each deck's selected pad mode and normal Shift behavior intact.
 
-Runtime controls (not saved): `[PadFX],dN_mode` = 0 Hot Cue, 1 Pad FX,
-2 Beat Jump, 3 Beat Loop, 4 Memory; `dN_shift` = 0/1; `dN_jump_bank` = 0/1/2 for
+Runtime controls (not saved): `[PadFX],dN_mode` = 0 Hot Cue, 1 Pad FX 1,
+2 Beat Jump, 3 Beat Loop, 4 Memory, 5 Pad FX 2; `dN_shift` = 0/1; `dN_jump_bank` = 0/1/2 for
 1/16, 1, 16 multipliers. The existing mapping shares jump sizes across decks.
 
 The header has separate 48×44px Previous/Next buttons and a read-only mode
@@ -146,14 +146,31 @@ label. A bounded 92px bank area holds two 44px pad rows and a 4px gap.
 Navigation coordinates and mode mappings are listed below.
 See [controller drawer screenshots](UI_SCREENSHOTS.md#controller-pad-drawer).
 
+Touch pad centers retain x=`132,385,638,891`, y=`525,574` at 1024×600.
+`[PadFX],dN_touch_p0..7` are momentary inputs, row-major. Pad FX reads saved
+assignments on press, Beat Jump seeks once, Beat Loop holds rolls 1/4–2 and
+toggles loops 4–32. Release, drawer hide, mode/Shift change and touch cancellation
+release held actions. Release Echo's configured toggle remains latched until
+its next press or Clear FX. `[PadFX],dN_hardware_p0..7` carries MIDI FX presses
+(0 release, 1 Normal, 2 Shift) into the same system runtime, with independent
+input ownership. `dN_hardware_clear` releases controller-owned FX on disconnect.
+`runtime_available=1` selects this bridge; the mapping retains its old runtime
+when used with older binaries. Shift Jump bank changes are shared with MIDI.
+
+Pad FX 1 displays slots 0–7; Pad FX 2 displays slots 8–15, the existing saved
+Shift assignments. FX 2 stays selected after Shift is released. Both touch
+arrows and controller mode selection show these same assignments. MIDI FX 2
+pads use notes `0x50..0x57` on the normal/shift pad channels, with note-on and
+note-off routed to the second bank. No saved assignments or enum IDs migrate.
+
 The legend follows saved Normal/Shift assignments, timing overrides, strength
 and toggle settings. Beat Loop shows four held rolls and four toggle loops;
 holding Shift shows its mapped shifted Pad FX assignments. Beat Jump's Shift
 bank shows size ÷16 / ×16 on pads 7/8. Modes are independent per deck.
 
 Mode selection uses MIDI status `0x90`/`0x91`: Hot Cue `0x1B`, Beat Loop
-`0x6D`, Beat Jump `0x20`, Pad FX1 `0x1E`. Keyboard `0x69`, Pad FX2 `0x6B`,
-Sampler `0x22`, and Key Shift `0x6F` dismiss this legend; these secondary modes
+`0x6D`, Beat Jump `0x20`, Pad FX1 `0x1E`, Pad FX2 `0x6B`. Keyboard `0x69`,
+Sampler `0x22`, and Key Shift `0x6F` dismiss this drawer; these secondary modes
 are not newly implemented by this display change.
 Source: [AlphaTheta DDJ-400 MIDI message list, page 3](https://downloads.support.alphatheta.com/software_info/dj-controllers/DDJ-400/DDJ-400_MIDI_Message_List_E1.pdf).
 
@@ -165,11 +182,11 @@ Run `node tests/padfx/test_controller_pad_display.cjs` and
 
 The drawer follows controller mode selection independently for Deck 1 and Deck 2.
 Touch **Previous** (`[PadFX],dN_previous`) and **Next** (`[PadFX],dN_cycle`) step
-through Hot Cues → Memory → Beat Jump → Pad FX → Beat Loop and wrap in either
+through Hot Cues → Memory → Beat Jump → Pad FX 1 → Pad FX 2 → Beat Loop and wrap in either
 direction. Both are momentary: only the press advances; release does not.
-Numeric IDs remain 0, 4, 2, 1, 3 in that display order. Controller selection
+Numeric IDs are 0, 4, 2, 1, 5, 3 (existing IDs preserved) in that display order. Controller selection
 updates the same `dN_mode` state, so touch navigation continues from that mode.
-Performance pages are assignment legends; they do not trigger pads or change
+Performance pages trigger their displayed actions by touch and share
 hardware pad routing. Hot Cue/Memory pages retain their existing touch actions.
 See [drawer geometry and screenshots](UI_SCREENSHOTS.md#controller-pad-drawer).
 
@@ -243,10 +260,10 @@ releasing Shift; toggle the mode off to return to automatic half/double resizing
 Touch drawer navigation (1024×600): Previous `(116,477)`, Next `(944,477)`,
 mode label `(530,477)`, Close `(994,477)`. Previous sends `[PadFX],dN_previous`;
 Next sends `dN_cycle`. Both advance on press only; the label is read-only.
-Forward order is Hot Cues=0 → Memory=4 → Beat Jump=2 → Pad FX=1 → Beat Loop=3;
+Forward order is Hot Cues=0 → Memory=4 → Beat Jump=2 → Pad FX 1=1 → Pad FX 2=5 → Beat Loop=3;
 Previous reverses and wraps. Each deck keeps an independent selection.
-Controller and touch navigation share `dN_mode`. Performance legend cells
-remain read-only; use the physical controller pads to perform.
+Controller and touch navigation share `dN_mode`. Performance cells now accept
+touch; press and release drive the same performance runtime as MIDI Pad FX.
 
 The period stepper filters those values using the loaded parameter's native
 `_beat_period_min`/`_beat_period_max` range. Touch and controller share the same

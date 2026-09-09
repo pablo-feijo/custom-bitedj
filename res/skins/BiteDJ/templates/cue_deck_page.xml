@@ -4,7 +4,7 @@
     The cue drawer for one deck: a header (which deck, which bank, close) over
     a 4x2 pad grid. Instantiated once per deck by cuepanel.xml.
 
-    Cue banks and performance legends share a per-deck mode; the header cycles
+    Cue banks and performance pads share a per-deck mode; the header cycles
     them by touch even when no controller is connected.
     The banks share a bounded stacked layout so separate visibility updates
     cannot add their heights or shift the header. Keep the bank area at 92px:
@@ -48,12 +48,13 @@
           <PushButton>
             <ObjectName>CuePanel_BankToggle</ObjectName>
             <Size>0me,44f</Size>
-            <NumberStates>5</NumberStates>
+            <NumberStates>6</NumberStates>
             <State><Number>0</Number><Text>Hot Cues</Text></State>
-            <State><Number>1</Number><Text>Pad FX</Text></State>
+            <State><Number>1</Number><Text>Pad FX 1</Text></State>
             <State><Number>2</Number><Text>Beat Jump</Text></State>
             <State><Number>3</Number><Text>Beat Loop</Text></State>
             <State><Number>4</Number><Text>Memory</Text></State>
+            <State><Number>5</Number><Text>Pad FX 2</Text></State>
             <Connection>
               <ConfigKey>[PadFX],d<Variable name="channel"/>_mode</ConfigKey>
               <ConnectValueFromWidget>false</ConnectValueFromWidget>

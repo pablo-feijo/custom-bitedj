@@ -822,7 +822,18 @@ PioneerDDJ400.tempoSliderLSB = function(channel, control, value, status, group) 
 // allow further increasing/decreasing of all the values.
 //
 
+// Touch and MIDI read the same shared jump bank in the system runtime.
+PioneerDDJ400.syncTouchJumpBank = function() {
+    if (engine.getValue("[PadFX]", "runtime_available") !== 1) return;
+    const scale = [1 / 16, 1, 16][engine.getValue("[PadFX]", "d1_jump_bank")];
+    Object.keys(PioneerDDJ400.beatjumpSizeForPad).forEach(function(pad) {
+        const index = Number(pad) - 0x20;
+        PioneerDDJ400.beatjumpSizeForPad[pad] = scale * Math.pow(2, Math.floor(index / 2)) * (index % 2 ? 1 : -1);
+    });
+};
+
 PioneerDDJ400.beatjumpPadPressed = function(_channel, control, value, _status, group) {
+    PioneerDDJ400.syncTouchJumpBank();
     if (value === 0) {
         return;
     }
@@ -831,6 +842,7 @@ PioneerDDJ400.beatjumpPadPressed = function(_channel, control, value, _status, g
 };
 
 PioneerDDJ400.increaseBeatjumpSizes = function(_channel, control, value, _status, group) {
+    PioneerDDJ400.syncTouchJumpBank();
     if (value === 0 || PioneerDDJ400.beatjumpSizeForPad[0x21] * 16 > 16) {
         return;
     }
@@ -842,6 +854,7 @@ PioneerDDJ400.increaseBeatjumpSizes = function(_channel, control, value, _status
 };
 
 PioneerDDJ400.decreaseBeatjumpSizes = function(_channel, control, value, _status, group) {
+    PioneerDDJ400.syncTouchJumpBank();
     if (value === 0 || PioneerDDJ400.beatjumpSizeForPad[0x21] / 16 < 1/16) {
         return;
     }
@@ -982,9 +995,11 @@ PioneerDDJ400.shutdown = function() {
 
 // Private, configurable Pad FX lanes; MIDI channel parity selects Normal/Shift.
 PioneerDDJ400.padFxPressed = function(channel, control, value, status, group) {
-    const note = control >= 0x60 && control <= 0x67 ? control - 0x50 : control;
+    const secondBank = control >= 0x50 && control <= 0x57;
+    const note = secondBank ? control - 0x40 : control >= 0x60 && control <= 0x67 ? control - 0x50 : control;
     const deck = (channel === 7 || channel === 8) ? "[Channel1]" : "[Channel2]";
-    PiFlexPadFx.press(note, value, status, deck, control);
+    if (secondBank) PiFlexPadFx.press(note, value, status, deck, control, undefined, true);
+    else PiFlexPadFx.press(note, value, status, deck, control);
 };
 
 PioneerDDJ400.crossfaderMoved = function(channel, control, value, status, group) {
@@ -1044,14 +1059,14 @@ PioneerDDJ400.updateJumpDisplay = function() {
 };
 PioneerDDJ400.padModeSelected = function(channel, control, value, status, group) {
     if (value === 0 || (status & 0xF0) !== 0x90 || channel < 0 || channel > 1) return;
-    const modes = {0x1B: 0, 0x1E: 1, 0x20: 2, 0x6D: 3};
+    const modes = {0x1B: 0, 0x1E: 1, 0x20: 2, 0x6D: 3, 0x6B: 5};
     const deck = channel + 1;
     // Shift used to select a mode is not part of the subsequent close gesture.
     PioneerDDJ400.shiftTapCount = 0;
     if (Object.prototype.hasOwnProperty.call(modes, control)) {
         engine.setValue("[PadFX]", "d" + deck + "_mode", modes[control]);
         engine.setValue("[Skin]", "cue_deck" + deck, 1);
-    } else if ([0x69, 0x6B, 0x22, 0x6F].indexOf(control) !== -1) {
+    } else if ([0x69, 0x22, 0x6F].indexOf(control) !== -1) {
         // Unsupported/other pad modes must not leave an unrelated panel shown.
         engine.setValue("[PadFX]", "d" + deck + "_mode", 0);
         if (engine.getValue("[Skin]", "cue_panel") === deck) {

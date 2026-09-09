@@ -1,9 +1,13 @@
 #pragma once
 
 #include <array>
+#include <memory>
 #include <cmath>
 #include <QGridLayout>
 #include <QLabel>
+#include <QMouseEvent>
+#include <QTouchEvent>
+#include <QStyle>
 #include <QStringList>
 
 #include "control/controlproxy.h"
@@ -11,8 +15,66 @@
 #include "skin/legacy/skincontext.h"
 #include "widget/wbasewidget.h"
 
-// Read-only controller legend. Assignments and playback remain owned by the
-// system and controller mapping; opening the drawer never changes either.
+// A momentary input with wrapping labels and independent touch ownership.
+// Hiding/cancelling a held pad must release the command even without a mouse-up.
+class WPerformancePad : public QLabel {
+  public:
+    explicit WPerformancePad(QWidget* parent) : QLabel(parent) {
+        setAttribute(Qt::WA_AcceptTouchEvents);
+    }
+    ~WPerformancePad() override { release(); }
+    void bind(const QString& name) {
+        m_input = std::make_unique<ControlProxy>(QStringLiteral("[PadFX]"), name);
+    }
+    void release() { setDown(false); }
+  protected:
+    bool event(QEvent* event) override {
+        switch (event->type()) {
+        case QEvent::TouchBegin:
+            setDown(true);
+            event->accept();
+            return true;
+        case QEvent::TouchUpdate:
+            event->accept();
+            return true;
+        case QEvent::TouchEnd:
+        case QEvent::TouchCancel:
+            release();
+            event->accept();
+            return true;
+        case QEvent::UngrabMouse:
+        case QEvent::Hide:
+        case QEvent::WindowDeactivate:
+            release();
+            break;
+        default: break;
+        }
+        return QLabel::event(event);
+    }
+    void mousePressEvent(QMouseEvent* event) override {
+        if (event->button() == Qt::LeftButton) { setDown(true); event->accept(); }
+    }
+    void mouseDoubleClickEvent(QMouseEvent* event) override {
+        mousePressEvent(event);
+    }
+    void mouseReleaseEvent(QMouseEvent* event) override {
+        if (event->button() == Qt::LeftButton) { release(); event->accept(); }
+    }
+  private:
+    void setDown(bool down) {
+        if (m_down == down) return;
+        m_down = down;
+        setProperty("down", down);
+        style()->unpolish(this);
+        style()->polish(this);
+        update();
+        if (m_input) m_input->set(down ? 1 : 0);
+    }
+    bool m_down = false;
+    std::unique_ptr<ControlProxy> m_input;
+};
+
+// System settings own assignments; the system performance runtime owns actions.
 class WControllerPadDisplay : public QWidget, public WBaseWidget {
   public:
     explicit WControllerPadDisplay(QWidget* parent = nullptr)
@@ -21,7 +83,7 @@ class WControllerPadDisplay : public QWidget, public WBaseWidget {
         grid->setContentsMargins(0, 0, 0, 0);
         grid->setSpacing(4);
         for (int pad = 0; pad < 8; ++pad) {
-            auto* label = new QLabel(this);
+            auto* label = new WPerformancePad(this);
             label->setObjectName(QStringLiteral("ControllerPadLegend"));
             label->setAlignment(Qt::AlignCenter);
             label->setWordWrap(true);
@@ -37,8 +99,16 @@ class WControllerPadDisplay : public QWidget, public WBaseWidget {
         const int deck = context.selectInt(node, "Channel");
         if (deck < 1 || deck > 2) return;
         const auto prefix = QStringLiteral("d%1_").arg(deck);
+        for (int pad = 0; pad < 8; ++pad) {
+            m_labels[pad]->bind(prefix + QStringLiteral("touch_p%1").arg(pad));
+        }
         m_mode = watch(prefix + "mode");
         m_shift = watch(prefix + "shift");
+        const auto releasePads = [this](double) {
+            for (auto* pad : m_labels) pad->release();
+        };
+        m_mode->connectValueChanged(this, releasePads);
+        m_shift->connectValueChanged(this, releasePads);
         m_jumpBank = watch(prefix + "jump_bank");
         const QStringList fields = {"effect", "beat", "strength", "hold"};
         for (int slot = 0; slot < 16; ++slot) {
@@ -49,7 +119,8 @@ class WControllerPadDisplay : public QWidget, public WBaseWidget {
         }
         setStyleSheet(HighContrast::mapStyleSheet(QStringLiteral(
                 "QLabel#ControllerPadLegend { background:#20232c; color:#edf0fa;"
-                " border:1px solid #565b6b; border-radius:3px; font-size:14px; padding:4px 8px; }")));
+                " border:1px solid #565b6b; border-radius:3px; font-size:14px; padding:4px 8px; }"
+                "QLabel#ControllerPadLegend[down=\"true\"] { background:#565b6b; border-color:#edf0fa; }")));
         m_ready = true;
         refresh();
     }
@@ -67,7 +138,7 @@ class WControllerPadDisplay : public QWidget, public WBaseWidget {
     }
     void refresh() {
         if (!m_ready) return;
-        const int mode = state(m_mode, 5);
+        const int mode = state(m_mode, 6);
         const bool shifted = m_shift->get() != 0;
         const QStringList effects = {tr("Roll 1/2"), tr("Sweep"), tr("Flanger 16"),
                 tr("Release Brake 3/4"), tr("Echo 1/4"), tr("Echo 1/2"), tr("Reverb"),
@@ -78,9 +149,9 @@ class WControllerPadDisplay : public QWidget, public WBaseWidget {
         const QStringList loopSizes = {"1/4", "1/2", "1", "2", "4", "8", "16", "32"};
         for (int pad = 0; pad < 8; ++pad) {
             QString text;
-            if (mode == 1 || (mode == 3 && shifted)) {
+            if (mode == 1 || mode == 5 || (mode == 3 && shifted)) {
                 // Shift+Beat Loop pads are mapped to the shifted Pad FX bank.
-                const int slot = pad + (shifted ? 8 : 0);
+                const int slot = pad + (mode == 5 || shifted ? 8 : 0);
                 const int effect = state(m_slots[slot][0], 17, 16);
                 const int beat = state(m_slots[slot][1], 7);
                 const int strength = state(m_slots[slot][2], 5);
@@ -120,6 +191,6 @@ class WControllerPadDisplay : public QWidget, public WBaseWidget {
     ControlProxy* m_mode = nullptr;
     ControlProxy* m_shift = nullptr;
     ControlProxy* m_jumpBank = nullptr;
-    std::array<QLabel*, 8> m_labels{};
+    std::array<WPerformancePad*, 8> m_labels{};
     std::array<std::array<ControlProxy*, 4>, 16> m_slots{};
 };

@@ -9,6 +9,7 @@
 #include "preferences/usersettings.h"
 
 class ControlObject;
+class ControllerScriptEngineLegacy;
 
 // Main-thread preferences bridge. The mapping snapshots a slot on note-on;
 // neither config access nor UI work runs in the audio callback.
@@ -16,6 +17,7 @@ class PadFxSettings : public QObject {
   public:
     explicit PadFxSettings(UserSettingsPointer config);
     ~PadFxSettings() override;
+    bool startPerformance(const QString& resourcePath);
 
   private:
     static constexpr int kFields = 4;
@@ -25,6 +27,7 @@ class PadFxSettings : public QObject {
     int selectedSlot() const;
 
     UserSettingsPointer m_config;
+    std::unique_ptr<ControllerScriptEngineLegacy> m_performance;
     std::vector<std::unique_ptr<ControlObject>> m_controls;
     std::array<std::array<ControlObject*, kFields>, 64> m_slots{};
     std::array<std::array<int, kFields>, 64> m_values{};

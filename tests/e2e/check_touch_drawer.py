@@ -34,15 +34,15 @@ click(100, 20)
 for deck, chip in ((1, 60), (2, 572)):
     click(chip, 462)
     states = [capture(f'deck-{deck}-hot-cues')]
-    for mode in ('memory', 'beat-jump', 'pad-fx', 'beat-loop'):
+    for mode in ('memory', 'beat-jump', 'pad-fx', 'pad-fx-2', 'beat-loop'):
         click(944, 476)
         states.append(capture(f'deck-{deck}-{mode}'))
-    assert len(set(states)) == 5, 'Five distinct mode labels must be reachable'
+    assert len(set(states)) == 6, 'Six distinct mode labels must be reachable'
     click(944, 476)
     assert capture(f'deck-{deck}-next-wrap') == states[0], 'Next must wrap'
-    for i in (4, 3, 2, 1, 0):
+    for i in (5, 4, 3, 2, 1, 0):
         click(116, 476)
         assert capture(f'deck-{deck}-previous-{i}') == states[i], 'Previous must reverse Next'
     click(994, 476)
-print('PASS: both decks, all five touch modes, next wrap and full reverse cycle')
+print('PASS: both decks, all six touch modes, next wrap and full reverse cycle')
 print(out)

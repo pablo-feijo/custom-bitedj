@@ -67,6 +67,21 @@ var PiFlexPadFx = {
     },
     init: function(deckCount) {
         this.shutdown();
+        this.sharedRuntime = engine.getValue("[PadFX]", "runtime_available") === 1;
+        if (this.sharedRuntime) {
+            var self = this;
+            this.ledTargets = {};
+            for (var n = 1; n <= 2; ++n) for (var p = 0; p < 8; ++p) {
+                (function(deck, pad) {
+                    self.connections.push(engine.makeConnection("[PadFX]", "d" + deck + "_hardware_led" + pad,
+                        function(value) {
+                            var target = self.ledTargets[deck + ":" + pad];
+                            if (target) midi.sendShortMsg(target.status, target.control, value ? 0x7F : 0);
+                        }));
+                })(n, p);
+            }
+            return;
+        }
         for (var n = 1; n <= (deckCount || 4); ++n) {
             var deck = "[Channel" + n + "]";
             this.decks[deck] = {held: {}, pressed: {}, order: 0, jobs: {}};
@@ -170,7 +185,7 @@ var PiFlexPadFx = {
         var state = this.decks[deck], item = state.held[physical], self = this;
         if (!item) { return; }
         delete state.held[physical];
-        midi.sendShortMsg(item.status, item.control, 0);
+        if (item.source !== "touch") midi.sendShortMsg(item.status, item.control, 0);
         var pad = item.pad, lane = pad.lane;
         if (pad.transport) { this.stopTransport(deck, item); return; }
         this.cancel(deck, lane + ":capture");
@@ -199,9 +214,22 @@ var PiFlexPadFx = {
             if (engine.getValue(self.group(deck, lane), "available")) { self.set(deck, lane, "active", 0); }
         });
     },
-    press: function(control, value, status, deck, ledControl) {
-        var state = this.decks[deck], physical = control - 0x10;
-        if (!state || physical < 0 || physical > 7) { return; }
+    press: function(control, value, status, deck, ledControl, source, shiftedOverride) {
+        var slot = control - 0x10;
+        if (slot < 0 || slot > 7) { return; }
+        var shifted = shiftedOverride === undefined ? (status & 1) === 0 : shiftedOverride;
+        if (this.sharedRuntime) {
+            var deckNumber = deck.match(/\d+/)[0];
+            if (value && (status & 0xF0) !== 0x80) {
+                this.ledTargets[deckNumber + ":" + slot] = {status: status,
+                    control: ledControl === undefined ? control : ledControl};
+            }
+            engine.setValue("[PadFX]", "d" + deckNumber + "_hardware_p" + slot,
+                value === 0 || (status & 0xF0) === 0x80 ? 0 : shifted ? 2 : 1);
+            return;
+        }
+        var state = this.decks[deck], physical = source ? source + slot : slot;
+        if (!state) { return; }
         // Match note-off to the physical key even if SHIFT changed while held.
         if (value === 0 || (status & 0xF0) === 0x80) {
             delete state.pressed[physical];
@@ -213,8 +241,7 @@ var PiFlexPadFx = {
         if (state.pressed[physical]) { return; }
         state.pressed[physical] = true;
         if (state.held[physical]) { this.release(deck, physical, false); return; }
-        var shifted = (status & 1) === 0;
-        var pad = this.configuredPad(deck, physical + (shifted ? 8 : 0));
+        var pad = this.configuredPad(deck, slot + (shifted ? 8 : 0));
         if (!pad) { return; }
         if (pad.lane && !engine.getValue(this.group(deck, pad.lane), "available")) {
             console.log("Pad FX unavailable in this build: " + pad.name); return;
@@ -224,7 +251,7 @@ var PiFlexPadFx = {
             return !!state.held[key].pad.transport;
         })) { return; }
         if (pad.release) { this.clear(deck); }
-        var item = {pad: pad, order: ++state.order, status: status, control: ledControl === undefined ? control : ledControl};
+        var item = {pad: pad, source: source, order: ++state.order, status: status, control: ledControl === undefined ? control : ledControl};
         state.held[physical] = item;
         if (!pad.transport) { this.activate(deck, item); }
         else if (pad.transport === "roll") { engine.setValue(deck, "beatlooproll_0.5_activate", 1); }
@@ -242,9 +269,19 @@ var PiFlexPadFx = {
             tick();
             this.timer(deck, "transport", 16, tick, true);
         }
-        midi.sendShortMsg(status, item.control, 0x7F);
+        if (item.source !== "touch") midi.sendShortMsg(status, item.control, 0x7F);
     },
     shutdown: function() {
+        if (this.sharedRuntime) {
+            for (var deck = 1; deck <= 2; ++deck) {
+                engine.setValue("[PadFX]", "d" + deck + "_hardware_clear", 1);
+                engine.setValue("[PadFX]", "d" + deck + "_hardware_clear", 0);
+            }
+            this.connections.forEach(function(connection) { connection.disconnect(); });
+            this.connections = [];
+            this.sharedRuntime = false;
+            return;
+        }
         var self = this;
         Object.keys(this.decks).forEach(function(deck) { self.clear(deck); });
         this.connections.forEach(function(connection) { connection.disconnect(); });

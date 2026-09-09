@@ -17,6 +17,7 @@ restore() {
   cp "$RESULTS_DIR/pre-midi-test.cfg" "$CONFIG_DIR/mixxx.cfg"
   docker cp "$CONTAINER_NAME:/tmp/pad-midi-live.log" "$RESULTS_DIR/pad-midi-live.log" || true
   docker cp "$CONTAINER_NAME:/tmp/padfx-audio" "$RESULTS_DIR/" || true
+  docker cp "$CONTAINER_NAME:/tmp/midi-page-check" "$RESULTS_DIR/" || true
   docker exec -d "$CONTAINER_NAME" bash -c 'DISPLAY=:99 QT_AUTO_SCREEN_SCALE_FACTOR=0 QT_ENABLE_HIGHDPI_SCALING=0 QT_SCALE_FACTOR=1.0 BITEDJ_SETTINGS_PATH=/root/.mixxx /dist-linux/bin/mixxx /music/BiteDJ_Test_Groove_128BPM.wav /music/BiteDJ_Test_Techno_124BPM.wav --resourcePath /dist-linux/share/mixxx/ --full-screen --style Fusion'
 }
 trap restore EXIT
@@ -29,7 +30,7 @@ for attempt in $(seq 1 45); do
   sleep 1
 done
 if [[ "$ready" != 1 ]]; then echo "Timed out waiting for test controller/track/skin" >&2; exit 1; fi
-for script in capture_midi_audio.py capture_tail_audio.py; do
+for script in capture_midi_audio.py capture_tail_audio.py check_midi_pages.py; do
   docker cp "$TASK_ROOT/tests/padfx/$script" "$CONTAINER_NAME:/tmp/$script"
   docker exec "$CONTAINER_NAME" python3 "/tmp/$script"
 done

@@ -1,6 +1,8 @@
 #include "preferences/padfxsettings.h"
 
 #include <cmath>
+#include <QFile>
+#include "controllers/scripting/legacy/controllerscriptenginelegacy.h"
 
 #include "control/controlobject.h"
 #include "control/controlpushbutton.h"
@@ -44,40 +46,47 @@ PadFxSettings::PadFxSettings(UserSettingsPointer config)
     // Runtime controller display state. Never persisted with assignments.
     for (int deck = 1; deck <= 2; ++deck) {
         const auto prefix = QStringLiteral("d%1_").arg(deck);
-        auto* mode = addControl(prefix + "mode", 5, 0); // Existing IDs; append Memory=4.
+        auto* mode = addControl(prefix + "mode", 6, 0); // Preserve IDs; append Pad FX 2=5.
         auto* performance = addControl(prefix + "performance_visible", 2, 0);
         auto* cycle = addControl(prefix + "cycle", 0, 0);
         connect(mode, &ControlObject::valueChanged, this, [mode, performance](double value) {
-            if (!valid(value, 5)) {
+            if (!valid(value, 6)) {
                 mode->set(0);
                 performance->set(0);
                 return;
             }
-            performance->set(value > 0 && value < 4 ? 1 : 0);
+            performance->set((value > 0 && value < 4) || value == 5 ? 1 : 0);
         });
         connect(cycle, &ControlObject::valueChanged, this, [mode, performance](double value) {
             if (value != 1) return;
-            // Touch order: Hot Cues -> Memory -> Beat Jump -> Pad FX -> Beat Loop.
-            constexpr int next[] = {4, 3, 1, 0, 2};
+            // Touch order: Hot Cues -> Memory -> Beat Jump -> Pad FX 1 -> Pad FX 2 -> Beat Loop.
+            constexpr int next[] = {4, 5, 1, 0, 2, 3};
             const double current = mode->get();
-            const int selected = valid(current, 5) ? next[static_cast<int>(current)] : 0;
+            const int selected = valid(current, 6) ? next[static_cast<int>(current)] : 0;
             // ControlObject suppresses callbacks to the object that made the write.
             // Publish the derived flag here too, not just on external mode changes.
-            performance->set(selected > 0 && selected < 4 ? 1 : 0);
+            performance->set((selected > 0 && selected < 4) || selected == 5 ? 1 : 0);
             mode->set(selected);
         });
         auto* previous = addControl(prefix + "previous", 0, 0);
         connect(previous, &ControlObject::valueChanged, this, [mode, performance](double value) {
             if (value != 1) return;
-            constexpr int previousMode[] = {3, 2, 4, 1, 0};
+            constexpr int previousMode[] = {3, 2, 4, 5, 0, 1};
             const double current = mode->get();
-            const int selected = valid(current, 5) ? previousMode[static_cast<int>(current)] : 0;
-            performance->set(selected > 0 && selected < 4 ? 1 : 0);
+            const int selected = valid(current, 6) ? previousMode[static_cast<int>(current)] : 0;
+            performance->set((selected > 0 && selected < 4) || selected == 5 ? 1 : 0);
             mode->set(selected);
         });
+        for (int pad = 0; pad < 8; ++pad) {
+            addControl(prefix + QStringLiteral("touch_p%1").arg(pad), 0, 0);
+            addControl(prefix + QStringLiteral("hardware_p%1").arg(pad), 3, 0);
+            addControl(prefix + QStringLiteral("hardware_led%1").arg(pad), 2, 0);
+        }
+        addControl(prefix + "hardware_clear", 0, 0);
         addControl(prefix + "shift", 2, 0);
         addControl(prefix + "jump_bank", 3, 1); // 1/16, 1, 16 multiplier
     }
+    addControl(QStringLiteral("runtime_available"), 2, 0);
     // Reset commands live with the system defaults, independent of any skin.
     for (int slot = 0; slot < 64; ++slot) {
         auto* reset = addControl(QStringLiteral("d%1_s%2_reset")
@@ -134,7 +143,40 @@ PadFxSettings::PadFxSettings(UserSettingsPointer config)
     refreshEditor();
 }
 
-PadFxSettings::~PadFxSettings() = default;
+PadFxSettings::~PadFxSettings() {
+    if (m_performance) {
+        m_performance->jsEngine()->evaluate(QStringLiteral("PiFlexTouchPads.shutdown()"));
+        m_performance.reset();
+    }
+}
+
+bool PadFxSettings::startPerformance(const QString& resourcePath) {
+    if (m_performance) return true;
+    const RuntimeLoggingCategory logger(QStringLiteral("pad-performance"));
+    auto runtime = std::make_unique<ControllerScriptEngineLegacy>(nullptr, logger);
+    if (!runtime->initialize()) return false;
+    for (const auto& name : {"piflex-padfx.js", "piflex-touch-pads.js"}) {
+        QFile file(resourcePath + "/controllers/" + name);
+        if (!file.open(QIODevice::ReadOnly)) {
+            qWarning() << "Cannot load pad performance script" << file.fileName();
+            return false;
+        }
+        const auto result = runtime->jsEngine()->evaluate(QString::fromUtf8(file.readAll()), file.fileName());
+        if (result.isError()) {
+            qWarning() << "Pad performance script:" << result.toString();
+            return false;
+        }
+    }
+    const auto result = runtime->jsEngine()->evaluate(QStringLiteral("PiFlexTouchPads.init()"));
+    if (result.isError()) {
+        qWarning() << "Pad performance initialization:" << result.toString();
+        runtime->jsEngine()->evaluate(QStringLiteral("PiFlexTouchPads.shutdown()"));
+        return false;
+    }
+    m_performance = std::move(runtime);
+    ControlObject::set(ConfigKey(kGroup, "runtime_available"), 1);
+    return true;
+}
 
 void PadFxSettings::setSlot(int slot, int field, double value) {
     if (valid(value, kStates[field])) {
