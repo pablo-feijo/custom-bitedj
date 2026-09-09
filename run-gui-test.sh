@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DIST_DIR="${SCRIPT_DIR}/dist-linux"
 MUSIC_DIR="${SCRIPT_DIR}/test-music"
 CONFIG_DIR="${SCRIPT_DIR}/test-config"
@@ -23,7 +23,7 @@ if [ ! -f "${MUSIC_DIR}/BiteDJ_Test_Groove_128BPM.wav" ]; then
 fi
 
 echo "==> 3. Building/verifying BiteDJ GUI test container..."
-docker build -t bitedj-gui-test:latest -f "${SCRIPT_DIR}/tests/gui/Dockerfile.gui-test" "${SCRIPT_DIR}"
+docker build -t bitedj-gui-test:latest -f "${SCRIPT_DIR}/Dockerfile.gui-test" "${SCRIPT_DIR}"
 
 echo "==> 4. Launching BiteDJ GUI test instance (1024x600, VNC + PulseAudio)..."
 docker rm -f bitedj-gui-test-instance 2>/dev/null || true
@@ -38,6 +38,7 @@ docker run -d \
     -v "${DIST_DIR}:/dist-linux:ro" \
     -v "${MUSIC_DIR}:/music:ro" \
     -v "${CONFIG_DIR}:/root/.mixxx:rw" \
+    -v "/Volumes/PAIBLITO 2:/media/PAIBLITO_2:ro" \
     -v "${SCRIPT_DIR}/audio_stream.py:/audio_stream.py:ro" \
     bitedj-gui-test:latest \
     bash -c "\

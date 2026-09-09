@@ -17,7 +17,6 @@
 #include "effects/backends/builtin/reverbeffect.h"
 #endif
 #include "effects/backends/builtin/autopaneffect.h"
-#include "effects/backends/builtin/cfxfiltereffect.h"
 #include "effects/backends/builtin/compressoreffect.h"
 #include "effects/backends/builtin/distortioneffect.h"
 #include "effects/backends/builtin/echoeffect.h"
@@ -45,7 +44,6 @@ BuiltInBackend::BuiltInBackend() {
     registerEffect<LoudnessContourEffect>();
     // Fading Effects
     registerEffect<FilterEffect>();
-    registerEffect<CFXFilterEffect>();
     registerEffect<MoogLadder4FilterEffect>();
     registerEffect<BitCrusherEffect>();
     registerEffect<WhiteNoiseEffect>();

@@ -13,7 +13,7 @@ class WNumberPos : public WNumber {
     explicit WNumberPos(const QString& group, QWidget* parent = nullptr);
 
   protected:
-    void mousePressEvent(QMouseEvent* pEvent) override;
+    void mousePressEvent(QMouseEvent* e) override;
 
   private slots:
     void setValue(double dValue) override;
@@ -26,6 +26,7 @@ class WNumberPos : public WNumber {
 
     TrackTime::DisplayMode m_displayMode;
     TrackTime::DisplayFormat m_displayFormat;
+
     double m_dOldTimeElapsed;
     ControlProxy* m_pTimeElapsed;
     ControlProxy* m_pTimeRemaining;

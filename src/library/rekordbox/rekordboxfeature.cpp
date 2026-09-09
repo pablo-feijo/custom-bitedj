@@ -6,13 +6,11 @@
 #include <rekordbox_anlz.h>
 #include <rekordbox_pdb.h>
 
-#include <QDir>
 #include <QMap>
 #include <QMessageBox>
 #include <QSet>
 #include <QSettings>
 #include <QString>
-#include <QStringList>
 #include <QTextCodec>
 #include <QtDebug>
 #include <vector>
@@ -54,28 +52,12 @@ const QString kRekordboxLibraryTable = QStringLiteral("rekordbox_library");
 const QString kRekordboxPlaylistsTable = QStringLiteral("rekordbox_playlists");
 const QString kRekordboxPlaylistTracksTable = QStringLiteral("rekordbox_playlist_tracks");
 
-// depending on the filesystem of the external media, rekordbox seems
-// to store its metadata in different paths:
-const QStringList kPdbPaths = {
-        QStringLiteral("PIONEER/rekordbox/export.pdb"),  // FAT32/exFat
-        QStringLiteral(".PIONEER/rekordbox/export.pdb"), // HFS+ media
-};
+const QString kPdbPath = QStringLiteral("PIONEER/rekordbox/export.pdb");
 const QString kPLaylistPathDelimiter = QStringLiteral("-->");
 
 // Consecutive empty background enumerations required before a device is
 // removed from the sidebar and its rows cleared.
 constexpr int kBgEmptyScansBeforeRemoval = 3;
-
-QString findRekordboxPdbPath(const QString& devicePath) {
-    const QDir deviceDir(devicePath);
-    for (const auto& pdbPath : kPdbPaths) {
-        const QFileInfo pdbFileInfo(deviceDir.filePath(pdbPath));
-        if (pdbFileInfo.exists() && pdbFileInfo.isFile()) {
-            return pdbFileInfo.filePath();
-        }
-    }
-    return {};
-}
 
 enum class IDForColor : uint8_t {
     Pink = 1,
@@ -223,7 +205,9 @@ QList<TreeItem*> findRekordboxDevices() {
         // drive.filePath() doesn't make any access to the filesystem and consequently
         // shorten the delay
 
-        if (!findRekordboxPdbPath(drive.filePath()).isEmpty()) {
+        QFileInfo rbDBFileInfo(drive.filePath() + kPdbPath);
+
+        if (rbDBFileInfo.exists() && rbDBFileInfo.isFile()) {
             QString displayPath = drive.filePath();
             if (displayPath.endsWith("/")) {
                 displayPath.chop(1);
@@ -277,7 +261,9 @@ QList<TreeItem*> findRekordboxDevices() {
         }
         seenMountPoints.insert(canonicalPath);
 
-        if (!findRekordboxPdbPath(device.filePath()).isEmpty()) {
+        QFileInfo rbDBFileInfo(device.filePath() + QStringLiteral("/") + kPdbPath);
+
+        if (rbDBFileInfo.exists() && rbDBFileInfo.isFile()) {
             auto* pFoundDevice = new TreeItem(
                     device.fileName(),
                     QVariant(QList<QString>{device.filePath(), IS_RECORDBOX_DEVICE}));
@@ -288,7 +274,9 @@ QList<TreeItem*> findRekordboxDevices() {
     QFileInfoList devices = QDir(QStringLiteral("/Volumes")).entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot);
 
     foreach (QFileInfo device, devices) {
-        if (!findRekordboxPdbPath(device.filePath()).isEmpty()) {
+        QFileInfo rbDBFileInfo(device.filePath() + QStringLiteral("/") + kPdbPath);
+
+        if (rbDBFileInfo.exists() && rbDBFileInfo.isFile()) {
             QList<QString> data;
             data << device.filePath();
             data << IS_RECORDBOX_DEVICE;
@@ -519,9 +507,9 @@ QString parseDeviceDB(mixxx::DbConnectionPoolPtr dbConnectionPool, TreeItem* dev
 
     qDebug() << "parseDeviceDB device: " << device << " devicePath: " << devicePath;
 
-    const QString dbPath = findRekordboxPdbPath(devicePath);
+    QString dbPath = devicePath + QStringLiteral("/") + kPdbPath;
 
-    if (dbPath.isEmpty()) {
+    if (!QFile(dbPath).exists()) {
         return devicePath;
     }
 

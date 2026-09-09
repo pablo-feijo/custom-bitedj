@@ -54,11 +54,3 @@ ssh pi@<YOUR_PI_IP> "sudo mv /tmp/bitedj /usr/bin/bitedj && sudo chmod +x /usr/b
 ssh pi@<YOUR_PI_IP> "sudo systemctl restart lightdm"
 ```
 LightDM will cleanly restart the Sway compositor and immediately launch the new BiteDJ binary without crashing into a failed state.
-
-### Git Configuration
-Before committing to this repository, ensure your global or local git configuration uses the correct author information:
-```bash
-git config --global user.name "Pablo Feijo"
-git config --global user.email "devpablofeijo@gmail.com"
-```
-This ensures that all commits are properly attributed and avoids the need to amend commits later.

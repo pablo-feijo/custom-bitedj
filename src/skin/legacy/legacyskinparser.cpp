@@ -340,9 +340,7 @@ QWidget* LegacySkinParser::parseSkin(const QString& skinPath, QWidget* pParent) 
     m_pContext->setSkinBasePath(skinPath);
 
     if (m_pParent) {
-        qDebug()
-                << "ERROR: Somehow a parent already exists -- you are probably "
-                   "reusing a LegacySkinParser which is not advisable!";
+        qDebug() << "ERROR: Somehow a parent already exists -- you are probably re-using a LegacySkinParser which is not advisable!";
     }
     QDomElement skinDocument = openSkin(skinPath);
 
@@ -997,8 +995,6 @@ void LegacySkinParser::setupLabelWidget(const QDomElement& element, WLabel* pLab
     // effect which breaks color scheme support.
     pLabel->setup(element, *m_pContext);
     commonWidgetSetup(element, pLabel);
-    // OpenType features must be applied after the stylesheet selects the font.
-    pLabel->applyFontFeatures();
     pLabel->installEventFilter(m_pKeyboard);
     pLabel->installEventFilter(
             m_pControllerManager->getControllerLearningEventFilter());

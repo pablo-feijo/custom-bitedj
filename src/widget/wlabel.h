@@ -13,7 +13,6 @@ class WLabel : public QLabel, public WBaseWidget {
     explicit WLabel(QWidget* pParent=nullptr);
 
     virtual void setup(const QDomNode& node, const SkinContext& context);
-    void applyFontFeatures();
 
     QString text() const;
     void setText(const QString& text);
@@ -39,8 +38,6 @@ class WLabel : public QLabel, public WBaseWidget {
     // Foreground and background colors.
     QColor m_qFgColor;
     QColor m_qBgColor;
-    bool m_bTabularNumbers{false};
-
   private:
     QString m_longText;
     Qt::TextElideMode m_elideMode;
