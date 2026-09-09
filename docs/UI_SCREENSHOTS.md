@@ -5,12 +5,13 @@
 This guide describes [Custom Bite DJ](../README.md), an independent fork of
 [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on Mixxx.
 
-Native **1024×600** screenshots using synthetic music in isolated ARM64 Docker
-instances. Play, Grid, Key, FX controls and drawers are from the touch-pad task.
-The rebased build incorporates the panel-contained FX picker and Browse updates
-from `codex/browse-fx-touch-ui`, plus the integrated waveform fixes. Captures use
-synthetic Groove 128 BPM and Techno 124 BPM tracks. No physical MIDI controller
-or USB drive is attached. Night and Day are shown below.
+Native **1024×600** captures from the combined SemVer preview
+`0.0.7-codex-semver-vnc.7`, compiled from `fd397110ab8b0e806da8e06986316a3555e00131`
+on top of integration `06f3498581`. The binary reports the same product version.
+Screens use synthetic Groove 128 BPM and Techno 124 BPM tracks, with no physical
+controller or USB drive attached. Night and Day captures were visually reviewed.
+[Capture provenance](images/ui/0.0.7/semver-capture-provenance.json) records the
+binary and image hashes. Older task-only examples are omitted from this gallery.
 
 See the [0.0.7 changelog](../CHANGELOG.md#007--unreleased) for the changes behind
 these screens, or [return to the README](../README.md).
@@ -33,14 +34,15 @@ Parameter lists begin directly below the assignment row; longer lists still scro
 Mix appears once in the bottom row; native Mix/Dry-Wet rows are hidden without changing their saved values or Super links; longer parameter lists can scroll. Super appears only when a parameter is linked. Loaded continuous controls and native parameter buttons
 are exposed below the Beats grid. Unavailable periods and unloaded controls are hidden.
 
-![FX assigned to both decks and enabled.](images/ui/0.0.7/fx-routing.png)
-![All Echo parameters and native state buttons fit without scrolling.](images/ui/0.0.7/fx-parameters.png)
-![Flanger parameters start at the top, with one Mix control.](images/ui/0.0.7/fx-flanger.png)
-![Flanger in Day mode, with the same top alignment.](images/ui/0.0.7/fx-flanger-day.png)
-![Noise shows one Mix control and its native Super link.](images/ui/0.0.7/fx-noise.png)
-![Enigma Jet in Day mode has no Super assignment.](images/ui/0.0.7/fx-no-super.png)
-![An unloaded FX chain shows only the selector.](images/ui/0.0.7/fx-empty.png)
 
+![All Echo parameters and native state buttons fit without scrolling.](images/ui/0.0.7/fx-parameters.png)
+
+
+
+
+
+
+<a id="grid"></a>
 <a id="grid-key-controls"></a>
 
 ## Grid and Key
@@ -49,7 +51,7 @@ Grid retains the manually validated per-deck template controls, with single
 press/release actions and waveform grid-edit interaction. Key shows each deck's
 current key, ±2 semitones, native harmonic Match and Reset to the file key.
 
-Grid images retain the Grid task captures; combined-panel captures are pending.
+Both themes show the integrated Grid template and the current 204px side panel.
 
 ![Per-deck Grid controls.](images/ui/0.0.7/grid.png)
 ![Per-deck Key controls.](images/ui/0.0.7/key.png)
@@ -59,7 +61,7 @@ Grid images retain the Grid task captures; combined-panel captures are pending.
 ![Grid in Day mode.](images/ui/0.0.7/grid-day.png)
 ![Key in Day mode.](images/ui/0.0.7/key-day.png)
 ![Echo in Day mode: centered Beats heading and all parameters visible.](images/ui/0.0.7/fx-echo-day.png)
-![FX in Day mode: Trans supports all six periods.](images/ui/0.0.7/fx-controls-day.png)
+
 
 </details>
 
@@ -114,7 +116,7 @@ expands it; tapping a track folder opens its table.
 
 ![Browse folder navigation.](images/ui/0.0.7/browse-folders.png)
 
-![Browse table in Day mode.](images/ui/0.0.7/browse-day.png)
+
 
 <a id="settings-general"></a>
 
@@ -189,13 +191,13 @@ Hot Cues and Memory retain their existing cue actions. [Coordinates and mappings
 
 ![Pad FX 2 displays the second saved bank and remains selected after releasing Shift.](images/ui/0.0.7/controller-pad-fx-2.png)
 
-![Touching Sweep highlights the held pad.](images/ui/0.0.7/controller-pad-touch.png)
+
 
 ![Memory cue pads with the same header and spacing.](images/ui/0.0.7/touch-memory.png)
 
 ![Pad FX drawer in Day mode.](images/ui/0.0.7/controller-pad-fx-day.png)
 
-![Shift follows the alternate saved Pad FX bank.](images/ui/0.0.7/controller-pad-fx-shift.png)
+
 
 Pad mode labels use 12px text. The fixed bank area prevents the drawer from
 changing height during touch navigation.
@@ -219,7 +221,4 @@ remain labeled tabs; the 9px page counter reads `1 / 2`. Saved has 14/8 entries.
 
 Advanced Settings → Decks adds **Jog-wheel smoothing** after Clone deck.
 Default 6; range 1–64 audio callbacks. Lower values respond faster; larger values
-smooth pitch-bend movement. Apply changes both decks live. Captured at 1024×600
-with the service window maximized, binary `0.0.7-codex-xsploit-jog-beatfx.1`.
-
-![Deck service preferences with jog-wheel smoothing at its default of 6.](images/ui/0.0.7/service-decks.png)
+smooth pitch-bend movement. Apply changes both decks live. Available in the service preferences window.

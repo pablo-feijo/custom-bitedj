@@ -30,7 +30,7 @@ metadata is also preserved. Earlier recovery files remain under the adjacent
 `2026-09-09-squash-worktrees/` directory. Moving outputs does not reclaim their disk
 space. They are preserved pending a separate decision to discard old artifacts.
 
-## Remaining folders
+## Earlier inventory (historical; superseded by final closeout below)
 
 Sizes are approximate from the initial inventory, before ongoing builds and
 recovery moves. Main-repository usage increased when runtime outputs were moved
@@ -58,3 +58,20 @@ The four older running preview folders above account for about 19 GB. Release
 artifact folders account for about 26 GB. Neither category should be confused
 with an inactive, redundant checkout. This review did not stop previews, discard
 release archives, alter active tasks or delete remote branches.
+
+## Final batch closeout
+
+All completed task checkouts were retired using non-forced Git worktree removal,
+after preserving source refs and unique settings/provenance inside the original
+`bitedj/test-results/semver-validation-cleanup` directory. This includes waveform,
+Browse/FX, controller drawer, DDJ navigation, fork review, touch-pad, integration
+and the nested Pi-gen link task. The nested Pi-gen repository was preserved in a
+verified bundle before deinitialization. Earlier reproducible build/install
+backups were discarded; Git bundles, settings and manifests remain.
+
+The final preview checkout is retired after copying its verified local artifact
+and gallery evidence into the original `bitedj` source checkout. The original
+checkout is on `codex/v0.0.7`; unrelated pre-existing Documents folders and
+historical release archives remain untouched. The monitor is paused so retired
+worktrees are not recreated. The local cleanup manifest records actual removals
+and disk measurements.

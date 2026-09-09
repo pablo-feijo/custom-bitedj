@@ -579,7 +579,9 @@ grid, not the playback-rate slider. No controller mapping changes are required.
 Grid deck headers display `[ChannelN],file_bpm` to two decimal places so each
 0.01 BPM adjustment is visible without changing the deck playback rate.
 
-Grid coordinates must be reverified for the combined 204px side panel.
+Combined 204px panel verified at 1024×600: Grid tab (994,70); deck 1
+Earlier/Later (892/976,146), Set (934,194), BPM −/+ (892/976,242).
+Deck 2 uses y=314/362/410. Touch targets and both-deck dragging passed.
 The Grid panel and waveforms retain their geometry when the cue drawer opens.
 
 Touch mode transition regression: banks share a stacked layout so overlapping
