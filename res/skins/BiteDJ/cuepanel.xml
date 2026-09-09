@@ -16,9 +16,9 @@
   the waveform row above does not resize when the drawer opens
   (WWidgetStack forwards its minimumSizeHint to the current page).
 
-  [Skin],cue_bank selects which bank the pads address (0 hot, 1 memory) and is
-  shared by both deck pages, so the bank survives switching decks. None of
-  these controls are persisted: the drawer opens closed, on hot cues.
+  [PadFX],dN_mode selects the per-deck cue bank or performance legend.
+  Touch and controller selection share this state; it is not persisted.
+  The drawer starts closed, on hot cues.
 -->
 <Template>
   <WidgetStack currentpage="[Skin],cue_panel">

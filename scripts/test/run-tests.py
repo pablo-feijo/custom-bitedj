@@ -99,6 +99,22 @@ def main():
                     check=True,
                     timeout=30,
                 )
+                subprocess.run(
+                    ["node", str(ROOT / "tests/padfx/test_controller_pad_display.cjs")],
+                    check=True, timeout=30,
+                )
+                subprocess.run(
+                    [sys.executable, str(ROOT / "tests/novnc/test_repair.py")],
+                    check=True, timeout=30,
+                )
+                subprocess.run(
+                    ["node", str(ROOT / "tests/controllers/test_ddj400_effect_select.cjs")],
+                    check=True, timeout=30,
+                )
+                subprocess.run(
+                    [sys.executable, str(ROOT / "tests/effects/test_beatfx_catalog.py")],
+                    check=True, timeout=30,
+                )
             tests = unittest.defaultTestLoader.discover(
                 str(ROOT / "tests" / suite)
             )

@@ -112,6 +112,9 @@ printf '%s\n' "${CONTAINER_NAME}" > "${REPO_DIR}/test-config/active-instance"
 WEB_PORT="$(test_host_port 6080)"
 AUDIO_PORT="$(test_host_port 8000)"
 VNC_PORT="$(test_host_port 5900)"
+# Repair cached images as well as fresh ones before the browser loads modules.
+docker cp "${REPO_DIR}/scripts/test/repair-novnc.py" "${CONTAINER_NAME}:/tmp/bitedj-repair-novnc.py"
+docker exec "${CONTAINER_NAME}" python3 /tmp/bitedj-repair-novnc.py
 # Configure this container's noVNC audio widget, including cached GUI images.
 docker exec "${CONTAINER_NAME}" python3 -c '
 from pathlib import Path

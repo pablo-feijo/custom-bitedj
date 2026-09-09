@@ -12,6 +12,11 @@ const context = {engine: {
         assert.fail('relative selection must not read chain_selector as an index');
     },
     setValue(g, key, value) {
+        if (g === '[PadFX]') {
+            assert.match(key, /^d[12]_shift$/);
+            assert.ok(value === 0 || value === 1);
+            return;
+        }
         assert.equal(g, group);
         assert.equal(key, 'chain_selector');
         current = value;

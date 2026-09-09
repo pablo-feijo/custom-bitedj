@@ -82,3 +82,15 @@ by 10.79 dB; release RMS returned within 2.7% of the baseline (the capture check
 allows 10%). Echo's tail dropped 49.5 dB and Reverb's 33.5 dB between the first
 and second seconds. These are container captures, not hardware latency claims.
 The initial manual run also passed; its release level matched within 0.001%.
+
+### Controller mode legend
+
+Run `node tests/padfx/test_controller_pad_display.cjs` alongside the Pad FX
+regressions. For GUI evidence, use the same isolated virtual PortMidi setup as
+`tests/padfx/test-live-midi-audio.sh`, then copy/run
+`tests/padfx/capture_pad_display.py` inside the owned container. It sends only
+mode and Shift messages and writes `/tmp/controller-pad-display/*.png` using
+scrot. Inspect both decks, all three legends, Hot Cue restoration, Shift bank,
+and dismissal in another mode. Repeat with Day mode enabled; confirm no new
+FX-panel tabs, no waveform resizing and no stale assignments after Settings
+changes. Physical controller validation remains separate from simulated MIDI.

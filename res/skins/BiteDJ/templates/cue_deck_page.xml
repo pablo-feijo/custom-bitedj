@@ -4,7 +4,8 @@
     The cue drawer for one deck: a header (which deck, which bank, close) over
     a 4x2 pad grid. Instantiated once per deck by cuepanel.xml.
 
-    Two banks share the grid, each a sibling group toggled by [Skin],cue_bank.
+    Cue banks and performance legends share a per-deck mode; the header cycles
+    them by touch even when no controller is connected.
     A hidden WidgetGroup drops out of the layout, so only the visible bank
     occupies the row. They are deliberately *not* an inner WidgetStack: both
     deck pages would then key stacks off the same CO, and WWidgetStack's
@@ -34,23 +35,25 @@
             <Size>80f,30f</Size>
           </Label>
 
-          <!-- Bank toggle. Labelled with the bank currently shown, matching
-               BeatFX_ActiveToggle's off/active convention. -->
+          <!-- Touch cycles the same per-deck view used by the controller. -->
           <PushButton>
             <ObjectName>CuePanel_BankToggle</ObjectName>
             <Size>0me,30f</Size>
-            <NumberStates>2</NumberStates>
-            <State>
-              <Number>0</Number>
-              <Text>Hot Cues</Text>
-            </State>
-            <State>
-              <Number>1</Number>
-              <Text>Memory</Text>
-            </State>
+            <NumberStates>5</NumberStates>
+            <LeftClickIsPushButton>true</LeftClickIsPushButton>
+            <State><Number>0</Number><Text>Hot Cues ›</Text></State>
+            <State><Number>1</Number><Text>Pad FX ›</Text></State>
+            <State><Number>2</Number><Text>Beat Jump ›</Text></State>
+            <State><Number>3</Number><Text>Beat Loop ›</Text></State>
+            <State><Number>4</Number><Text>Memory ›</Text></State>
             <Connection>
-              <ConfigKey>[Skin],cue_bank</ConfigKey>
-              <ConnectValueToWidget>true</ConnectValueToWidget>
+              <ConfigKey>[PadFX],d<Variable name="channel"/>_cycle</ConfigKey>
+              <ConnectValueToWidget>false</ConnectValueToWidget>
+              <EmitOnPressAndRelease>true</EmitOnPressAndRelease>
+            </Connection>
+            <Connection>
+              <ConfigKey>[PadFX],d<Variable name="channel"/>_mode</ConfigKey>
+              <ConnectValueFromWidget>false</ConnectValueFromWidget>
             </Connection>
           </PushButton>
 
@@ -137,9 +140,9 @@
           </WidgetGroup>
         </Children>
         <Connection>
-          <ConfigKey>[Skin],cue_bank</ConfigKey>
+          <ConfigKey>[PadFX],d<Variable name="channel"/>_mode</ConfigKey>
           <BindProperty>visible</BindProperty>
-          <Transform><Not/></Transform>
+          <Transform><IsEqual>0</IsEqual></Transform>
         </Connection>
       </WidgetGroup>
 
@@ -206,11 +209,16 @@
           </WidgetGroup>
         </Children>
         <Connection>
-          <ConfigKey>[Skin],cue_bank</ConfigKey>
+          <ConfigKey>[PadFX],d<Variable name="channel"/>_mode</ConfigKey>
           <BindProperty>visible</BindProperty>
+          <Transform><IsEqual>4</IsEqual></Transform>
         </Connection>
       </WidgetGroup>
 
+      <ControllerPadDisplay>
+        <Channel><Variable name="channel"/></Channel><SizePolicy>me,me</SizePolicy>
+        <Connection><ConfigKey>[PadFX],d<Variable name="channel"/>_performance_visible</ConfigKey><BindProperty>visible</BindProperty></Connection>
+      </ControllerPadDisplay>
     </Children>
   </WidgetGroup>
 </Template>

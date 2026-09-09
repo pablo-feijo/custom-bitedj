@@ -76,3 +76,20 @@ TEST_F(PadFxSettingsTest, ValidationPersistenceAndIsolation) {
     }
     std::cout << "Pad FX native settings PASS: real CO/editor synchronization, validation, four decks, disk roundtrip, repeatable reset, future namespace preservation\n";
 }
+
+TEST_F(PadFxSettingsTest, TouchCycleWithoutControllerAndControllerSelectionShareState) {
+    PadFxSettings settings(config());
+    for (int expected : {4, 2, 1, 3, 0, 4}) {
+        set("d1_cycle", 1);
+        require(get("d1_mode") == expected, "touch cycle order");
+        require(get("d1_performance_visible") == (expected > 0 && expected < 4), "matching grid");
+        set("d1_cycle", 0);
+        require(get("d1_mode") == expected, "release must not advance");
+        require(get("d2_mode") == 0, "other deck unchanged");
+    }
+    set("d1_mode", 1); // Same write made by controller mode selection.
+    set("d1_cycle", 1); set("d1_cycle", 0);
+    require(get("d1_mode") == 3, "touch continues from controller-selected mode");
+    set("d1_mode", 0);
+    require(get("d1_performance_visible") == 0, "controller hot cue restores cue grid");
+}

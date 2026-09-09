@@ -335,3 +335,34 @@ Clear FX `(820,40)`, Close `(948,40)`; effect column centers `x=262,762`,
 row centers `y=131,192,254,316,378,439,501`; Previous `(106,560)`, Next `(918,560)`.
 Order is row-major; page 1 has entries 1–14, page 2 has 15–25. Selection uses
 persisted preset IDs; page/section buttons never write `chain_selector`.
+
+## Controller pad drawer
+
+The Overview cue drawer follows the DDJ-400 mode selected on either deck.
+Hot Cue restores the existing Hot Cues/Memory controls; Pad FX, Beat Jump and
+Beat Loop replace the pad grid with a **read-only controller legend**. Use the
+physical pads to perform the displayed actions. X still closes the drawer;
+selecting a controller mode opens that deck again. Mode button release does
+not close it. Other modes close only their own deck's visible drawer.
+
+Runtime controls (not saved): `[PadFX],dN_mode` = 0 Hot Cue, 1 Pad FX,
+2 Beat Jump, 3 Beat Loop, 4 Memory; `dN_shift` = 0/1; `dN_jump_bank` = 0/1/2 for
+1/16, 1, 16 multipliers. The existing mapping shares jump sizes across decks.
+The header stays 30px high; the legend uses the existing four-column/two-row
+area, with a 44px minimum row height. Verified at 1024×600: header y=450–481, X center (1000,467);
+legend columns centered at x=128/384/640/896, rows at y=510/570.
+Each legend cell is 252×56px. The waveform area stays at y=39–449.
+See [controller drawer screenshots](docs/UI_SCREENSHOTS.md#controller-pad-drawer).
+
+The legend follows saved Normal/Shift assignments, timing overrides, strength
+and toggle settings. Beat Loop shows four held rolls and four toggle loops;
+holding Shift shows its mapped shifted Pad FX assignments. Beat Jump's Shift
+bank shows size ÷16 / ×16 on pads 7/8. Modes are independent per deck.
+
+
+Touch drawer navigation: tap the header at (530,467) to cycle Hot Cues → Memory
+→ Beat Jump → Pad FX → Beat Loop → Hot Cues. `[PadFX],dN_cycle` is a momentary
+command; release does not advance. Controller and touch selection share
+`dN_mode`, while the two decks keep independent selections. Touch navigation
+works without a connected controller. The performance legend remains read-only;
+this change adds header navigation, not new touch performance actions.

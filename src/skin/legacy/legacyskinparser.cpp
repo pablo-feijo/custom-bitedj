@@ -36,6 +36,7 @@
 #include "widget/wbeatspinbox.h"
 #include "widget/wcombobox.h"
 #include "widget/wpadfxeditor.h"
+#include "widget/wcontrollerpaddisplay.h"
 #include "widget/wcoverart.h"
 #include "widget/wdisplay.h"
 #include "widget/weffectbuttonparametername.h"
@@ -548,6 +549,8 @@ QList<QWidget*> LegacySkinParser::parseNode(const QDomElement& node) {
         result = wrapWidget(parseHotcueButton(node));
     } else if (nodeName == "ComboBox") {
         result = wrapWidget(parseStandardWidget<WComboBox>(node));
+    } else if (nodeName == "ControllerPadDisplay") {
+        result = wrapWidget(parseStandardWidget<WControllerPadDisplay>(node));
     } else if (nodeName == "PadFxEditor") {
         result = wrapWidget(parseStandardWidget<WPadFxEditor>(node));
     } else if (nodeName == "Overview") {
