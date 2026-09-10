@@ -11,9 +11,9 @@ This release brings the compact two-deck touchscreen workflow, controller-synced
 performance drawer, per-deck Grid/Key editing, Standard/Saved Beat FX, persistent
 queues and visible-deck Auto Play together with Rekordbox waveform/phrase import.
 System settings add touch clock/date editing, overclock recovery and separate
-restart/power actions. See the [changes-only changelog](../CHANGELOG.md#007--2026-09-09),
-[UI gallery](UI_SCREENSHOTS.md), [DDJ-400 mapping](DDJ400_MAPPING.md) and
-[FX implementation notes](BEAT_FX.md).
+restart/power actions. See the [changes-only changelog](CHANGELOG.md#007--2026-09-09),
+[UI gallery](docs/UI_SCREENSHOTS.md), [DDJ-400 mapping](docs/DDJ400_MAPPING.md) and
+[FX implementation notes](docs/BEAT_FX.md).
 
 ## Removable storage
 
@@ -34,7 +34,7 @@ do not establish that its power, cable or mechanics are healthy.
 
 ## Build and validation
 
-Use the [build/deploy procedure](BUILD_AND_DEPLOY.md) and the exact pinned
+Use the [build/deploy procedure](docs/BUILD_AND_DEPLOY.md) and the exact pinned
 `mixxx-pi-gen` commit. The image uses Debian 13 Trixie and the approved 0.0.7
 boot defaults. A fresh image flash/boot is separate from installing and testing
 the application on an existing Pi; do not claim one proves the other.

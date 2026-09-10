@@ -1,6 +1,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <cmath>
 #include <memory>
 #include <string>
 
@@ -2507,6 +2508,17 @@ TEST_F(EngineSyncTest, FollowerUserTweakPreservedInSyncDisable) {
     ControlObject::getControl(ConfigKey(m_sGroup2, "sync_enabled"))->set(0);
     ProcessBuffer();
     EXPECT_FALSE(m_pChannel2->getEngineBuffer()->previousBufferSeek());
+    assertSyncOff(m_sGroup2);
+    const double retainedRate = ControlObject::get(ConfigKey(m_sGroup2, "rate"));
+    ProcessBuffer();
+    EXPECT_DOUBLE_EQ(retainedRate, ControlObject::get(ConfigKey(m_sGroup2, "rate")));
+    // Sync-off retains the matched tempo, then permits independent pitch edits.
+    const double leaderRate = ControlObject::get(ConfigKey(m_sGroup1, "rate"));
+    ControlObject::set(ConfigKey(m_sGroup2, "rate"), retainedRate + 0.1);
+    ProcessBuffer();
+    EXPECT_DOUBLE_EQ(retainedRate + 0.1, ControlObject::get(ConfigKey(m_sGroup2, "rate")));
+    EXPECT_DOUBLE_EQ(leaderRate, ControlObject::get(ConfigKey(m_sGroup1, "rate")));
+    assertSyncOff(m_sGroup2);
 }
 
 TEST_F(EngineSyncTest, LeaderUserTweakPreservedInLeaderChange) {
@@ -3122,4 +3134,74 @@ TEST_F(EngineSyncTest, BeatContextRounding) {
     EXPECT_NEAR(-0.021112622826908536,
             ControlObject::get(ConfigKey(m_sGroup1, "playposition")),
             kMaxFloatingPointErrorHighPrecision);
+}
+
+
+TEST_F(EngineSyncTest, PressedDeckLeadsPairAndSyncOffReleasesPhase) {
+    m_pTrack1->trySetBeats(mixxx::Beats::fromConstTempo(m_pTrack1->getSampleRate(),
+            mixxx::audio::kStartFramePos, mixxx::Bpm(120)));
+    m_pTrack2->trySetBeats(mixxx::Beats::fromConstTempo(m_pTrack2->getSampleRate(),
+            mixxx::audio::kStartFramePos, mixxx::Bpm(130)));
+    ProcessBuffer();
+    for (const auto& leader : {m_sGroup1, m_sGroup2}) {
+        for (const int playing : {0, 1}) {
+            const auto& follower = leader == m_sGroup1 ? m_sGroup2 : m_sGroup1;
+            ControlObject::set(ConfigKey(m_sGroup1, "rate"), 0.1);
+            ControlObject::set(ConfigKey(m_sGroup2, "rate"), -0.1);
+            ControlObject::set(ConfigKey(m_sGroup1, "play"), playing);
+            ControlObject::set(ConfigKey(m_sGroup2, "play"), playing);
+            ProcessBuffer();
+            const double tempo = ControlObject::get(ConfigKey(leader, "bpm"));
+            ControlObject::set(ConfigKey(follower, "bpm"), tempo);
+            ControlObject::set(ConfigKey(leader, "sync_leader"), 1);
+            ControlObject::set(ConfigKey(follower, "sync_enabled"), 1);
+            ProcessBuffer();
+            EXPECT_NEAR(tempo, ControlObject::get(ConfigKey(leader, "bpm")), 0.001);
+            EXPECT_NEAR(tempo, ControlObject::get(ConfigKey(follower, "bpm")), 0.001);
+            ControlObject::set(ConfigKey(m_sGroup1, "sync_enabled"), 0);
+            ControlObject::set(ConfigKey(m_sGroup2, "sync_enabled"), 0);
+            ProcessBuffer();
+            assertSyncOff(m_sGroup1);
+            assertSyncOff(m_sGroup2);
+            EXPECT_NEAR(tempo, ControlObject::get(ConfigKey(follower, "bpm")), 0.001);
+            // A manual phase change must survive ongoing playback after Sync-off.
+            ControlObject::set(ConfigKey(follower, "quantize"), 0);
+            ControlObject::set(ConfigKey(follower, "playposition"), 0.123);
+            ProcessBuffer();
+            const auto phaseDifference = [&]() {
+                return std::remainder(ControlObject::get(ConfigKey(follower, "beat_distance")) -
+                        ControlObject::get(ConfigKey(leader, "beat_distance")), 1.0);
+            };
+            ControlObject::set(ConfigKey(follower, "quantize"), 1);
+            const double offset = phaseDifference();
+            EXPECT_GT(std::abs(offset), 0.01);
+            for (int i = 0; i < 100; ++i) { ProcessBuffer(); }
+            EXPECT_NEAR(offset, phaseDifference(), 0.001);
+        }
+    }
+}
+
+TEST_F(EngineSyncTest, QuantizedPlayWithSyncOffDoesNotAlignToOtherDeck) {
+    for (const auto& group : {m_sGroup1, m_sGroup2}) {
+        auto track = group == m_sGroup1 ? m_pTrack1 : m_pTrack2;
+        track->trySetBeats(mixxx::Beats::fromConstTempo(
+                track->getSampleRate(), mixxx::audio::kStartFramePos, mixxx::Bpm(120)));
+        ControlObject::set(ConfigKey(group, "quantize"), 0);
+    }
+    ProcessBuffer();
+    ControlObject::set(ConfigKey(m_sGroup1, "play"), 1);
+    for (int i = 0; i < 10; ++i) ProcessBuffer();
+    ControlObject::set(ConfigKey(m_sGroup2, "playposition"), 0.123);
+    ProcessBuffer();
+    const auto phase = [&] {
+        return std::remainder(ControlObject::get(ConfigKey(m_sGroup2, "beat_distance")) -
+                ControlObject::get(ConfigKey(m_sGroup1, "beat_distance")), 1.0);
+    };
+    const double before = phase();
+    ASSERT_GT(std::abs(before), 0.01);
+    ControlObject::set(ConfigKey(m_sGroup2, "quantize"), 1);
+    ControlObject::set(ConfigKey(m_sGroup2, "play"), 1);
+    for (int i = 0; i < 50; ++i) ProcessBuffer();
+    EXPECT_NEAR(before, phase(), 0.001);
+    EXPECT_EQ(ControlObject::get(ConfigKey(m_sGroup2, "quantize")), 1);
 }

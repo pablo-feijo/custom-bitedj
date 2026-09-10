@@ -102,8 +102,8 @@ set(MIXXX_VERSION_PRERELEASE "") # set to "alpha" "beta" or ""
 # The Bite DJ fork version. This is the product version displayed in the UI and
 # reported by `bitedj --version`; it moves independently of the Mixxx base
 # version above.
-set(BITEDJ_VERSION "0.0.7")
-set(BITEDJ_VERSION_PRERELEASE "")
+set(BITEDJ_VERSION "0.0.8")
+set(BITEDJ_VERSION_PRERELEASE "codex-v0-0-8.1")
 if(NOT BITEDJ_VERSION MATCHES "^[0-9]+(\\.[0-9]+)*$")
   message(FATAL_ERROR "BITEDJ_VERSION must be a dot-separated numeric version, got '${BITEDJ_VERSION}'")
 endif()
@@ -1584,6 +1584,7 @@ if(BUILD_TESTING)
     src/test/frametest.cpp
     src/test/fscueoverridestore_test.cpp
     src/test/fshistorystore_test.cpp
+    src/test/fsanalysiscache_test.cpp
     src/test/fshistoryworker_test.cpp
     src/test/fsmetaoverridestore_test.cpp
     src/test/fssamplerbankstore_test.cpp
@@ -1636,6 +1637,8 @@ if(BUILD_TESTING)
     src/test/replaygaintest.cpp
     src/test/rescalertest.cpp
     src/test/rgbcolor_test.cpp
+    src/test/quantizecontrol_test.cpp
+    src/test/rtscheduling_test.cpp
     src/test/samplebuffertest.cpp
     src/test/schemamanager_test.cpp
     src/test/searchqueryparsertest.cpp

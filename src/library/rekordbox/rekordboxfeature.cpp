@@ -1063,6 +1063,84 @@ QString readPhrases(TrackPointer track, int timingOffset, const QString& anlzPat
     }
 }
 
+// Read only the requested waveform section. Preview requests must not parse
+// the much larger detail section while the audio readers use the same USB drive.
+static std::string readRgbSection(const QString& anlzPath, bool overview) {
+    QFile file(anlzPath.left(anlzPath.length() - 3) + "EXT");
+    if (!file.open(QIODevice::ReadOnly) || file.size() > 32 * 1024 * 1024) return {};
+    const auto u32 = [](const QByteArray& bytes, int offset) -> quint32 {
+        const auto* p = reinterpret_cast<const unsigned char*>(bytes.constData()) + offset;
+        return (quint32(p[0]) << 24) | (quint32(p[1]) << 16) | (quint32(p[2]) << 8) | p[3];
+    };
+    auto header = file.read(12);
+    if (header.size() != 12 || header.left(4) != "PMAI") return {};
+    const qint64 end = u32(header, 8);
+    qint64 offset = u32(header, 4);
+    if (offset < 12 || end > file.size()) return {};
+    while (offset + 12 <= end) {
+        if (!file.seek(offset)) return {};
+        header = file.read(12);
+        if (header.size() != 12) return {};
+        const quint32 headerSize = u32(header, 4), sectionSize = u32(header, 8);
+        if (headerSize < 12 || sectionSize < headerSize || offset + sectionSize > end) return {};
+        if (header.left(4) == (overview ? "PWV4" : "PWV5")) {
+            const auto dimensions = file.read(12);
+            if (headerSize != 24 || dimensions.size() != 12) return {};
+            const quint32 stride = u32(dimensions, 0), count = u32(dimensions, 4);
+            if (stride != (overview ? 6u : 2u) || !count ||
+                    count > (overview ? 65536u : 4320000u) ||
+                    quint64(count) * stride != sectionSize - headerSize) return {};
+            const auto bytes = file.read(qint64(count) * stride);
+            return bytes.size() == qint64(count) * stride ? bytes.toStdString() : std::string();
+        }
+        offset += sectionSize;
+    }
+    return {};
+}
+
+static void attachRgbWaveform(const WaveformPointer& waveform, const QString& anlzPath,
+        bool overview, int timingOffset) {
+    const auto bytes = readRgbSection(anlzPath, overview);
+    if (bytes.empty()) return;
+    const int columns = waveform->getDataSize() / 2;
+    const double destinationRate = 44100.0 / waveform->getAudioVisualRatio();
+    // Overview maps by normalized position; detail maps by the audio timebase.
+    waveform->setExportedRgb(decodeRgbWaveform(bytes, overview, columns,
+            overview ? double(bytes.size() / 6) : 150.0,
+            overview ? double(columns) : destinationRate, overview ? 0 : timingOffset));
+}
+
+ConstWaveformPointer readThreeBandPreview(const QString& anlzPath) {
+    if (anlzPath.isEmpty()) return {};
+    const QString path = anlzPath.left(anlzPath.length() - 3) + "2EX";
+    const QFileInfo info(path);
+    if (!info.exists() || info.size() > 32 * 1024 * 1024) return {};
+    try {
+        std::ifstream file(path.toStdString(), std::ios::binary);
+        kaitai::kstream stream(&file);
+        rekordbox_anlz_t analysis(&stream);
+        for (const auto& section : *analysis.sections()) {
+            if (section->fourcc() != rekordbox_anlz_t::SECTION_TAGS_WAVE_3BAND_PREVIEW) continue;
+            const auto* tag = static_cast<rekordbox_anlz_t::wave_3band_preview_tag_t*>(section->body());
+            const auto columns = tag->len_entries();
+            if (tag->len_entry_bytes() != 3 || columns == 0 || columns > 65536 ||
+                    tag->entries().size() != uint64_t(columns) * 3) return {};
+            // Browser overviews use normalized track coordinates, not deck timing.
+            auto waveform = WaveformPointer(new Waveform(44100, SINT(columns - 1), 44100, -1));
+            const auto data = decodeThreeBandWaveform(tag->entries(), 150, 150, columns, 0, true);
+            std::copy(data.begin(), data.end(), waveform->data());
+            waveform->setCompletion(waveform->getDataSize());
+            attachRgbWaveform(waveform, anlzPath, true, 0);
+            waveform->setVersion(QStringLiteral("Rekordbox browser overview"));
+            waveform->setSaveState(Waveform::SaveState::Saved);
+            return waveform;
+        }
+    } catch (const std::exception& error) {
+        qWarning() << "Could not read Rekordbox preview:" << path << error.what();
+    }
+    return {};
+}
+
 QString readThreeBandWaveforms(TrackPointer track,
         mixxx::audio::SampleRate sampleRate,
         int timingOffset,
@@ -1078,14 +1156,17 @@ QString readThreeBandWaveforms(TrackPointer track,
         if (sampleRate <= 0 || !util_isfinite(seconds) || seconds <= 0 || seconds > 8 * 3600) {
             throw std::runtime_error("Audio duration unavailable for exported waveform");
         }
-        const QString identity = QStringLiteral("%1|%2|%3|%4|%5|%6")
+        const QFileInfo rgbInfo(anlzPath.left(anlzPath.length() - 3) + "EXT");
+        const QString identity = QStringLiteral("%1|%2|%3|%4|%5|%6|%7|%8")
                                          .arg(path)
                                          .arg(info.size())
                                          .arg(info.lastModified().toMSecsSinceEpoch())
                                          .arg(int(sampleRate))
                                          .arg(seconds, 0, 'g', 17)
-                                         .arg(timingOffset);
-        const QString version = QStringLiteral("Rekordbox 3-band v3");
+                                         .arg(timingOffset)
+                                         .arg(rgbInfo.size())
+                                         .arg(rgbInfo.lastModified().toMSecsSinceEpoch());
+        const QString version = QStringLiteral("Rekordbox display v4");
         const auto current = track->getWaveform();
         const auto summary = track->getWaveformSummary();
         if (current && summary && current->getVersion() == version &&
@@ -1141,6 +1222,14 @@ QString readThreeBandWaveforms(TrackPointer track,
         if (!importedDetail || !importedSummary) {
             throw std::runtime_error("Incomplete Rekordbox three-band waveform pair");
         }
+        // RGB exports have their own colors/heights, independent of PWV6/PWV7.
+        const auto rgbDetail = readRgbSection(anlzPath, false);
+        if (!rgbDetail.empty()) {
+            importedDetail->setExportedRgb(decodeRgbWaveform(rgbDetail, false,
+                    importedDetail->getDataSize() / 2, 150.0,
+                    sampleRate / importedDetail->getAudioVisualRatio(), timingOffset));
+        }
+        attachRgbWaveform(importedSummary, anlzPath, true, 0);
         track->setWaveforms(importedDetail, importedSummary);
         return {};
     } catch (const std::exception& error) {
@@ -1660,8 +1749,8 @@ TrackPointer RekordboxPlaylistModel::getTrack(const QModelIndex& index) const {
     auto failedPaths = mixxx::rekordbox::readAnalyzeFiles(
             track, sampleRate, timingOffset, anlzPath);
     const auto phrasesFailure = mixxx::rekordbox::readPhrases(track, timingOffset, anlzPath);
-    // The analyzer checks the native cache before using this export fallback.
-    // Importing here replaced the RGB preview's cached native bands on deck load.
+    // Keep waveform I/O off the GUI. The analyzer prefers this exported source
+    // and uses native cache/analysis only when the export is unavailable.
     track->setRekordboxWaveformSource({anlzPath, timingOffset});
     if (!phrasesFailure.isEmpty()) failedPaths.append(phrasesFailure);
     if (!failedPaths.isEmpty()) {

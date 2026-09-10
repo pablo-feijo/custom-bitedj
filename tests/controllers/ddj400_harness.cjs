@@ -18,6 +18,7 @@ function createHarness() {
     const seed = (g,k,v) => values.set(key(g,k),v);
     const set = (g,k,v) => {
         seed(g,k,v); writes.push([g,k,v]);
+        if (k === "sync_leader" && v > 0) seed(g,"sync_enabled",1);
         if (g === '[Skin]' && v === 1) {
             if (k === 'cue_close') seed(g,'cue_panel',0);
             if (/^cue_deck[12]$/.test(k)) seed(g,'cue_panel',Number(k.at(-1)));

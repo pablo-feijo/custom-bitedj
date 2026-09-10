@@ -14,6 +14,7 @@
 #include "library/dao/analysisdao.h"
 #include "library/dao/fsanalysiscache.h"
 #include "library/trackmodel.h"
+#include "library/rekordbox/rekordboxanlz.h"
 #include "moc_previewbuttondelegate.cpp"
 #include "track/globaltrackcache.h"
 #include "track/track.h"
@@ -98,6 +99,15 @@ ConstWaveformPointer PreviewButtonDelegate::summaryForLocation(const QString& lo
     if (track) {
         const auto waveform = track->getWaveformSummary();
         if (waveform) {
+            // A native batch may still be running when this row is loaded.
+            // Keep the already displayed export until the deck publishes its
+            // exported summary, rather than flashing native analysis colors.
+            if (cached && cached->waveform &&
+                    cached->waveform->getVersion().startsWith("Rekordbox") &&
+                    !waveform->getVersion().startsWith("Rekordbox") &&
+                    !track->getRekordboxWaveformSource().analyzePath.isEmpty()) {
+                return cached->waveform;
+            }
             // Replace an earlier disk miss with the live analysis. Retain only
             // the summary so unloading the deck can still release the Track.
             if (!cached || cached->waveform != waveform ||
@@ -116,7 +126,7 @@ ConstWaveformPointer PreviewButtonDelegate::summaryForLocation(const QString& lo
     return cached ? cached->waveform : ConstWaveformPointer();
 }
 
-void PreviewButtonDelegate::requestSummary(const QString& location) const {
+void PreviewButtonDelegate::requestSummary(const QString& location, const QString& analyzePath) const {
     if (m_requestPending || m_summaries.contains(location)) {
         return;
     }
@@ -143,11 +153,15 @@ void PreviewButtonDelegate::requestSummary(const QString& location) const {
                 self->m_pTableView->viewport()->update();
                 watcher->deleteLater();
             });
-    watcher->setFuture(QtConcurrent::run(summaryPool(), [config, pool, location] {
+    watcher->setFuture(QtConcurrent::run(summaryPool(), [config, pool, location, analyzePath] {
         mixxx::demoteCurrentThreadToBackground("WaveformPreview");
         // This closure owns everything it uses. Destroying the view does not
         // wait for slow USB I/O and cannot leave a dangling delegate pointer.
-        FsAnalysisCache cache(config);
+        if (const auto exported = mixxx::rekordbox::readThreeBandPreview(analyzePath)) {
+            return exported;
+        }
+        // Browsing must never create, migrate or repair files on the audio drive.
+        FsAnalysisCache cache(config, FsAnalysisCache::AccessMode::ReadOnly);
         QList<AnalysisDao::AnalysisInfo> analyses;
         if (cache.isEnabled()) {
             analyses = cache.getAnalysesForTrack(location, AnalysisDao::TYPE_WAVESUMMARY);
@@ -253,7 +267,11 @@ void PreviewButtonDelegate::paintItem(QPainter* painter,
     const QString location = model->getTrackLocation(index);
     const auto waveform = summaryForLocation(location);
     if (!waveform) {
-        requestSummary(location);
+        const int analysisColumn = model->fieldIndex(QStringLiteral("analyze_path"));
+        const QString analyzePath = analysisColumn >= 0
+                ? index.sibling(index.row(), analysisColumn).data(Qt::EditRole).toString()
+                : QString();
+        requestSummary(location, analyzePath);
     }
     const int completion = waveform ? waveform->getCompletion() : 0;
     auto* cached = m_previewCache.object(location);

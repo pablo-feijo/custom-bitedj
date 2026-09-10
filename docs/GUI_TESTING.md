@@ -19,11 +19,13 @@ Use this workflow to **quickly test and verify changes before deploying to hardw
 
 ## Independent Branch Instances
 
-Create a feature worktree from the agreed, existing semver integration branch:
+Create a feature worktree from the agreed, existing semver integration branch.
+Use the [initial-base exception](BRANCH_VERSIONING.md#starting-work) while the
+new integration branch is still unpublished:
 
 ```bash
 git fetch origin
-git worktree add ../bitedj-my-feature -b codex/my-feature origin/codex/v0.0.7
+git worktree add ../bitedj-my-feature -b codex/my-feature origin/codex/v0.0.8
 cd ../bitedj-my-feature
 # Assign the branch prerelease version per BRANCH_VERSIONING.md before building.
 ./scripts/build/docker-build.sh --platform linux/arm64
@@ -338,7 +340,7 @@ At overlapping positions, the orange main **CUE** line and label paint last, abo
 
 ## Documentation screenshots
 
-The [0.0.7 UI gallery](UI_SCREENSHOTS.md) contains publication images, linked
+The [0.0.8 UI gallery](UI_SCREENSHOTS_0.0.8.md) contains current publication images, linked
 from the README and changelog. These curated assets are the exception to the
 rule excluding raw test screenshots from Git. Agent refresh requirements live
 in [the canonical screenshot policy](../.agents/skills/bitedj-ui/SKILL.md#published-ui-screenshots).
@@ -361,12 +363,13 @@ in [the canonical screenshot policy](../.agents/skills/bitedj-ui/SKILL.md#publis
    padding and footer: PAD FX alone hides the Settings deck footer. Reject blank,
    loading, tooltip-covered or unintended pages. For styling changes also inspect
    Day mode and publish additional images when needed to explain the change.
-7. Copy only reviewed publication PNGs into `docs/images/ui/0.0.7/`. Update the
+7. Copy only reviewed publication PNGs into `docs/images/ui/0.0.8/`. Update the
    gallery's source revision, captions and README previews; link the affected
    gallery anchors from the UI change's changelog entry. Verify PNG dimensions and
    all relative links. Never copy logs, settings, databases or audio into docs.
 
-During 0.0.7 development, refresh its gallery in place. After release, preserve
+During 0.0.8 development, refresh its gallery in place. Keep the released
+[0.0.7 gallery](UI_SCREENSHOTS.md) unchanged. After release, preserve
 it and its image directory; create a separate gallery and image directory for
 the next version and point new changelog/README links there.
 
@@ -784,3 +787,33 @@ rapid folder changes, BPM/key sorting without implicit track imports, and
 Rekordbox playlist selection after a large export. A noisy drive or kernel
 read/reset errors require stopping media tests; application changes cannot
 repair unreadable hardware.
+
+
+## 0.0.8 DDJ-400 jog and sync regression
+
+On both loaded decks, test Shift + jog in FX, Key and Jump: position searches
+quickly in either direction and the grid stays unchanged. In Grid, the same
+input translates beat lines without seeking. Switch panels while holding Shift.
+In General, compare Vinyl Brake Off, Short (1.8s) and Long (3.6s) with repeatable
+throws; paused decks coast to rest and playing decks return to playback.
+Switch to CDJ during a throw: scratch stops and normal jog bends pitch.
+Enable then disable Beat Sync: tempo remains matched, but subsequent pitch/jog
+changes are independent. This intentionally avoids a sudden tempo reset.
+Fast mapping regressions cover MIDI routing; the native shipped-mapping test
+measures Short/Long duration, and EngineSyncTest verifies independent pitch.
+
+Beat Sync ON makes the pressed deck the tempo source and enables the other
+deck as follower. OFF releases both decks while preserving their adjusted BPM.
+After a manual jog nudge, phase offset must persist without snapping back.
+
+For a repeatable live MIDI check on Linux, create a test preset using
+`python3 tests/controllers/prepare_live_probe.py test-results/live-probe`.
+Launch with `--settings-path` pointing to isolated settings and the two generated
+test tracks. `BITEDJ_SETTINGS_PATH` is not an application settings-path option.
+Build `tests/controllers/send_alsa_midi.c` with `cc -o send-midi ... -lasound`,
+discover the application's input client/port using `aconnect -l`, then run
+`python3 tests/controllers/check_live_probe.py LOG ./send-midi CLIENT PORT`.
+The test-only probe logs native state; the runner sends actual ALSA MIDI through
+the shipped XML callbacks. It verifies search/grid separation, Off/Short/Long
+coast duration, CDJ behavior and Sync direction/phase release on both decks.
+Physical gesture timing, LED appearance and speaker quality remain manual checks.

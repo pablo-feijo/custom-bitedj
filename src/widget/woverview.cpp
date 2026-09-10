@@ -1778,6 +1778,23 @@ void WOverview::drawNextPixmapPartRGB(QPainter* pPainter,
     DEBUG_ASSERT(!m_waveformSourceImage.isNull());
     ScopedTimer t(QStringLiteral("WOverview::drawNextPixmapPartRGB"));
 
+    if (!pWaveform->exportedRgb().empty()) {
+        const auto& rgb = pWaveform->exportedRgb();
+        for (int i = m_actualCompletion; i < nextCompletion; i += 2) {
+            const auto& column = rgb[i / 2];
+            const QColor color(column.red, column.green, column.blue);
+            pPainter->setPen(color.darker(134));
+            pPainter->drawLine(QPointF(i / 2, -column.height), QPointF(i / 2, column.height));
+            if (column.frontHeight) {
+                pPainter->setPen(color);
+                pPainter->drawLine(QPointF(i / 2, -column.frontHeight), QPointF(i / 2, column.frontHeight));
+            }
+            m_waveformPeak = std::max(m_waveformPeak, float(column.height));
+        }
+        m_actualCompletion = nextCompletion;
+        return;
+    }
+
     QColor color;
 
     float lowColor_r, lowColor_g, lowColor_b;

@@ -46,6 +46,20 @@ def wave_tag(kind, columns, variant):
     return section(kind, body + data, 24 if kind == 'PWV7' else 20)
 
 
+def rgb_tag(kind, columns, variant):
+    data = bytearray()
+    colors = [(7, 2, 1), (7, 0, 5), (1, 7, 3), (0, 3, 7)]
+    for i in range(columns):
+        t = i * 60 / columns
+        r, g, b = colors[(int(t / 15) + variant) % len(colors)]
+        height = round(12 + 19 * math.exp(-(t % .5) * 12))
+        if kind == 'PWV4':
+            data.extend((0, 0, 0, r * height // 2, g * height // 2, b * height // 2))
+        else:
+            data.extend(be16((r << 13) | (g << 10) | (b << 7) | (height << 2)))
+    return section(kind, be32(6 if kind == 'PWV4' else 2) + be32(columns) + be32(0) + data, 24)
+
+
 def cue_tags():
     tags = b''
     for list_type, cues in [(1, [(1, 4100, 0, 'A START'), (2, 16100, 0, 'B CHORUS'),
@@ -76,7 +90,7 @@ def analysis(variant):
     for i, (start, kind) in enumerate(zip(starts, kinds)):
         body += be16(i + 1) + be16(start) + be16(kind) + bytes(14) + bytes([0, 1]) + be16(start + 4)
     phrase = be32(24) + be16(len(starts)) + body
-    return anlz(section('PQTZ', grid)), anlz(section('PSSI', phrase) + cue_tags()), anlz(wave_tag('PWV6', 1200, variant) + wave_tag('PWV7', 9000, variant))
+    return anlz(section('PQTZ', grid)), anlz(section('PSSI', phrase) + cue_tags() + rgb_tag('PWV4', 1200, variant) + rgb_tag('PWV5', 9000, variant)), anlz(wave_tag('PWV6', 1200, variant) + wave_tag('PWV7', 9000, variant))
 
 
 def string(value):

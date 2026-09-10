@@ -53,8 +53,8 @@
 class WSingletonContainer : public WWidgetGroup {
     Q_OBJECT
   public:
-    // Prepares the container and remembers the widget, but does not add the
-    // widget to the container.
+    // The first host acquires the widget during setup; later hosts acquire it
+    // when shown, preserving shared singleton ownership.
     explicit WSingletonContainer(QWidget* pParent=nullptr);
 
     void setup(const QDomNode& node, const SkinContext& context) override;

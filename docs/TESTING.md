@@ -243,9 +243,10 @@ color tolerance allows for rasterization. This is a color-consistency check, not
 an assertion that an entire music-track summary matches one zoomed-in passage.
 
 `RekordboxImportTest` also covers loading a track whose native cached bands differ
-from the export: the native detail and summary must remain the source for both
-views. A cache miss still imports a valid export on the analyzer worker, and an
-invalid export leaves native audio analysis available.
+from the export: the exported detail and summary must win for Rekordbox-loaded
+tracks. Import runs on the analyzer worker, and missing/invalid exports leave
+native cache and audio analysis available. A late batch analysis must not overwrite
+an exported pair, and browser previews retain export colors while that batch runs.
 
 `WaveformRenderingTest` checks empty/partial summaries, full-track coordinates,
 transient-preserving downsampling, palette round trips, 3 Band stacking and deck

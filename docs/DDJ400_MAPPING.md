@@ -75,6 +75,10 @@ new implementation; the historical verification below predates it.
 - **Double-Tap Clone**: Pushing the rotary Load encoder twice in rapid succession triggers a custom Instant Doubles script. The script clones the currently playing track to the opposite deck, perfectly matching the playhead position, loop state, and pitch.
 - **Sync Fixes**: Modified the Sync button to reliably snap to the beatgrid even during active Pad FX usage, resolving upstream issues where effect manipulation disrupted phase alignment.
 
+Disabling Beat Sync releases tempo/phase lock and retains the matched tempo.
+Subsequent pitch and jog changes operate independently; Sync-off does not reset
+the pitch slider or deliberately move the beat phase.
+
 ## 4. UI Navigation & Hardware Disabling
 - **Tab Toggling**: Pressing the Browse rotary encoder while holding SHIFT natively toggles the UI layout tab (`[Tab],current`), allowing you to expand the library to full-screen from the controller.
 - **Crossfader Hardware Neutralization**: The JS callback explicitly intercepts physical MIDI slider inputs and drops them if the BiteDJ `[BiteDJ],crossfader_enabled` setting is disabled. This physically disconnects the controller's crossfader to prevent accidental bumps from bleeding audio.
@@ -221,16 +225,22 @@ need native tests or a connected DDJ-400; this suite does not emulate them.
 
 ## Jog alignment, release and service smoothing
 
-Shift + jog translates the beatgrid through `beats_translate_move` (signed jog
+With the right-panel Grid tab active, Shift + jog translates the beatgrid through `beats_translate_move` (signed jog
 steps), without seeking or enabling scratch. This takes priority over loop-point
 adjustment. Dedicated shifted rotation/touch notes work even without a Shift
 press message; pressing Shift during an active scratch releases scratch immediately.
 Shift + Browse rotation zooms from any page through the existing linked waveform
 zoom path; Shift + Browse press continues to toggle Play/Browse.
 
-Jog release uses `scratchDisable(deck, false)`, restoring `play` only if that
-scratch began on a playing deck. Paused decks stay paused. Release is handled even
-if loop adjustment was enabled during touch.
+Outside Grid (FX, Key or Jump), Shift + jog fast-searches the loaded track
+with speed-sensitive acceleration: slow movement is fine, fast spins travel
+farther, and each deck resets its acceleration after a pause. Both dedicated shifted messages and tracked Shift
+follow the current panel immediately; neither starts scratching or resizes loops.
+
+Normal Vinyl jog release uses `scratchDisable(deck, true)`, allowing the native
+Off/Short/Long brake setting to govern coast. A playing deck coasts back to its
+play rate; a paused deck coasts to rest. Shift, active-loop entry and switching
+to CDJ cancel scratch immediately. Release remains handled during loop editing.
 
 Service Preferences → Decks → Deck options → Jog-wheel smoothing saves
 `[Controls] JogWheelFilterLength`: default 6, minimum 1, maximum 64. Apply updates
@@ -253,7 +263,7 @@ partial turn; releasing touch, changing loop state or using Shift clears it.
 Each deck accumulates independently. Native `loop_scale` keeps the start point
 and enforces the minimum audible length and track-end limit. Playing decks keep
 playing; paused decks remain paused. Leaving the loop restores jog pitch bend
-and Vinyl-mode scratching. Shift + jog always takes priority for grid alignment.
+and Vinyl-mode scratching. Shift + jog takes priority for Grid editing or fast search according to the active panel.
 Explicit Shift + LOOP IN/OUT boundary-edit modes retain fine adjustment after
 releasing Shift; toggle the mode off to return to automatic half/double resizing.
 
@@ -279,3 +289,7 @@ Set fires once. Key's Match uses `sync_key`, alongside `pitch_down_2`,
 FX Select and Shift + FX Select skip presets that require missing effect
 backends, matching the touchscreen's available preset list. Saved preset files
 and numeric indices are retained; the skip happens during navigation.
+
+Beat Sync ON makes the pressed deck the tempo source and enables the other
+deck as follower. OFF releases both decks while preserving their adjusted BPM.
+After a manual jog nudge, phase offset must persist without snapping back.

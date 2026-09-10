@@ -47,14 +47,8 @@ bool AnalyzerWaveform::initialize(const AnalyzerTrack& track,
         return false;
     }
 
-    // If we don't need to calculate the waveform/wavesummary, skip.
-    if (!shouldAnalyze(track.getTrack())) {
-        return false;
-    }
-
-    // Rekordbox display envelopes use different band scaling from native RMS.
-    // Prefer the same native cache that supplies library previews, then import
-    // the export only on a cache miss. Both disk reads run on this worker.
+    // Rekordbox-loaded tracks use the exported display envelopes even when a
+    // native cache exists. Import on this background worker, never the GUI.
     const auto source = track.getTrack()->getRekordboxWaveformSource();
     if (!source.analyzePath.isEmpty()) {
         const auto failure = mixxx::rekordbox::readThreeBandWaveforms(
@@ -68,9 +62,17 @@ bool AnalyzerWaveform::initialize(const AnalyzerTrack& track,
                 }, Qt::QueuedConnection);
             }
         }
-        if (track.getTrack()->getWaveform() && track.getTrack()->getWaveformSummary()) {
+        if (failure.isEmpty() && track.getTrack()->getWaveform() &&
+                track.getTrack()->getWaveformSummary() &&
+                track.getTrack()->getWaveform()->getVersion().startsWith("Rekordbox")) {
+            kLogger.debug() << "Using Rekordbox waveform" << source.analyzePath;
             return false;
         }
+    }
+
+    // Missing or invalid exports fall back to the native cache, then analysis.
+    if (!shouldAnalyze(track.getTrack())) {
+        return false;
     }
 
     m_timer.start();
@@ -303,6 +305,18 @@ void AnalyzerWaveform::cleanup() {
 }
 
 void AnalyzerWaveform::storeResults(TrackPointer tio) {
+    // A batch analysis can start before a Rekordbox row is loaded into a deck.
+    // Recheck the source at publication so its late native result cannot replace
+    // the exported pair installed by the deck analyzer in the meantime.
+    const auto source = tio->getRekordboxWaveformSource();
+    if (!source.analyzePath.isEmpty()) {
+        const auto failure = mixxx::rekordbox::readThreeBandWaveforms(
+                tio, tio->getSampleRate(), source.timingOffsetMillis, source.analyzePath);
+        if (failure.isEmpty() && tio->getWaveform() && tio->getWaveformSummary() &&
+                tio->getWaveform()->getVersion().startsWith("Rekordbox")) {
+            return;
+        }
+    }
     // Force completion to waveform size
     if (m_waveform) {
         m_waveform->setSaveState(Waveform::SaveState::SavePending);

@@ -22,8 +22,8 @@ description: "Modify or verify Custom Bite DJ skin, waveform, settings, Beat FX 
 
 ## Published UI Screenshots
 
-- UI changes must refresh every affected image in `docs/images/ui/0.0.7/`
-  and its caption in [the UI gallery](../../../docs/UI_SCREENSHOTS.md) in the same commit.
+- UI changes must refresh every affected image in `docs/images/ui/0.0.8/`
+  and its caption in [the UI gallery](../../../docs/UI_SCREENSHOTS_0.0.8.md) in the same commit.
   This includes visible labels, controls, layout, styling and waveform rendering.
 - Follow [the capture procedure](../../../docs/GUI_TESTING.md#documentation-screenshots).
   Use an owned 1024×600 instance and synthetic fixtures; inspect each final image.
@@ -52,4 +52,4 @@ Read the relevant control map before editing or interacting:
 - [Pad FX and controller drawer](references/pads.md)
 
 Use [GUI testing](../../../docs/GUI_TESTING.md) for reproducible regression procedures and
-[the gallery](../../../docs/UI_SCREENSHOTS.md) for the expected published appearance.
+[the gallery](../../../docs/UI_SCREENSHOTS_0.0.8.md) for the expected published appearance.

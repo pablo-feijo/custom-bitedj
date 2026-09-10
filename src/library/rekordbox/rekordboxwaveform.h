@@ -64,4 +64,51 @@ inline std::vector<WaveformData> decodeThreeBandWaveform(const std::string& byte
     return result;
 }
 
+// PWV4 (.EXT) contains six bytes per preview column; bytes 3/4/5
+// describe RGB levels, with byte 5 also giving the bright foreground height.
+// PWV5 packs R/G/B (3 bits each) and height (5 bits) above two reserved bits.
+// Format reference: https://djl-analysis.deepsymmetry.org/rekordbox-export-analysis/anlz.html
+inline std::vector<WaveformRgb> decodeRgbWaveform(const std::string& bytes,
+        bool overview, int destinationColumns, double sourceRate,
+        double destinationRate, int timingOffsetMillis) {
+    const size_t stride = overview ? 6 : 2;
+    if (bytes.empty() || bytes.size() % stride || bytes.size() / stride > 4320000 ||
+            destinationColumns <= 0 || destinationColumns > 4320002 ||
+            !util_isfinite(sourceRate) || sourceRate <= 0 ||
+            !util_isfinite(destinationRate) || destinationRate <= 0) {
+        throw std::runtime_error("Invalid Rekordbox RGB waveform dimensions");
+    }
+    std::vector<WaveformRgb> result(destinationColumns);
+    unsigned int peak = overview ? 1 : 31;
+    if (overview) {
+        for (size_t i = 0; i < bytes.size(); i += stride) {
+            for (size_t c = 3; c < 6; ++c) peak = std::max(peak, unsigned(static_cast<unsigned char>(bytes[i + c])));
+        }
+    }
+    for (int i = 0; i < destinationColumns; ++i) {
+        const double index = std::floor(i * sourceRate / destinationRate +
+                timingOffsetMillis * sourceRate / 1000.0);
+        if (index < 0 || index >= double(bytes.size() / stride)) continue;
+        const auto* b = reinterpret_cast<const unsigned char*>(bytes.data()) + size_t(index) * stride;
+        auto& column = result[i];
+        if (overview) {
+            const unsigned int height = std::max({b[3], b[4], b[5]});
+            if (!height) continue;
+            column.red = b[3] * 255u / height;
+            column.green = b[4] * 255u / height;
+            column.blue = b[5] * 255u / height;
+            column.height = height * 255u / peak;
+            column.frontHeight = b[5] * 255u / peak;
+        } else {
+            const unsigned int packed = (unsigned(b[0]) << 8) | b[1];
+            column.red = ((packed >> 13) & 7) * 255u / 7;
+            column.green = ((packed >> 10) & 7) * 255u / 7;
+            column.blue = ((packed >> 7) & 7) * 255u / 7;
+            column.height = ((packed >> 2) & 31) * 255u / 31;
+            column.frontHeight = column.height;
+        }
+    }
+    return result;
+}
+
 } // namespace mixxx::rekordbox

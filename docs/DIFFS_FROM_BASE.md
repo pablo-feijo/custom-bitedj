@@ -13,7 +13,7 @@ metadata on workers. Row batches have a bounded queue and generation-based
 cancellation. Sorting/painting does not import every track. Rekordbox imports use
 composite indexes and bounded traversal of sparse/cyclic playlist trees. See
 [large-library regression checks](../tests/rekordbox/README.md#large-library-regression)
-and the [release notes](RELEASE_0.0.7.md).
+and the [release notes](../RELEASE_0.0.7.md).
 
 ## Selected PiFlex adaptations
 

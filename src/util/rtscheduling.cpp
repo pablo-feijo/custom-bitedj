@@ -43,6 +43,23 @@ void demoteCurrentThreadIoPriority(const char* threadName) {
 } // namespace
 #endif
 
+bool restoreCurrentThreadNormalScheduling(const char* threadName) {
+#ifdef __LINUX__
+    sched_param param{};
+    const int err = pthread_setschedparam(pthread_self(), SCHED_OTHER, &param);
+    if (err == 0) {
+        qInfo() << "Thread" << threadName << "scheduled SCHED_OTHER";
+        return true;
+    }
+    qWarning() << "Failed to restore normal scheduling for" << threadName
+               << ":" << strerror(err);
+    return false;
+#else
+    Q_UNUSED(threadName);
+    return false;
+#endif
+}
+
 bool promoteCurrentThreadToRealtime(int priority, const char* threadName) {
 #ifdef __LINUX__
     sched_param param{};

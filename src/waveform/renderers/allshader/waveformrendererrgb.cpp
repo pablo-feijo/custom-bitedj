@@ -195,6 +195,18 @@ void WaveformRendererRGB::paintGL() {
             blue *= normFactor;
         }
 
+        if (!waveform->exportedRgb().empty()) {
+            WaveformRgb column;
+            const auto& rgb = waveform->exportedRgb();
+            for (int i = visualIndexStart / 2; i < (visualIndexStop + 1) / 2; ++i) {
+                if (rgb[i].height > column.height) column = rgb[i];
+            }
+            red = column.red / 255.f;
+            green = column.green / 255.f;
+            blue = column.blue / 255.f;
+            maxAllChn[0] = maxAllChn[1] = column.height;
+        }
+
         // Lines are thin rectangles
         m_vertices.addRectangle(fpos - 0.5f,
                 halfBreadth - heightFactor * maxAllChn[0],

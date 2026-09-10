@@ -4,13 +4,13 @@
 
 | Field | Current value |
 | --- | --- |
-| Status | 0.0.7 release preparation; main PR awaits user merge |
-| Target product SemVer | `0.0.7` |
-| Integration branch | `codex/v0.0.7` |
+| Status | 0.0.8 development; controller fixes |
+| Target product SemVer | `0.0.8` |
+| Integration branch | `codex/v0.0.8` |
 | Remote | `origin` |
-| Release source | `codex/v0.0.7`; resolve the exact tip from Git |
+| Release source | `codex/v0.0.8`; resolve the exact tip from Git |
 
-The commit above is an audit record, not a pinned starting point. Fetch the active
+The release history below is an audit record, not a pinned starting point. Fetch the active
 branch before each new task and record the actual resolved commit. Do not start
 from an older release, a stale local integration checkout, or an arbitrary branch
 with a larger version number. The latest **active release** branch is the one
@@ -20,6 +20,11 @@ notes under `.agents/skills/`) together; retain the transition history below.
 This table is the sole active-release record; agent entry points link here.
 
 ## Starting work
+
+Until the first authorized integration publishes `codex/v0.0.8`, its initial
+base is the released `origin/codex/v0.0.7` tip recorded below. Fetch that ref and
+compare it with the local `codex/v0.0.8` before creating another task; preserve
+any local integration commits. Once published, use the normal steps below.
 
 1. Read this record; inspect the working tree, branches and existing worktrees.
 2. Fetch `origin` and verify the active integration branch still exists and is
@@ -35,9 +40,9 @@ This table is the sole active-release record; agent entry points link here.
 Example for the current active release:
 
 ```bash
-git fetch origin codex/v0.0.7
-git rev-parse origin/codex/v0.0.7
-git worktree add -b codex/my-feature ../bitedj-my-feature origin/codex/v0.0.7
+git fetch origin codex/v0.0.8
+git rev-parse origin/codex/v0.0.8
+git worktree add -b codex/my-feature ../bitedj-my-feature origin/codex/v0.0.8
 ```
 
 ## Every work branch has an identifiable binary
@@ -53,17 +58,17 @@ The build number is a positive decimal integer without leading zeros; increment
 it for every new deliverable build on that branch. Never overwrite a previous
 artifact with changed contents under the same version.
 
-Example: branch `codex/controller-pad-drawer`, target `0.0.7`, first build:
+Example: branch `codex/controller-pad-drawer`, target `0.0.8`, first build:
 
 ```cmake
-set(BITEDJ_VERSION "0.0.7")
+set(BITEDJ_VERSION "0.0.8")
 set(BITEDJ_VERSION_PRERELEASE "codex-controller-pad-drawer.1")
 ```
 
-The binary must report `0.0.7-codex-controller-pad-drawer.1`. This is part of the
+The binary must report `0.0.8-codex-controller-pad-drawer.1`. This is part of the
 compiled product version, not merely an archive name. Integration branch test
-builds also need a branch suffix, for example `0.0.7-codex-v0-0-7.1`. Remove the
-suffix only when preparing the explicitly authorized final `0.0.7` release.
+builds also need a branch suffix, for example `0.0.8-codex-v0-0-8.1`. Remove the
+suffix only when preparing the explicitly authorized final `0.0.8` release.
 Keep the upstream Mixxx base version independent.
 
 Before each deliverable build:
@@ -82,6 +87,7 @@ Before each deliverable build:
 
 ## Active-release history
 
+- 2026-09-09: User advanced to 0.0.8 after the 0.0.7 release. Initial base: `68e69c13fd19e39e8382b211221d4e2470fcf989`; local integration branch `codex/v0.0.8` is not yet published.
 - 2026-09-09: User designated `origin/codex/v0.0.7` as the latest active unreleased
   base. Remote tip verified as `559edc3def`; older `0.0.6` checkouts are not bases
   for new feature work.

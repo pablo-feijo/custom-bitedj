@@ -392,6 +392,11 @@ void WaveformWidgetRenderer::setPassThroughEnabled(bool enabled) {
 }
 
 void WaveformWidgetRenderer::resizeRenderer(int width, int height, float devicePixelRatio) {
+    // Returning from Browse shows the same fixed-size deck view. Rebuilding
+    // every cue image and renderer buffer here stalls the first visible frame.
+    if (m_width == width && m_height == height && m_devicePixelRatio == devicePixelRatio) {
+        return;
+    }
     m_width = width;
     m_height = height;
     m_devicePixelRatio = devicePixelRatio;

@@ -92,6 +92,7 @@ TEST(RekordboxDisplayTest, TenMinuteEnvelopeTimingAndAllocation) {
 #include "analyzer/analyzerwaveform.h"
 #include "waveform/waveformfactory.h"
 #include "test/mixxxtest.h"
+#include "test/soundsourceproviderregistration.h"
 #include "library/rekordbox/rekordboxanlz.h"
 #include "track/track.h"
 #include "control/controlobject.h"
@@ -124,7 +125,7 @@ void writeAnalysis(const QString& path, const std::string& sections) {
     ASSERT_TRUE(file.setFileTime(QDateTime::fromMSecsSinceEpoch(++revision),
             QFileDevice::FileModificationTime));
 }
-class RekordboxImportTest : public MixxxTest {
+class RekordboxImportTest : public MixxxTest, private SoundSourceProviderRegistration {
   protected:
     TrackPointer track() {
         auto result = Track::newTemporary(mixxx::FileAccess(
@@ -136,7 +137,44 @@ class RekordboxImportTest : public MixxxTest {
     }
 };
 }
-TEST_F(RekordboxImportTest, DeckLoadKeepsCachedNativeBandsInsteadOfExportColors) {
+TEST_F(RekordboxImportTest, BrowserPreviewReadsExportWithoutTrackOrDetail) {
+    QTemporaryDir dir;
+    const auto dat = dir.filePath("ANLZ.DAT");
+    EXPECT_FALSE(readThreeBandPreview(dat));
+    writeAnalysis(dir.filePath("ANLZ.2EX"), waveSection("PWV6"));
+    const auto preview = readThreeBandPreview(dat);
+    ASSERT_TRUE(preview);
+    EXPECT_EQ(preview->getDataSize(), 900);
+    EXPECT_EQ(preview->getCompletion(), preview->getDataSize());
+    EXPECT_GT(preview->data()[0].filtered.low, 0);
+    writeAnalysis(dir.filePath("ANLZ.2EX"), waveSection("PWV6", 125, 4));
+    EXPECT_FALSE(readThreeBandPreview(dat));
+    writeAnalysis(dir.filePath("ANLZ.2EX"), "broken");
+    EXPECT_FALSE(readThreeBandPreview(dat));
+}
+
+TEST_F(RekordboxImportTest, LateNativeBatchCannotReplaceDeckExport) {
+    QTemporaryDir dir;
+    const auto dat = dir.filePath("ANLZ.DAT");
+    writeAnalysis(dir.filePath("ANLZ.2EX"), waveSection("PWV6") + waveSection("PWV7"));
+    config()->setValue(ConfigKey("[Library]", "AnalysisCacheOnTrackFs"), false);
+    config()->setValue(ConfigKey("[Library]", "AnalysisCacheInHome"), false);
+    auto t = track();
+    AnalyzerWaveform batch(config(), QSqlDatabase());
+    ASSERT_TRUE(batch.initialize(AnalyzerTrack(t), t->getSampleRate(), 3 * 44100));
+    t->setRekordboxWaveformSource({dat, 0});
+    AnalyzerWaveform deck(config(), QSqlDatabase());
+    ASSERT_FALSE(deck.initialize(AnalyzerTrack(t), t->getSampleRate(), 3 * 44100));
+    const auto exported = t->getWaveform();
+    const auto summary = t->getWaveformSummary();
+    ASSERT_EQ(exported->getVersion(), "Rekordbox display v4");
+    batch.storeResults(t);
+    EXPECT_EQ(t->getWaveform(), exported);
+    EXPECT_EQ(t->getWaveformSummary(), summary);
+    batch.cleanup();
+}
+
+TEST_F(RekordboxImportTest, DeckLoadPrefersExportAndFallsBackToNativeCache) {
     QTemporaryDir dir;
     ASSERT_TRUE(dir.isValid());
     const auto dat = dir.filePath("ANLZ.DAT");
@@ -173,8 +211,7 @@ TEST_F(RekordboxImportTest, DeckLoadKeepsCachedNativeBandsInsteadOfExportColors)
             info.data = native->toByteArray();
             ASSERT_TRUE(dao.saveAnalysis(&info));
         }
-        // This is what selecting a Rekordbox row now schedules: no eager import
-        // may replace the native summary already displayed by the library.
+        // Exported waveforms win over an existing native cache without GUI I/O.
         t->setRekordboxWaveformSource({dat, 0});
         EXPECT_FALSE(t->getWaveform());
         EXPECT_FALSE(t->getWaveformSummary());
@@ -182,6 +219,13 @@ TEST_F(RekordboxImportTest, DeckLoadKeepsCachedNativeBandsInsteadOfExportColors)
         EXPECT_FALSE(analyzer.initialize(AnalyzerTrack(t), t->getSampleRate(), 3 * 44100));
         ASSERT_TRUE(t->getWaveform());
         ASSERT_TRUE(t->getWaveformSummary());
+        EXPECT_EQ(t->getWaveform()->getVersion(), "Rekordbox display v4");
+        EXPECT_EQ(t->getWaveformSummary()->getVersion(), "Rekordbox display v4");
+        EXPECT_NE(t->getWaveform()->toByteArray(), native->toByteArray());
+        // A broken export still allows the native cached pair to load.
+        t->setWaveforms({}, {});
+        writeAnalysis(dir.filePath("ANLZ.2EX"), "broken");
+        EXPECT_FALSE(analyzer.initialize(AnalyzerTrack(t), t->getSampleRate(), 3 * 44100));
         EXPECT_EQ(t->getWaveform()->getVersion(), WaveformFactory::currentWaveformVersion());
         EXPECT_EQ(t->getWaveformSummary()->getVersion(), WaveformFactory::currentWaveformSummaryVersion());
         EXPECT_EQ(t->getWaveform()->toByteArray(), native->toByteArray());
@@ -203,8 +247,8 @@ TEST_F(RekordboxImportTest, DeferredExportFallbackAndInvalidExportAllowNativeAna
     EXPECT_FALSE(analyzer.initialize(AnalyzerTrack(t), t->getSampleRate(), 3 * 44100));
     ASSERT_TRUE(t->getWaveform());
     ASSERT_TRUE(t->getWaveformSummary());
-    EXPECT_EQ(t->getWaveform()->getVersion(), "Rekordbox 3-band v3");
-    EXPECT_EQ(t->getWaveformSummary()->getVersion(), "Rekordbox 3-band v3");
+    EXPECT_EQ(t->getWaveform()->getVersion(), "Rekordbox display v4");
+    EXPECT_EQ(t->getWaveformSummary()->getVersion(), "Rekordbox display v4");
     writeAnalysis(dir.filePath("ANLZ.2EX"), waveSection("PWV6"));
     t = track();
     t->setRekordboxWaveformSource({dat, 0});
@@ -337,4 +381,73 @@ TEST_F(RekordboxImportTest, PhraseStripStaysInsideVisibleBoundsInDayAndNight) {
         EXPECT_EQ(image.pixelColor(150, 78), background);
         visibility.set(1);
     }
+}
+
+TEST(RekordboxDisplayTest, RgbDetailDecodesExportColorsAndKeepsTimebase) {
+    // Pure red and cyan with distinct heights, encoded as PWV5 big endian.
+    const std::string bytes{char(0xe0), char(0x7c), char(0x1f), char(0x90)};
+    const auto rgb = decodeRgbWaveform(bytes, false, 3, 150, 150, 0);
+    ASSERT_EQ(rgb.size(), 3u);
+    EXPECT_EQ(rgb[0].red, 255); EXPECT_EQ(rgb[0].green, 0); EXPECT_EQ(rgb[0].blue, 0);
+    EXPECT_EQ(rgb[0].height, 255);
+    EXPECT_EQ(rgb[1].red, 0); EXPECT_EQ(rgb[1].green, 255); EXPECT_EQ(rgb[1].blue, 255);
+    EXPECT_EQ(rgb[1].height, 4 * 255 / 31);
+    EXPECT_EQ(rgb[2].height, 0);
+    const auto shifted = decodeRgbWaveform(bytes, false, 2, 150, 150, 7);
+    EXPECT_EQ(shifted[0].green, 255);
+    EXPECT_EQ(shifted[1].height, 0);
+    EXPECT_THROW(decodeRgbWaveform("x", false, 1, 150, 150, 0), std::runtime_error);
+}
+
+TEST_F(RekordboxImportTest, RgbAndThreeBandExportsRemainIndependent) {
+    QTemporaryDir dir;
+    const auto dat = dir.filePath("ANLZ.DAT");
+    writeAnalysis(dir.filePath("ANLZ.2EX"), waveSection("PWV6") + waveSection("PWV7"));
+    std::string preview, detail;
+    u32(preview, 6); u32(preview, 2); u32(preview, 0);
+    preview += std::string{0, 0, 0, 100, 20, 10, 0, 0, 0, 20, 100, 50};
+    u32(detail, 2); u32(detail, 450); u32(detail, 0);
+    for (int i = 0; i < 450; ++i) detail += std::string{char(0xe0), char(0x7c)};
+    writeAnalysis(dir.filePath("ANLZ.EXT"), section("PWV4", preview, 24) + section("PWV5", detail, 24));
+    const auto browser = readThreeBandPreview(dat);
+    ASSERT_TRUE(browser);
+    ASSERT_EQ(browser->exportedRgb().size(), 450u);
+    EXPECT_EQ(browser->exportedRgb()[0].red, 255);
+    EXPECT_EQ(browser->exportedRgb()[0].green, 51);
+    EXPECT_EQ(browser->exportedRgb()[449].green, 255);
+    EXPECT_EQ(browser->getLow(0), 255); // PWV6 is still the band envelope.
+    const auto t = track();
+    EXPECT_TRUE(readThreeBandWaveforms(t, mixxx::audio::SampleRate(44100), 0, dat).isEmpty());
+    ASSERT_TRUE(t->getWaveform());
+    ASSERT_FALSE(t->getWaveform()->exportedRgb().empty());
+    EXPECT_EQ(t->getWaveform()->exportedRgb()[0].red, 255);
+    EXPECT_EQ(t->getWaveform()->exportedRgb()[0].green, 0);
+    EXPECT_EQ(t->getWaveform()->getMid(0), 255);
+}
+
+#include <QSignalSpy>
+#include "engine/cachingreader/cachingreaderworker.h"
+#include "util/fifo.h"
+
+TEST_F(RekordboxImportTest, ReaderPublishesExportBeforeTrackLoadedSignal) {
+    QTemporaryDir dir;
+    const auto dat = dir.filePath("ANLZ.DAT");
+    writeAnalysis(dir.filePath("ANLZ.2EX"), waveSection("PWV6") + waveSection("PWV7"));
+    const auto t = track();
+    t->setRekordboxWaveformSource({dat, 0});
+    FIFO<CachingReaderChunkReadRequest> requests(20);
+    FIFO<ReaderStatusUpdate> replies(80);
+    CachingReaderWorker worker("[Channel1]", &requests, &replies);
+    bool readyAtLoad = false;
+    QObject::connect(&worker, &CachingReaderWorker::trackLoaded, &worker,
+            [&readyAtLoad, t] {
+                readyAtLoad = t->getWaveform() && t->getWaveformSummary();
+            }, Qt::DirectConnection);
+    QSignalSpy loaded(&worker, &CachingReaderWorker::trackLoaded);
+    worker.newTrack(t);
+    worker.start();
+    const bool finished = loaded.wait(10000);
+    worker.quitWait();
+    EXPECT_TRUE(finished);
+    EXPECT_TRUE(readyAtLoad);
 }

@@ -56,8 +56,8 @@ bool isCorruptionError(const QSqlError& error) {
 QMutex FsAnalysisCache::s_registryMutex;
 QSet<FsAnalysisCache*> FsAnalysisCache::s_instances;
 
-FsAnalysisCache::FsAnalysisCache(UserSettingsPointer pConfig)
-        : m_pConfig(std::move(pConfig)) {
+FsAnalysisCache::FsAnalysisCache(UserSettingsPointer pConfig, AccessMode accessMode)
+        : m_pConfig(std::move(pConfig)), m_accessMode(accessMode) {
     QMutexLocker registryLocker(&s_registryMutex);
     s_instances.insert(this);
 }
@@ -121,7 +121,7 @@ QSqlDatabase FsAnalysisCache::databaseForTrack(
 
     const QDir cacheDir(rootPath + QDir::separator() + kCacheDirName);
     const QString dbPath = cacheDir.absoluteFilePath(kCacheDbName);
-    const bool writable = !storage.isReadOnly();
+    const bool writable = m_accessMode == AccessMode::ReadWrite && !storage.isReadOnly();
 
     // On a read-only filesystem we can only use an already-existing cache.
     if (!writable && !QFileInfo::exists(dbPath)) {
@@ -140,6 +140,7 @@ QSqlDatabase FsAnalysisCache::databaseForTrack(
                     .arg(static_cast<qulonglong>(qHash(rootPath)));
     QSqlDatabase db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), connectionName);
     db.setDatabaseName(dbPath);
+    if (!writable) db.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
 
     // Open the cache, recovering once from a corrupt/undeserializable database file
     // by deleting it so a fresh one is created in its place. Only attempted on a

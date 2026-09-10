@@ -27,6 +27,13 @@ union WaveformData {
     WaveformData(int i) { m_i = i;}
 };
 
+// Exported display colors are independent of frequency-band analysis.
+// Built on the analysis worker before the waveform is published to renderers.
+struct WaveformRgb {
+    unsigned char red = 0, green = 0, blue = 0, height = 0;
+    unsigned char frontHeight = 0;
+};
+
 class Waveform {
   public:
     enum class SaveState {
@@ -128,6 +135,12 @@ class Waveform {
     // constructor runs.
     const WaveformData* data() const { return &m_data[0];}
 
+    const std::vector<WaveformRgb>& exportedRgb() const { return m_exportedRgb; }
+    void setExportedRgb(std::vector<WaveformRgb> data) {
+        Q_ASSERT(data.size() == size_t(m_dataSize / 2));
+        m_exportedRgb = std::move(data);
+    }
+
     void dump() const;
 
   private:
@@ -160,6 +173,7 @@ class Waveform {
     // TODO(XXX): In the future we should switch to QVector and use the raw data
     // pointer when performance matters.
     std::vector<WaveformData> m_data;
+    std::vector<WaveformRgb> m_exportedRgb;
     // Not allowed to change after the constructor runs.
     double m_visualSampleRate;
     // Not allowed to change after the constructor runs.

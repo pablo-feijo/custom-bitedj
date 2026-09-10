@@ -112,7 +112,8 @@ Verified against the documentation capture at 1024×600, UI source `8f87aa338f`:
 
 Visibility uses `[Library],column_visible_<column>` (Off=0, On=1); width
 uses `[Library],column_weight_<column>` (XS=1, S=2, M=3, L=4). Selecting a width does not enable an
-Off column. See [the current Library screenshot](../../../../docs/UI_SCREENSHOTS.md#settings-library).
+Off column. Rekordbox rows load exported waveform overviews in the background
+when native cached summaries are absent; this does not load a deck. See [the current Library screenshot](../../../../docs/UI_SCREENSHOTS.md#settings-library).
 
 ## F. Levels Page (`x=700, y=20`)
 
@@ -220,3 +221,6 @@ Browse directory expansion is asynchronous. An expand arrow may remain visible
 while a worker checks for subfolders; existing tap and drag targets are unchanged.
 Large folders populate in bounded batches and replacing the folder discards old
 results. See the large removable libraries checks in GUI_TESTING.md.
+
+Normal DDJ-400 Vinyl release honors Off/Short/Long coast immediately. Switching
+to CDJ cancels an active scratch/coast on both decks; CDJ touch only bends pitch.

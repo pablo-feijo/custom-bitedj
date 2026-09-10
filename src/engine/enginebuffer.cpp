@@ -796,7 +796,10 @@ void EngineBuffer::slotControlPlayRequest(double v) {
     bool verifiedPlay = updateIndicatorsAndModifyPlay(v > 0.0, oldPlay);
 
     if (!oldPlay && verifiedPlay) {
-        if (m_pQuantize->toBool()
+        // Quantize keeps local cue/loop actions on-grid. Only active Sync may
+        // align a main deck to another deck when starting playback.
+        if (m_pQuantize->toBool() &&
+                m_pSyncControl->getSyncMode() != SyncMode::None
 #ifdef __VINYLCONTROL__
                 && m_pVinylControlControl && !m_pVinylControlControl->isEnabled()
 #endif

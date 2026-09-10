@@ -9,18 +9,19 @@ Report fork-specific issues [here](https://github.com/pablo-feijo/custom-bitedj/
 
 A two-deck DJ appliance for Raspberry Pi, with a **1024×600 touchscreen**,
 USB-centered music browsing, and a custom **Pioneer DDJ-400** workflow.
-Release **0.0.7** is prepared on **`codex/v0.0.7`**; its PR to `main` is reviewed and merged separately.
-See the [release notes](docs/RELEASE_0.0.7.md).
+Release **0.0.8** is in development on **`codex/v0.0.8`**.
+See the [development notes](RELEASE_0.0.8.md) and
+[0.0.7 release notes](RELEASE_0.0.7.md).
 
 ## Interface previews
 
 **Play** — two decks, scrolling waveforms and FX controls.
 
-[![BiteDJ Play with two loaded decks](docs/images/ui/0.0.7/play.png)](docs/UI_SCREENSHOTS.md#play)
+[![BiteDJ Play with two loaded decks](docs/images/ui/0.0.8/play.png)](docs/UI_SCREENSHOTS_0.0.8.md#play)
 
 **Browse** — waveform previews in the library and both deck overviews.
 
-[![BiteDJ Browse with the waveform Preview column](docs/images/ui/0.0.7/browse-preview.png)](docs/UI_SCREENSHOTS.md#browse-preview)
+[![BiteDJ Browse with the waveform Preview column](docs/images/ui/0.0.8/browse-preview.png)](docs/UI_SCREENSHOTS_0.0.8.md#browse-preview)
 
 See [all seven Settings screens](docs/UI_SCREENSHOTS.md#settings-general)
 in the [0.0.7 UI gallery](docs/UI_SCREENSHOTS.md) and the

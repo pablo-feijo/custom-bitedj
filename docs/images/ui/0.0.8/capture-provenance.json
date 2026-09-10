@@ -1,0 +1,23 @@
+{
+  "source_commit": "68e69c13fd19e39e8382b211221d4e2470fcf989",
+  "source_branch": "codex/v0.0.8-controller-validation",
+  "source_hash": "e399d308c986c199f4e4d4edd0f7ef2d07c6fbe50cbd113e70616424c4021ac5",
+  "version": "0.0.8-codex-v0-0-8-controller-validation.2",
+  "dirty": true,
+  "platform": "linux/arm64",
+  "builder_image": "sha256:be68a24d94bbbfc55a1256a34827951a3e5213069882a47e6febe666bdc8e5d9",
+  "binary_version": "Bite DJ 0.0.8-codex-v0-0-8-controller-validation.2",
+  "built_at": "2026-09-10T01:32:02.565375+00:00",
+  "artifact_hash": "7d30f11d0da50caed57e70cca6a08bdf56f362ea640a473d00c858ad80db22ba",
+  "capture_date": "2026-09-09",
+  "capture_size": [
+    1024,
+    600
+  ],
+  "fixture": "tests/rekordbox/make_fixture.py",
+  "images": {
+    "settings-general.png": "bbd66eae172f4f37f0346d5860e6c34687cc0b64b312148aa6d1ddc254f5b89e",
+    "browse-preview.png": "79887d33f1ac76fa1adbbcd26c17dc5be7d631a17b64c12bc085506626e03c72",
+    "play.png": "0db7eb040da689d0723b240fee7d4e6faf2732d41b21e22b5ad574eb379b6ba3"
+  }
+}

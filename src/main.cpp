@@ -191,18 +191,11 @@ int main(int argc, char * argv[]) {
     // grows; a failure (missing memlock rlimit) is logged and non-fatal.
     mixxx::lockAllMemory();
 
-    // Put the main (GUI) thread on the real-time priority ladder, one step
-    // below controller input (see util/rtscheduling.h) so taps and deck
-    // rendering are never starved by SCHED_OTHER background work (analysis,
-    // library scanning), while jog/scratch input and the audio engine can
-    // still preempt painting. CAUTION: pthreads default to
-    // PTHREAD_INHERIT_SCHED, so any thread spawned from here without an
-    // explicit policy silently becomes SCHED_FIFO 49 too. QThread::start()
-    // only sets an explicit policy (SCHED_OTHER) when given a priority other
-    // than InheritPriority — every start() of a worker doing real work must
-    // therefore pass one, and the global thread pool (QtConcurrent: cover
-    // art, Rekordbox/Serato parsing) is capped below.
-    mixxx::promoteCurrentThreadToRealtime(mixxx::kRtPrioMainThread, "Main");
+    // Browsing and rendering must not consume the audio threads' RT budget.
+    // Set this before Qt/Mesa create children: pthreads inherit scheduling,
+    // and a FIFO GUI also turns driver/pool workers into FIFO threads.
+    // Audio, reader and controller threads opt into their own RT priorities.
+    mixxx::restoreCurrentThreadNormalScheduling("Main");
     QThreadPool::globalInstance()->setThreadPriority(QThread::NormalPriority);
 
     // These need to be set early on (not sure how early) in order to trigger

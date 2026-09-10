@@ -491,3 +491,69 @@ TEST_F(WaveformGridEditingTest, HidingGridDuringDragReleasesScratch) {
     hide(viewer);
     EXPECT_EQ(0, scratch.get());
 }
+
+namespace {
+class ResizeCountingLayer : public WaveformRendererAbstract {
+  public:
+    explicit ResizeCountingLayer(WaveformWidgetRenderer* owner)
+            : WaveformRendererAbstract(owner) {}
+    void setup(const QDomNode&, const SkinContext&) override {}
+    void draw(QPainter*, QPaintEvent*) override {}
+    void onResize() override { ++resizes; }
+    int resizes = 0;
+};
+class ResizeTestRenderer : public WaveformWidgetRenderer {
+  public:
+    ResizeTestRenderer() : WaveformWidgetRenderer("[Channel1]") {
+        layer = new ResizeCountingLayer(this);
+        m_rendererStack.append(layer);
+    }
+    ResizeCountingLayer* layer;
+};
+}
+TEST_F(WaveformRenderingTest, ReturningToUnchangedDeckViewKeepsRendererBuffers) {
+    ResizeTestRenderer renderer;
+    renderer.resizeRenderer(700, 200, 1.0f);
+    for (int i = 0; i < 30; ++i) renderer.resizeRenderer(700, 200, 1.0f);
+    EXPECT_EQ(renderer.layer->resizes, 1);
+    renderer.resizeRenderer(700, 220, 1.0f);
+    renderer.resizeRenderer(700, 220, 2.0f);
+    EXPECT_EQ(renderer.layer->resizes, 3);
+}
+
+TEST_F(PreviewDelegateTest, ExportPreviewDoesNotFlashNativeBatchColorsOnLoad) {
+    ControlObject type(ConfigKey("[Waveform]", "waveform_type"));
+    type.set(17);
+    PreviewModel model;
+    model.locations[0] = getTestDir().filePath("id3-test-data/cover-test.ogg");
+    PreviewTable table(config());
+    table.setModel(&model);
+    PreviewButtonDelegate delegate(&table, 0);
+    configure(delegate, config());
+    auto exported = wave(200, 0);
+    exported->setVersion("Rekordbox browser overview");
+    seed(delegate, model.locations[0], exported);
+    const auto before = paint(delegate, model);
+    auto track = getOrAddTrackByLocation(model.locations[0]);
+    ASSERT_TRUE(track);
+    track->setRekordboxWaveformSource({"/export/ANLZ.DAT", 0});
+    track->setWaveformSummary(wave(0, 200));
+    EXPECT_EQ(paint(delegate, model), before);
+    auto deckExport = wave(100, 100);
+    deckExport->setVersion("Rekordbox 3-band v3");
+    track->setWaveformSummary(deckExport);
+    EXPECT_NE(paint(delegate, model), before);
+}
+
+TEST_F(WaveformRenderingTest, ExportedRgbColorsIgnoreBandPaletteAndLeaveThreeBandUnchanged) {
+    const auto wave = summary();
+    auto palette = colors();
+    const auto bands = WaveformPreviewRenderer::render(wave, {64, 38}, 0, palette);
+    std::vector<WaveformRgb> rgb(wave->getDataSize() / 2, {255, 51, 25, 255, 128});
+    wave->setExportedRgb(std::move(rgb));
+    const auto image = WaveformPreviewRenderer::render(wave, {64, 38}, 2, palette);
+    EXPECT_EQ(image.pixelColor(20, 18), QColor(255, 51, 25));
+    EXPECT_EQ(bands, WaveformPreviewRenderer::render(wave, {64, 38}, 0, palette));
+    palette.applyBiteDJPalette(1);
+    EXPECT_EQ(image, WaveformPreviewRenderer::render(wave, {64, 38}, 2, palette));
+}

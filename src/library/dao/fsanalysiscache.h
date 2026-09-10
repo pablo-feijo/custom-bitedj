@@ -29,7 +29,9 @@ class QSqlError;
 /// the thread that created it, mirroring AnalysisDao's per-thread usage.
 class FsAnalysisCache {
   public:
-    explicit FsAnalysisCache(UserSettingsPointer pConfig);
+    enum class AccessMode { ReadWrite, ReadOnly };
+    explicit FsAnalysisCache(UserSettingsPointer pConfig,
+            AccessMode accessMode = AccessMode::ReadWrite);
     ~FsAnalysisCache();
 
     /// Whether the per-filesystem cache mode is enabled in the config.
@@ -106,6 +108,7 @@ class FsAnalysisCache {
     };
 
     const UserSettingsPointer m_pConfig;
+    const AccessMode m_accessMode;
     // Maps a filesystem mount root to its open cache connection (the fs->cache mapping).
     QHash<QString, FsHandle> m_handles;
     // Serializes access to m_handles and its connections between this instance's

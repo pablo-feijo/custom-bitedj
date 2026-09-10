@@ -210,3 +210,35 @@ TEST_F(WWidgetStackTest, HiddenStackNoChanges) {
     m_pStack->show();
     ExpectPageSelected(2);
 }
+
+
+// A page must have its singleton tree laid out before its first display, while
+// alternate hosts must not steal a currently displayed singleton during setup.
+#include "skin/legacy/skincontext.h"
+#include "widget/wsingletoncontainer.h"
+
+TEST_F(WWidgetStackTest, SingletonIsAttachedBeforeFirstShowAndMovesOnlyToVisibleHost) {
+    SkinContext context(config(), QStringLiteral("test.xml"));
+    auto* content = new QWidget;
+    context.defineSingleton(QStringLiteral("SharedPage"), content);
+    QDomDocument document;
+    ASSERT_TRUE(document.setContent(QStringLiteral(
+            "<SingletonContainer><ObjectName>SharedPage</ObjectName></SingletonContainer>")));
+    WSingletonContainer first;
+    first.setup(document.documentElement(), context);
+    EXPECT_EQ(content->parentWidget(), &first);
+    EXPECT_FALSE(first.isVisible());
+    first.show();
+    EXPECT_TRUE(content->isVisible());
+    WSingletonContainer second;
+    second.setup(document.documentElement(), context);
+    EXPECT_EQ(content->parentWidget(), &first);
+    first.hide();
+    second.show();
+    EXPECT_EQ(content->parentWidget(), &second);
+    EXPECT_TRUE(content->isVisible());
+    second.hide();
+    first.show();
+    EXPECT_EQ(content->parentWidget(), &first);
+    EXPECT_TRUE(content->isVisible());
+}

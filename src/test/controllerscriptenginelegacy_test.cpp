@@ -1281,3 +1281,26 @@ TEST_F(ControllerScriptEngineLegacyVinylBrakeTest, softStartStartsTheDeckFirst) 
     EXPECT_GT(m_pScratch2->get(), 0.0);
     EXPECT_LT(m_pScratch2->get(), 1.0) << "a soft start is a ramp, not a jump";
 }
+
+
+// Exercise the shipped mapping against the real scratch engine: a mapping-only
+// regression can bypass the brake even while every DSP unit test still passes.
+TEST_F(ControllerScriptEngineLegacyVinylBrakeTest, ddj400ReleaseHonorsShortAndLongSettings) {
+    ASSERT_TRUE(evaluateScriptFile(QFileInfo(config()->getResourcePath() +
+            QStringLiteral("/controllers/Pioneer-DDJ-400-script.js"))));
+    auto loop = makeCo(kGroup, "loop_enabled");
+    for (const double seconds : {1.8, 3.6}) {
+        m_pBrake->set(seconds);
+        m_pScratch2Enable->set(1.0);
+        m_pScratch2->set(-1.0);
+        ASSERT_TRUE(evaluateAndAssert("PioneerDDJ400.jogTouch(0, 0x36, 127);"));
+        m_pScratch2->set(-1.0);
+        ASSERT_TRUE(evaluateAndAssert("PioneerDDJ400.jogTouch(0, 0x36, 0);"));
+        EXPECT_DOUBLE_EQ(1.0, m_pScratch2Enable->get());
+        const auto samples = coast(8000);
+        expectClosesOn(0.0, samples);
+        expectLasts(seconds, samples);
+        EXPECT_DOUBLE_EQ(0.0, m_pScratch2Enable->get());
+        EXPECT_DOUBLE_EQ(0.0, m_pPlay->get());
+    }
+}

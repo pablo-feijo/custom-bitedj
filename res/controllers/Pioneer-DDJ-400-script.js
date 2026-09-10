@@ -111,6 +111,8 @@ PioneerDDJ400.beta = PioneerDDJ400.alpha/32;
 PioneerDDJ400.jogWasPlaying = [false, false];
 PioneerDDJ400.jogScratchActive = [false, false];
 PioneerDDJ400.bendScale = 0.8;
+// Search starts gently and accelerates with wheel speed, independently per deck.
+PioneerDDJ400.searchLastTurn = [null, null];
 
 PioneerDDJ400.tempoRanges = [0.06, 0.10, 0.25, 0.50, 1.00];
 
@@ -624,17 +626,31 @@ PioneerDDJ400.cueLoopCallRight = function(_channel, _control, value, _status, gr
 // press of the same button.
 //
 
+// The pressed deck supplies tempo; never pull it onto the other deck's BPM.
+PioneerDDJ400.enableSyncPair = function(group) {
+    const otherGroup = group === "[Channel1]" ? "[Channel2]" : "[Channel1]";
+    // Soft-leader election may use the internal clock for paused or inaudible
+    // decks. Seed the follower first so that election cannot change the source tempo.
+    const tempo = engine.getValue(group, "bpm");
+    if (tempo > 0) { engine.setValue(otherGroup, "bpm", tempo); }
+    engine.setValue(group, "sync_leader", 1);
+    engine.setValue(otherGroup, "sync_enabled", 1);
+};
+
 PioneerDDJ400.syncPressed = function(channel, control, value, status, group) {
-    if (value === 0) return; // ignore release
-    
-    // Toggle sync_enabled just like Rekordbox!
-    const currentState = engine.getValue(group, "sync_enabled");
-    engine.setValue(group, "sync_enabled", !currentState);
+    if (value === 0) { return; }
+    if (engine.getValue(group, "sync_enabled")) {
+        // Release both from the shared clock, retaining their current rates.
+        engine.setValue("[Channel1]", "sync_enabled", 0);
+        engine.setValue("[Channel2]", "sync_enabled", 0);
+    } else {
+        PioneerDDJ400.enableSyncPair(group);
+    }
 };
 
 PioneerDDJ400.syncLongPressed = function(channel, control, value, status, group) {
     if (value) {
-        engine.setValue(group, "sync_enabled", 1);
+        PioneerDDJ400.enableSyncPair(group);
     }
 };
 
@@ -662,6 +678,7 @@ PioneerDDJ400.jogTurn = function(channel, _control, value, _status, group) {
         PioneerDDJ400.jogSearch(channel, _control, value, _status, group);
         return;
     }
+    PioneerDDJ400.searchLastTurn[channel] = null;
     const deckNum = channel + 1;
     // wheel center at 64; <64 rew >64 fwd
     let newVal = value - 64;
@@ -715,14 +732,27 @@ PioneerDDJ400.jogSearch = function(channel, _control, value, _status, group) {
         PioneerDDJ400.releaseJog(channel);
     }
     if (value !== 64) {
-        engine.setValue(group, "beats_translate_move", value - 64);
+        if (engine.getValue("[FxPanel]", "grid") !== 0) {
+            PioneerDDJ400.searchLastTurn[channel] = null;
+            engine.setValue(group, "beats_translate_move", value - 64);
+        } else {
+            const ticks = value - 64;
+            const now = Date.now();
+            const previous = PioneerDDJ400.searchLastTurn[channel];
+            const elapsed = previous === null || now - previous > 200 ? 40 :
+                    Math.max(8, now - previous);
+            const scale = 4 + 20 * Math.min(1, Math.abs(ticks) / elapsed);
+            PioneerDDJ400.searchLastTurn[channel] = now;
+            engine.setValue(group, "jog", ticks * scale);
+        }
     }
 };
 
-PioneerDDJ400.releaseJog = function(channel) {
-    // Disable immediately: the default ramp can hold playback at zero speed.
-    engine.scratchDisable(channel + 1, false);
-    if (PioneerDDJ400.jogScratchActive[channel] && PioneerDDJ400.jogWasPlaying[channel]) {
+PioneerDDJ400.releaseJog = function(channel, ramp = false) {
+    // Normal Vinyl release must reach the native brake configured in Settings.
+    // Mode changes cancel immediately, including an already coasting platter.
+    engine.scratchDisable(channel + 1, ramp);
+    if (!ramp && PioneerDDJ400.jogScratchActive[channel] && PioneerDDJ400.jogWasPlaying[channel]) {
         engine.setValue("[Channel" + (channel + 1) + "]", "play", 1);
     }
     PioneerDDJ400.jogScratchActive[channel] = false;
@@ -733,12 +763,20 @@ PioneerDDJ400.releaseJog = function(channel) {
 // 0 = CDJ) onto the boolean jogTouch() checks before enabling scratching.
 PioneerDDJ400.setVinylMode = function(value) {
     PioneerDDJ400.vinylMode = value !== 0;
+    if (!PioneerDDJ400.vinylMode) {
+        for (let channel = 0; channel < 2; ++channel) {
+            PioneerDDJ400.releaseJog(channel);
+        }
+    }
 };
 
 PioneerDDJ400.jogTouch = function(channel, control, value) {
     if (value === 0) {
         PioneerDDJ400.loopJogTicks[channel] = 0;
-        PioneerDDJ400.releaseJog(channel);
+        PioneerDDJ400.searchLastTurn[channel] = null;
+        const ramp = control !== 0x67 && !PioneerDDJ400.shiftButtonDown[channel] &&
+                PioneerDDJ400.vinylMode && PioneerDDJ400.jogScratchActive[channel];
+        PioneerDDJ400.releaseJog(channel, ramp);
         return;
     }
     if (engine.getValue("[Channel" + (channel + 1) + "]", "loop_enabled") > 0 ||
@@ -768,6 +806,7 @@ PioneerDDJ400.shiftPressed = function(channel, _control, value, status, _group) 
     const wasDown = PioneerDDJ400.shiftButtonDown[channel];
     PioneerDDJ400.shiftButtonDown[channel] = down;
     engine.setValue("[PadFX]", "d" + (channel + 1) + "_shift", down ? 1 : 0);
+    if (!down) { PioneerDDJ400.searchLastTurn[channel] = null; }
     if (!down || wasDown) return;
     PioneerDDJ400.loopJogTicks[channel] = 0;
     if (PioneerDDJ400.jogScratchActive[channel]) {

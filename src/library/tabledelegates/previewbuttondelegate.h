@@ -60,7 +60,7 @@ class PreviewButtonDelegate : public TableItemDelegate {
     };
     void refreshVisiblePreviews();
     void invalidatePreviews();
-    void requestSummary(const QString& location) const;
+    void requestSummary(const QString& location, const QString& analyzePath) const;
     ConstWaveformPointer summaryForLocation(const QString& location) const;
 
     const int m_column;

@@ -4,7 +4,7 @@
 
 Project scope: [Custom Bite DJ](../README.md), the independent BiteDJ fork.
 
-Keep the root for project entry points and configuration: README, changelog,
+Keep the root for project entry points and configuration: README, changelog, versioned release notes (`RELEASE_<version>.md`),
 licenses/notices, agent instructions, CMakeLists.txt, Doxyfile and tool settings.
 BiteDJ helper scripts and Docker recipes live in the directories below.
 
@@ -64,6 +64,10 @@ docker build -f docker/gui-test.Dockerfile -t bitedj-gui-test .
 use the GUI launcher for current 1024×600 verification. The two legacy library
 helpers extract Ubuntu ARM64 runtime libraries into ignored
 `test-results/legacy-libs/`; they are not dependencies of the current build.
+
+Release notes stay at the repository root for every version. Keep historical
+notes under their versioned names, link them from README and update their relative
+links when moving them. `CHANGELOG.md` remains the cumulative changes-only record.
 
 ## Rules for additions and moves
 

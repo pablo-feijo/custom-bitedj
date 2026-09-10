@@ -160,8 +160,21 @@ void WaveformRendererRGB::draw(
         float blue = maxLowF * m_rgbLowColor_b + maxMidF * m_rgbMidColor_b +
                 maxHighF * m_rgbHighColor_b;
 
+        const bool exported = !pWaveform->exportedRgb().empty();
+        if (exported) {
+            WaveformRgb column;
+            const auto& rgb = pWaveform->exportedRgb();
+            for (int i = visualIndexStart / 2; i <= visualIndexStop / 2; ++i) {
+                if (rgb[i].height > column.height) column = rgb[i];
+            }
+            red = column.red;
+            green = column.green;
+            blue = column.blue;
+            maxAll = maxAllNext = float(column.height) * column.height;
+        }
+
         // Compute maximum (needed for value normalization)
-        float max = math_max3(red, green, blue);
+        float max = exported ? 255.f : math_max3(red, green, blue);
 
         // Prevent division by zero
         if (max > 0.0f) {

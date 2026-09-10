@@ -57,7 +57,7 @@ reuse. Deliverable builds still require a full branch version and provenance.
 - **Restart Recipe**:
   ```bash
   docker exec "$CONTAINER_NAME" pkill -9 mixxx && sleep 1 && \
-  docker exec -d "$CONTAINER_NAME" bash -c "DISPLAY=:99 QT_AUTO_SCREEN_SCALE_FACTOR=0 QT_ENABLE_HIGHDPI_SCALING=0 QT_SCALE_FACTOR=1.0 BITEDJ_SETTINGS_PATH=/root/.mixxx /dist-linux/bin/mixxx /music/BiteDJ_Test_Groove_128BPM.wav /music/BiteDJ_Test_Techno_124BPM.wav --resourcePath /dist-linux/share/mixxx/ --full-screen --style Fusion"
+  docker exec -d "$CONTAINER_NAME" bash -c "DISPLAY=:99 QT_AUTO_SCREEN_SCALE_FACTOR=0 QT_ENABLE_HIGHDPI_SCALING=0 QT_SCALE_FACTOR=1.0 /dist-linux/bin/mixxx --settings-path /root/.mixxx /music/BiteDJ_Test_Groove_128BPM.wav /music/BiteDJ_Test_Techno_124BPM.wav --resourcePath /dist-linux/share/mixxx/ --full-screen --style Fusion"
   ```
 - **Screenshot Capture**: Always use `DISPLAY=:99 scrot /tmp/screen.png` inside the container, then `docker cp` to host. Never use ImageMagick `import` (not installed).
 - **Image Cropping**: Always use `ffmpeg -y -i <in.png> -vf "crop=<w>:<h>:<x>:<y>" <out.png>`. Do not assume Python `PIL` or OpenCV are installed.
@@ -95,7 +95,8 @@ the new ports. Do not prune globally on every build or restart a healthy engine.
 ## Versioned images and reproducible hardware fixes
 
 Follow [branch versions](../../../../docs/BRANCH_VERSIONING.md) before any deliverable build.
-The 0.0.7 release uses `codex/v0.0.7` in both repositories; the parent
+The active application release is 0.0.8 on `codex/v0.0.8`. The image recipe
+remains pinned to the released 0.0.7 source until image work is requested; the parent
 `mixxx-pi-gen` gitlink selects the exact image source. Start new changes on an
 isolated feature branch, publish the image commit, then update the parent
 gitlink. Advance semver only within the user's integration authorization.

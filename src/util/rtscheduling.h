@@ -5,9 +5,8 @@ namespace mixxx {
 // SCHED_FIFO priorities for the app's latency-critical threads. These must
 // stay below the audio/USB IRQ threads. The hardware interrupt handling
 // must always be able to preempt us, the audio callback must preempt
-// everything else in the app, and controller input must preempt the main
-// (GUI) thread, which in turn sits above everything left on SCHED_OTHER
-// (analysis, library workers).
+// everything else in the app. GUI/rendering use SCHED_OTHER and analysis
+// uses background scheduling; only audio delivery and controller input opt in.
 constexpr int kRtPrioAudioEngine = 70;
 // The two hops between the audio callback and the disk. CachingReaderWorker is
 // the only EngineWorker there is, so every chunk the decks consume travels
@@ -27,7 +26,14 @@ constexpr int kRtPrioAudioEngine = 70;
 constexpr int kRtPrioEngineWorkerScheduler = 62;
 constexpr int kRtPrioTrackReader = 60;
 constexpr int kRtPrioControllerInput = 50;
-constexpr int kRtPrioMainThread = 49;
+static_assert(kRtPrioAudioEngine > kRtPrioEngineWorkerScheduler &&
+        kRtPrioEngineWorkerScheduler > kRtPrioTrackReader &&
+        kRtPrioTrackReader > kRtPrioControllerInput);
+
+/// Restore SCHED_OTHER before creating GUI/rendering/pool threads, preventing
+/// inherited real-time work from exhausting the shared audio scheduling budget.
+/// Also handles a process launched by an external real-time wrapper.
+bool restoreCurrentThreadNormalScheduling(const char* threadName);
 
 /// Best-effort promotion of the calling thread to the real-time SCHED_FIFO
 /// policy on Linux. QThread priorities are ignored by the default Linux

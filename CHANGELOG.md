@@ -3,6 +3,30 @@
 Notable changes to Custom Bite DJ, an independent fork of Team Deckshark's
 BiteDJ based on Mixxx. Versions use Semantic Versioning.
 
+## [0.0.8] — Unreleased
+
+### Fixed
+
+- Keep GUI/rendering workers out of real-time scheduling so controller browsing
+  cannot consume the audio threads’ shared real-time CPU budget.
+- DDJ-400 Shift + jog edits beat grids only in the right-panel Grid tab;
+  other panels use gentler track search that accelerates with wheel speed.
+- Restore native Short/Long Vinyl Brake on jog release and cancel scratches
+  immediately when switching to CDJ. Add mapping and native timing regressions.
+- Beat Sync now takes tempo from the pressed deck and syncs the other deck to
+  it. Switching off releases both decks while retaining their adjusted tempos;
+  Quantize alone does not align the decks when pressing Play.
+
+- Start both main decks with Quantize enabled each session, while preserving
+  manual Off until exit and across track loads; see the [Play capture](docs/UI_SCREENSHOTS_0.0.8.md#play).
+- Prefer Rekordbox-exported browser waveform previews in the background,
+  with native cached summaries as fallback; see [Browse previews](docs/UI_SCREENSHOTS_0.0.8.md#browse-preview).
+- Prefer valid exported Rekordbox waveforms on deck load, with native cache
+  and analysis as fallback; prevent late background analysis from replacing
+  exported waveforms or flashing different browser colors.
+- Preserve waveform renderer buffers when returning to an unchanged Play layout.
+- Keep versioned release notes at the repository root and update guide links.
+
 ## [0.0.7] — 2026-09-09
 
 ### Added

@@ -68,7 +68,7 @@ tab labels use 10px. The combined FX layout uses a 204px side panel; recheck Gri
 
 Buttons emit momentary press/release, with no background repeat timer. Actions
 require a loaded track with an editable beat grid. BPM actions edit the track's
-grid, not the playback-rate slider. No controller mapping changes are required.
+grid, not the playback-rate slider. DDJ-400 Shift + jog edits the grid only while this tab is active; FX, Key and Jump use fast track search.
 
 Grid deck headers display `[ChannelN],file_bpm` to two decimal places so each
 0.01 BPM adjustment is visible without changing the deck playback rate.
@@ -102,3 +102,6 @@ it disappears and releases its space when off. Waveforms retain their geometry.
 At 1024×600 its green background can be checked at `(840,105)`.
 The desktop queue regression checks the badge on Play before and after disabling
 Auto Play in Browse. Verify Night and Day, and each right-side panel.
+
+Both main decks initialize Quantize On at application startup. Manual Off lasts
+until exit, including track changes; restarting enables it again.

@@ -31,6 +31,15 @@ void WSingletonContainer::setup(const QDomNode& node, const SkinContext& context
                 context,
                 QStringLiteral("Asked for an unknown singleton widget: %1")
                         .arg(objectName));
+        return;
+    }
+    // Attach the first host while parsing the skin. Deferring this until the
+    // first page show reparents its entire native widget tree during playback,
+    // exposing intermediate geometry while Qt lays it out. Other hosts still
+    // acquire the shared widget only when they become visible.
+    if (!qobject_cast<WSingletonContainer*>(m_pWidget->parentWidget())) {
+        m_pLayout->addWidget(m_pWidget);
+        m_pWidget->show();
     }
 }
 

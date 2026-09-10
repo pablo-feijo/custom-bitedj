@@ -5,6 +5,7 @@
 #include <QtDebug>
 
 #include "analyzer/analyzersilence.h"
+#include "library/rekordbox/rekordboxanlz.h"
 #include "moc_cachingreaderworker.cpp"
 #include "sources/soundsourceproxy.h"
 #include "track/track.h"
@@ -296,6 +297,19 @@ void CachingReaderWorker::loadTrack(const TrackPointer& pTrack) {
                 tr("The file '%1' is empty and could not be loaded.")
                         .arg(QDir::toNativeSeparators(pTrack->getLocation())));
         return;
+    }
+
+    // Publish exported visuals before trackLoaded can trigger Return to Play.
+    // This is load-time worker I/O; an already playing deck keeps its reader.
+    const auto exportedSource = pTrack->getRekordboxWaveformSource();
+    if (!exportedSource.analyzePath.isEmpty()) {
+        // Parsing a newly loaded track must yield to every playing deck's reader.
+        mixxx::restoreCurrentThreadNormalScheduling("Rekordbox load");
+        mixxx::rekordbox::readThreeBandWaveforms(pTrack,
+                m_pAudioSource->getSignalInfo().getSampleRate(),
+                exportedSource.timingOffsetMillis, exportedSource.analyzePath);
+        mixxx::promoteCurrentThreadToRealtime(
+                mixxx::kRtPrioTrackReader, "CachingReaderWorker");
     }
 
     // Adjust the internal buffer

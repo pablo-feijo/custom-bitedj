@@ -122,9 +122,10 @@ test('Sync short/long press and tempo controls remain independent per deck',()=>
     const h=createHarness();
     for(const deck of [1,2]) {
         const status=0x8f+deck,g=`[Channel${deck}]`;
-        h.send(status,0x58,127);assert.equal(h.get(g,'sync_enabled'),true);
-        h.send(status,0x58,0);assert.equal(h.get(g,'sync_enabled'),true);
-        h.send(status,0x58,127);assert.equal(h.get(g,'sync_enabled'),false);
+        h.seed('[Channel1]','sync_enabled',0);h.seed('[Channel2]','sync_enabled',0);
+        h.send(status,0x58,127);assert.equal(h.get(g,'sync_enabled'),1);
+        h.send(status,0x58,0);assert.equal(h.get(g,'sync_enabled'),1);
+        h.send(status,0x58,127);assert.equal(h.get(g,'sync_enabled'),0);
         h.send(status,0x5c,127);h.send(status,0x5c,127);assert.equal(h.get(g,'sync_enabled'),1);
         h.clear();h.send(status,0x5c,0);h.send(status,0x60,0);assert.deepEqual(h.writes,[]);
         h.seed(g,'rateRange',.06);
@@ -171,9 +172,10 @@ test('Held Pad FX does not intercept Mix, Super or Sync',()=>{
         for(const lane of h.fx.lanes)h.seed(h.fx.group(g,lane),'available',1);
         h.send(0x95+2*deck,0x14,127);
         h.send(s,0x3f,127);h.send(0xb6,0x16+deck,127);h.send(0xb6,0x36+deck,127);
+        h.seed('[Channel1]','sync_enabled',0);h.seed('[Channel2]','sync_enabled',0);
         h.send(0xb4,0x02,64);h.send(s,0x58,127);
         assert.equal(h.get(rack,'super1'),1);assert.equal(h.get(rack,'mix'),64/127);
-        assert.equal(h.get(g,'sync_enabled'),true);
+        assert.equal(h.get(g,'sync_enabled'),1);
         assert.equal(Object.keys(h.fx.decks[g].held).length,1);
         h.send(s,0x3f,0);h.send(0x95+2*deck,0x14,0);
     }
@@ -242,7 +244,7 @@ test('Settings vinyl mode controls scratching; jog bend, grid alignment and loop
             assert.deepEqual(h.calls.at(-1),['scratchDisable',deck,false]);
             h.set('[BiteDJ]','vinyl_mode',1);h.send(s,touch,127);
             assert.equal(h.calls.at(-1)[0],'scratchEnable');assert.equal(h.calls.at(-1)[1],deck);
-            h.send(s,touch,0);assert.deepEqual(h.calls.at(-1),['scratchDisable',deck,false]);
+            h.send(s,touch,0);assert.deepEqual(h.calls.at(-1),['scratchDisable',deck,true]);
         }
         for(const jog of [0x21,0x22,0x23]) {
             for(const value of [63,64,65]) {
@@ -251,7 +253,7 @@ test('Settings vinyl mode controls scratching; jog bend, grid alignment and loop
             h.seed(g,'test_scratching',1);h.send(s+0x20,jog,66);
             assert.deepEqual(h.calls.at(-1),['scratchTick',deck,2]);h.seed(g,'test_scratching',0);
         }
-        h.send(s+0x20,0x29,63);assert.equal(h.get(g,'beats_translate_move'),-1);
+        h.seed('[FxPanel]','grid',1);h.send(s+0x20,0x29,63);assert.equal(h.get(g,'beats_translate_move'),-1);
         h.seed(g,'loop_enabled',1);h.seed(g,'loop_start_position',100);h.seed(g,'loop_end_position',500);
         h.send(s,0x4c,127);h.send(s,0x4c,0);h.send(s+0x20,0x22,65);
         assert.equal(h.get(g,'loop_start_position'),150);assert.equal(h.get(g,'loop_end_position'),500);
@@ -334,7 +336,7 @@ test('Native hotcue, loop, transport and mixer bindings retain their targets',()
 test('Shift jog only translates grid, including shifted touch and mid-touch Shift',()=>{
     for (const deck of [1,2]) {
         const h=createHarness(), s=0x8f+deck, g=`[Channel${deck}]`;
-        h.m.vinylMode=true;
+        h.m.vinylMode=true; h.seed('[FxPanel]','grid',1);
         h.send(s,0x67,127); assert.deepEqual(h.calls,[]);
         h.send(s,0x67,0); assert.deepEqual(h.calls,[['scratchDisable',deck,false]]);
         for (const playing of [0,1]) {
@@ -355,15 +357,15 @@ test('Shift jog only translates grid, including shifted touch and mid-touch Shif
     }
 });
 
-test('Jog release resumes playing decks immediately and leaves paused decks paused',()=>{
+test('Normal jog release uses native coast and preserves transport state',()=>{
     for (const deck of [1,2]) for (const playing of [0,1]) {
         const h=createHarness(), s=0x8f+deck, g=`[Channel${deck}]`;
         h.m.vinylMode=true; h.seed(g,'play',playing);
         h.send(s,0x36,127);
         // A loop adjustment starting during touch must never swallow release.
         h.m.loopAdjustIn[deck-1]=true; h.clear(); h.send(s,0x36,0);
-        assert.deepEqual(h.calls,[['scratchDisable',deck,false]]);
-        assert.deepEqual(h.writes,playing?[[g,'play',1]]:[]);
+        assert.deepEqual(h.calls,[['scratchDisable',deck,true]]);
+        assert.deepEqual(h.writes,[]);
     }
 });
 
@@ -403,7 +405,7 @@ test('Active-loop jog resizes in measured steps without scratch or pitch bend',(
         // Reversing direction discards the partial turn in the old direction.
         h.clear();h.send(status+0x20,0x22,95);h.send(status+0x20,0x22,32);
         assert.deepEqual(h.writes,[[g,'loop_scale',0.5]]);
-        h.send(status,0x3f,127);h.clear();h.send(status+0x20,0x29,96);
+        h.seed('[FxPanel]','grid',1);h.send(status,0x3f,127);h.clear();h.send(status+0x20,0x29,96);
         assert.deepEqual(h.writes,[[g,'beats_translate_move',32]]);
         h.send(status,0x3f,0);h.set(g,'loop_enabled',0);h.clear();
         h.send(status+0x20,0x22,65);assert.deepEqual(h.writes,[[g,'jog',0.8]]);
@@ -437,4 +439,70 @@ test('Mapping audit: unique MIDI inputs, resolvable callbacks and every script b
         } else assert.ok(nativeChecked.has(key),`Missing native binding contract for ${c.key} (${key})`);
     }
     console.log(`Audited ${controls.length} MIDI inputs; exercised ${exercised.size} script bindings.`);
+});
+
+
+test('Shift jog searches outside Grid and follows live panel changes on both decks',()=>{
+    for (const deck of [1,2]) for (const playing of [0,1]) {
+        const h=createHarness(), s=0x8f+deck, g=`[Channel${deck}]`;
+        h.seed(g,'play',playing);
+        for (const panel of [0,1,2,3,0]) {
+            h.seed('[FxPanel]','current',panel); h.seed('[FxPanel]','grid',panel===3?1:0);
+            for (const shifted of [false,true]) {
+                h.send(s,0x3f,shifted?127:0);
+                for (const note of shifted?[0x21,0x22,0x23,0x29]:[0x29]) {
+                    h.advance(500);h.clear(); h.send(s+0x20,note,63);h.send(s+0x20,note,64);h.send(s+0x20,note,66);
+                    assert.deepEqual(h.writes,panel===3?
+                        [[g,'beats_translate_move',-1],[g,'beats_translate_move',2]]:
+                        [[g,'jog',-4.5],[g,'jog',18]]);
+                    assert.deepEqual(h.calls,[]);assert.equal(h.get(g,'play'),playing);
+                }
+            }
+        }
+    }
+});
+
+test('Off Short and Long brake settings all reach native ramp; switching CDJ cancels both decks',()=>{
+    const h=createHarness();h.seed('[BiteDJ]','vinyl_mode',1);h.m.init();
+    for (const brake of [0,1.8,3.6]) for (const deck of [1,2]) {
+        const s=0x8f+deck;
+        h.set('[BiteDJ]','vinyl_brake',brake);h.send(s,0x36,127);h.clear();h.send(s,0x36,0);
+        assert.deepEqual(h.calls,[['scratchDisable',deck,true]]);
+    }
+    h.send(0x90,0x36,127);h.send(0x91,0x36,127);h.clear();
+    h.set('[BiteDJ]','vinyl_mode',0);
+    assert.deepEqual(h.calls,[['scratchDisable',1,false],['scratchDisable',2,false]]);
+    h.clear();h.send(0x90,0x36,127);assert.ok(!h.calls.some(c=>c[0]==='scratchEnable'));
+});
+
+
+test('Beat Sync makes the pressed deck leader and disabling releases both without tempo reset',()=>{
+    for (const deck of [1,2]) {
+        const h=createHarness(), s=0x8f+deck, g=`[Channel${deck}]`, other=`[Channel${3-deck}]`;
+        h.seed(g,'rate',.2);h.seed(other,'rate',-.1);h.seed(g,'bpm',136);
+        h.send(s,0x58,127);h.send(s,0x58,0);
+        assert.deepEqual(h.writes,[[other,'bpm',136],[g,'sync_leader',1],[other,'sync_enabled',1]]);
+        h.clear();h.send(s,0x58,127);h.send(s,0x58,0);
+        assert.deepEqual(h.writes,[['[Channel1]','sync_enabled',0],['[Channel2]','sync_enabled',0]]);
+        assert.equal(h.get(g,'rate'),.2);assert.equal(h.get(other,'rate'),-.1);
+        h.clear();h.send(s,0x5c,127);h.send(s,0x5c,0);
+        assert.deepEqual(h.writes,[[other,'bpm',136],[g,'sync_leader',1],[other,'sync_enabled',1]]);
+    }
+});
+
+
+test('Search accelerates with wheel speed, caps bursts and resets independently after rest',()=>{
+    for (const deck of [1,2]) {
+        const h=createHarness(), s=0xaf+deck, g=`[Channel${deck}]`;
+        h.send(s,0x29,65);const initial=h.get(g,'jog');
+        h.advance(100);h.send(s,0x29,65);const slow=h.get(g,'jog');
+        h.advance(10);h.send(s,0x29,65);const quick=h.get(g,'jog');
+        assert.ok(slow >= 4 && slow < quick && quick < 10);
+        h.advance(10);h.send(s,0x29,74);assert.equal(h.get(g,'jog'),240);
+        // A spin on one wheel cannot accelerate the other wheel's first tick.
+        const other=`[Channel${3-deck}]`;h.send(0xaf+3-deck,0x29,65);
+        assert.equal(h.get(other,'jog'),initial);
+        h.advance(500);h.send(s,0x29,63);assert.equal(h.get(g,'jog'),-initial);
+        h.clear();h.send(s,0x29,64);assert.deepEqual(h.writes,[]);
+    }
 });

@@ -19,6 +19,27 @@ QImage WaveformPreviewRenderer::render(const ConstWaveformPointer& waveform,
     image.fill(Qt::transparent);
     QPainter painter(&image);
     const double center = (size.height() - 1) / 2.0;
+    if (overviewType == 2 && !waveform->exportedRgb().empty()) {
+        const auto& rgb = waveform->exportedRgb();
+        for (int x = 0; x < size.width(); ++x) {
+            const int begin = qint64(x) * frames / size.width();
+            const int end = std::min(ready, std::max(begin + 1,
+                    int(qint64(x + 1) * frames / size.width())));
+            WaveformRgb column;
+            for (int f = begin; f < end; ++f) {
+                if (rgb[f].height > column.height) column = rgb[f];
+            }
+            if (!column.height) continue;
+            const QColor color(column.red, column.green, column.blue);
+            painter.setPen(color.darker(134));
+            const double height = column.height * center / 255.0;
+            painter.drawLine(QPointF(x, center - height), QPointF(x, center + height));
+            painter.setPen(color);
+            const double front = column.frontHeight * center / 255.0;
+            if (front > 0) painter.drawLine(QPointF(x, center - front), QPointF(x, center + front));
+        }
+        return image;
+    }
     // Stable gain while analyzing; normalize only once the summary is complete.
     double peak = 255.0;
     if (ready == frames) {

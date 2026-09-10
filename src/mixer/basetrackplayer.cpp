@@ -3,6 +3,7 @@
 
 #include <QMessageBox>
 #include <QMetaMethod>
+#include <QTimer>
 
 #include "control/controlencoder.h"
 #include "control/controlobject.h"
@@ -651,19 +652,20 @@ void BaseTrackPlayerImpl::slotTrackLoaded(TrackPointer pNewTrack,
         // later returns to a track that fails, they should be alerted again.
         m_pPrevFailedTrackId = TrackId();
 
-        // Only leave Browse after this request has successfully reached a main
-        // deck. Failed/stale loads, preview and sampler loads never navigate.
+        // Let queued track/widget updates finish before showing the Play page.
+        // Otherwise its first frame is displayed with stale deck metadata.
         if ((getGroup() == "[Channel1]" || getGroup() == "[Channel2]") &&
                 m_pConfig->getValue(ConfigKey("[BiteDJ]", "return_to_play"), false)) {
-            auto* libraryTab = ControlObject::getControl(
-                    ConfigKey("[Tab]", "library"), ControlFlag::NoWarnIfMissing);
-            auto* playTab = ControlObject::getControl(
-                    ConfigKey("[Tab]", "overview"), ControlFlag::NoWarnIfMissing);
-            if (libraryTab && libraryTab->toBool() && playTab) {
-                playTab->set(1.0);
-            }
+            QTimer::singleShot(0, this, [this, pNewTrack] {
+                if (m_pLoadedTrack != pNewTrack ||
+                        !m_pConfig->getValue(ConfigKey("[BiteDJ]", "return_to_play"), false)) return;
+                auto* libraryTab = ControlObject::getControl(
+                        ConfigKey("[Tab]", "library"), ControlFlag::NoWarnIfMissing);
+                auto* playTab = ControlObject::getControl(
+                        ConfigKey("[Tab]", "overview"), ControlFlag::NoWarnIfMissing);
+                if (libraryTab && libraryTab->toBool() && playTab) playTab->set(1.0);
+            });
         }
-
 
         // Update the BPM and duration values that are stored in ControlObjects
         m_pDuration->set(m_pLoadedTrack->getDuration());

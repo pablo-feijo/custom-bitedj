@@ -5,6 +5,7 @@
 
 #include "audio/types.h"
 #include "track/track_decl.h"
+#include "waveform/waveform.h"
 
 namespace mixxx {
 namespace rekordbox {
@@ -35,6 +36,9 @@ void readAnalyze(TrackPointer track,
 QString readPhrases(TrackPointer track, int timingOffset, const QString& anlzPath);
 QString readThreeBandWaveforms(TrackPointer track, audio::SampleRate sampleRate,
         int timingOffset, const QString& anlzPath);
+
+// Read the exported overview without loading audio, cues or a Track. Worker-only I/O.
+ConstWaveformPointer readThreeBandPreview(const QString& anlzPath);
 
 // Import independent beat/cue passes and report failures without preventing
 // audio loading. A corrupt EXT is not silently replaced with stale DAT cues.

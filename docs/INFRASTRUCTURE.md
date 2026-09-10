@@ -196,3 +196,16 @@ with its arguments and inherited environment. System restart/power-off use
 `systemctl reboot` / `systemctl poweroff`, with failed starts, nonzero exits and
 timeouts reported. These OS actions require the appliance's existing system
 permissions; desktop containers without systemd expose an unavailable/error state.
+
+
+### Audio scheduling during browsing
+
+GUI, Qt pool and rendering-driver threads start with normal Linux scheduling.
+Only audio (FIFO 70), the worker scheduler (62), track readers (60) and controller
+input (50) opt into real-time priorities. Starting the GUI at FIFO 49 also caused
+Mesa and some Qt workers to inherit FIFO, allowing browse/render work to consume
+the shared real-time budget. Analysis/history retain background scheduling.
+Verify with `ps -L -p PID -o tid,cls,rtprio,comm` while scrolling using the controller:
+Main/rendering must be TS; mixxx-engine must remain FF 70 when permissions allow.
+Pair this with recorded audio and underrun counters; priority alone is not proof
+of uninterrupted playback. Bluetooth transport dropouts require separate checks.

@@ -16,7 +16,7 @@ docker cp "$RESULTS_DIR/RekordboxFixture" "$CONTAINER_NAME:/media/"
 
 The generator writes a DeviceSQL export and four original, synthetic 60-second
 PCM tracks. No commercial tracks or proprietary user exports are bundled.
-The first two tracks have DAT beat grids, PWV6/PWV7 display envelopes and PSSI
+The first two tracks have DAT beat grids, independent PWV4/PWV5 RGB colors, PWV6/PWV7 display envelopes and PSSI
 phrases. The third lacks EXT/2EX; the fourth has valid phrases/cues but damaged
 waveform analysis. Load them through Browse → Rekordbox → RekordboxFixture to
 exercise import. Loading WAV paths from the command line bypasses that path.

@@ -359,11 +359,17 @@ class DesktopE2E(unittest.TestCase):
             "c.executemany('insert into PlaylistTracks(playlist_id,track_id,position) values(?,?,?)',[(p,track,1),(p,track,2)]); c.commit()")
         command("docker", "restart", self.container, timeout=40)
         eventually(self.window_ready, timeout=60)
+        eventually(lambda: self.inside(
+            "xdotool", "search", "--onlyvisible", "--name", "^Mixxx$",
+            "windowactivate", "--sync"), timeout=60)
         def ready():
             self.click(950, 20)
             self.assert_selected_tab(4)
         eventually(ready, timeout=60)
-        self.click(300, 20)
+        def browse_ready():
+            self.click(300, 20)
+            self.assert_selected_tab(1)
+        eventually(browse_ready)
         self.click(100, 55)  # Playlists exists because the saved playlist exists.
         self.click(100, 83)  # Queue Test.
         time.sleep(1)
