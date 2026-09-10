@@ -36,3 +36,24 @@ an unchanged waveform layout after the loaded track’s widget updates.
 
 See [controller mappings](DDJ400_MAPPING.md), [release notes](../RELEASE_0.0.8.md)
 and the [0.0.8 changelog](../CHANGELOG.md#008--unreleased).
+
+## Settings — Info
+
+The Local Time card forwards touchscreen taps on its labels to the date/time
+editor. Native touch press/release regression coverage verifies opening the
+editor and cancelling back to the dashboard.
+
+These unchanged-layout reference captures were verified with
+`0.0.7-codex-touch-datetime-editor.1` before integration into 0.0.8; they are not
+captures of a combined 0.0.8 build. The other gallery captures retain their
+controller-build provenance above.
+
+![Info dashboard](images/ui/0.0.8/settings-info.png)
+![Date/time editor; OS time service unavailable in the container](images/ui/0.0.8/clock-editor.png)
+
+<details><summary>Info and clock in Day mode</summary>
+
+![Info dashboard in Day mode](images/ui/0.0.8/settings-info-day.png)
+![Date/time editor in Day mode](images/ui/0.0.8/clock-editor-day.png)
+
+</details>

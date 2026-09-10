@@ -76,6 +76,8 @@ TEST(BootSettingsTest, SavesBackupAndRefusesStaleWrites) {
 #include <QTimer>
 #include "test/mixxxtest.h"
 #include "widget/wsystemdialogs.h"
+#include "widget/wsysteminfo.h"
+#include <QtTest/QTest>
 
 class SystemDialogsTest : public MixxxTest {
   protected:
@@ -117,6 +119,39 @@ class SystemDialogsTest : public MixxxTest {
         return nullptr;
     }
 };
+TEST_F(SystemDialogsTest, TouchClockCardOpensEditorAndCancelRestoresDashboard) {
+    WSystemInfo info;
+    info.resize(1024, 440);
+    info.show();
+    QTest::qWait(20);
+    auto* card = info.findChild<QPushButton*>(QStringLiteral("InfoClockCard"));
+    ASSERT_NE(card, nullptr);
+    auto* value = card->findChild<QLabel*>(QStringLiteral("InfoValue"));
+    ASSERT_NE(value, nullptr);
+    // Hit the displayed time, including its child-label event routing. A direct
+    // QPushButton::click() cannot catch a container swallowing touchscreen taps.
+    auto* device = QTest::createTouchDevice();
+    QTest::touchEvent(&info, device).press(0, value->rect().center(), value);
+    QTest::touchEvent(&info, device).release(0, value->rect().center(), value);
+    QPointer<QWidget> editor;
+    ASSERT_TRUE(until([&] {
+        for (auto* widget : QApplication::topLevelWidgets()) {
+            if (widget->objectName() == QStringLiteral("SystemDialog") && widget->isVisible()) {
+                editor = widget;
+                return true;
+            }
+        }
+        return false;
+    }));
+    EXPECT_EQ(editor->windowTitle(), QStringLiteral("Local date & time"));
+    EXPECT_FALSE(info.isVisible());
+    auto* cancel = findButton(editor, QStringLiteral("Cancel"));
+    ASSERT_NE(cancel, nullptr);
+    QTest::touchEvent(editor, device).press(0, cancel->rect().center(), cancel);
+    QTest::touchEvent(editor, device).release(0, cancel->rect().center(), cancel);
+    EXPECT_TRUE(until([&] { return info.isVisible() && (!editor || !editor->isVisible()); }));
+}
+
 TEST_F(SystemDialogsTest, ManualClockDisablesSyncBeforeChangingTime) {
     mixxx::systemdialogs::clock(nullptr);
     QCoreApplication::processEvents();

@@ -24,7 +24,10 @@ QString percent(std::optional<double> value) {
 }
 } // namespace
 
-WSystemInfo::WSystemInfo(QWidget* parent) : WWidget(parent) {
+WSystemInfo::WSystemInfo(QWidget* parent) : QWidget(parent), WBaseWidget(this) {
+    // This dashboard contains native Qt controls. WWidget's touch-to-mouse
+    // translation targets the container itself and bypasses the clock button.
+    // Let Qt synthesize mouse events for the actual child under the finger.
     auto* layout = new QGridLayout(this);
     layout->setContentsMargins(16, 12, 16, 12);
     layout->setSpacing(12);

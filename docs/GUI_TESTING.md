@@ -721,6 +721,10 @@ Cancel, and disabled Apply when the date/time service is unavailable.
 
 Native `SystemDialogsTest` uses temporary fake system executables to verify
 manual/automatic clock commands, partial failures and confirmation/cancellation.
+The clock-card regression sends `QTest::touchEvent` press/release events to the
+displayed time label inside `WSystemInfo`, verifies the editor opens, then taps
+Cancel and verifies the dashboard returns. Direct `click()` calls bypass this
+touch-routing bug and are insufficient coverage.
 `BootSettingsTest` uses a temporary boot file to verify preservation, reset,
 backup, invalid/unsupported configurations and stale-write rejection. Neither
 test modifies host time, boot settings or system power.

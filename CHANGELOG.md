@@ -7,6 +7,9 @@ BiteDJ based on Mixxx. Versions use Semantic Versioning.
 
 ### Fixed
 
+- Route touchscreen taps on the [Info clock card](docs/UI_SCREENSHOTS_0.0.8.md#settings-info)
+  to its date/time editor, including taps over the displayed time label.
+
 - Keep GUI/rendering workers out of real-time scheduling so controller browsing
   cannot consume the audio threads’ shared real-time CPU budget.
 - DDJ-400 Shift + jog edits beat grids only in the right-panel Grid tab;
@@ -68,6 +71,7 @@ BiteDJ based on Mixxx. Versions use Semantic Versioning.
   fork identity, upstream attribution and component licensing.
 
 ### Fixed
+
 
 - Keep removable discovery and folder enumeration off the GUI thread. Batch
   large folders, bound queued rows, cancel stale scans and preserve saved BPM/key

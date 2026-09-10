@@ -164,6 +164,8 @@ requests with visible errors. Overclock uses Save for next restart and a separat
 Restart system confirmation. Firmware defaults clears the three editable boot
 overrides. Unsupported configurations disable saving.
 
+The Info dashboard uses a native Qt container so touch events reach its child
+clock button instead of being translated on the surrounding dashboard.
 Tap the Local Time card on Info to open Local date & time. Field order: live
 preview, Region, City / timezone, automatic sync, then manual date and hour/minute
 controls when sync is off. Timezones come from the installed IANA database;

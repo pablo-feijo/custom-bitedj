@@ -5,13 +5,15 @@
 #include <QTimer>
 
 #include "util/systemtelemetry.h"
-#include "widget/wwidget.h"
+#include <QWidget>
+
+#include "widget/wbasewidget.h"
 
 class QLabel;
 class SkinContext;
 class QDomNode;
 
-class WSystemInfo : public WWidget {
+class WSystemInfo : public QWidget, public WBaseWidget {
     Q_OBJECT
   public:
     explicit WSystemInfo(QWidget* parent = nullptr);

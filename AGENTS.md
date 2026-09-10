@@ -24,6 +24,8 @@ Mixxx. Preserve upstream attribution, licenses and technical identifiers.
 - Before UI/native/controller changes, read [architecture](.agents/skills/bitedj-workflow/references/architecture.md)
   and [$bitedj-ui](.agents/skills/bitedj-ui/SKILL.md), then the relevant control map.
   Preserve saved control IDs; update affected maps, automation and gallery images.
+  Test touch behavior with native touch sequences through the real widget hierarchy;
+  direct button calls or mouse clicks alone are not touch validation.
 - Before manual GUI commands, source `scripts/test/gui-test-settings.sh` and run
   `verify_test_instance_owner`. Use the owned `$CONTAINER_NAME` and discovered
   ports. Pass the [noVNC gate](.agents/skills/bitedj-build-test/references/tools.md#novnc-delivery-gate)

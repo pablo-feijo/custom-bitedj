@@ -5,6 +5,9 @@ Integration target: `codex/v0.0.8`. This version has not been published.
 
 ## Changes
 
+- Local Time card touchscreen taps now open the date/time editor. Agent guidance
+  requires native touch sequences through the widget hierarchy for touch tests.
+
 - Shift + jog edits the beat grid only with the right-panel Grid tab active.
   Other tabs search the track gently, accelerating with wheel speed.
 - Short and Long Vinyl Brake use native scratch release ramps. CDJ mode
@@ -24,6 +27,12 @@ Integration target: `codex/v0.0.8`. This version has not been published.
   migrate or repair files on the audio drive. Returning to an unchanged Play layout reuses renderer buffers.
 
 ## Validation and artifacts
+
+The clock fix passed a failing-before/passing-after native touch regression,
+17 system-dialog tests, fast checks and eight desktop E2E tests on
+`0.0.7-codex-touch-datetime-editor.1`. Combined 0.0.8 rebuild and physical Pi touch
+validation remain pending; do not treat the component results as combined-build
+validation.
 
 Validated development build: `0.0.8-codex-v0-0-8-controller-validation.2`.
 Fast checks, 1,061 native tests, 57 removable-drive tests and eight desktop E2E

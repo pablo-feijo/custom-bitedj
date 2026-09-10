@@ -36,6 +36,18 @@ description: "Modify or verify Custom Bite DJ skin, waveform, settings, Beat FX 
   release, retain released images and use a new version directory and gallery so
   historical changelog links continue to show their release's UI.
 
+## Touch input regression tests
+
+- For touchscreen behavior, tests must use native touch press/release sequences
+  (for example `QTest::touchEvent`) through the actual widget hierarchy, hitting
+  the visible child label or control that a finger touches. Assert the resulting
+  action and return/cancel behavior; include cancellation or drag-out when relevant.
+- Direct `click()`, emitted signals, direct action calls and mouse/xdotool clicks
+  alone do not validate touch routing. Keep mouse coverage as supplemental checks.
+- Reproduce touch bugs with a failing touch test before fixing them when the
+  native test environment is available. Record physical-device checks separately
+  from simulated Qt touch coverage.
+
 ## Coordinate and style verification
 
 Never guess xdotool coordinates. Use current XML geometry or inspect a current
