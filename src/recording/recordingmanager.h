@@ -30,7 +30,8 @@ class RecordingManager : public QObject {
     // called and a signal isRecording will be emitted.
     // The method computes the filename based on date/time information.
     void startRecording();
-    void stopRecording();
+    // interrupted marks a forced stop, such as removal of the destination drive.
+    void stopRecording(bool interrupted = false);
     bool isRecordingActive() const;
     void setRecordingDir();
     QString& getRecordingDir();
@@ -75,6 +76,7 @@ class RecordingManager : public QObject {
     QString m_recordingLocation;
 
     bool m_bRecording;
+    bool m_stopInterrupted = false;
     // Whether the low-disk-space warning has already been shown for the
     // current squeeze; cleared once there is room again.
     bool m_dfSilence;

@@ -2,6 +2,7 @@
 
 #include <QDateTime>
 #include <QDir>
+#include <QFileInfo>
 #include <QMessageBox>
 #include <QMutex>
 
@@ -11,6 +12,7 @@
 #include "engine/sidechain/enginesidechain.h"
 #include "errordialoghandler.h"
 #include "moc_recordingmanager.cpp"
+#include "notifications/notifications.h"
 #include "recording/defs_recording.h"
 
 #define MIN_DISK_FREE 1024 * 1024 * 1024ll // one gibibyte
@@ -92,6 +94,7 @@ void RecordingManager::slotToggleRecording(double value) {
 }
 
 void RecordingManager::startRecording() {
+    m_stopInterrupted = false;
     QString encodingType = m_pConfig->getValueString(
             ConfigKey(RECORDING_PREF_KEY, "Encoding"));
     QString fileExtension = EncoderFactory::getFactory()
@@ -122,6 +125,12 @@ void RecordingManager::startRecording() {
     m_recording_base_file = getRecordingDir();
     m_recording_base_file.append("/").append(date_time_str);
     // Appending file extension to get the filelocation.
+    const QString requestedBase = m_recording_base_file;
+    for (int suffix = 1; QFileInfo::exists(m_recording_base_file + QChar('.') + fileExtension) ||
+            QFileInfo::exists(m_recording_base_file + QStringLiteral(".cue")); ++suffix) {
+        m_recording_base_file = requestedBase + QStringLiteral("-%1").arg(suffix);
+    }
+    m_recordingFile = QFileInfo(m_recording_base_file).fileName() + QChar('.') + fileExtension;
     m_recordingLocation = m_recording_base_file + QChar('.') + fileExtension;
     m_pConfig->set(ConfigKey(RECORDING_PREF_KEY, "Path"), m_recordingLocation);
     m_pConfig->set(ConfigKey(RECORDING_PREF_KEY, "CuePath"), ConfigValue(m_recording_base_file + QStringLiteral(".cue")));
@@ -152,7 +161,8 @@ void RecordingManager::splitContinueRecording()
     m_pCoRecStatus->set(RECORD_SPLIT_CONTINUE);
 }
 
-void RecordingManager::stopRecording() {
+void RecordingManager::stopRecording(bool interrupted) {
+    m_stopInterrupted = m_stopInterrupted || interrupted;
     qDebug() << "Recording stopped";
     m_pCoRecStatus->set(RECORD_OFF);
     m_recordingFile = "";
@@ -241,6 +251,11 @@ void RecordingManager::slotFreeSpaceAvailable(qint64 bytesAvailable) {
 
 void RecordingManager::warnFreespace() {
     qWarning() << "RecordingManager: less than 1 GiB free space";
+    if (auto* notifications = Notifications::tryInstance()) {
+        notifications->publish(tr("Recording drive has less than 1 GiB free space."),
+                Notifications::Severity::Warning);
+        return;
+    }
     ErrorDialogProperties* props = ErrorDialogHandler::instance()->newDialogProperties();
     props->setType(DLG_WARNING);
     props->setTitle(tr("Low Disk Space Warning"));
@@ -259,14 +274,28 @@ void RecordingManager::slotIsRecording(bool isRecordingActive, bool error) {
     //qDebug() << "SlotIsRecording " << isRecording << error;
 
     // Notify the GUI controls, see dlgrecording.cpp.
+    error = error || (!isRecordingActive && m_stopInterrupted);
+    if (!isRecordingActive) {
+        m_stopInterrupted = false;
+    }
+    const bool wasRecording = m_bRecording;
     m_bRecording = isRecordingActive;
     emit isRecording(isRecordingActive);
 
+    if (auto* notifications = Notifications::tryInstance()) {
+        if (error) {
+            notifications->publish(tr("Recording could not be saved. Check the drive and free space."),
+                    Notifications::Severity::Error);
+        } else if (wasRecording && !isRecordingActive) {
+            notifications->publish(tr("Recording saved"), Notifications::Severity::Info);
+        }
+        return;
+    }
     if (error) {
         ErrorDialogProperties* props = ErrorDialogHandler::instance()->newDialogProperties();
         props->setType(DLG_WARNING);
         props->setTitle(tr("Recording"));
-        props->setText("<html>"+tr("Could not create audio file for recording!")
+        props->setText("<html>"+tr("Could not save audio file for recording!")
                        +"<p>"+tr("Ensure there is enough free disk space and you have write permission for the Recordings folder.")
                        +"<p>"+tr("You can change the location of the Recordings folder in Preferences -> Recording.")
                        +"</p></html>");

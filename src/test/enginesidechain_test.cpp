@@ -16,6 +16,7 @@
 #include <QAtomicInt>
 #include <QElapsedTimer>
 #include <QThread>
+#include <QSemaphore>
 #include <memory>
 #include <vector>
 
@@ -28,7 +29,7 @@ namespace {
 
 // Generous compared with the sidechain's own drain interval: this is a "does
 // it ever arrive" bound, not a latency measurement, and the thread it waits on
-// runs in the idle scheduling class.
+// runs at background priority.
 constexpr int kDrainTimeoutMs = 5000;
 
 class CountingSideChainWorker : public SideChainWorker {
@@ -42,12 +43,16 @@ class CountingSideChainWorker : public SideChainWorker {
     void shutdown() override {
     }
 
+    void onBufferOverflow() override { m_overflows.fetchAndAddRelease(1); }
+    int overflows() const { return m_overflows.loadAcquire(); }
+
     int samplesProcessed() const {
         return m_samples.loadAcquire();
     }
 
   private:
     QAtomicInt m_samples;
+    QAtomicInt m_overflows;
 };
 
 class EngineSideChainTest : public MixxxTest {
@@ -121,6 +126,40 @@ TEST_F(EngineSideChainTest, anOverrunDropsSamplesRatherThanBlockingTheCallback) 
     // Wildly loose — the point is "did not park on the sidechain", and this
     // runs on whatever machine CI happens to be.
     EXPECT_LT(timer.elapsed(), kDrainTimeoutMs);
+}
+
+TEST_F(EngineSideChainTest, ReportsOverflowOnConsumerThread) {
+    std::vector<CSAMPLE> tooLarge(EngineSideChain::SIDECHAIN_BUFFER_SIZE + 2, 0.25f);
+    m_pSideChain->writeSamples(tooLarge.data(), tooLarge.size() / 2);
+    waitForSamples(EngineSideChain::SIDECHAIN_BUFFER_SIZE);
+    EXPECT_GT(m_pWorker->overflows(), 0);
+}
+
+TEST_F(EngineSideChainTest, BuffersFourSecondsWhileStorageWorkerIsStalled) {
+    class StallingWorker : public SideChainWorker {
+      public:
+        QSemaphore entered, resume;
+        bool first = true;
+        void process(const CSAMPLE*, int) override {
+            if (first) { first = false; entered.release(); resume.acquire(); }
+        }
+        void shutdown() override {}
+    };
+    auto* stall = new StallingWorker;
+    m_pSideChain->addSideChainWorker(stall);
+    m_pSideChain->writeSamples(m_sidechainMix.data(), kFramesPerWrite);
+    if (!stall->entered.tryAcquire(1, kDrainTimeoutMs)) {
+        stall->resume.release();
+        FAIL() << "Consumer did not start";
+    }
+    constexpr int writes = 4 * 44100 / kFramesPerWrite;
+    for (int i = 0; i < writes; ++i) {
+        m_pSideChain->writeSamples(m_sidechainMix.data(), kFramesPerWrite);
+    }
+    stall->resume.release();
+    const int expected = (writes + 1) * kFramesPerWrite * 2;
+    EXPECT_EQ(waitForSamples(expected), expected);
+    EXPECT_EQ(m_pWorker->overflows(), 0);
 }
 
 } // namespace

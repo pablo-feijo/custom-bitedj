@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QAtomicInt>
+
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
@@ -33,7 +35,9 @@ class EngineSideChain : public QThread, public AudioDestination {
     // Thread-safe, blocking.
     void addSideChainWorker(SideChainWorker* pWorker);
 
-    static constexpr int SIDECHAIN_BUFFER_SIZE = 65536;
+    // 4 MiB: about 11.9 seconds of stereo audio at 44.1 kHz.
+    static constexpr int SIDECHAIN_BUFFER_SIZE = 1048576;
+    static constexpr int WORK_BUFFER_SIZE = 65536;
 
   private:
     void run() override;
@@ -43,6 +47,7 @@ class EngineSideChain : public QThread, public AudioDestination {
     volatile bool m_bStopThread;
 
     FIFO<CSAMPLE> m_sampleFifo;
+    QAtomicInt m_bufferOverflow{0};
     CSAMPLE* m_pWorkBuffer;
     CSAMPLE* m_pSidechainMix;
 

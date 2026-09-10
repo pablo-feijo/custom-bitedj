@@ -82,8 +82,8 @@ bool demoteCurrentThreadToIdle(const char* threadName);
 /// which makes a lock holder easy to leave sitting behind the SCHED_FIFO GUI
 /// thread — a priority inversion on the exact path this was meant to protect.
 /// nice 19 stays inside normal CFS fairness, so the thread always makes
-/// forward progress and always releases the lock. EngineSideChain can afford
-/// SCHED_IDLE because it shares no lock with the audio path.
+/// forward progress and always releases the lock. EngineSideChain also uses
+/// this class because recording must drain a finite audio FIFO.
 ///
 /// Also drops the thread to the weakest best-effort I/O priority, so the
 /// analyzer reading a whole track off a USB stick does not queue in front of

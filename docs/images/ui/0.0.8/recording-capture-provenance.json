@@ -1,0 +1,18 @@
+{
+  "source_commit": "68e69c13fd19e39e8382b211221d4e2470fcf989",
+  "source_branch": "codex/v0.0.8-recording-fixes",
+  "source_hash": "54d98d4146798ee660185d2dbb75462eec8dde1cad8b777b77663026f7e6a6be",
+  "version": "0.0.8-codex-v0-0-8-recording-fixes.3",
+  "dirty": true,
+  "platform": "linux/arm64",
+  "builder_image": "sha256:83fd9d1c34c73065fd06fa22d732ead24e7757094e54212dbe84a707bcf8700e",
+  "binary_version": "Bite DJ 0.0.8-codex-v0-0-8-recording-fixes.3",
+  "built_at": "2026-09-10T01:40:52.872965+00:00",
+  "artifact_hash": "a8ff6e22b5024be0f20c4e62b34cea93a6e87ec0f4413e96c9255c4152e8509f",
+  "capture": "recording-saved.png",
+  "geometry": "1024x600",
+  "theme": "Night",
+  "fixtures": "scripts/test/generate_test_music.py",
+  "instance": "bitedj-gui-3055050290",
+  "action": "Ctrl+R starts recording; Ctrl+R stops; scrot after 0.4 seconds captures completion notification."
+}

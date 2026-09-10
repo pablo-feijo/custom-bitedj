@@ -25,13 +25,13 @@ static sf_count_t  sf_f_seek (sf_count_t offset, int whence, void *user_data)
     EncoderCallback* pCallback = static_cast<EncoderCallback*>(user_data);
     if (whence == SEEK_SET) {
         new_offset = offset;
-        pCallback->seek(static_cast<int>(new_offset));
+        pCallback->seek(new_offset);
     } else if (whence == SEEK_CUR) {
         new_offset = pCallback->tell()+offset;
-        pCallback->seek(static_cast<int>(new_offset));
+        pCallback->seek(new_offset);
     } else {
-        new_offset =  pCallback->filelen()-offset;
-        pCallback->seek(static_cast<int>(new_offset));
+        new_offset =  pCallback->filelen()+offset;
+        pCallback->seek(new_offset);
     }
     return new_offset;
 }

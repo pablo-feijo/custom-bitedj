@@ -890,7 +890,7 @@ void SystemSettings::stopRecordingToDrive(const QString& reason) {
     // take the status CO back off READY as well, or the recorder opens its file
     // on the next callback for a target that is already gone.
     if (m_pRecordingManager) {
-        m_pRecordingManager->stopRecording();
+        m_pRecordingManager->stopRecording(!reason.isEmpty());
     }
     releaseRecordingTarget();
 
@@ -901,7 +901,7 @@ void SystemSettings::stopRecordingToDrive(const QString& reason) {
     // No filename in either message: the strip elides, and the drive is what the
     // DJ needs to be told — the file is a timestamp in Recordings on that stick.
     if (reason.isEmpty()) {
-        notify(tr("Recording saved on %1").arg(driveName),
+        notify(tr("Finishing recording on %1").arg(driveName),
                 Notifications::Severity::Info);
     } else {
         // Not a clean stop, so don't claim the file is complete.

@@ -22,15 +22,16 @@ class EngineRecord : public QObject, public EncoderCallback, public SideChainWor
 
     void process(const CSAMPLE* pBuffer, const int iBufferSize) override;
     void shutdown() override {}
+    void onBufferOverflow() override;
 
     // writes compressed audio to file
     void write(const unsigned char *header, const unsigned char *body, int headerLen, int bodyLen) override;
     // gets stream position
-    int tell() override;
+    qint64 tell() override;
     // sets stream position
-    void seek(int pos) override;
+    void seek(qint64 pos) override;
     // gets stream length
-    int filelen()  override;
+    qint64 filelen()  override;
 
     // creates or opens an audio file
     bool openFile();
@@ -55,9 +56,7 @@ class EngineRecord : public QObject, public EncoderCallback, public SideChainWor
     void freeSpaceAvailable(qint64 bytesAvailable);
 
     // Emitted when recording state changes. 'recording' represents whether
-    // recording is active and 'error' is true if an error occurred. Currently
-    // only one error can occur: the specified file was unable to be opened for
-    // writing.
+    // recording is active and 'error' is true if an error occurred. Errors include opening, writing and finalizing the output file.
     void isRecording(bool recording, bool error);
     void durationRecorded(quint64 durationInt);
 
@@ -86,6 +85,7 @@ class EngineRecord : public QObject, public EncoderCallback, public SideChainWor
     QFile m_file;
     QFile m_cueFile;
     QDataStream m_dataStream;
+    bool m_writeFailed = false;
     // Bounds what the recording leaves in the kernel's page cache, so that a
     // stick that writes slowly cannot turn a long set into hundreds of
     // megabytes of dirty pages the whole process then stalls behind.

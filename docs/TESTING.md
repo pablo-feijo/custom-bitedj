@@ -285,3 +285,31 @@ After a fresh owned GUI start, `python3 tests/e2e/check_touch_drawer.py` checks
 all five distinct header labels, forward wrap and the entire reverse cycle on
 both decks using captured pixels. It needs no controller and leaves the drawer
 closed. Captures are saved under that instance's ignored test-results directory.
+
+## Recording reliability
+
+`EngineRecordTest`, `EngineSideChainTest` and `RecordingManagerTest` cover saved
+PCM samples and finalized WAV headers, file splitting, Linux `/dev/full` write
+failure and recovery, unavailable destinations, 64-bit positions beyond 2 GiB,
+filename collisions, low-space notifications, and interruption/error reporting.
+The sidechain test blocks its consumer while submitting four seconds of audio;
+it verifies that all samples drain after release. Overflow during a pending stop
+or split must report failure instead of a successful save.
+
+Recording writes remain outside the audio callback. The sidechain has a 4 MiB
+FIFO (about 11.9 seconds of stereo float samples at 44.1 kHz) and drains in
+256 KiB chunks with background scheduling. This absorbs temporary stalls; it
+cannot compensate for an arbitrarily slow or disconnected destination. Overflow
+stops recording with an error and attempts to finalize the partial file.
+
+For hardware validation, use a task-owned binary and coordinate exclusive Pi
+input with other active tasks. Play WAV files on both decks from the USB drives,
+start recording through the System drive row, enable the browser Preview column,
+and browse continuously. Stop recording, wait for completion, and inspect the
+actual file in the drive's `Recordings` directory: decode it, check duration and
+sample continuity, and compare against a simultaneous output monitor where
+available. Repeat start/stop and confirm earlier files remain intact. Review
+playback-reader errors, sidechain overruns and callback timing alongside the
+recorded audio. Keep generated recordings and measurements in ignored task
+results; record the binary version, USB devices, source files and test duration.
+A passing run establishes those tested conditions, not arbitrary hardware loads.
