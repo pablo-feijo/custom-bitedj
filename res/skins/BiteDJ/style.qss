@@ -127,13 +127,6 @@ WPushButton[value="1"]:hover {
   padding-left: 0px;
 }
 
-#DeckTitlePlaying {
-  qproperty-scrollColor: #c9372c;
-  font-size: 16px;
-  font-weight: bold;
-  color: #c9372c;
-  margin-right: 4px;
-}
 
 #DeckArtist {
   qproperty-scrollColor: #9a9b9c;
@@ -795,9 +788,11 @@ WLabel {
   qproperty-layoutAlignment: 'AlignVCenter';
 }
 
-#WaveformSourceRow { qproperty-layoutSpacing: 6; }
-#WaveformDeckNumber { font-weight: bold; font-size: 11px; color: #c49ade; background-color: #302638; border-radius: 3px; qproperty-alignment: 'AlignCenter'; }
-#WaveformSource { font-size: 11px; font-weight: bold; color: #e5e6ea; background-color: #24242c; border-radius: 3px; qproperty-alignment: 'AlignCenter'; }
+#WaveformSourceRow { qproperty-layoutSpacing: 0; }
+/* Reserve the icon slot so recording never shifts the source name. */
+#WaveformSource { font-size: 11px; font-weight: bold; color: #e5e6ea; background-color: #24242c; border-radius: 3px; qproperty-alignment: 'AlignCenter'; padding-left: 24px; background-image: none; background-position: left center; background-repeat: no-repeat; }
+#WaveformSource[usbSource="1"] { background-image: url(skin:icons/usb_source.svg); }
+#WaveformSource[recording="1"] { background-image: url(skin:icons/usb_recording.svg); }
 #WaveformKeyLoopRow { qproperty-layoutSpacing: 4; }
 #WaveformMetadataCell { qproperty-layoutSpacing: 0; }
 #WaveformCaption { font-size: 9px; color: #9999a8; qproperty-alignment: 'AlignCenter'; }

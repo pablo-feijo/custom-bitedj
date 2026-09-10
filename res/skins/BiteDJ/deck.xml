@@ -63,26 +63,6 @@
                   <Transform><Not/></Transform>
                 </Connection>
               </WidgetGroup>
-              <WidgetGroup>
-                <ObjectName>DeckTitlePlayingWrapper</ObjectName>
-                <Layout>horizontal</Layout>
-                <SizePolicy>max,me</SizePolicy>
-                <Children>
-                  <Label>
-                    <ObjectName>DeckTitlePlaying</ObjectName>
-                    <Text>&gt;&gt;</Text>
-                    <Connection>
-                      <ConfigKey>[Channel<Variable name="channel"/>],play</ConfigKey>
-                      <BindProperty>visible</BindProperty>
-                    </Connection>
-                  </Label>
-                </Children>
-                <Connection>
-                  <ConfigKey>[Tab],overview</ConfigKey>
-                  <BindProperty>visible</BindProperty>
-                  <Transform><Not/></Transform>
-                </Connection>
-              </WidgetGroup>
               <!-- Opens the cue drawer on this deck. One press both selects
                    the deck and switches the bottom row to the pads, because
                    the trigger CO is what the drawer's WidgetStack keys on.

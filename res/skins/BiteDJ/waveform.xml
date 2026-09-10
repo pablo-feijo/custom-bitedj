@@ -15,15 +15,14 @@
             <Layout>horizontal</Layout>
             <Size>0me,26f</Size>
             <Children>
-              <Label>
-                <ObjectName>WaveformDeckNumber</ObjectName>
-                <Size>28f,26f</Size>
-                <Text>D<Variable name="channel"/></Text>
-              </Label>
               <TrackProperty>
                 <ObjectName>WaveformSource</ObjectName>
-                <Size>76f,26f</Size>
+                <Size>110f,26f</Size>
                 <Property>source</Property>
+                <Connection>
+                  <ConfigKey>[Recording],deck<Variable name="channel"/>_source</ConfigKey>
+                  <BindProperty>recording</BindProperty>
+                </Connection>
                 <DisableActions>true</DisableActions>
                 <Elide>right</Elide>
                 <Channel><Variable name="channel"/></Channel>

@@ -250,6 +250,17 @@ void ReadAheadManager::hintReader(double dRate, gsl::not_null<HintVector*> pHint
     // top priority, we need to read this data immediately
     current_position.type = Hint::Type::CurrentPosition;
     pHintList->append(current_position);
+
+    // Keep the immediate decoder window first, including in reverse. USB
+    // flash writes can stall reads for seconds; two chunks only cover 0.37 s
+    // at 44.1 kHz. Prefetch 32 chunks (5.94 s) within the existing 80-chunk
+    // cache, leaving space for cue/loop targets without allocating in audio.
+    Hint runway = current_position;
+    runway.frameCount = 32 * CachingReaderChunk::kFrames;
+    if (in_reverse) {
+        runway.frame -= runway.frameCount - current_position.frameCount;
+    }
+    pHintList->append(runway);
 }
 
 // Not thread-save, call from engine thread only

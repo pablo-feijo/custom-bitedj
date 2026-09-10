@@ -21,10 +21,8 @@ This table is the sole active-release record; agent entry points link here.
 
 ## Starting work
 
-Until the first authorized integration publishes `codex/v0.0.8`, its initial
-base is the released `origin/codex/v0.0.7` tip recorded below. Fetch that ref and
-compare it with the local `codex/v0.0.8` before creating another task; preserve
-any local integration commits. Once published, use the normal steps below.
+The active integration branch is published on `origin`. Fetch `origin/codex/v0.0.8`
+and preserve local integration commits when comparing the two tips.
 
 1. Read this record; inspect the working tree, branches and existing worktrees.
 2. Fetch `origin` and verify the active integration branch still exists and is

@@ -24,6 +24,7 @@
 
 #include "analyzer/trackanalysisscheduler.h"
 #include "control/controlobject.h"
+#include "control/controlproxy.h"
 #include "control/controlpushbutton.h"
 #include "library/dao/fsanalysiscache.h"
 #include "library/dao/fshistoryworker.h"
@@ -273,6 +274,47 @@ SystemSettings::SystemSettings(UserSettingsPointer pConfig,
                 });
         m_ejectDriveCos.push_back(std::move(pCo));
     }
+
+    const std::array<QString, 3> indicatorKeys{
+            QStringLiteral("deck1_source"), QStringLiteral("deck2_source"),
+            QStringLiteral("off_deck")};
+    for (size_t i = 0; i < indicatorKeys.size(); ++i) {
+        m_recordingIndicators[i] = std::make_unique<ControlObject>(
+                ConfigKey(RECORDING_PREF_KEY, indicatorKeys[i]));
+        m_recordingIndicators[i]->setReadOnly();
+    }
+    m_recordingStatus = std::make_unique<ControlProxy>(
+            ConfigKey(RECORDING_PREF_KEY, "status"), this);
+    m_recordingStatus->connectValueChanged(this,
+            [this](double) { updateRecordingIndicators(); });
+    connect(this, &SystemSettings::usbRowsChanged,
+            this, [this]() { updateRecordingIndicators(); });
+    if (m_pPlayerManager) {
+        for (int i = 0; i < std::min(2, m_pPlayerManager->numberOfDecks()); ++i) {
+            auto* player = m_pPlayerManager->getDeckBase(i);
+            if (!player) {
+                continue;
+            }
+            const auto track = player->getLoadedTrack();
+            m_recordingDeckPaths[i] = track ? track->getLocation() : QString();
+            connect(player, &BaseTrackPlayer::loadingTrack, this,
+                    [this, i]() {
+                        m_recordingDeckPaths[i].clear();
+                        updateRecordingIndicators();
+                    });
+            connect(player, &BaseTrackPlayer::newTrackLoaded, this,
+                    [this, i](TrackPointer track) {
+                        m_recordingDeckPaths[i] = track ? track->getLocation() : QString();
+                        updateRecordingIndicators();
+                    });
+            connect(player, &BaseTrackPlayer::playerEmpty, this,
+                    [this, i]() {
+                        m_recordingDeckPaths[i].clear();
+                        updateRecordingIndicators();
+                    });
+        }
+    }
+    updateRecordingIndicators();
 
     // Per-drive recording (Record button on each USB row). The engine is the
     // authority on whether the recorder is running: it opens the file on the
@@ -764,6 +806,61 @@ QString SystemSettings::classifyTrackSource(const QString& path,
     }
     // A removed source must not turn into LOCAL while its track is still loaded.
     return isOnRemovableMedia(clean) ? tr("OFFLINE") : tr("LOCAL");
+}
+
+std::array<bool, 3> SystemSettings::recordingIndicators(bool active,
+        const QString& recordingPath, const std::array<QString, 2>& deckPaths,
+        const QStringList& mountPoints) {
+    std::array<bool, 3> result{false, false, false};
+    if (!active) {
+        return result;
+    }
+    const auto mountForPath = [&mountPoints](const QString& path) {
+        QString best;
+        if (path.isEmpty()) {
+            return best;
+        }
+        const QString clean = QDir::cleanPath(path);
+        for (const auto& point : mountPoints) {
+            const QString mount = QDir::cleanPath(point);
+            if (mount.size() > best.size() &&
+                    (clean == mount || clean.startsWith(mount + QLatin1Char('/')))) {
+                best = mount;
+            }
+        }
+        return best;
+    };
+    const QString target = mountForPath(recordingPath);
+    for (size_t i = 0; i < deckPaths.size(); ++i) {
+        result[i] = !target.isEmpty() && mountForPath(deckPaths[i]) == target;
+    }
+    result[2] = !result[0] && !result[1];
+    return result;
+}
+
+void SystemSettings::updateRecordingIndicators() {
+    QStringList mounts;
+    for (const auto& mount : m_usbMounts) {
+        mounts.append(mount.mountPoint);
+    }
+    const auto states = recordingIndicators(m_recordingStatus->get() != RECORD_OFF,
+            m_pConfig->getValueString(ConfigKey(RECORDING_PREF_KEY, "Path")),
+            m_recordingDeckPaths, mounts);
+    for (size_t i = 0; i < states.size(); ++i) {
+        m_recordingIndicators[i]->forceSet(states[i] ? 1.0 : 0.0);
+    }
+}
+
+bool SystemSettings::trackSourceIsUsb(const QString& path) const {
+    if (path.isEmpty()) {
+        return false;
+    }
+    const QString clean = QDir::cleanPath(path);
+    return std::any_of(m_usbMounts.cbegin(), m_usbMounts.cend(),
+            [&clean](const UsbMount& mount) {
+                return clean == mount.mountPoint ||
+                        clean.startsWith(mount.mountPoint + QLatin1Char('/'));
+            });
 }
 
 QString SystemSettings::trackSourceLabel(const QString& path) const {

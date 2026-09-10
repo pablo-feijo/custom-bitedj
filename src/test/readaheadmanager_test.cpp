@@ -101,6 +101,30 @@ class ReadAheadManagerTest : public MixxxTest {
     CSAMPLE* m_pBuffer;
 };
 
+TEST_F(ReadAheadManagerTest, PrefetchCoversMultiSecondStorageStallInBothDirections) {
+    constexpr SINT position = 20 * 44100;
+    for (double rate : {1.0, -1.0}) {
+        m_pReadAheadManager->notifySeek(position * mixxx::kEngineChannelCount);
+        HintVector hints;
+        m_pReadAheadManager->hintReader(rate, &hints);
+        ASSERT_EQ(hints.size(), 2);
+        const auto& urgent = hints[0];
+        const auto& reserve = hints[1];
+        EXPECT_EQ(urgent.type, Hint::Type::CurrentPosition);
+        EXPECT_EQ(urgent.frameCount, 2 * CachingReaderChunk::kFrames);
+        EXPECT_GE(reserve.frameCount, 5 * 44100);
+        EXPECT_LE(reserve.frameCount, 40 * CachingReaderChunk::kFrames);
+        if (rate > 0) {
+            EXPECT_EQ(urgent.frame, position);
+            EXPECT_EQ(reserve.frame, position);
+        } else {
+            EXPECT_EQ(urgent.frame + urgent.frameCount, position);
+            EXPECT_EQ(reserve.frame + reserve.frameCount, position);
+            EXPECT_GT(urgent.frame, reserve.frame);
+        }
+    }
+}
+
 TEST_F(ReadAheadManagerTest, FractionalFrameLoop) {
     // If we are in reverse, a loop is enabled, and the current playposition
     // is before of the loop, we should seek to the out point of the loop.

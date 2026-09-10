@@ -105,3 +105,17 @@ Auto Play in Browse. Verify Night and Day, and each right-side panel.
 
 Both main decks initialize Quantize On at application startup. Manual Off lasts
 until exit, including track changes; restarting enables it again.
+
+## Recording indicator beside source
+
+The left Play panel retains its 126px width. Each 110×26 source badge replaces the D1/D2 label and reserves a
+24px slot for a tiny USB icon and a 6px red recording dot. The USB icon is
+shown only for a currently mounted removable source. `[Recording],deck1_source` / `deck2_source` show a red dot only
+when that deck's source USB is receiving the recording. Other sources have no
+icon; stopping clears both dots without moving labels or waveforms. At
+1024×600 the recording dot centers are (24,72) and (24,277). `[Recording],off_deck`
+shows the top-right Settings dot only when neither deck uses the recording
+USB (including local recordings). These read-only controls follow status,
+load/unload and cached mount changes, using longest mount/path-boundary matching
+without filesystem I/O in repaint or the audio callback. The former red `>>`
+playback text beside track titles is removed; Play buttons show playback state.

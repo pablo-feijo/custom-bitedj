@@ -1,8 +1,8 @@
 # Custom Bite DJ 0.0.8 UI gallery
 
 Custom Bite DJ is an independent fork of Team Deckshark’s BiteDJ, based on Mixxx.
-These 1024×600 Night-mode captures use synthetic Rekordbox fixtures and binary
-`0.0.8-codex-v0-0-8-controller-validation.2` in an owned ARM64 test instance.
+These 1024×600 captures (Night mode unless noted) use synthetic Rekordbox fixtures and binary
+`0.0.8-codex-v0-0-8-controller-validation.7` in an owned ARM64 test instance.
 [Capture provenance](images/ui/0.0.8/capture-provenance.json) records the exact
 build source snapshot and image hashes. [Capture procedure](GUI_TESTING.md#documentation-screenshots).
 The released [0.0.7 gallery](UI_SCREENSHOTS.md) preserves the remaining unchanged pages.
@@ -57,3 +57,24 @@ controller-build provenance above.
 ![Date/time editor in Day mode](images/ui/0.0.8/clock-editor-day.png)
 
 </details>
+
+## Recording
+
+See the [recording verification and saved-take capture](RECORDING.md) for the
+recording task’s component validation. The combined two-WAV, Preview and recording performance results are documented
+in the [release notes](../RELEASE_0.0.8.md#validation-and-artifacts).
+
+A fixed slot beside a source name shows a red dot only when that USB is
+receiving the recording. When neither deck uses the recording USB, the
+top-right dot appears. Stopping clears all recording dots while playback
+continues; source labels and waveform geometry stay unchanged. The former red
+playback arrows beside track titles are removed.
+
+The synthetic decks use TestUSB while this take is written to the local
+recording directory, so the top-right fallback is shown. The source badges
+keep their tiny USB icons and wider names without D1/D2 labels.
+
+![Local recording uses the top-right fallback](images/ui/0.0.8/recording-on.png)
+![Recording stopped while both decks continue playing](images/ui/0.0.8/recording-off.png)
+
+![Recording fallback and USB source icons in Day mode](images/ui/0.0.8/recording-day.png)

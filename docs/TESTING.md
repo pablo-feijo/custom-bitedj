@@ -151,13 +151,13 @@ this timing is a cold baseline, not a measured warm-cache result.
 
 Every merge and push to the active SemVer branch includes a CI follow-through.
 Use the active branch in [BRANCH_VERSIONING.md](BRANCH_VERSIONING.md), currently
-`codex/v0.0.7`, and the user's `origin` repository. Record the exact published
+`codex/v0.0.8`, and the user's `origin` repository. Record the exact published
 commit, workflow run URLs, outcomes and repairs in the task checklist.
 
 ```sh
-git fetch origin codex/v0.0.7
-published_sha=$(git rev-parse origin/codex/v0.0.7)
-gh run list --repo pablo-feijo/custom-bitedj --branch codex/v0.0.7 \
+git fetch origin codex/v0.0.8
+published_sha=$(git rev-parse origin/codex/v0.0.8)
+gh run list --repo pablo-feijo/custom-bitedj --branch codex/v0.0.8 \
   --commit "$published_sha" --json databaseId,workflowName,headSha,status,conclusion,url
 gh run view RUN_ID --repo pablo-feijo/custom-bitedj --json headSha,status,conclusion,jobs
 gh run view RUN_ID --repo pablo-feijo/custom-bitedj --log-failed

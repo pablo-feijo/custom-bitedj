@@ -583,12 +583,14 @@ void CachingReader::hintAndMaybeWake(const HintVector& hintList) {
                             << request.chunk;
                 }
                 if (m_chunkReadRequestFIFO.write(&request, 1) != 1) {
-                    kLogger.warning()
-                            << "Failed to submit read request for chunk"
-                            << chunkIndex;
                     // Revoke the chunk from the worker and free it
                     pChunk->takeFromWorker();
                     freeChunk(pChunk);
+                    // Bounded backpressure: the next audio callback retries
+                    // after the worker drains the FIFO. Do not allocate and
+                    // log once per remaining speculative/cue chunk in audio.
+                    m_worker.workReady();
+                    return;
                 }
             } else if (pChunk->getState() == CachingReaderChunkForOwner::READY) {
                 // This will cause the chunk to be 'freshened' in the cache. The

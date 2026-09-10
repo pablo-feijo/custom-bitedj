@@ -7,6 +7,7 @@
 #include <QString>
 #include <QStringList>
 #include <QTimer>
+#include <array>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -14,6 +15,7 @@
 #include "preferences/usersettings.h"
 
 class ControlObject;
+class ControlProxy;
 class ControlPushButton;
 class PlayerManager;
 class RecordingManager;
@@ -76,8 +78,14 @@ class SystemSettings : public QObject {
 
     // Uses cached mount/slot labels; no filesystem access during label repaint.
     QString trackSourceLabel(const QString& path) const;
+    bool trackSourceIsUsb(const QString& path) const;
     static QString classifyTrackSource(const QString& path,
             const QStringList& mountPoints, const QStringList& labels);
+
+    // Pure cached-path classification: deck 1, deck 2, top-right fallback.
+    static std::array<bool, 3> recordingIndicators(bool active,
+            const QString& recordingPath, const std::array<QString, 2>& deckPaths,
+            const QStringList& mountPoints);
 
     // Unloads every track loaded from the indexed mount, then unmounts it and
     // re-enumerates. Idempotent on out-of-range. Safe to call from the GUI
@@ -190,6 +198,7 @@ class SystemSettings : public QObject {
     // runs on both paths and must survive running twice.
     void releaseRecordingTarget();
 
+    void updateRecordingIndicators();
     void applyScreenRotation(int degrees);
 
     // Re-entrancy guard: ejectRow() pumps the event loop while waiting for the
@@ -210,6 +219,10 @@ class SystemSettings : public QObject {
     // what the eject path and the vanished-mount diff in refresh() test
     // against; the row index the skin needs is derived from it.
     QString m_recordingMountPoint;
+    std::array<QString, 2> m_recordingDeckPaths;
+    std::array<std::unique_ptr<ControlObject>, 3> m_recordingIndicators;
+    std::unique_ptr<ControlProxy> m_recordingStatus;
+
     // [Recording],Directory as it was before we pointed it at the drive, put
     // back when the recording ends so a later recording started from anywhere
     // else does not land on (or worse, at the empty mountpoint of) that drive.

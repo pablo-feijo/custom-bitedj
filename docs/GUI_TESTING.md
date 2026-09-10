@@ -821,3 +821,18 @@ The test-only probe logs native state; the runner sends actual ALSA MIDI through
 the shipped XML callbacks. It verifies search/grid separation, Off/Short/Long
 coast duration, CDJ behavior and Sync direction/phase release on both decks.
 Physical gesture timing, LED appearance and speaker quality remain manual checks.
+
+## Source recording indicator
+
+Use two synthetic tracks in the owned 1024×600 instance. With decks on different
+USB drives, record to each drive in turn: only the matching source badge turns
+red. With both decks using the same recording USB, both badges turn red. Record
+to a third drive or local directory: neither source badge lights, and the
+Settings tab's top-right dot appears. Load a track from the recording drive,
+then unload it, and verify the indicator moves between source and fallback.
+Stop while playback continues: all recording dots must clear. Compare source
+text and deck-label pixels across states to verify the reserved slot prevents
+movement. Repeat Day/Night and check the finalized take. The former red `>>`
+title marker must be absent. See the [Play control map](../.agents/skills/bitedj-ui/references/play.md#recording-indicator-beside-source)
+for geometry and control mapping. On Pi, use USB Record/Stop and wait for
+notifications to clear before top-bar navigation.

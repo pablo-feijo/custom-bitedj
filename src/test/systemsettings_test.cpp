@@ -71,6 +71,50 @@ TEST(SystemSettingsTest, TrackSourceUsesLongestMountAndPathBoundaries) {
     EXPECT_EQ(SystemSettings::classifyTrackSource("/media/USB/song.wav", {}, {}), "OFFLINE");
 }
 
+TEST(SystemSettingsTest, RecordingIndicatorsFollowDestinationAndLoadedDecks) {
+    const QStringList mounts{"/media/pi/PEN 1", "/media/pi/PEN 2"};
+    const std::array<QString, 2> decks{
+            "/media/pi/PEN 1/song.wav", "/media/pi/PEN 2/song.wav"};
+    const auto first = SystemSettings::recordingIndicators(true,
+            "/media/pi/PEN 1/Recordings/take.wav", decks, mounts);
+    EXPECT_EQ(first, (std::array<bool, 3>{true, false, false}));
+    const auto second = SystemSettings::recordingIndicators(true,
+            "/media/pi/PEN 2/Recordings/take.wav", decks, mounts);
+    EXPECT_EQ(second, (std::array<bool, 3>{false, true, false}));
+    EXPECT_EQ(SystemSettings::recordingIndicators(false,
+                      "/media/pi/PEN 2/Recordings/take.wav", decks, mounts),
+            (std::array<bool, 3>{false, false, false}));
+    EXPECT_EQ(SystemSettings::recordingIndicators(true,
+                      "/media/pi/PEN 2/Recordings/take.wav",
+                      {decks[0], decks[0]}, mounts),
+            (std::array<bool, 3>{false, false, true}));
+    EXPECT_EQ(SystemSettings::recordingIndicators(true,
+                      "/media/pi/PEN 2/Recordings/take.wav",
+                      {decks[1], decks[1]}, mounts),
+            (std::array<bool, 3>{true, true, false}));
+    EXPECT_EQ(SystemSettings::recordingIndicators(true,
+                      "/media/pi/PEN 2/Recordings/take.wav", {"", ""}, mounts),
+            (std::array<bool, 3>{false, false, true}));
+}
+
+TEST(SystemSettingsTest, RecordingIndicatorsDoNotMatchPrefixesOrNestedMounts) {
+    const QStringList mounts{"/media/USB", "/media/USB/nested"};
+    const std::array<QString, 2> decks{
+            "/media/USB-other/song.wav", "/media/USB/nested/song.wav"};
+    EXPECT_EQ(SystemSettings::recordingIndicators(true,
+                      "/media/USB/Recordings/take.wav", decks, mounts),
+            (std::array<bool, 3>{false, false, true}));
+    EXPECT_EQ(SystemSettings::recordingIndicators(true,
+                      "/media/USB/nested/Recordings/take.wav", decks, mounts),
+            (std::array<bool, 3>{false, true, false}));
+    EXPECT_EQ(SystemSettings::recordingIndicators(true,
+                      "/home/pi/Recordings/take.wav", decks, mounts),
+            (std::array<bool, 3>{false, false, true}));
+    EXPECT_EQ(SystemSettings::recordingIndicators(true,
+                      "/media/USB/nested/Recordings/take.wav", decks, {}),
+            (std::array<bool, 3>{false, false, true}));
+}
+
 class ScopedUserEnvironment {
   public:
     explicit ScopedUserEnvironment(const QByteArray& user)

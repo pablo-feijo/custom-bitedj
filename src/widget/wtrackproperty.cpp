@@ -121,13 +121,19 @@ void WTrackProperty::slotTrackChanged(TrackId trackId) {
 }
 
 void WTrackProperty::updateLabel() {
-    if (m_pCurrentTrack) {
-        if (m_displayProperty == QStringLiteral("source")) {
-            auto* settings = SystemSettings::tryInstance();
-            setText(settings ? settings->trackSourceLabel(m_pCurrentTrack->getLocation())
-                             : tr("N/A"));
-            return;
+    if (m_displayProperty == QStringLiteral("source")) {
+        auto* settings = SystemSettings::tryInstance();
+        const QString path = m_pCurrentTrack ? m_pCurrentTrack->getLocation() : QString();
+        const int usb = settings && settings->trackSourceIsUsb(path) ? 1 : 0;
+        if (property("usbSource").toInt() != usb) {
+            setProperty("usbSource", usb);
+            restyleAndRepaint();
         }
+        setText(m_pCurrentTrack ? (settings ? settings->trackSourceLabel(path) : tr("N/A"))
+                               : QString());
+        return;
+    }
+    if (m_pCurrentTrack) {
         setText(getPropertyStringFromTrack(m_displayProperty));
         return;
     }

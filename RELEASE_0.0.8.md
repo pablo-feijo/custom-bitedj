@@ -1,7 +1,7 @@
 # Custom Bite DJ 0.0.8 — in development
 
 An independent fork of Team Deckshark’s BiteDJ, based on Mixxx.
-Integration target: `codex/v0.0.8`. This version has not been published.
+Integration target: `codex/v0.0.8`. Development commits are published; this is not a tagged release.
 
 ## Changes
 
@@ -28,24 +28,41 @@ Integration target: `codex/v0.0.8`. This version has not been published.
 
 ## Validation and artifacts
 
-The clock fix passed a failing-before/passing-after native touch regression,
-17 system-dialog tests, fast checks and eight desktop E2E tests on
-`0.0.7-codex-touch-datetime-editor.1`. Combined 0.0.8 rebuild and physical Pi touch
-validation remain pending; do not treat the component results as combined-build
-validation.
+Combined audio validation used `0.0.8-codex-v0-0-8-controller-validation.4`.
+It passed 1,074 native tests (13 existing disabled) and eight desktop E2E tests;
+the combined recording/controller build also passed 57 removable-drive tests.
+The user validated the touchscreen clock fix on the Pi.
 
-Validated development build: `0.0.8-codex-v0-0-8-controller-validation.2`.
-Fast checks, 1,061 native tests, 57 removable-drive tests and eight desktop E2E
-tests passed (13 existing native tests remain disabled). The user reviewed this
-build on the Pi with DDJ-400 and the Techno USB playlist; exported RGB previews
-were verified. These results do not establish uninterrupted audio on every drive.
+On the Pi, two PEN 2 WAV decks played while 3,103 controller browse steps ran
+with waveform Preview enabled and recording to the same USB drive. The
+120-second digital output capture and 198.8-second saved take had no
+mid-playback silent 10ms blocks; the measured window logged no reader-cache
+misses or sound-device underruns. A subsequent 22.2-second PEN 1 recording
+also finalized without silent blocks. The user heard no audio breaks. The
+output was the JBL Bluetooth sink; this does not establish performance on
+every drive or output route. A sound-device underrun occurred before the
+measured window.
 
-The earlier PEN 2 two-WAV browsing stress run produced reader starvation and
-long digital-output gaps despite zero callback-underrun reports. A controlled
-60-second PEN 1 run had no mid-playback silence, but PEN 2 cold-load stress must
-still be repeated on this build. Transition latency and combined USB recording
-stress also remain open. Keep audio capture and reader-cache diagnostics in
-future performance checks.
+The earlier build reproduced multi-second USB read starvation. Read-ahead now
+keeps the urgent two-chunk request first and extends prefetch to 32 chunks
+(about 5.9 seconds at 44.1kHz) within the existing 80-chunk cache. A full request
+queue yields to the reader and retries on the next callback.
+
+A cold Browse-to-Play load showed the full Play page around 0.73–0.84 seconds
+after Load, with one intermediate layout frame and no captured audio gap.
+Transition latency remains a measured limitation, not an instantaneous change.
+
+The left source row removes D1/D2 labels, widens the source name and shows a
+tiny USB icon only for mounted removable media. Recording status uses a fixed slot beside the source name only on decks using
+the recording USB. When neither deck uses it, the top-right dot appears. Stop
+clears all dots; playback arrows beside titles are removed.
+
+Build `0.0.8-codex-v0-0-8-controller-validation.7` adds USB-specific recording
+indicators and passed 1,076 native tests (13 existing disabled), 57 removable-drive
+tests, fast checks and eight desktop E2E tests. The user validated the final
+layout on the Pi. USB recording status was verified moving from the top-right
+fallback to the matching source on load, then clearing after Stop while
+playback continued.
 
 Development binaries carry their full branch/build suffix; preserve their
 provenance rather than relabeling them as the integration version.

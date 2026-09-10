@@ -7,6 +7,15 @@ BiteDJ based on Mixxx. Versions use Semantic Versioning.
 
 ### Fixed
 
+- Replace the left D1/D2 source labels with small USB icons and wider source names.
+- Show recording as a red dot beside each Play source name, only on the USB receiving the
+  recording, with a top-right fallback when neither deck uses it and fixed geometry; remove the ambiguous red playback arrows beside
+  track titles. See the [recording indicators](docs/UI_SCREENSHOTS_0.0.8.md#recording).
+- Extend deck read-ahead within the existing cache to tolerate multi-second USB
+  stalls; retry a full reader request queue without repeated allocation/logging.
+- Preserve recording takes on filename collisions and report write, flush, close,
+  low-space and queue-overflow failures; retain partial takes with an error.
+
 - Route touchscreen taps on the [Info clock card](docs/UI_SCREENSHOTS_0.0.8.md#settings-info)
   to its date/time editor, including taps over the displayed time label.
 
