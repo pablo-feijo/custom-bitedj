@@ -95,8 +95,7 @@ the new ports. Do not prune globally on every build or restart a healthy engine.
 ## Versioned images and reproducible hardware fixes
 
 Follow [branch versions](../../../../docs/BRANCH_VERSIONING.md) before any deliverable build.
-The active application release is 0.0.8 on `codex/v0.0.8`. The image recipe
-remains pinned to the released 0.0.7 source until image work is requested; the parent
+The active application release is 0.0.8 on `codex/v0.0.8`. The image recipe includes the 0.0.8 Pi recording/storage fixes; the parent
 `mixxx-pi-gen` gitlink selects the exact image source. Start new changes on an
 isolated feature branch, publish the image commit, then update the parent
 gitlink. Advance semver only within the user's integration authorization.
@@ -119,3 +118,20 @@ procedures in Git. Put generated exports, audio captures, screenshots, logs,
 benchmark snapshots, caches and test reports in ignored `test-results/` (or
 other ignored runtime directories). Do not commit test-run results. Record
 instance ownership and regenerate assets instead of copying personal music.
+
+
+## Pi playback and recording regression checks
+
+For load/recording changes, follow [Pi regression coverage](../../../../docs/TESTING.md#pi-recording-and-load-regression-coverage).
+Preserve image configuration for V3D selection before Sway starts, one automounter
+(udiskie), and the USB BFQ/64-request rule. Verify these after reboot rather than
+relying on a runtime-only fix. Check DDJ PCM and MIDI recovery separately.
+
+Use varied large WAVs plus compressed files, DDJ Load-button routing and repeated
+Browse/Play transitions while recording to the playback drive. Observe file growth,
+then Stop Recording and wait for Saved before terminating or restarting the app.
+Never use SIGTERM to finalize a test recording. Decode the whole file, verify
+header/frame counts and correlate measured gaps with source silence and load times.
+No logged underrun is not proof of continuous audio; internal master capture is
+not an analog DDJ measurement. Test each storage/hub arrangement independently.
+Preserve the user's recordings; identify disposable test takes before cleanup.

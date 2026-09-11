@@ -32,6 +32,29 @@ BiteDJ runs on slow USB flash storage.
 - Never execute database writes or log appends on the main GUI thread.
 - Always utilize `FsHistoryWorker` or a dedicated `SCHED_BATCH` thread for I/O to prevent 3-second UI freezes.
 
+## Preserve recording and load responsiveness
+
+Before changing deck loading, metadata, cue persistence or recording, read
+[recording storage behavior](../../../../docs/RECORDING.md) and
+[Pi regression coverage](../../../../docs/TESTING.md#pi-recording-and-load-regression-coverage).
+
+- Keep encoder writes buffered; do not reintroduce periodic `sync_file_range`
+  or page-cache eviction on the recording path. USB request starvation can stall
+  playback readers as well as the GUI, even with recording on a worker thread.
+- Metadata/cover imports and cue/rating lookups must open files read-only.
+  On FAT, closing a write-enabled handle can flush unrelated recording writes.
+  Keep explicit tag exports separate from imports.
+- Preserve queued cue saves in both TrackDAO and Rekordbox. Queue value snapshots,
+  never thread-affine Track/SQLite objects. Preserve immediate pending-value
+  reads and the Safe Eject drain/error gate.
+- Selecting or dragging an uncached row must not import it. Audit controller,
+  touch, context-menu, History, direct-file, Auto DJ, clone and sampler routes
+  when changing shared loading code. `TrackLoader` runs on the collection
+  manager thread; a queued invocation alone does not make imports background.
+- Metadata/ANLZ parsing, rating writes and sampler-bank persistence still have
+  synchronous paths. Do not describe them as fixed or move them across threads
+  without respecting DAO affinity, cache locks, Track lifetime and cancellation.
+
 ## UI Layout
 
 - Overview Panel: Keep **FX**, **KEY**, **JUMP**, and **GRID** tabs. Beat-jump size and actions belong in JUMP, not the left waveform sidebar.
