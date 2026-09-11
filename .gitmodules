@@ -1,4 +1,4 @@
 [submodule "mixxx-pi-gen"]
 	path = mixxx-pi-gen
 	url = https://github.com/pablo-feijo/bitedj-mixxx-pi-gen.git
-	branch = codex/v0.0.7
+	branch = codex/v0.0.8
