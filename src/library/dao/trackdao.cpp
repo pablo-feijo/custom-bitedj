@@ -1769,7 +1769,7 @@ bool TrackDAO::updateTrack(const Track& track) const {
     // track never touches the drive, which keeps the save that lands mid-eject
     // (the queued cache eviction the unmount pumps for) from reopening a file
     // on the volume being ejected.
-    FsCueOverrideStore::flushIfChanged(track);
+    FsCueOverrideStore::queueIfChanged(track);
     // The star rating rides along on the same terms: written out only when the
     // DJ changed it, so an untouched track still costs the drive nothing.
     FsMetaOverrideStore::flushIfChanged(track);

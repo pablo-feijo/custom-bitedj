@@ -4,6 +4,10 @@
 
 #include <QFile>
 #include <QStorageInfo>
+#include <QSqlQuery>
+#include <QTemporaryDir>
+
+#include "library/dao/fsstore.h"
 
 #include "test/mixxxtest.h"
 #include "track/track.h"
@@ -210,3 +214,40 @@ TEST_F(FsMetaOverrideStoreTest, IgnoresTracksOnTheBootVolume) {
 }
 
 } // namespace
+
+TEST(ScopedFsStoreTest, ReadConnectionCannotWrite) {
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    FsStoreTarget target;
+    target.storeDirPath = temporary.path();
+    target.dbPath = temporary.filePath(QStringLiteral("store.sqlite"));
+    target.writable = true;
+    {
+        ScopedFsStore writer("test");
+        ASSERT_TRUE(writer.open(target, QStringLiteral("CREATE TABLE entries(value INTEGER)")));
+        QSqlQuery query(writer.database());
+        ASSERT_TRUE(query.exec(QStringLiteral("INSERT INTO entries VALUES(42)")));
+    }
+    {
+        ScopedFsStore reader("test");
+        ASSERT_TRUE(reader.open(target, QString()));
+        QSqlQuery query(reader.database());
+        EXPECT_FALSE(query.exec(QStringLiteral("INSERT INTO entries VALUES(99)")));
+        ASSERT_TRUE(query.exec(QStringLiteral("SELECT value FROM entries")));
+        ASSERT_TRUE(query.next());
+        EXPECT_EQ(42, query.value(0).toInt());
+        EXPECT_FALSE(query.next());
+    }
+}
+
+TEST(ScopedFsStoreTest, ReadDoesNotCreateMissingDatabase) {
+    QTemporaryDir temporary;
+    ASSERT_TRUE(temporary.isValid());
+    FsStoreTarget target;
+    target.storeDirPath = temporary.path();
+    target.dbPath = temporary.filePath(QStringLiteral("missing.sqlite"));
+    target.writable = true;
+    ScopedFsStore reader("test");
+    EXPECT_FALSE(reader.open(target, QString()));
+    EXPECT_FALSE(QFile::exists(target.dbPath));
+}

@@ -1690,7 +1690,7 @@ TrackPointer RekordboxPlaylistModel::getTrack(const QModelIndex& index) const {
     // and readAnalyze() below rewrites its cues from the ANLZ file. Store any
     // cue the DJ has set since the track was loaded before that happens, or
     // the rekordbox import would erase it before it was ever saved.
-    FsCueOverrideStore::flushIfChanged(*track);
+    FsCueOverrideStore::queueIfChanged(*track);
 
     // The following code accounts for timing offsets required to
     // correctly align timing information (cue points, loops, beatgrids)

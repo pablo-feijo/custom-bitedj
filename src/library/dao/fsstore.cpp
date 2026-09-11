@@ -129,6 +129,11 @@ bool ScopedFsStore::open(const FsStoreTarget& target, const QString& createTable
     QSqlDatabase db = QSqlDatabase::addDatabase(
             QStringLiteral("QSQLITE"), m_connectionName);
     db.setDatabaseName(target.dbPath);
+    if (!create) {
+        // A read-write SQLite handle can flush pending FAT writes on close,
+        // blocking the UI behind an unrelated recording on the same drive.
+        db.setConnectOptions(QStringLiteral("QSQLITE_OPEN_READONLY"));
+    }
 
     const auto openConnection = [&createTableDdl, create](
                                         QSqlDatabase& db, QSqlError* pError) {
@@ -154,7 +159,7 @@ bool ScopedFsStore::open(const FsStoreTarget& target, const QString& createTable
         if (openConnection(db, &error)) {
             return true;
         }
-        const bool canRecover = target.writable && attempt == 0 &&
+        const bool canRecover = create && target.writable && attempt == 0 &&
                 isCorruptionError(error) && QFileInfo::exists(target.dbPath);
         if (!canRecover) {
             qWarning() << m_logTag << ": cannot open" << target.dbPath << error.text();
@@ -166,10 +171,6 @@ bool ScopedFsStore::open(const FsStoreTarget& target, const QString& createTable
         db.close();
         if (!QFile::remove(target.dbPath)) {
             qWarning() << m_logTag << ": failed to delete" << target.dbPath;
-            return false;
-        }
-        if (!create) {
-            // Nothing left to read from.
             return false;
         }
     }

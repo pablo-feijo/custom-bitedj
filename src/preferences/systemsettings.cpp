@@ -27,6 +27,7 @@
 #include "control/controlproxy.h"
 #include "control/controlpushbutton.h"
 #include "library/dao/fsanalysiscache.h"
+#include "library/dao/fscueoverridestore.h"
 #include "library/dao/fshistoryworker.h"
 #include "mixer/basetrackplayer.h"
 #include "mixer/playermanager.h"
@@ -728,6 +729,14 @@ bool SystemSettings::ejectMountPoint(const QString& mountPoint,
         // Drain queued track-release / cache-eviction events posted to this thread.
         QCoreApplication::processEvents(QEventLoop::AllEvents, kUnmountRetryMs);
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        // Eviction above may have queued cue snapshots. Finish them before
+        // unmount can succeed, including jobs that have not opened a file yet.
+        if (!FsCueOverrideStore::flushPendingWrites()) {
+            if (pError) {
+                *pError = tr("Cue changes could not be saved. Keep the drive connected.");
+            }
+            return false;
+        }
         if (tryUnmount(mountPoint, &error)) {
             return true;
         }

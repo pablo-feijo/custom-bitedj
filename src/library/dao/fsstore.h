@@ -68,7 +68,7 @@ class ScopedFsStore {
     /// with an empty one an absent database is simply "nothing stored here"
     /// and nothing at all is written to the drive.
     ///
-    /// Recovers once from a database file that is corrupt or not SQLite at all
+    /// A write operation recovers once from a corrupt or non-SQLite database
     /// by replacing it — what was in it is unreadable either way.
     bool open(const FsStoreTarget& target, const QString& createTableDdl);
 

@@ -122,6 +122,10 @@ void EngineRecord::onBufferOverflow() {
     // A stop or split may already be pending when the consumer sees the loss.
     // An open file still owns those samples until it has been finalized.
     if (fileOpen()) {
+        if (!m_writeFailed) {
+            qWarning() << "Recording stopped: sidechain buffer overflow while writing"
+                       << m_fileName;
+        }
         m_writeFailed = true;
     }
 }
@@ -317,10 +321,9 @@ void EngineRecord::write(const unsigned char *header, const unsigned char *body,
     }
     emit bytesRecorded((headerLen+bodyLen));
 
-    // Push what has accumulated towards the device and let go of what is
-    // already there, so the file's footprint in the page cache stays flat
-    // however long the recording runs.
-    m_pageCache.onWritten(m_file.handle(), m_dataStream.device()->pos());
+    // Leave writeback scheduling to the kernel. sync_file_range(WRITE) and
+    // fadvise(DONTNEED) can block on a saturated USB request queue even without
+    // WAIT flags, starving the sidechain FIFO while playback keeps running.
     probeFreeSpace(headerLen + bodyLen);
 }
 
@@ -378,9 +381,6 @@ bool EngineRecord::openFile() {
         if (m_file.handle() != -1) {
             m_dataStream.setDevice(&m_file);
         }
-        // A recording that splits opens one file per part; each starts with an
-        // empty cache of its own.
-        m_pageCache.reset();
         m_freeSpaceProbeCountdown = kFreeSpaceProbeIntervalBytes;
     } else {
         return false;
@@ -443,9 +443,6 @@ void EngineRecord::closeFile() {
             m_pEncoder.reset();
         }
         if (!m_file.flush()) m_writeFailed = true;
-        // Nothing is going to be written behind the tail of this file, so the
-        // limiter's rolling window would leave it cached for good.
-        mixxx::PageCacheLimiter::dropAll(m_file.handle());
         m_file.close();
     }
 }

@@ -296,6 +296,17 @@ The sidechain test blocks its consumer while submitting four seconds of audio;
 it verifies that all samples drain after release. Overflow during a pending stop
 or split must report failure instead of a successful save.
 
+`EngineRecordTest.RecordingDoesNotForceWriteback` records past multiple former
+1 MiB boundaries in a Linux child process that rejects `sync_file_range` using
+seccomp. This catches forced writeback even on fast test filesystems where USB
+request-queue stalls cannot be reproduced. Test setup failures fail the check.
+
+`TagLibTest.MetadataImportNeverOpensForWriting` rejects writable `openat`
+attempts while importing metadata and cover art from eight audio formats.
+Imports use an explicitly read-only TagLib stream: closing a writable FAT
+handle can flush pending writes from a recording on the same drive. Existing
+TagLib export tests still verify intentional metadata writes.
+
 Recording writes remain outside the audio callback. The sidechain has a 4 MiB
 FIFO (about 11.9 seconds of stereo float samples at 44.1 kHz) and drains in
 256 KiB chunks with background scheduling. This absorbs temporary stalls; it
@@ -313,3 +324,27 @@ playback-reader errors, sidechain overruns and callback timing alongside the
 recorded audio. Keep generated recordings and measurements in ignored task
 results; record the binary version, USB devices, source files and test duration.
 A passing run establishes those tested conditions, not arbitrary hardware loads.
+
+
+## Pi recording and load regression coverage
+
+On 2026-09-11, candidate `0.0.8-codex-pi-ddj-recording.6` passed 37 focused native
+checks, the fast suite, 13 image checks and all eight desktop E2E cases on retry.
+The first E2E run had a saved-playlist navigation failure. Pi validation included
+large WAV playback, DDJ Load actions from Rekordbox, History and Computer folders,
+and repeated Browse/Play and settings transitions while recording to the same
+USB drive. The user subsequently confirmed normal controller/audio operation.
+
+The BFQ comparison captured 16:08.945 of continuous audio across 40 varied-track
+batch loads. That diagnostic take required WAV length recovery after forced
+termination; it is not evidence of normal finalization. A separate 5:03.392 take
+on the deployed candidate finalized through Stop Recording at 53,518,380 bytes.
+Both decoded fully with no exact-zero or -90 dB silence spans of at least 10 ms.
+These are internal master measurements, not analog DDJ loopback captures.
+
+For future regressions, record load timestamps and file growth, stop normally,
+validate WAV frame counts and decode the entire take. Correlate gaps with source
+silence and thread/kernel waits; lack of logged underruns alone is insufficient.
+Some cold loads still took 5–6 seconds during concurrent deployment I/O without
+breaking the BFQ recording. Test external SD readers separately; the final run
+used PEN 2 with the problematic reader/hub disconnected.

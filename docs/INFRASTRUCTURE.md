@@ -56,7 +56,7 @@ BiteDJ runs directly on the hardware with a minimal set of underlying drivers:
 - **Frameworks**: 
   - `qt6-wayland` and `qt6-qpa-plugins` are required for native Wayland UI execution.
   - `xwayland` provides the X11 compatibility bridge (`xcb`) for legacy dialogs and VST integrations when native Wayland touch drag-and-drop requires mitigation.
-- **Storage**: Automounting of DJ USB drives is handled by `udevil` and `udiskie`, relying on `polkitd` rules for passwordless operation.
+- **Storage**: Automounting of DJ USB drives is handled by `udiskie`, relying on `polkitd` rules for passwordless operation. Do not also start `devmon`: the two automounters can race and mount one partition at two paths.
 - **Networking & Wireless**: WiFi and Bluetooth connectivity is managed entirely by native OS dialogs launched seamlessly over the UI. This requires:
   - `network-manager-gnome` (provides `nm-connection-editor` for WiFi selection).
   - `blueman` (provides `blueman-manager` for Bluetooth audio pairing).

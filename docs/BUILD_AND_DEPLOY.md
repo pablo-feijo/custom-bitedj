@@ -66,6 +66,16 @@ ssh pi@<YOUR_PI_IP> "sudo systemctl restart lightdm"
 ```
 LightDM will cleanly restart the Sway compositor and immediately launch the new BiteDJ binary without crashing into a failed state.
 
+On Pi 4/5, Sway must select the V3D render node before starting. The image recipe
+and SSH deployment set `WLR_RENDER_DRM_DEVICE=/dev/dri/renderD128` in
+`/etc/environment`; deployment preserves an existing explicit override. Setting
+it only on the BiteDJ command is too late to configure the compositor. Without
+this selection, Wayland clients can fall back to llvmpipe even while direct EGL
+uses V3D, causing slow waveform and screen transitions. Verify
+`eglinfo -B -p wayland` from the graphical session reports Broadcom V3D, then retest large WAV
+loads while playing and recording through the connected DDJ. A graphics fix does
+not prevent USB over-current disconnections.
+
 ## Incremental local builds and artifact verification
 
 Before building, set the branch-specific prerelease in `CMakeLists.txt` as

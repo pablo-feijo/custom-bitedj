@@ -1,13 +1,19 @@
 #include "library/dao/fscueoverridestore.h"
 
 #include <QDateTime>
+#include <QElapsedTimer>
+#include <QGlobalStatic>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMutexLocker>
 #include <QSqlError>
 #include <QSqlQuery>
+#include <QThread>
+#include <QWaitCondition>
 #include <algorithm>
+#include <deque>
+#include <functional>
 #include <optional>
 
 #include "library/dao/fsstore.h"
@@ -15,12 +21,84 @@
 #include "track/cue.h"
 #include "track/track.h"
 #include "util/assert.h"
+#include "util/rtscheduling.h"
 
 namespace {
 
 // Per-filesystem layout, alongside the analysis cache in the same .bitedj dir.
 const QString kStoreDbName = QStringLiteral("cues.sqlite");
 const char kLogTag[] = "FsCueOverrideStore";
+
+// No Track or SQLite connection crosses threads: jobs own serialized cue data
+// and open their own short-lived connection. Low I/O priority matters as much
+// as CPU priority when a recording and a playing deck share this USB drive.
+class CueWriteThread final : public QThread {
+  public:
+    CueWriteThread() {
+        setObjectName(QStringLiteral("CueWriteThread"));
+        start(QThread::LowPriority);
+    }
+    ~CueWriteThread() override {
+        {
+            QMutexLocker locker(&m_mutex);
+            m_stopping = true;
+            m_ready.wakeAll();
+        }
+        wait();
+    }
+    void enqueue(std::function<void()> job) {
+        QMutexLocker locker(&m_mutex);
+        m_jobs.push_back(std::move(job));
+        m_ready.wakeAll();
+    }
+    bool drain(int timeoutMillis) {
+        QElapsedTimer timer;
+        timer.start();
+        QMutexLocker locker(&m_mutex);
+        while (m_running || !m_jobs.empty()) {
+            if (timeoutMillis < 0) {
+                m_done.wait(&m_mutex);
+                continue;
+            }
+            const auto remaining = timeoutMillis - timer.elapsed();
+            if (remaining <= 0) {
+                return false;
+            }
+            m_done.wait(&m_mutex, static_cast<unsigned long>(remaining));
+        }
+        return true;
+    }
+  protected:
+    void run() override {
+        mixxx::demoteCurrentThreadToBackground("CueWriteThread");
+        QMutexLocker locker(&m_mutex);
+        for (;;) {
+            while (m_jobs.empty() && !m_stopping) {
+                m_ready.wait(&m_mutex);
+            }
+            if (m_jobs.empty()) {
+                return;
+            }
+            auto job = std::move(m_jobs.front());
+            m_jobs.pop_front();
+            m_running = true;
+            locker.unlock();
+            job();
+            locker.relock();
+            m_running = false;
+            m_done.wakeAll();
+        }
+    }
+  private:
+    QMutex m_mutex;
+    QWaitCondition m_ready;
+    QWaitCondition m_done;
+    std::deque<std::function<void()>> m_jobs;
+    bool m_running = false;
+    bool m_stopping = false;
+};
+
+Q_GLOBAL_STATIC(CueWriteThread, cueWriteThread)
 
 const QString kCreateTableDdl = QStringLiteral(
         "CREATE TABLE IF NOT EXISTS cue_overrides ("
@@ -86,6 +164,8 @@ bool isManagedCue(const CuePointer& pCue) {
 QMutex FsCueOverrideStore::s_baselineMutex;
 QHash<QString, QByteArray> FsCueOverrideStore::s_baselines;
 QHash<QString, QByteArray> FsCueOverrideStore::s_importedCues;
+QHash<QString, QPair<quint64, QByteArray>> FsCueOverrideStore::s_pendingCues;
+quint64 FsCueOverrideStore::s_nextWrite = 0;
 
 QByteArray FsCueOverrideStore::serializeCues(const Track& track) {
     const mixxx::audio::SampleRate sampleRate = track.getSampleRate();
@@ -319,8 +399,60 @@ void FsCueOverrideStore::flushIfChanged(const Track& track) {
     s_baselines.insert(location, payload);
 }
 
+void FsCueOverrideStore::queueIfChanged(const Track& track) {
+    const QString location = track.getLocation();
+    if (location.isEmpty() || !track.getSampleRate().isValid() ||
+            !SystemSettings::isOnRemovableMedia(location)) {
+        return;
+    }
+    const QByteArray payload = serializeCues(track);
+    QMutexLocker locker(&s_baselineMutex);
+    const auto baseline = s_baselines.constFind(location);
+    if (baseline != s_baselines.constEnd() && *baseline == kSuppressedBaseline) {
+        return;
+    }
+    if (!s_pendingCues.contains(location) &&
+            payload == (baseline == s_baselines.constEnd() ? kEmptyCues : *baseline)) {
+        return;
+    }
+    const quint64 serial = ++s_nextWrite;
+    s_pendingCues.insert(location, qMakePair(serial, payload));
+    cueWriteThread->enqueue([location, payload, serial]() {
+        if (!writeOverride(location, payload)) {
+            // Retain the pending snapshot so a reload cannot silently discard
+            // an edit that failed to reach the drive.
+            return;
+        }
+        QMutexLocker locker(&s_baselineMutex);
+        const auto pending = s_pendingCues.constFind(location);
+        if (pending != s_pendingCues.constEnd() && pending->first == serial) {
+            s_pendingCues.remove(location);
+            if (s_baselines.value(location) != kSuppressedBaseline) {
+                s_baselines.insert(location, payload);
+            }
+        }
+    });
+}
+
+bool FsCueOverrideStore::flushPendingWrites(int timeoutMillis) {
+    if (cueWriteThread.exists() && !cueWriteThread->drain(timeoutMillis)) {
+        return false;
+    }
+    QMutexLocker locker(&s_baselineMutex);
+    return s_pendingCues.isEmpty();
+}
+
 bool FsCueOverrideStore::readOverride(
         const QString& trackLocation, QByteArray* pPayload, bool* pFound) {
+    {
+        QMutexLocker locker(&s_baselineMutex);
+        const auto pending = s_pendingCues.constFind(trackLocation);
+        if (pending != s_pendingCues.constEnd()) {
+            *pPayload = pending->second;
+            *pFound = true;
+            return true;
+        }
+    }
     *pFound = false;
     FsStoreTarget target;
     if (!FsStoreTarget::resolveForFile(trackLocation, kStoreDbName, &target)) {
@@ -391,6 +523,9 @@ bool FsCueOverrideStore::writeOverride(
 
 // static
 bool FsCueOverrideStore::clearFilesystemOverrides(const QString& mountPoint) {
+    if (!flushPendingWrites()) {
+        return false;
+    }
     return fsStoreRemove(mountPoint, kStoreDbName, kLogTag);
 }
 

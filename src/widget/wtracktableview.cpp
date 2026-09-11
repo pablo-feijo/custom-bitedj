@@ -467,10 +467,9 @@ void WTrackTableView::slotMouseClicked(const QModelIndex& index) {
     }
     const TrackRef trackRef = TrackRef::fromFilePath(pTrackModel->getTrackLocation(index));
     TrackPointer pTrack = GlobalTrackCacheLocker().lookupTrackByRef(trackRef);
-    if (!pTrack) {
-        // If not in cache, load it (this may hit the disk)
-        pTrack = pTrackModel->getTrack(index);
-    }
+    // Match controller selection in slotGuiTick50ms: a tap only selects the
+    // row. Importing an uncached track here can stall browsing on USB storage
+    // before the DJ has even requested a deck load.
     if (pTrack && !pTrack->getWaveformSummary()) {
         AnalyzerTrack::Options options;
         AnalyzerScheduledTrack scheduled(pTrack->getId(), options);

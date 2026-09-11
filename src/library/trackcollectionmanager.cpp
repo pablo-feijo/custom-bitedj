@@ -2,6 +2,7 @@
 
 #include <utility>
 
+#include "library/dao/fscueoverridestore.h"
 #include "library/externaltrackcollection.h"
 #include "library/library_prefs.h"
 #include "library/scanner/libraryscanner.h"
@@ -167,6 +168,11 @@ TrackCollectionManager::~TrackCollectionManager() {
     m_pInternalCollection->disconnectDatabase();
 
     GlobalTrackCache::destroyInstance();
+    // Drain while Qt's database infrastructure is still alive. No Track
+    // references are held by the writer, only serialized snapshots.
+    if (!FsCueOverrideStore::flushPendingWrites(-1)) {
+        kLogger.warning() << "Some cue edits could not be saved on shutdown";
+    }
 }
 
 void TrackCollectionManager::startLibraryScan() {

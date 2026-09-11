@@ -4,6 +4,9 @@
 
 #include <QByteArray>
 #include <QFile>
+#include <QElapsedTimer>
+#include <QSqlDatabase>
+#include <QSqlQuery>
 #include <QStorageInfo>
 #include <algorithm>
 
@@ -458,3 +461,59 @@ TEST_F(FsCueOverrideStoreTest, IgnoresTracksOnTheBootVolume) {
 }
 
 } // namespace
+
+// A locked USB database must not make eviction wait. Pending snapshots must
+// survive an immediate reload and multiple edits before the drive catches up.
+TEST_F(FsCueOverrideStoreTest, QueuedEditsStayVisibleWhileDriveIsBusy) {
+    const QStorageInfo usb(kFakeUsb);
+    if (!usb.isValid() || !usb.isReady() || usb.rootPath() != kFakeUsb) {
+        GTEST_SKIP() << "needs a filesystem mounted at " << qPrintable(kFakeUsb);
+    }
+    ASSERT_TRUE(FsCueOverrideStore::clearFilesystemOverrides(kFakeUsb));
+    const QString path = kFakeUsb + QStringLiteral("/queued-cues.wav");
+    QFile::remove(path);
+    ASSERT_TRUE(QFile::copy(getTestDir().filePath(QStringLiteral("sine-30.wav")), path));
+    const auto makeTrack = [&] {
+        auto track = Track::newTemporary(mixxx::FileAccess(mixxx::FileInfo(path)));
+        track->setAudioProperties(mixxx::audio::ChannelCount(2), kSampleRate,
+                mixxx::audio::Bitrate(), mixxx::Duration::fromSeconds(180));
+        return track;
+    };
+    auto track = makeTrack();
+    FsCueOverrideStore::applyOverrides(track.get());
+    track->setMainCuePosition(framesForSeconds(1));
+    FsCueOverrideStore::flushIfChanged(*track);
+    {
+        auto db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"),
+                QStringLiteral("cue-write-blocker"));
+        db.setDatabaseName(kFakeUsb + QStringLiteral("/.bitedj/cues.sqlite"));
+        ASSERT_TRUE(db.open());
+        QSqlQuery query(db);
+        ASSERT_TRUE(query.exec(QStringLiteral("BEGIN EXCLUSIVE")));
+        track->setMainCuePosition(framesForSeconds(2));
+        QElapsedTimer timer;
+        timer.start();
+        FsCueOverrideStore::queueIfChanged(*track);
+        EXPECT_LT(timer.elapsed(), 1000);
+        EXPECT_FALSE(FsCueOverrideStore::flushPendingWrites(0));
+        auto reloaded = makeTrack();
+        FsCueOverrideStore::applyOverrides(reloaded.get());
+        EXPECT_EQ(framesForSeconds(2), reloaded->getMainCuePosition());
+        reloaded->setMainCuePosition(framesForSeconds(3));
+        FsCueOverrideStore::queueIfChanged(*reloaded);
+        auto newest = makeTrack();
+        FsCueOverrideStore::applyOverrides(newest.get());
+        EXPECT_EQ(framesForSeconds(3), newest->getMainCuePosition());
+        EXPECT_TRUE(query.exec(QStringLiteral("COMMIT")));
+    }
+    QSqlDatabase::removeDatabase(QStringLiteral("cue-write-blocker"));
+    ASSERT_TRUE(FsCueOverrideStore::flushPendingWrites());
+    auto persisted = makeTrack();
+    FsCueOverrideStore::applyOverrides(persisted.get());
+    EXPECT_EQ(framesForSeconds(3), persisted->getMainCuePosition());
+    ASSERT_TRUE(FsCueOverrideStore::clearFilesystemOverrides(kFakeUsb));
+    auto cleared = makeTrack();
+    const auto defaultCue = cleared->getMainCuePosition();
+    FsCueOverrideStore::applyOverrides(cleared.get());
+    EXPECT_EQ(defaultCue, cleared->getMainCuePosition());
+}

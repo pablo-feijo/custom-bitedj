@@ -55,6 +55,14 @@ class FsCueOverrideStore {
     /// so its cues are stored the first time it is saved with any cue set.
     static void flushIfChanged(const Track& track);
 
+    /// Snapshot cue edits for background persistence. Reloads see pending edits
+    /// immediately, without waiting for USB writes. Used by track eviction.
+    static void queueIfChanged(const Track& track);
+
+    /// Drain queued saves before unmount/clear. False on timeout or a failed
+    /// write; the drive must remain mounted in that case.
+    static bool flushPendingWrites(int timeoutMillis = 10000);
+
     /// Delete the cue override database of the filesystem mounted at
     /// `mountPoint` (`<mountPoint>/.bitedj/cues.sqlite`). Returns false only
     /// when a database exists but could not be deleted; a drive without one
@@ -119,4 +127,6 @@ class FsCueOverrideStore {
     // stood just before an override was applied over it. Only holds the tracks
     // that actually got one, which is what restoreImportedCues() keys off.
     static QHash<QString, QByteArray> s_importedCues;
+    static QHash<QString, QPair<quint64, QByteArray>> s_pendingCues;
+    static quint64 s_nextWrite;
 };

@@ -10,7 +10,6 @@
 #include "engine/sidechain/sidechainworker.h"
 #include "preferences/usersettings.h"
 #include "track/track_decl.h"
-#include "util/pagecachelimiter.h"
 
 class ControlProxy;
 
@@ -86,10 +85,6 @@ class EngineRecord : public QObject, public EncoderCallback, public SideChainWor
     QFile m_cueFile;
     QDataStream m_dataStream;
     bool m_writeFailed = false;
-    // Bounds what the recording leaves in the kernel's page cache, so that a
-    // stick that writes slowly cannot turn a long set into hundreds of
-    // megabytes of dirty pages the whole process then stalls behind.
-    mixxx::PageCacheLimiter m_pageCache;
     // Bytes still to be written before the next free-space probe.
     qint64 m_freeSpaceProbeCountdown;
 

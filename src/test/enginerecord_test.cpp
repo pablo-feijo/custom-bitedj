@@ -1,10 +1,8 @@
 // End-to-end cover for the recorder's file path: EngineRecord driven the way
 // the sidechain thread drives it, writing a real file to a real filesystem.
 //
-// What it is here to catch is the write path growing a step that quietly
-// damages the recording — the page-cache limiter that keeps a long set from
-// filling memory with dirty pages issues its syscalls between the encoder's
-// writes, and the file it leaves behind still has to be complete and playable.
+// Saved samples and final headers must remain complete, without explicit
+// writeback syscalls that can block behind a slow USB device's request queue.
 #include "engine/sidechain/enginerecord.h"
 
 #include <gtest/gtest.h>
@@ -27,12 +25,20 @@
 #include "test/mixxxtest.h"
 #include "util/types.h"
 
+#ifdef Q_OS_LINUX
+#include <linux/filter.h>
+#include <linux/seccomp.h>
+#include <sys/prctl.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+#include <cstddef>
+#endif
+
 namespace {
 
 constexpr int kSampleRate = 44100;
 constexpr int kFramesPerBuffer = 1024;
-// Enough to write several megabytes, so the page-cache limiter's window rolls
-// over more than once during the recording instead of never being reached.
+// Cross the former 1 MiB writeback boundary multiple times.
 constexpr int kBuffers = 768;
 // WAV: 44 byte canonical header, 16 bit stereo frames.
 constexpr int kWavHeaderBytes = 44;
@@ -100,8 +106,7 @@ TEST_F(EngineRecordTest, writesACompleteFile) {
 
     const QFileInfo recorded(m_recordingPath);
     ASSERT_TRUE(recorded.exists()) << "no file was written";
-    // Every buffer that went in is in the file: nothing the limiter did to the
-    // page cache cost the recording its tail.
+    // Every supplied buffer must be present in the finalized file.
     const qint64 expectedBytes = static_cast<qint64>(kWavHeaderBytes) +
             static_cast<qint64>(kBuffers) * kFramesPerBuffer * kBytesPerFrame;
     EXPECT_EQ(expectedBytes, recorded.size());
@@ -109,8 +114,7 @@ TEST_F(EngineRecordTest, writesACompleteFile) {
     QFile file(m_recordingPath);
     ASSERT_TRUE(file.open(QIODevice::ReadOnly));
     const QByteArray header = file.read(12);
-    // A header that was patched on close, over a range the limiter had already
-    // handed to the kernel, still reads back as a RIFF/WAVE file.
+    // Closing must patch the header to produce a valid RIFF/WAVE file.
     EXPECT_EQ(QByteArray("RIFF"), header.left(4));
     EXPECT_EQ(QByteArray("WAVE"), header.mid(8, 4));
     ASSERT_TRUE(file.seek(kWavHeaderBytes));
@@ -124,6 +128,42 @@ TEST_F(EngineRecordTest, writesACompleteFile) {
     EXPECT_TRUE(samplesMatch) << "Saved PCM differs from the supplied audio";
 }
 
+TEST_F(EngineRecordTest, RecordingDoesNotForceWriteback) {
+#if defined(Q_OS_LINUX) && defined(SYS_sync_file_range)
+    // Install the filter only in a child: the former 1 MiB cache limiter dies
+    // here even on fast test disks, where its USB queue stall is not reproducible.
+    // Other tests and the parent retain their normal syscall permissions.
+    EXPECT_EXIT(([&]() {
+        struct sock_filter filter[] = {
+                BPF_STMT(BPF_LD | BPF_W | BPF_ABS, offsetof(struct seccomp_data, nr)),
+                BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, SYS_sync_file_range, 0, 1),
+                BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_KILL_PROCESS),
+                BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_ALLOW),
+        };
+        struct sock_fprog program = {
+                static_cast<unsigned short>(sizeof(filter) / sizeof(filter[0])), filter};
+        if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) != 0 ||
+                prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &program) != 0) {
+            _exit(2);
+        }
+        m_pRecStatus->set(RECORD_READY);
+        for (int i = 0; i < kBuffers; ++i) {
+            process();
+        }
+        if (m_pRecStatus->get() != RECORD_ON) {
+            _exit(3);
+        }
+        m_pRecStatus->set(RECORD_OFF);
+        process();
+        const qint64 expectedBytes = kWavHeaderBytes +
+                static_cast<qint64>(kBuffers) * kFramesPerBuffer * kBytesPerFrame;
+        _exit(QFileInfo(m_recordingPath).size() == expectedBytes ? 0 : 4);
+    }()), ::testing::ExitedWithCode(0), "");
+#else
+    GTEST_SKIP() << "Linux sync_file_range syscall filter required";
+#endif
+}
+
 TEST_F(EngineRecordTest, splittingStartsANewFileAndKeepsTheOldOne) {
     m_pRecStatus->set(RECORD_READY);
     for (int i = 0; i < kBuffers; ++i) {
@@ -132,7 +172,7 @@ TEST_F(EngineRecordTest, splittingStartsANewFileAndKeepsTheOldOne) {
     ASSERT_EQ(RECORD_ON, m_pRecStatus->get());
 
     // RecordingManager splits by pointing Path at the next part and asking for
-    // a continue; the limiter has to start over with the new file.
+    // a continue; the new file must retain every subsequent sample.
     const QString partTwoPath =
             getTestDataDir().filePath(QStringLiteral("enginerecord_test_part2.wav"));
     QFile::remove(partTwoPath);

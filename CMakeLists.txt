@@ -103,7 +103,7 @@ set(MIXXX_VERSION_PRERELEASE "") # set to "alpha" "beta" or ""
 # reported by `bitedj --version`; it moves independently of the Mixxx base
 # version above.
 set(BITEDJ_VERSION "0.0.8")
-set(BITEDJ_VERSION_PRERELEASE "codex-v0-0-8.2")
+set(BITEDJ_VERSION_PRERELEASE "codex-pi-ddj-recording.6")
 if(NOT BITEDJ_VERSION MATCHES "^[0-9]+(\\.[0-9]+)*$")
   message(FATAL_ERROR "BITEDJ_VERSION must be a dot-separated numeric version, got '${BITEDJ_VERSION}'")
 endif()
@@ -887,7 +887,6 @@ add_library(mixxx-lib STATIC EXCLUDE_FROM_ALL
   src/util/mac.cpp
   src/util/moc_included_test.cpp
   src/util/movinginterquartilemean.cpp
-  src/util/pagecachelimiter.cpp
   src/util/rangelist.cpp
   src/util/readaheadsamplebuffer.cpp
   src/util/ringdelaybuffer.cpp
@@ -1167,7 +1166,6 @@ target_precompile_headers(mixxx-lib PUBLIC
   src/util/painterscope.h
   src/util/parented_ptr.h
   src/util/path.h
-  src/util/pagecachelimiter.h
   src/util/performancetimer.h
   src/util/platform.h
   src/util/qt.h
@@ -1613,7 +1611,6 @@ if(BUILD_TESTING)
     src/test/mixxxtest.cpp
     src/test/mock_networkaccessmanager.cpp
     src/test/musicbrainzrecordingstasktest.cpp
-    src/test/pagecachelimiter_test.cpp
     src/test/performancetimer_test.cpp
     src/test/playcountertest.cpp
     src/test/playedtracks_test.cpp
