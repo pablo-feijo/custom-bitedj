@@ -190,7 +190,10 @@ TEST_F(SystemDialogsTest, ManualClockDisablesSyncBeforeChangingTime) {
     QFile log(commands.filePath("commands.log"));
     ASSERT_TRUE(log.open(QIODevice::ReadOnly));
     const auto calls = log.readAll();
-    EXPECT_TRUE(calls.contains("set-ntp false\nset-time "));
+    const auto ntpCall = calls.indexOf("set-ntp false\n");
+    const auto timeCall = calls.indexOf("set-time ", ntpCall + 1);
+    EXPECT_GE(ntpCall, 0);
+    EXPECT_GT(timeCall, ntpCall);
 }
 TEST_F(SystemDialogsTest, AutomaticClockNeverSendsManualDate) {
     mixxx::systemdialogs::clock(nullptr);
@@ -521,7 +524,10 @@ TEST_F(SystemDialogsTest, TimezoneChangePreservesInstantAndAutomaticSync) {
     ASSERT_TRUE(until([=] { return apply->isEnabled(); }));
     QFile log(commands.filePath("commands.log")); ASSERT_TRUE(log.open(QIODevice::ReadOnly));
     const auto calls = log.readAll();
-    EXPECT_TRUE(calls.contains("set-timezone America/Sao_Paulo\nset-ntp true"));
+    const auto timezoneCall = calls.indexOf("set-timezone America/Sao_Paulo\n");
+    const auto ntpCall = calls.indexOf("set-ntp true", timezoneCall + 1);
+    EXPECT_GE(timezoneCall, 0);
+    EXPECT_GT(ntpCall, timezoneCall);
     EXPECT_FALSE(calls.contains("set-time "));
     EXPECT_EQ(qApp->property("bitedjTimeZone").toByteArray(), QByteArray("America/Sao_Paulo"));
     qApp->setProperty("bitedjTimeZone", QVariant());
@@ -543,7 +549,11 @@ TEST_F(SystemDialogsTest, CalendarSelectsLeapDayAndManualTime) {
     fields[0]->setValue(23); fields[1]->setValue(45);
     apply->click(); ASSERT_TRUE(until([=] { return apply->isEnabled(); }));
     QFile log(commands.filePath("commands.log")); ASSERT_TRUE(log.open(QIODevice::ReadOnly));
-    EXPECT_TRUE(log.readAll().contains("set-ntp false\nset-time 2028-02-29 23:45:00"));
+    const auto calls = log.readAll();
+    const auto ntpCall = calls.indexOf("set-ntp false\n");
+    const auto timeCall = calls.indexOf("set-time 2028-02-29 23:45:00", ntpCall + 1);
+    EXPECT_GE(ntpCall, 0);
+    EXPECT_GT(timeCall, ntpCall);
 }
 TEST_F(SystemDialogsTest, FailedTimezoneStopsBeforeChangingSyncOrTime) {
     QFile fake(commands.filePath("timedatectl"));
