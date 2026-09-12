@@ -1101,6 +1101,43 @@ void SystemSettings::onScreenRotationChanged(double value) {
     applyScreenRotation(degrees);
 }
 
+int SystemSettings::displayTransformForRotation(
+        const QString& outputName, int degrees) {
+    const int landscapeRotation = degrees == 180 ? 180 : 0;
+    return outputName.startsWith(QStringLiteral("DSI-"))
+            ? (landscapeRotation + 90) % 360
+            : landscapeRotation;
+}
+
+QString SystemSettings::updateSwayRotationConfig(
+        const QString& originalContent, int degrees) {
+    QString content = originalContent;
+    const QStringList outputs = {
+            QStringLiteral("*"),
+            QStringLiteral("HDMI-A-1"),
+            QStringLiteral("HDMI-A-2"),
+            QStringLiteral("DSI-1"),
+            QStringLiteral("DSI-2")};
+
+    for (const QString& output : outputs) {
+        const QRegularExpression transformRegex(QStringLiteral(
+                R"((?m)^(\s*output\s+%1\s+[^\n]*?\btransform\s+)(\S+))")
+                                                        .arg(QRegularExpression::escape(output)));
+        const auto match = transformRegex.match(content);
+        const QString transform = QString::number(
+                displayTransformForRotation(output, degrees));
+        if (match.hasMatch()) {
+            content.replace(match.capturedStart(2), match.capturedLength(2), transform);
+        } else {
+            if (!content.isEmpty() && !content.endsWith(QChar('\n'))) {
+                content.append(QChar('\n'));
+            }
+            content.append(QStringLiteral("output %1 transform %2\n").arg(output, transform));
+        }
+    }
+    return content;
+}
+
 void SystemSettings::applyScreenRotation(int degrees) {
     // 1. Update ~/.config/sway/config so rotation is preserved across reboots
     //    before BiteDJ even launches.
@@ -1133,23 +1170,7 @@ void SystemSettings::applyScreenRotation(int degrees) {
             }
         }
 
-        static const QRegularExpression transformRegex(
-                QStringLiteral(R"((?m)^\s*output\s+\*\s+transform\s+\S+.*$)"));
-        const QString newTransformLine = QStringLiteral("output * transform %1").arg(degrees);
-
-        if (content.contains(transformRegex)) {
-            content.replace(transformRegex, newTransformLine);
-        } else {
-            static const QRegularExpression outputModeRegex(
-                    QStringLiteral(R"((?m)^\s*output\s+\*\s+mode\s+.*$)"));
-            auto match = outputModeRegex.match(content);
-            if (match.hasMatch()) {
-                const int insertPos = match.capturedEnd();
-                content.insert(insertPos, QStringLiteral("\n") + newTransformLine);
-            } else {
-                content.append(QStringLiteral("\n") + newTransformLine + QStringLiteral("\n"));
-            }
-        }
+        content = updateSwayRotationConfig(content, degrees);
 
         if (swayConfigFile.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
             QTextStream out(&swayConfigFile);
@@ -1159,7 +1180,8 @@ void SystemSettings::applyScreenRotation(int degrees) {
                     QFileDevice::ReadOwner | QFileDevice::WriteOwner |
                     QFileDevice::ReadGroup | QFileDevice::WriteGroup |
                     QFileDevice::ReadOther | QFileDevice::WriteOther);
-            qInfo() << "SystemSettings: Updated" << swayConfigPath << "with" << newTransformLine;
+            qInfo() << "SystemSettings: Updated display rotation in" << swayConfigPath
+                    << "to landscape-relative" << degrees << "degrees";
         } else {
             qWarning() << "SystemSettings: Failed to write" << swayConfigPath;
         }
@@ -1234,24 +1256,19 @@ void SystemSettings::applyScreenRotation(int degrees) {
     }
 
     if (!swaysock.isEmpty()) {
+        const int dsiDegrees = displayTransformForRotation(
+                QStringLiteral("DSI-1"), degrees);
+        const QString swayRotationCommand = QStringLiteral(
+                "output * transform %1; "
+                "output HDMI-A-1 transform %1; "
+                "output HDMI-A-2 transform %1; "
+                "output DSI-1 transform %2; "
+                "output DSI-2 transform %2")
+                                                       .arg(degrees)
+                                                       .arg(dsiDegrees);
         QProcess::startDetached(QStringLiteral("swaymsg"),
                 QStringList{QStringLiteral("--"),
-                        QStringLiteral("output"),
-                        QStringLiteral("*"),
-                        QStringLiteral("transform"),
-                        QString::number(degrees)});
-        QProcess::startDetached(QStringLiteral("swaymsg"),
-                QStringList{QStringLiteral("--"),
-                        QStringLiteral("output"),
-                        QStringLiteral("HDMI-A-1"),
-                        QStringLiteral("transform"),
-                        QString::number(degrees)});
-        QProcess::startDetached(QStringLiteral("swaymsg"),
-                QStringList{QStringLiteral("--"),
-                        QStringLiteral("output"),
-                        QStringLiteral("DSI-1"),
-                        QStringLiteral("transform"),
-                        QString::number(degrees)});
+                        swayRotationCommand});
 
         // Re-anchor cursor position on the transformed display so it is immediately redrawn.
         QProcess::startDetached(QStringLiteral("swaymsg"),

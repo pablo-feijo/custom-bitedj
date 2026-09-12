@@ -92,9 +92,26 @@ class SystemDialogsTest : public MixxxTest {
         fake.write("#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"$BITEDJ_COMMAND_LOG\"\nif [ \"$1\" = show ]; then printf 'NTP=yes\\nTimezone=Etc/UTC\\n'; fi\n");
         fake.close();
         fake.setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+        QFile systemctlCommand(commands.filePath("systemctl"));
+        ASSERT_TRUE(systemctlCommand.open(QIODevice::WriteOnly));
+        systemctlCommand.write(
+                "#!/bin/sh\n"
+                "printf 'systemctl %s\\n' \"$*\" >> \"$BITEDJ_COMMAND_LOG\"\n"
+                "[ \"${BITEDJ_SYSTEMCTL_FAIL:-0}\" != 1 ] || { printf 'permission denied\\n' >&2; exit 1; }\n"
+                "if [ \"$1\" = is-enabled ]; then\n"
+                "  [ \"${BITEDJ_SSH_ENABLED:-0}\" = 1 ] && { printf 'enabled\\n'; exit 0; }\n"
+                "  printf 'disabled\\n'; exit 1\n"
+                "fi\n");
+        systemctlCommand.close();
+        systemctlCommand.setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
         QFile sudoCommand(commands.filePath("sudo"));
         ASSERT_TRUE(sudoCommand.open(QIODevice::WriteOnly));
-        sudoCommand.write("#!/bin/sh\n[ \"$1\" = -n ] || exit 91\nshift\nexec \"$@\"\n");
+        sudoCommand.write(
+                "#!/bin/sh\n"
+                "printf 'sudo %s\\n' \"$*\" >> \"$BITEDJ_COMMAND_LOG\"\n"
+                "[ \"$1\" = -n ] || exit 91\n"
+                "shift\n"
+                "exec \"$@\"\n");
         sudoCommand.close();
         sudoCommand.setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
     }
@@ -105,6 +122,8 @@ class SystemDialogsTest : public MixxxTest {
         for (const auto& widget : dialogs) if (widget) delete widget;
         qputenv("PATH", oldPath);
         qunsetenv("BITEDJ_COMMAND_LOG");
+        qunsetenv("BITEDJ_SSH_ENABLED");
+        qunsetenv("BITEDJ_SYSTEMCTL_FAIL");
     }
     static bool until(const std::function<bool()>& ready) {
         QElapsedTimer timer; timer.start();
@@ -227,6 +246,7 @@ TEST_F(SystemDialogsTest, FailedManualTimeReportsThatSyncIsOff) {
     EXPECT_TRUE(found);
 }
 TEST_F(SystemDialogsTest, FailedSystemRestartRemainsVisibleAndCanBeCancelled) {
+    qputenv("BITEDJ_SYSTEMCTL_FAIL", "1");
     mixxx::systemdialogs::power(nullptr);
     QCoreApplication::processEvents();
     auto* d = QApplication::activeWindow();
@@ -246,6 +266,83 @@ TEST_F(SystemDialogsTest, FailedSystemRestartRemainsVisibleAndCanBeCancelled) {
     for (auto* text : confirmation->findChildren<QLabel*>())
         found |= text->text().contains(QStringLiteral("Request failed"));
     EXPECT_TRUE(found);
+}
+TEST_F(SystemDialogsTest, ConfirmedSystemRestartUsesNoninteractiveSudo) {
+    mixxx::systemdialogs::power(nullptr);
+    QCoreApplication::processEvents();
+    auto* menu = QApplication::activeWindow();
+    ASSERT_NE(menu, nullptr);
+    auto* restart = findButton(menu, QStringLiteral("Restart system"));
+    ASSERT_NE(restart, nullptr);
+    restart->click();
+    QCoreApplication::processEvents();
+    auto* confirmation = QApplication::activeWindow();
+    ASSERT_NE(confirmation, menu);
+    auto* confirm = findButton(confirmation, QStringLiteral("Restart system"));
+    ASSERT_NE(confirm, nullptr);
+    confirm->click();
+    ASSERT_TRUE(until([&] {
+        QFile log(commands.filePath("commands.log"));
+        return log.open(QIODevice::ReadOnly) &&
+                log.readAll().contains("systemctl reboot");
+    }));
+}
+TEST_F(SystemDialogsTest, PrivilegedSystemCommandsRequireSudoForDesktopUser) {
+    using mixxx::systemdialogs::requiresSudo;
+    EXPECT_TRUE(requiresSudo(QStringLiteral("systemctl"), {QStringLiteral("reboot")}, false));
+    EXPECT_TRUE(requiresSudo(QStringLiteral("systemctl"),
+            {QStringLiteral("enable"), QStringLiteral("--now"), QStringLiteral("ssh.service")}, false));
+    EXPECT_TRUE(requiresSudo(QStringLiteral("systemctl"),
+            {QStringLiteral("disable"), QStringLiteral("--now"), QStringLiteral("ssh.service")}, false));
+    EXPECT_FALSE(requiresSudo(QStringLiteral("systemctl"),
+            {QStringLiteral("is-enabled"), QStringLiteral("ssh.service")}, false));
+    EXPECT_FALSE(requiresSudo(QStringLiteral("systemctl"), {QStringLiteral("reboot")}, true));
+}
+TEST_F(SystemDialogsTest, TouchSshControlEnablesServiceUsingNoninteractiveSudo) {
+    WSystemInfo info;
+    info.resize(1024, 440);
+    info.show();
+    QTest::qWait(20);
+    auto* manage = info.findChild<QPushButton*>(QStringLiteral("InfoSshButton"));
+    ASSERT_NE(manage, nullptr);
+    auto* device = QTest::createTouchDevice();
+    QTest::touchEvent(&info, device).press(0, manage->rect().center(), manage);
+    QTest::touchEvent(&info, device).release(0, manage->rect().center(), manage);
+    QPointer<QWidget> editor;
+    ASSERT_TRUE(until([&] {
+        for (auto* widget : QApplication::topLevelWidgets()) {
+            if (widget->objectName() == QStringLiteral("SystemDialog") && widget->isVisible()) {
+                editor = widget;
+                return editor->windowTitle() == QStringLiteral("SSH remote access");
+            }
+        }
+        return false;
+    }));
+    auto* enable = findButton(editor, QStringLiteral("Enable SSH"));
+    ASSERT_NE(enable, nullptr);
+    ASSERT_TRUE(until([=] { return enable->isEnabled(); }));
+    enable->click();
+    ASSERT_TRUE(until([&] {
+        QFile log(commands.filePath("commands.log"));
+        return log.open(QIODevice::ReadOnly) &&
+                log.readAll().contains("systemctl enable --now ssh.service");
+    }));
+}
+TEST_F(SystemDialogsTest, SshControlDisablesServiceUsingNoninteractiveSudo) {
+    qputenv("BITEDJ_SSH_ENABLED", "1");
+    mixxx::systemdialogs::ssh(nullptr);
+    QCoreApplication::processEvents();
+    auto* editor = QApplication::activeWindow();
+    ASSERT_NE(editor, nullptr);
+    auto* disable = findButton(editor, QStringLiteral("Disable SSH"));
+    ASSERT_NE(disable, nullptr);
+    ASSERT_TRUE(until([=] { return disable->isEnabled(); }));
+    disable->click();
+    ASSERT_TRUE(until([&] {
+        QFile log(commands.filePath("commands.log"));
+        return log.open(QIODevice::ReadOnly) &&
+                log.readAll().contains("systemctl disable --now ssh.service");
+    }));
 }
 TEST_F(SystemDialogsTest, ClosingWhileReadingClockDoesNotRunCallbacksOnDeletedWidgets) {
     QFile fake(commands.filePath("timedatectl"));
@@ -349,7 +446,6 @@ TEST_F(SystemDialogsTest, OverclockTouchSaveReopenDefaultsAndRestartConfirmation
     capture(QStringLiteral("overclock-simulated-reopened"));
     findButton(d, QStringLiteral("Firmware defaults"))->click();
     for (auto* field : fields) EXPECT_EQ(field->value(), 0);
-    saveButton->click();
     ASSERT_TRUE(until([=] { return saveButton->isEnabled(); }));
     ASSERT_TRUE(file.open(QIODevice::ReadOnly));
     const QByteArray defaults = file.readAll(); file.close();

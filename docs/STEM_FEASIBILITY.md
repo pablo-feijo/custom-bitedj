@@ -6,6 +6,8 @@ This guide describes [Custom Bite DJ](../README.md), an independent fork of
 [Team Deckshark’s BiteDJ](https://github.com/TeamDeckshark/bitedj), based on Mixxx.
 
 Assessment date: 2026-09-08. No stem engine changes applied.
+The work remains a separate deferred engine project in the canonical
+[roadmap](DISPLAY_AND_DECK_LAYOUT_PLAN.md#consolidated-follow-up-backlog).
 
 BiteDJ declares Mixxx 2.5.6 as its base. The colored DRUMS/VOCAL/INST
 controls in the reference skin request separately rendered files through its

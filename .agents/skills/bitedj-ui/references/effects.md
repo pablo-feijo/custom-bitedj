@@ -49,6 +49,12 @@ share the second header row. Erase clears the current FX without deleting its
 saved preset; the reserved `---` entry stays hidden. Standard/Saved
 remain labeled tabs; the 9px page counter reads `1 / 2`. Saved has 14/8 entries.
 
+Touch Display 2 uses 1280x720 at Qt scale 1.20. Physical picker bounds are
+approximately `x=1044..1272, y=120..720`; effect columns center at
+`x=1103/1213`, with row centers `y=232,290,348,406,464,522,580`. Header actions
+center at `y=143/184` and Prev/Next at `y=646`. All effect targets are about
+53px high. These are profile-specific physical pixels, not 1024x600 coordinates.
+
 ## Play FX parameters
 
 Compact FX selector is (922,116); routing 1/2 and activation share y=152

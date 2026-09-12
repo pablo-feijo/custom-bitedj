@@ -59,7 +59,10 @@ Before changing deck loading, metadata, cue persistence or recording, read
 
 - Overview Panel: Keep **FX**, **KEY**, **JUMP**, and **GRID** tabs. Beat-jump size and actions belong in JUMP, not the left waveform sidebar.
 - This build targets two decks. Keep Deck 1/2 UI and controller routing; do not
-  import four-deck layouts or controls from the reviewed fork.
+  import four-deck layouts or controls from the reviewed fork. Future responsive
+  and four-deck work is consolidated in the
+  [display/deck roadmap](../../../../docs/DISPLAY_AND_DECK_LAYOUT_PLAN.md); do not
+  implement its later phases piecemeal before that architecture change is approved.
 - Do not attempt to add `PADS` or `CFX` tabs back to the native `WidgetStack` in `effects.xml`.
 - Effect times (e.g., Roll lengths 1/8, 1/4, 1/2, 1) are mapped natively through the skin's Beats parameter grid (which appears automatically for `_units == 1` Beats-typed parameters).
 

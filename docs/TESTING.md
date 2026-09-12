@@ -186,6 +186,10 @@ gh run view RUN_ID --repo pablo-feijo/custom-bitedj --log-failed
 
 ## Review findings and remaining coverage
 
+Priority and completion status for the gaps below are consolidated in the
+[roadmap](DISPLAY_AND_DECK_LAYOUT_PLAN.md#consolidated-follow-up-backlog). This
+section remains authoritative for test-layer detail.
+
 - Preserve the native suite; widget behavior, storage, controller state and DSP
   sample comparisons are cheaper and more diagnostic there than through clicks.
 - Keep controller logic tests in the fast layer: the existing fake-clock Pad FX

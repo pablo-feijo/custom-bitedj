@@ -34,7 +34,8 @@ Run `node tests/controllers/test_ddj400_effect_select.cjs` for the MIDI-binding
 regression checks. On hardware, select a middle effect, hold each deck's Shift
 in turn and press SELECT: verify one step backward, no step on release, and
 forward selection after releasing Shift. Check the native list boundary at the first
-effect. Hardware validation of this fallback remains pending.
+effect. Hardware validation of this fallback remains pending and is tracked in
+the canonical [roadmap](DISPLAY_AND_DECK_LAYOUT_PLAN.md#consolidated-follow-up-backlog).
 
 ## 2. Configurable Pad FX
 

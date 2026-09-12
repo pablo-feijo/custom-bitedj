@@ -7,6 +7,20 @@ BiteDJ based on Mixxx. Versions use Semantic Versioning.
 
 ### Fixed
 
+- Boot freshly flashed images with SSH enabled and support both the original
+  1024×600 HDMI touchscreen and the portrait-native Raspberry Pi Touch Display
+  2 in landscape. Keep the Normal/180° rotation control correct on both panels.
+- Expand the Play waveforms across the extra Touch Display 2 width while
+  retaining the fixed touch-control panel and the original 1024×600 layout.
+- Scale the complete 1280x720 Touch Display 2 interface to 1.20 so fonts,
+  touch targets, effect pickers and native system menus retain a readable
+  physical size; keep the original 1024x600 HDMI profile at 1.00.
+- Guarantee key-only remote recovery by generating unique SSH host keys before
+  the SSH daemon starts on every freshly flashed image.
+- Add an Info-tab SSH control that reports service availability and enables or
+  disables key-only remote access immediately. Route SSH, reboot and power-off
+  requests through noninteractive sudo so the touch appliance does not depend
+  on a missing Polkit agent.
 - Replace the left D1/D2 source labels with small USB icons and wider source names.
 - Show recording as a red dot beside each Play source name, only on the USB receiving the
   recording, with a top-right fallback when neither deck uses it and fixed geometry; remove the ambiguous red playback arrows beside

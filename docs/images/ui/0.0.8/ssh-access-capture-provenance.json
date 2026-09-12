@@ -1,0 +1,22 @@
+{
+  "source_commit": "383555b9aba2cffbb5d75a65c6f586829905204d",
+  "source_branch": "codex/pi-ssh-default",
+  "source_hash": "74af1599120d5fd18d5eecd13a83f2fcd0361154f2c7be05b728a31808222213",
+  "dirty": true,
+  "binary_version": "0.0.8-codex-pi-ssh-default.5",
+  "binary_sha256": "f355be259fa74f0e582a5175d1e6f720b2515e2d2bede5f2d2e2defab9130866",
+  "platform": "linux/arm64",
+  "capture_date": "2026-09-12",
+  "fixture": "scripts/test/generate_test_music.py",
+  "profiles": {
+    "original_touchscreen": {"geometry": "1024x600", "ui_scale": 1.0},
+    "touch_display_2": {"geometry": "1280x720", "ui_scale": 1.2}
+  },
+  "images": {
+    "settings-info.png": "4ec9b90ce358479290ca014430cbb1f932ffcdef047547e12ba16d66837f914a",
+    "settings-info-day.png": "44e611d85984c605cf9aeeb4d632c2c90061bc6186092cb033226a9058edc473",
+    "ssh-remote-access.png": "2b5dc5e4c77667a558d6b25ee3ecfb038eab5b9d296f3752745e0e52ad0e7450",
+    "ssh-remote-access-day.png": "8acba9c7ce05f79db48aabc6b88f247c46014a3fa6a8f7011679b54152d5da0c",
+    "settings-info-touch-display-2.png": "cfa045b8a62360d0ca36966618e2d44090517282609876e196c69e282de34f2b"
+  }
+}

@@ -39,6 +39,35 @@ TEST(SystemSettingsTest, MountDiscoveryUsesTopmostMountAtSamePath) {
     EXPECT_EQ(mounts[0].device, "/dev/sdb1");
 }
 
+TEST(SystemSettingsTest, RotationStaysLandscapeOnHdmiAndPortraitNativeDsi) {
+    EXPECT_EQ(SystemSettings::displayTransformForRotation("HDMI-A-1", 0), 0);
+    EXPECT_EQ(SystemSettings::displayTransformForRotation("HDMI-A-1", 180), 180);
+    EXPECT_EQ(SystemSettings::displayTransformForRotation("DSI-1", 0), 90);
+    EXPECT_EQ(SystemSettings::displayTransformForRotation("DSI-2", 180), 270);
+    EXPECT_EQ(SystemSettings::displayTransformForRotation("DSI-1", 42), 90);
+}
+
+TEST(SystemSettingsTest, RotationPersistenceUpdatesBothDisplayProfiles) {
+    const QString original = QStringLiteral(
+            "output * transform 0\n"
+            "output HDMI-A-1 mode --custom 1024x600 transform 0\n"
+            "output DSI-1 mode 720x1280 transform 90\n"
+            "output DSI-2 mode 720x1280 transform 90\n");
+
+    const QString inverted = SystemSettings::updateSwayRotationConfig(original, 180);
+    EXPECT_TRUE(inverted.contains(QStringLiteral("output * transform 180")));
+    EXPECT_TRUE(inverted.contains(QStringLiteral(
+            "output HDMI-A-1 mode --custom 1024x600 transform 180")));
+    EXPECT_TRUE(inverted.contains(QStringLiteral(
+            "output DSI-1 mode 720x1280 transform 270")));
+    EXPECT_TRUE(inverted.contains(QStringLiteral(
+            "output DSI-2 mode 720x1280 transform 270")));
+    EXPECT_EQ(inverted.count(QStringLiteral("output DSI-1")), 1);
+
+    const QString restored = SystemSettings::updateSwayRotationConfig(inverted, 0);
+    EXPECT_EQ(restored, original + QStringLiteral("output HDMI-A-2 transform 0\n"));
+}
+
 class TrackSourceWidgetTest : public MixxxTest {};
 
 TEST_F(TrackSourceWidgetTest, SourceLoadReplacementAndUnloadDoNotKeepOldTrack) {

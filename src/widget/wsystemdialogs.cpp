@@ -37,6 +37,21 @@
 #endif
 
 namespace mixxx::systemdialogs {
+bool requiresSudo(const QString& program, const QStringList& args, bool runningAsRoot) {
+    if (runningAsRoot || args.isEmpty()) {
+        return false;
+    }
+    if (program == QStringLiteral("timedatectl")) {
+        return args.first() != QStringLiteral("show");
+    }
+    if (program == QStringLiteral("systemctl")) {
+        return args.first() != QStringLiteral("is-enabled") &&
+                args.first() != QStringLiteral("is-active") &&
+                args.first() != QStringLiteral("show") &&
+                args.first() != QStringLiteral("status");
+    }
+    return false;
+}
 namespace {
 class OperationDialog : public QDialog {
   public:
@@ -163,18 +178,21 @@ void command(QObject* owner, const QString& program, const QStringList& args,
     });
     QObject::connect(p, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), p,
             [p, finish](int code, QProcess::ExitStatus status) {
-                finish(code == 0 && status == QProcess::NormalExit,
-                        QString::fromUtf8(code == 0 ? p->readAllStandardOutput() : p->readAllStandardError()).trimmed());
+                const bool ok = code == 0 && status == QProcess::NormalExit;
+                QByteArray message = ok ? p->readAllStandardOutput() : p->readAllStandardError();
+                if (message.trimmed().isEmpty()) {
+                    message = ok ? p->readAllStandardError() : p->readAllStandardOutput();
+                }
+                finish(ok, QString::fromUtf8(message).trimmed());
             });
     QTimer::singleShot(15000, p, [p, finish] {
         p->kill();
         finish(false, tr("System service timed out. Check the current setting before retrying."));
     });
 #ifdef Q_OS_LINUX
-    // The Pi image runs as pi and already grants passwordless sudo. Clock
-    // mutations otherwise require a Polkit agent, which the touch UI has none.
-    if (program == QStringLiteral("timedatectl") &&
-            !args.isEmpty() && args.first() != QStringLiteral("show") && geteuid() != 0) {
+    // The Pi image runs as pi and grants passwordless sudo. Mutations and power
+    // requests otherwise depend on a Polkit agent, which the touch UI has none.
+    if (requiresSudo(program, args, geteuid() == 0)) {
         p->start(QStringLiteral("sudo"), QStringList{QStringLiteral("-n"), program} + args);
         return;
     }
@@ -221,6 +239,70 @@ void power(QWidget* parent) {
     button(tr("Restart system"), layout, [d] { confirmPower(d, tr("Restart system"), QStringLiteral("reboot")); });
     button(tr("Power off"), layout, [d] { confirmPower(d, tr("Power off"), QStringLiteral("poweroff")); });
     button(tr("Back"), layout, [d] { d->close(); });
+    d->showFullScreen();
+}
+void ssh(QWidget* parent) {
+    QVBoxLayout* layout;
+    auto* d = dialog(parent, tr("SSH remote access"), &layout);
+    auto* status = label(tr("Checking the SSH service…"), layout);
+    label(tr("Enable SSH for key-based remote maintenance. Disabling it immediately ends remote access."), layout);
+    layout->addStretch();
+    auto* enable = button(tr("Enable SSH"), layout, [] {});
+    auto* disable = button(tr("Disable SSH"), layout, [] {});
+    auto* back = button(tr("Back"), layout, [d] { d->close(); });
+    enable->setEnabled(false);
+    disable->setEnabled(false);
+
+    auto setState = [=](bool enabled) {
+        d->setProperty("busy", false);
+        status->setText(enabled
+                        ? tr("SSH is enabled. Remote access requires an authorized key.")
+                        : tr("SSH is disabled. This device is not accepting remote logins."));
+        enable->setEnabled(!enabled);
+        disable->setEnabled(enabled);
+        back->setEnabled(true);
+    };
+    auto apply = [=](bool enabled) {
+        d->setProperty("busy", true);
+        enable->setEnabled(false);
+        disable->setEnabled(false);
+        back->setEnabled(false);
+        status->setText(enabled ? tr("Enabling SSH…") : tr("Disabling SSH…"));
+        command(d,
+                QStringLiteral("systemctl"),
+                {enabled ? QStringLiteral("enable") : QStringLiteral("disable"),
+                        QStringLiteral("--now"),
+                        QStringLiteral("ssh.service")},
+                [=](bool ok, const QString& error) {
+                    if (ok) {
+                        setState(enabled);
+                        return;
+                    }
+                    d->setProperty("busy", false);
+                    status->setText(tr("Could not change SSH: %1").arg(
+                            error.isEmpty() ? tr("unknown system service error") : error));
+                    enable->setEnabled(true);
+                    disable->setEnabled(true);
+                    back->setEnabled(true);
+                });
+    };
+    QObject::connect(enable, &QPushButton::clicked, d, [=] { apply(true); });
+    QObject::connect(disable, &QPushButton::clicked, d, [=] { apply(false); });
+    command(d,
+            QStringLiteral("systemctl"),
+            {QStringLiteral("is-enabled"), QStringLiteral("ssh.service")},
+            [=](bool ok, const QString& output) {
+                if (ok) {
+                    setState(true);
+                } else if (output.trimmed() == QStringLiteral("disabled")) {
+                    setState(false);
+                } else {
+                    status->setText(tr("SSH service unavailable: %1").arg(
+                            output.isEmpty() ? tr("not installed") : output));
+                    d->setProperty("busy", false);
+                    back->setEnabled(true);
+                }
+            });
     d->showFullScreen();
 }
 void clock(QWidget* parent) {
@@ -420,7 +502,7 @@ void overclock(QWidget* parent, std::function<bootsettings::Settings()> reader) 
     layout->addStretch();
     auto* row = new QHBoxLayout; layout->addLayout(row);
     auto* back = button(tr("Back"), row, [d] { d->close(); });
-    auto* defaults = button(tr("Firmware defaults"), row, [=] { cpu->setValue(0); gpu->setValue(0); voltage->setValue(0); });
+    auto* defaults = button(tr("Firmware defaults"), row, [] {});
     auto* save = button(tr("Save for next restart"), row, [] {});
     auto* restart = button(tr("Restart system…"), layout, [d] { confirmPower(d, tr("Restart system"), QStringLiteral("reboot")); });
     save->setEnabled(false); defaults->setEnabled(false); restart->setEnabled(false);
@@ -433,8 +515,7 @@ void overclock(QWidget* parent, std::function<bootsettings::Settings()> reader) 
         cpu->setValue(settings->cpu); gpu->setValue(settings->gpu); voltage->setValue(settings->voltage);
         cpu->parentWidget()->setEnabled(ok); gpu->parentWidget()->setEnabled(ok); voltage->parentWidget()->setEnabled(ok);
         save->setEnabled(ok); defaults->setEnabled(ok); restart->setEnabled(ok);
-        QObject::connect(save, &QPushButton::clicked, d, [=] {
-            const int c = cpu->value(), g = gpu->value(), v = voltage->value();
+        const auto saveValues = [=](int c, int g, int v, bool firmwareDefaults) {
             if ((c && c < 1000) || (g && g < 400)) { status->setText(tr("Use CPU 1000 MHz or higher and GPU 400 MHz or higher, or choose firmware defaults.")); return; }
             d->setProperty("busy", true);
             cpu->parentWidget()->setEnabled(false); gpu->parentWidget()->setEnabled(false); voltage->parentWidget()->setEnabled(false);
@@ -444,12 +525,23 @@ void overclock(QWidget* parent, std::function<bootsettings::Settings()> reader) 
                 d->setProperty("busy", false);
                 const QString error = saved->result();
                 if (error.isEmpty()) settings->original = bootsettings::render(settings->original, c, g, v);
-                status->setText(error.isEmpty() ? tr("Saved. Restart the system to apply. Recovery copy: %1.bitedj-backup").arg(settings->path) : error);
+                status->setText(error.isEmpty()
+                                ? (firmwareDefaults
+                                                  ? tr("Firmware defaults saved. Restart the system to apply. Recovery copy: %1.bitedj-backup").arg(settings->path)
+                                                  : tr("Saved. Restart the system to apply. Recovery copy: %1.bitedj-backup").arg(settings->path))
+                                : error);
                 cpu->parentWidget()->setEnabled(true); gpu->parentWidget()->setEnabled(true); voltage->parentWidget()->setEnabled(true);
                 save->setEnabled(true); defaults->setEnabled(true); restart->setEnabled(true); back->setEnabled(true);
                 saved->deleteLater();
             });
             saved->setFuture(QtConcurrent::run([snapshot = *settings, c, g, v] { return bootsettings::save(snapshot, c, g, v); }));
+        };
+        QObject::connect(save, &QPushButton::clicked, d, [=] {
+            saveValues(cpu->value(), gpu->value(), voltage->value(), false);
+        });
+        QObject::connect(defaults, &QPushButton::clicked, d, [=] {
+            cpu->setValue(0); gpu->setValue(0); voltage->setValue(0);
+            saveValues(0, 0, 0, true);
         });
     });
     watcher->setFuture(QtConcurrent::run(std::move(reader)));

@@ -4,7 +4,23 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DIST_DIR="${REPO_DIR}/dist-linux"
 MUSIC_DIR="${BITEDJ_TEST_MUSIC_DIR:-${REPO_DIR}/test-music}"
+SCREEN_GEOMETRY="${BITEDJ_TEST_GEOMETRY:-1024x600}"
+if [[ -n "${BITEDJ_TEST_SCALE_FACTOR:-}" ]]; then
+    UI_SCALE_FACTOR="${BITEDJ_TEST_SCALE_FACTOR}"
+elif [[ "${SCREEN_GEOMETRY}" == "1280x720" ]]; then
+    UI_SCALE_FACTOR=1.20
+else
+    UI_SCALE_FACTOR=1.00
+fi
 source "${REPO_DIR}/scripts/test/gui-test-settings.sh"
+if [[ ! "${SCREEN_GEOMETRY}" =~ ^[1-9][0-9]{2,4}x[1-9][0-9]{2,4}$ ]]; then
+    echo "BITEDJ_TEST_GEOMETRY must use WIDTHxHEIGHT, for example 1280x720." >&2
+    exit 1
+fi
+if [[ ! "${UI_SCALE_FACTOR}" =~ ^[0-9]+([.][0-9]+)?$ ]] || ! awk -v scale="${UI_SCALE_FACTOR}" 'BEGIN { exit !(scale > 0) }'; then
+    echo "BITEDJ_TEST_SCALE_FACTOR must be a positive decimal, for example 1.20." >&2
+    exit 1
+fi
 for port in "${BITEDJ_TEST_WEB_PORT:-}" "${BITEDJ_TEST_AUDIO_PORT:-}" "${BITEDJ_TEST_VNC_PORT:-}"; do
     if [[ -n "${port}" ]] && [[ ! "${port}" =~ ^[1-9][0-9]{0,4}$ || "${port}" -lt 1 || "${port}" -gt 65535 ]]; then
         echo "Test ports must be integers between 1 and 65535." >&2
@@ -70,7 +86,7 @@ if [[ "${BITEDJ_TEST_REBUILD_IMAGE:-0}" == 1 ]] || ! docker image inspect bitedj
     docker build --build-arg "BITEDJ_BUILDER_IMAGE=${BITEDJ_BUILDER_IMAGE:-bitedj-builder-linux-arm64:latest}" -t bitedj-gui-test:latest -f "${REPO_DIR}/docker/gui-test.Dockerfile" "${REPO_DIR}"
 fi
 
-echo "==> 4. Launching BiteDJ GUI test instance (1024x600, VNC + PulseAudio)..."
+echo "==> 4. Launching BiteDJ GUI test instance (${SCREEN_GEOMETRY}, VNC + PulseAudio)..."
 if docker container inspect "${CONTAINER_NAME}" >/dev/null 2>&1; then
     docker exec "${CONTAINER_NAME}" pkill -9 mixxx 2>/dev/null || true
     docker rm -f "${CONTAINER_NAME}"
@@ -92,13 +108,15 @@ docker run -d \
     -v "${MUSIC_DIR}:/music:ro" \
     -v "${CONFIG_DIR}:/root/.mixxx:rw" \
     -v "${REPO_DIR}/scripts/test/audio_stream.py:/audio_stream.py:ro" \
+    -e "BITEDJ_TEST_GEOMETRY=${SCREEN_GEOMETRY}" \
+    -e "BITEDJ_TEST_SCALE_FACTOR=${UI_SCALE_FACTOR}" \
     "${EXTRA_DOCKER_ARGS[@]}" \
     bitedj-gui-test:latest \
     bash -c '
         set -e
         pulseaudio -D --exit-idle-time=-1 --system=false
         python3 /audio_stream.py >/dev/null 2>&1 &
-        Xvfb :99 -screen 0 1024x600x24 &
+        Xvfb :99 -screen 0 "${BITEDJ_TEST_GEOMETRY}x24" &
         for attempt in {1..100}; do
             if DISPLAY=:99 xdpyinfo >/dev/null 2>&1; then break; fi
             sleep 0.1
@@ -107,7 +125,7 @@ docker run -d \
         DISPLAY=:99 openbox &
         x11vnc -display :99 -forever -shared -nopw &
         websockify --web /usr/share/novnc 6080 localhost:5900 &
-        DISPLAY=:99 QT_AUTO_SCREEN_SCALE_FACTOR=0 QT_ENABLE_HIGHDPI_SCALING=0 QT_SCALE_FACTOR=1.0 BITEDJ_SETTINGS_PATH=/root/.mixxx /dist-linux/bin/mixxx /music/BiteDJ_Test_Groove_128BPM.wav /music/BiteDJ_Test_Techno_124BPM.wav --resourcePath /dist-linux/share/mixxx/ --full-screen --style Fusion &
+        DISPLAY=:99 QT_AUTO_SCREEN_SCALE_FACTOR=0 QT_ENABLE_HIGHDPI_SCALING=0 QT_SCALE_FACTOR="${BITEDJ_TEST_SCALE_FACTOR}" BITEDJ_SETTINGS_PATH=/root/.mixxx /dist-linux/bin/mixxx /music/BiteDJ_Test_Groove_128BPM.wav /music/BiteDJ_Test_Techno_124BPM.wav --resourcePath /dist-linux/share/mixxx/ --full-screen --style Fusion &
         tail -f /dev/null
     '
 
@@ -133,6 +151,7 @@ Path("/usr/share/novnc/branch.json").write_text(json.dumps({
     "$(shasum -a 256 "${DIST_DIR}/bin/mixxx" | awk '{print $1}')"
 echo "Instance: ${CONTAINER_NAME}"
 echo "Branch: $(git -C "${REPO_DIR}" branch --show-current)"
+echo "Geometry / UI scale: ${SCREEN_GEOMETRY} / ${UI_SCALE_FACTOR}"
 echo "Web UI: http://localhost:${WEB_PORT}/vnc.html"
 echo "Audio: http://localhost:${AUDIO_PORT}/stream.mp3"
 echo "VNC: localhost:${VNC_PORT}"

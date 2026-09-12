@@ -69,7 +69,15 @@ WSystemInfo::WSystemInfo(QWidget* parent) : QWidget(parent), WBaseWidget(this) {
     m_output = new QLabel(this);
     m_output->setObjectName(QStringLiteral("InfoOutput"));
     m_output->setWordWrap(true);
-    layout->addWidget(m_output, 2, 0, 1, 2);
+    layout->addWidget(m_output, 2, 0);
+    auto* ssh = new QPushButton(tr("SSH REMOTE ACCESS · ENABLE / DISABLE"), this);
+    ssh->setObjectName(QStringLiteral("InfoSshButton"));
+    ssh->setAccessibleName(tr("Manage SSH remote access"));
+    ssh->setMinimumHeight(44);
+    connect(ssh, &QPushButton::clicked, this, [this] {
+        mixxx::systemdialogs::ssh(this);
+    });
+    layout->addWidget(ssh, 2, 1);
     layout->setColumnStretch(0, 1);
     layout->setColumnStretch(1, 1);
     layout->setRowStretch(0, 1);

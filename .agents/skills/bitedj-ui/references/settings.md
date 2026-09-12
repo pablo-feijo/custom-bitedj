@@ -62,6 +62,12 @@ Button order is independent of the persisted WidgetStack page indices. Move
 buttons by their named triggers; keep stack order stable to preserve saved tabs.
 PAD FX fills the remaining screen and hides the deck footer; other tabs retain it.
 
+At 1280x720 with the Touch Display 2 scale of 1.20, physical sub-tab centers are
+approximately `x=91,274,457,640,823,1006,1189`, `y=72`. The System rows center
+near `y=374/456/537`; Power is `(1170,538)`. Controls render about 20% larger
+than their logical sizes, including native full-screen menus. Preserve the
+1024x600 coordinates above for the original HDMI profile.
+
 ## D. Settings -> General Options (`x=73, y=60`)
 
 Verified at 1024×600. Left: mixer and playback. Right: waveform/display and
@@ -161,8 +167,9 @@ Power opens a full-screen menu: Restart BiteDJ, Restart system, Power
 off, Back. Each power action opens a separate confirmation with Cancel. Restart
 BiteDJ flushes application state before relaunching; reboot and power-off are OS
 requests with visible errors. Overclock uses Save for next restart and a separate
-Restart system confirmation. Firmware defaults clears the three editable boot
-overrides. Unsupported configurations disable saving.
+Restart system confirmation. Firmware defaults immediately saves removal of the
+three editable boot overrides; custom values still use Save for next restart.
+Unsupported configurations disable saving.
 
 The Info dashboard uses a native Qt container so touch events reach its child
 clock button instead of being translated on the surrounding dashboard.
@@ -176,9 +183,19 @@ sends a manual date/time. Apply sets the timezone before sync and manual time;
 a failed timezone request stops the sequence. These native dialogs do not change
 persisted skin enum values. See [service behavior](../../../../docs/INFRASTRUCTURE.md#touch-datetime-boot-clocks-and-restart).
 
+The Info footer contains **SSH REMOTE ACCESS · ENABLE / DISABLE**. It opens a
+fullscreen service panel that first reads `ssh.service`, then offers only the
+transition valid for the current state. Enable and Disable apply immediately;
+Disable warns that existing remote access ends. Service mutations use
+`sudo -n systemctl enable|disable --now ssh.service`, while the status query is
+unprivileged. Missing services and command failures stay visible in the panel.
+
 Verified 1024×600 targets: System tab `(805,60)`; Overclock `(634,448)`,
 Advanced `(783,448)`, Power `(933,448)`. Info tab `(951,60)`;
-Local Time card `(760,180)`. Power menu buttons are centered at `x=512`,
+Local Time card `(760,180)`; SSH control `(763,486)`. SSH panel buttons are
+centered at `x=512`, `y=436/496/556` for Enable/Disable/Back. At 1280×720 and
+1.20 scale, the Info SSH control is near `(954,584)` and the panel button centers
+are near `x=640`, `y=523/595/667`. Power menu buttons are centered at `x=512`,
 `y=376/436/496/556` in the order above; confirmation Cancel `(267,556)`
 and action `(760,556)`. Overclock Back/Defaults/Save are at `y=496`,
 `x=186/512/839`; Restart system `(512,556)`. Status wrapping can move field
@@ -203,6 +220,10 @@ GL surfaces on the Pi, then restored with its previous window state on return.
 
 Clock selection lists countries and a curated shortlist of main cities. Qt tzdata
 supplies offsets/DST; an existing timezone outside the shortlist remains selectable.
+
+System restart, power-off and SSH service changes use structured
+`sudo -n systemctl` requests for the non-root `pi` desktop user. Status reads do
+not elevate. This also applies to Restart system from the Overclock dialog.
 
 Auto Play assigns visible BiteDJ decks 1/2 to the left/right crossfader sides
 before starting. An inherited center assignment must never choose hidden decks

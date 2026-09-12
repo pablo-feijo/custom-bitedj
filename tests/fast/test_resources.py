@@ -37,6 +37,14 @@ class SkinContracts(unittest.TestCase):
             [page.get("trigger") for page in stack.find("Children")],
         )
 
+    def test_play_waveforms_expand_beside_fixed_control_panel(self):
+        waveforms = ET.parse(SKIN / "waveforms.xml").find(".//WidgetGroup")
+        panel = ET.parse(SKIN / "effects.xml").find(".//WidgetGroup")
+        self.assertEqual("Waveforms", waveforms.findtext("ObjectName"))
+        self.assertEqual("0me,0me", waveforms.findtext("Size"))
+        self.assertEqual("BeatFX_Container", panel.findtext("ObjectName"))
+        self.assertEqual("204f,0me", panel.findtext("Size"))
+
     def test_top_tabs_remain_select_only(self):
         button = ET.parse(SKIN / "tab.xml").find(".//PushButton")
         self.assertEqual("true", button.findtext("LeftClickIsPushButton"))

@@ -73,14 +73,23 @@ grid, not the playback-rate slider. DDJ-400 Shift + jog edits the grid only whil
 Grid deck headers display `[ChannelN],file_bpm` to two decimal places so each
 0.01 BPM adjustment is visible without changing the deck playback rate.
 
-Combined 204px panel verified at 1024×600: Grid tab (994,70); deck 1
+The waveform region expands beside the fixed 204px panel: 820px at 1024×600
+and 1076px at the Touch Display 2's 1280×720 landscape resolution. Combined
+panel coordinates at 1024×600: Grid tab (994,70); deck 1
 Earlier/Later (892/976,146), Set (934,194), BPM −/+ (892/976,242).
 Deck 2 uses y=314/362/410. Touch targets and both-deck dragging passed.
 The Grid panel and waveforms retain their geometry when the cue drawer opens.
 
+On Touch Display 2, the appliance uses 1280x720 with Qt scale 1.20. The logical
+layout remains the two-deck Wide profile, while 44px targets render at about
+53 physical pixels and 11-14px type is enlarged consistently with native menus.
+Do not reuse the 1024x600 coordinates below on that profile.
+
 ## Key and shared panel controls
 
 Tab centers: FX (850,70), Key (898,70), Jump (946,70), Grid (994,70).
+At 1280×720 the fixed panel moves 256px right: FX (1106,70), Key (1154,70),
+Jump (1202,70), Grid (1250,70). Vertical coordinates remain unchanged.
 
 The side panel preserves FX=0, Key=1, Jump=2 and Grid=3.
 Key reads `visual_key`, uses ±2 semitone native commands, `sync_key` for harmonic

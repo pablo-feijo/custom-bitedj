@@ -285,7 +285,13 @@ class DesktopE2E(unittest.TestCase):
             return tuple(rgb[(y * 1024 + x) * 3:(y * 1024 + x) * 3 + 3])
 
         # Fresh instance: no Auto DJ queue, Computer -> Quick Links -> Music.
-        self.click(300, 20)
+        # The Info dashboard has native child controls and may still be settling
+        # after the class startup probe selected Settings. Confirm the actual
+        # page transition before targeting Browse coordinates.
+        def browse_ready():
+            self.click(300, 20)
+            self.assert_selected_tab(1)
+        eventually(browse_ready, timeout=60)
         self.click(120, 55)
         self.click(150, 83)
         self.click(170, 111)

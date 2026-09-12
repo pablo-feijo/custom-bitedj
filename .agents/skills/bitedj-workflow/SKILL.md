@@ -26,6 +26,9 @@ Required before making repository changes. Commands run from the task worktree r
    Read [architecture](references/architecture.md) before native/UI/controller
    edits and [UI workflow](../bitedj-ui/SKILL.md) before visible changes.
    Read additional guides only when the work enters their scope.
+6. Before selecting follow-up work or changing display/deck scope, review the
+   canonical [roadmap](../../../docs/DISPLAY_AND_DECK_LAYOUT_PLAN.md). Update its
+   status with the owning technical guide; do not create a competing roadmap.
 
 ## Search and tool strategy
 

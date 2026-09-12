@@ -2,7 +2,10 @@
   <WidgetGroup>
     <ObjectName>Waveforms</ObjectName>
     <Layout>vertical</Layout>
-    <Size>820f,0me</Size>
+    <!-- Fill the width left of the fixed 204px control panel. This resolves to
+         820px on the original 1024x600 display and 1076px on the 1280x720
+         Raspberry Pi Touch Display 2. -->
+    <Size>0me,0me</Size>
     <Children>
       <Template src="skin:waveform.xml">
         <SetVariable name="channel">1</SetVariable>

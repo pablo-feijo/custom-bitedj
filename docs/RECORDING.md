@@ -38,7 +38,8 @@ Rekordbox loads. Pending values remain visible to immediate reloads; Safe Eject
 waits for these writes and refuses to unmount if they fail. Selecting an uncached
 row does not import the track until a load is requested. Metadata import and
 Rekordbox ANLZ parsing can still delay a cold load; rating and sampler-bank saves
-also retain synchronous paths.
+also retain synchronous paths. Their planned follow-up is tracked in the
+canonical [roadmap](DISPLAY_AND_DECK_LAYOUT_PLAN.md#consolidated-follow-up-backlog).
 
 The Pi image installs `99-bitedj-usb-storage.rules`, selecting BFQ and 64 software
 requests for USB disks that support BFQ. A two-request queue reproduced playback

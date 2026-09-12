@@ -16,6 +16,9 @@ Mixxx. Preserve upstream attribution, licenses and technical identifiers.
 
 - Keep build outputs, settings, containers and ignored `tasks/<topic>.md`
   checklists local to the task worktree. Follow [repository layout](docs/REPOSITORY_LAYOUT.md).
+- Before selecting follow-up work or changing display/deck scope, review the
+  canonical [roadmap](docs/DISPLAY_AND_DECK_LAYOUT_PLAN.md). Keep its status and
+  owning technical docs synchronized; later phases still require user approval.
 - Use Conventional Commits. Integrate only when requested, with one squash
   commit per task; do not rewrite published history without explicit authorization.
 - Before building, use [$bitedj-build-test](.agents/skills/bitedj-build-test/SKILL.md).

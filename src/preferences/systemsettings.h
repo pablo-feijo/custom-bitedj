@@ -87,6 +87,12 @@ class SystemSettings : public QObject {
             const QString& recordingPath, const std::array<QString, 2>& deckPaths,
             const QStringList& mountPoints);
 
+    // The UI exposes rotation relative to the appliance's landscape mounting.
+    // HDMI panels are landscape-native; Touch Display 2 DSI panels are
+    // portrait-native and therefore need an additional quarter turn.
+    static int displayTransformForRotation(const QString& outputName, int degrees);
+    static QString updateSwayRotationConfig(const QString& content, int degrees);
+
     // Unloads every track loaded from the indexed mount, then unmounts it and
     // re-enumerates. Idempotent on out-of-range. Safe to call from the GUI
     // thread.

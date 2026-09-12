@@ -13,6 +13,9 @@ Custom Bite DJ provides a local Docker environment for inspecting the 1024×600
 skin and exercising virtual audio paths on macOS/Linux. It does not establish
 Raspberry Pi hardware performance or upstream certification.
 
+The canonical roadmap for additional resolutions and visible decks 3/4 is
+[Responsive display and four-deck plan](DISPLAY_AND_DECK_LAYOUT_PLAN.md).
+
 Use this workflow to **quickly test and verify changes before deploying to hardware or generating OS images**.
 
 ---
@@ -160,7 +163,15 @@ capture and HTTP checks alone do not prove correct DSP. Use the native
                         +--------------------+      +--------------------+
 ```
 
-- **Screen Resolution**: Locked to 1024x600, matching this fork’s target touchscreen resolution.
+- **Screen Resolution**: Defaults to 1024x600 for the original HDMI touchscreen
+  and coordinate-based regression suite. Set `BITEDJ_TEST_GEOMETRY=1280x720`
+  with a separate `BITEDJ_TEST_INSTANCE` for visual checks of Raspberry Pi
+  Touch Display 2 after its portrait-native DSI output is rotated to landscape.
+  The launcher automatically matches the appliance's 1.20 Qt scale at that
+  geometry; `BITEDJ_TEST_SCALE_FACTOR` can override it for a focused comparison.
+  At 1.20, 44px logical targets render at about 53 physical pixels, and native
+  menus/dialogs scale with the skin. Do not reuse 1024x600 coordinates at the
+  larger resolution.
 - **Audio Subsystem**: PulseAudio virtual dummy sink routing PortAudio audio directly to an internal HTTP MP3 streaming server.
 - **Pre-Loaded Test Music**: Synthesized 44.1kHz stereo test tracks (`BiteDJ_Test_Groove_128BPM.wav` and `BiteDJ_Test_Techno_124BPM.wav`) are mounted into `/music` and automatically cued onto Deck 1 and Deck 2.
 - **Browser Accessibility**: Web-based noVNC interface with auto-scaling, direct VNC, and in-browser audio player.
@@ -397,6 +408,13 @@ the selected chain unchanged. Selection starts a standard chain Off; the
 existing Effect1 `enabled` control activates all its occupied slots together.
 The `parameterN_beat_period` alias uses periods in beats and converts rate-based
 parameters without changing saved raw values.
+
+At the Touch Display 2 profile (1280x720 at 1.20), the panel occupies physical
+`x=1039..1279`. The FX/Key/Jump/Grid centers are approximately
+`(1071/1129/1186/1244,84)`, and the selector is `(1158,139)`. The contained
+picker columns center at `x=1103/1213`; effect-row centers are
+`y=232,290,348,406,464,522,580`. Standard/Saved are at `y=143`, Erase/Close at
+`y=184`, and Prev/Next at `y=646`. Re-measure after a scale/profile change.
 
 Run `scripts/test/capture-beatfx-docs.sh` with two paused synthetic tracks in
 Night mode. Inspect both Standard pages and both Saved pages, especially Color
@@ -647,7 +665,8 @@ Feedback/Ping Pong/Send knobs are (1001,265/295/325), Quantize/Triplets
 (986,356/388), and Mix/Super knobs (902/1000,424). The viewport is y=168..404;
 Echo fits without scrolling. With a scrollbar, parameter controls shift left
 by its 14px width; longer effect lists retain scrolling.
-The side panel is 204px wide and the waveform area is 820px.
+The side panel is 204px wide. The waveform area expands from 820px at 1024×600
+to 1076px at 1280×720, keeping the controls anchored at the right edge.
 
 ### Available FX controls
 
@@ -714,13 +733,24 @@ height, cue labels, time mapping and seek targets remain unchanged.
 See the [System/Info control map](../.agents/skills/bitedj-ui/references/settings.md#g-system-and-info-dashboard)
 and [OS behavior](INFRASTRUCTURE.md#touch-datetime-boot-clocks-and-restart).
 Verify Night and Day at 1024×600: all four Info cards, local date and tap hint,
-output status and deck footer must remain visible. Tap Local Time; check
+output status, SSH service control and deck footer must remain visible. Tap Local Time; check
 Region/City selectors, timezone preview including day rollover, calendar selection,
 Hour/Minute controls, automatic sync hiding the manual fields,
 Cancel, and disabled Apply when the date/time service is unavailable.
 
+Tap **SSH REMOTE ACCESS · ENABLE / DISABLE** at `(763,486)`. The fullscreen
+panel must report the current `ssh.service` state and expose Enable/Disable/Back
+as 48px-or-larger targets centered near `y=436/496/556`. Native tests must route
+Enable to `sudo -n systemctl enable --now ssh.service`, Disable to
+`sudo -n systemctl disable --now ssh.service`, and reboot to
+`sudo -n systemctl reboot` for the non-root appliance user. The container has no
+SSH unit and should show a readable `not-found` state without enabling either
+mutation button. Repeat the Info page and panel at 1280×720/1.20; expected
+physical centers are recorded in the control map.
+
 Native `SystemDialogsTest` uses temporary fake system executables to verify
-manual/automatic clock commands, partial failures and confirmation/cancellation.
+manual/automatic clock commands, SSH enable/disable, privileged restart,
+partial failures and confirmation/cancellation.
 The clock-card regression sends `QTest::touchEvent` press/release events to the
 displayed time label inside `WSystemInfo`, verifies the editor opens, then taps
 Cancel and verifies the dashboard returns. Direct `click()` calls bypass this

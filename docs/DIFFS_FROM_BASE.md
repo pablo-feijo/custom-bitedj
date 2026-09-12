@@ -117,10 +117,10 @@ These foundational features were implemented by the original BiteDJ fork to surv
 ## 4. Upstream Cherry-Pick Checklist
 
 When evaluating new Mixxx releases (e.g., 2.5, 2.6), prioritize reviewing the following upstream areas for potential cherry-picks:
-- [ ] **Library & Database Optimizations**: Upstream improvements to SQLite queries or track parsing algorithms.
-- [ ] **BPM & Key Detection Algorithms**: Enhancements to Queen Mary DSP or Rubberband processing.
-- [ ] **New Audio Formats / Decoders**: Flac, Opus, or AAC codec support updates.
-- [ ] **Controller Scripts**: Hardware-specific XML/JS updates for non-DDJ-400 controllers that you wish to support.
+Optional upstream modernization candidates—library/database optimization,
+BPM/key analysis, codecs and non-DDJ-400 controller updates—are consolidated in
+the canonical [roadmap](DISPLAY_AND_DECK_LAYOUT_PLAN.md#consolidated-follow-up-backlog).
+They are not a single implementation checklist and must be scoped separately.
 
 ### D. FX Panel Touch UI Adjustments (`res/skins/BiteDJ/effects.xml`)
 - **Base Mixxx**: Relies on a hardware MIDI controller (SuperKnob) to drive effects, hiding key parameters when loaded.
@@ -136,12 +136,14 @@ When evaluating new Mixxx releases (e.g., 2.5, 2.6), prioritize reviewing the fo
 - **Overview Stack Sync**: Created a dedicated `WaveformOverviewType` property in the backend to ensure Deck `WOverview` waveforms respond natively to the 3-Band setting change.
 - **WaveformRendererFiltered Track Colors**: Updated `WaveformRendererFiltered` to correctly source dynamic RGB track colors (`m_rgbLowColor`, etc.) for `mode == 2`, fixing a major rendering bug where 3-Band stacked waveforms were drawing black due to an undefined generic skin color fallback.
 
-## Pending v0.0.7: configurable Pad FX
+## Delivered in v0.0.7: configurable Pad FX
 
 `codex/rekordbox-padfx-display` adds system-owned assignments/reset commands,
 private native effect lanes and a compact full-height Settings editor. DDJ-400
 normal/Shift pads use the new mapping instead of swapping the main Beat FX slot.
-See [Pad FX validation](PAD_FX_TESTING.md). Implementation plans are local execution records under ignored `tasks/`.
+See [Pad FX validation](PAD_FX_TESTING.md). Remaining physical-controller
+qualification is tracked in the canonical
+[roadmap](DISPLAY_AND_DECK_LAYOUT_PLAN.md#consolidated-follow-up-backlog).
 
 
 ### 2026-09-09 — Stable colors when loading Rekordbox tracks

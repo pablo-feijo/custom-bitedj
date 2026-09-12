@@ -1,0 +1,22 @@
+{
+  "source_commit": "bafd4eef20916bcd56a319957cfeefb6a9c9edba",
+  "source_branch": "codex/pi-ssh-default",
+  "dirty": true,
+  "ui_scale": 1.2,
+  "skin_asset": "res/skins/BiteDJ/waveforms.xml",
+  "skin_asset_sha256": "db3c76f6552afa6b9009b09e12590c5cc165396459bf0633581f600ed11ad7bb",
+  "binary_version": "0.0.8-codex-pi-ssh-default.4",
+  "binary_sha256": "6a1a0ccca8413457bd55f18a85e6a821de3f979f147cfd22c18bb531717d005e",
+  "platform": "linux/arm64",
+  "capture_date": "2026-09-12",
+  "capture_size": [
+    1280,
+    720
+  ],
+  "fixture": "scripts/test/generate_test_music.py",
+  "images": {
+    "play-touch-display-2.png": "d647708e260ac24b241a35495a82df87259e3511d578ec04413bcfa3525187f5",
+    "beat-fx-picker-touch-display-2.png": "e4bf5ece826e1c70a5c608c86313a9d5b110bcb77a1e7fcc92c782c32a8d9b58",
+    "settings-system-touch-display-2.png": "49680f4cdbaec0de95e11a12cb806f8696342eadde12c43b1687a4fe098fc4d1"
+  }
+}

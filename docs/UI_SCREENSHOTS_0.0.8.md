@@ -16,6 +16,25 @@ exported Rekordbox RGB colors and phrase markers. RGB uses PWV4/PWV5 colors;
 
 ![Play with Grid and Quantize enabled](images/ui/0.0.8/play.png)
 
+The Raspberry Pi Touch Display 2 capture below uses its rotated 1280x720
+landscape canvas at 1.20 UI scale. Fonts, native menus and logical 44px touch
+targets grow together (to about 53 physical pixels), while waveforms consume
+the remaining width and the FX panel stays right-aligned. The original 1024x600
+profile remains at 1.00.
+
+![Play filling the Touch Display 2 landscape canvas](images/ui/0.0.8/play-touch-display-2.png)
+
+[Responsive capture provenance](images/ui/0.0.8/responsive-capture-provenance.json)
+records the compatible ARM64 binary and exact skin asset used for this image.
+
+The same profile keeps the contained Beat FX picker readable and aligned, and
+uses the additional height for larger System actions without changing saved
+tab/control IDs.
+
+![Touch Display 2 Beat FX picker](images/ui/0.0.8/beat-fx-picker-touch-display-2.png)
+
+![Touch Display 2 System settings](images/ui/0.0.8/settings-system-touch-display-2.png)
+
 ## Browse preview
 
 The first two rows show exported overview waveforms without requiring native
@@ -40,20 +59,27 @@ and the [0.0.8 changelog](../CHANGELOG.md#008--unreleased).
 ## Settings — Info
 
 The Local Time card forwards touchscreen taps on its labels to the date/time
-editor. Native touch press/release regression coverage verifies opening the
-editor and cancelling back to the dashboard.
+editor. The footer now includes a large SSH remote-access control whose
+fullscreen panel reports the service state and offers Enable/Disable/Back.
+Native touch press/release regression coverage verifies both child controls.
 
-These unchanged-layout reference captures were verified with
-`0.0.7-codex-touch-datetime-editor.1` before integration into 0.0.8; they are not
-captures of a combined 0.0.8 build. The other gallery captures retain their
-controller-build provenance above.
+These captures use ARM64 build `0.0.8-codex-pi-ssh-default.5`; exact hashes and
+capture geometry are in the [SSH access provenance](images/ui/0.0.8/ssh-access-capture-provenance.json).
 
 ![Info dashboard](images/ui/0.0.8/settings-info.png)
+![SSH service panel; systemd unit unavailable in the container](images/ui/0.0.8/ssh-remote-access.png)
 ![Date/time editor; OS time service unavailable in the container](images/ui/0.0.8/clock-editor.png)
+
+<details><summary>Touch Display 2 at 1280×720 / 1.20</summary>
+
+![Info dashboard on Touch Display 2](images/ui/0.0.8/settings-info-touch-display-2.png)
+
+</details>
 
 <details><summary>Info and clock in Day mode</summary>
 
 ![Info dashboard in Day mode](images/ui/0.0.8/settings-info-day.png)
+![SSH service panel in Day mode](images/ui/0.0.8/ssh-remote-access-day.png)
 ![Date/time editor in Day mode](images/ui/0.0.8/clock-editor-day.png)
 
 </details>

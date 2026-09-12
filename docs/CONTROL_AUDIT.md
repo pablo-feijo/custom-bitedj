@@ -49,4 +49,6 @@ An empty FX slot has no audible effect to enable; it is not proof of a bad key.
 Pi validation is deferred at the user's request. USB slot topology, thermal
 sensor identity, sustained audio under load, physical touch spacing, and device
 launch/eject behavior remain unchecked on hardware. Docker/VNC results do not
-close these items. See DIFFS_FROM_BASE.md.
+close these items. Priority and completion status are tracked in the canonical
+[roadmap](DISPLAY_AND_DECK_LAYOUT_PLAN.md#consolidated-follow-up-backlog); this
+document remains the detailed control-audit source.

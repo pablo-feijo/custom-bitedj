@@ -815,6 +815,8 @@ WLabel {
 #InfoValue { color: #e5e6ea; font-size: 38px; font-weight: bold; }
 #InfoHint { color: #9999a8; font-size: 12px; }
 #InfoOutput { color: #aaaaba; font-size: 12px; padding: 8px; }
+#InfoSshButton { background-color: #252530; color: #e5e6ea; border: 1px solid #8058a0; border-radius: 6px; font-size: 12px; font-weight: bold; padding: 4px 10px; }
+#InfoSshButton:pressed { background-color: #8058a0; }
 #SystemDialog { background-color: #111118; color: #e5e6ea; font-size: 16px; }
 #SystemDialog QLabel, #SystemDialog QCheckBox { color: #c5c5d0; font-size: 16px; }
 #SystemDialog #SystemDialogTitle { color: #e5e6ea; font-size: 24px; font-weight: bold; }

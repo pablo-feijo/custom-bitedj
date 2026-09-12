@@ -43,7 +43,7 @@ The Sway compositor handles BiteDJ's execution automatically on boot.
 BiteDJ modifies `/boot/firmware/cmdline.txt` during the `mixxx-pi-gen` OS generation to configure the Raspberry Pi hardware explicitly for real-time audio and kiosk presentation:
 - **CPU Governor**: Forces `cpufreq.default_governor=performance` so the CPU never throttles down, ensuring consistent, low-latency audio processing.
 - **Kernel Preemption**: Appends `preempt=full` to the kernel boot string, allowing audio callback threads to forcefully interrupt lower-priority system processes.
-- **Silent Boot (Plymouth)**: Appends `quiet splash logo.nologo vt.global_cursor_default=0` to completely hide the Linux boot text and blinking cursor. A custom Plymouth script (`bitedj.script`) is injected to display a high-resolution Pioneer splash image seamlessly during boot.
+- **Silent Boot (Plymouth)**: Appends `quiet splash logo.nologo vt.global_cursor_default=0` to hide Linux boot text and the blinking cursor. The fixed firmware splash is disabled because it cannot distinguish HDMI from portrait-native DSI. Kernel boot keeps DSI native, the custom theme includes a pre-rotated candidate, and Sway alone applies the later 90-degree application transform. The physical Pi 5 splash remains portrait-cropped; evidence and next diagnostics are in the pinned image recipe's [boot splash investigation](../mixxx-pi-gen/docs/BOOT_SPLASH.md).
 - **USB Audio Default**: Injects a custom `soundconfig.xml` to force `DDJ-400: USB Audio` as the default Master and Headphone output upon first boot.
 - **USB Maximum Current**: Modifies `/boot/firmware/config.txt` to include `max_usb_current=1`. This boosts the maximum USB current allowance from 600mA to 1200mA (1.2A), which is mandatory to simultaneously power the Pioneer DDJ-400 controller and the HDMI touchscreen display without voltage drops or disconnects.
 
@@ -145,8 +145,16 @@ exec "WLR_DRM_NO_MODIFIERS=1 QT_WAYLAND_SHELL_INTEGRATION=xdg-shell /usr/bin/bit
 
 ## Touch date/time, boot clocks and restart
 
-Settings → Info keeps four dashboard cards. Tap Local Time for a timezone-first
-editor: Region and City / timezone select an installed IANA zone and preview its
+Settings → Info keeps four dashboard cards plus an SSH remote-access control.
+The SSH panel queries `systemctl is-enabled ssh.service` without elevation and
+uses `sudo -n systemctl enable --now ssh.service` or
+`sudo -n systemctl disable --now ssh.service` for the selected transition.
+The image remains key-only: enabling the daemon does not enable password login.
+Disabling is immediate and ends existing remote maintenance access. Missing
+units, sudo failures and service errors remain visible in the fullscreen panel.
+
+Tap Local Time for a timezone-first editor: Region and City / timezone select
+an installed IANA zone and preview its
 local date and time. Apply calls `timedatectl set-timezone` before updating sync;
 a failed zone change stops the sequence. A timezone-only edit preserves the
 clock instant and never issues `set-time`. The dashboard updates without restart.
@@ -168,8 +176,9 @@ saved boot overrides, which can differ from currently running clocks. CPU range
 is 1000–2400 MHz on Pi 4 and 1000–3000 MHz on Pi 5; GPU range is 400–1000 MHz;
 `over_voltage` is 0–6 (25 mV steps). These are editor bounds, not stability
 certifications. Zero removes the corresponding override and lets firmware choose.
-Firmware defaults clears all three overrides. Cooling and board-dependent
-stability remain relevant; no new preset is presented as hardware-validated.
+Firmware defaults saves removal of all three overrides immediately; custom
+values use Save for next restart. Cooling and board-dependent stability remain
+relevant; no new preset is presented as hardware-validated.
 See [Raspberry Pi's clock documentation](https://www.raspberrypi.com/documentation/computers/config_txt.html#overclocking-options).
 
 Saving preserves unrelated boot options, places the managed overrides in `[all]`,
@@ -193,9 +202,10 @@ System → Power / Restart offers Restart BiteDJ, Restart system and Power off.
 Application restart exits the event loop, destroys the main window and core
 services (flushing settings and recordings), then launches the same executable
 with its arguments and inherited environment. System restart/power-off use
-`systemctl reboot` / `systemctl poweroff`, with failed starts, nonzero exits and
-timeouts reported. These OS actions require the appliance's existing system
-permissions; desktop containers without systemd expose an unavailable/error state.
+`sudo -n systemctl reboot` / `sudo -n systemctl poweroff` for the non-root
+desktop user, with failed starts, nonzero exits and timeouts reported. This
+fixes Restart system from both Power and Overclock without relying on a graphical
+Polkit agent. Desktop containers without systemd expose an unavailable/error state.
 
 
 ### Audio scheduling during browsing

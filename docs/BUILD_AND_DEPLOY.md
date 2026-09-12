@@ -25,18 +25,56 @@ This script will:
 3. Build a customized Debian Trixie OS from scratch (Stages 0-3).
 4. Export a fully flashable `.zip` file into `mixxx-pi-gen/deploy/`.
 
+Fresh images enable SSH for the `pi` user and keep a boot-partition SSH sentinel
+as a first-boot fallback. The image build fails if `sshd`, `ssh.service`, or the
+host-key regeneration service is unavailable or disabled.
+
+The appliance display profile supports the original 1024×600 HDMI touchscreen
+and Raspberry Pi Touch Display 2 on `DSI-1` or `DSI-2`. Touch Display 2 is
+portrait-native at 720×1280, so Sway applies a 90° baseline transform to expose
+a 1280×720 landscape desktop. Settings → System rotation remains relative to
+that landscape mounting: Normal/180° maps to 0°/180° on HDMI and 90°/270° on
+DSI. When DSI is connected, the launcher disables the image's forced HDMI
+fallback before BiteDJ starts, maps touch to the selected DSI output and starts
+BiteDJ with a 1.20 Qt UI scale. The original 1024x600 HDMI profile remains at
+1.00. This keeps fonts, native menus and 44px logical controls physically usable
+on the denser seven-inch Touch Display 2 while still rendering at 1280x720.
+Larger canvases and visible four-deck layouts are planned in the
+[responsive display and deck roadmap](DISPLAY_AND_DECK_LAYOUT_PLAN.md); they are
+not implied by the two hardware profiles above.
+
+The Touch Display 2 application layout is validated, but its Plymouth image is
+still cropped in a portrait boot canvas on the physical Pi 5. The attempted
+renderer and asset changes, evidence and acceptance criteria are recorded in the
+pinned image recipe's [boot splash investigation](../mixxx-pi-gen/docs/BOOT_SPLASH.md).
+
 The image keeps BiteDJ under the `pi` account and validates noninteractive sudo
-for clock and overclock operations during Stage 3. On a booted image, run
+for clock, overclock, SSH service and power operations during Stage 3. On a booted image, run
 `/usr/lib/bitedj/check-system-settings` as `pi` to verify the same capabilities
 without changing system state. See the pinned image recipe's
 [system settings guide](../mixxx-pi-gen/docs/SYSTEM_SETTINGS.md).
 
+SSH starts automatically with key-only authentication. A BiteDJ systemd unit
+generates unique host keys before `ssh.service` on every fresh card. Use the
+dedicated recovery key stored alongside the private OS builds; no local terminal
+or shared network password is required. Settings → Info → SSH Remote Access can
+enable or disable the service locally; disabling it immediately ends remote
+maintenance, so re-enable it from the touchscreen before attempting a hot deploy.
+
 **Flashing the SD Card:**
 Once the `.zip` is generated, insert your SD card and run:
 ```bash
+diskutil list
+./scripts/deploy/flash-sdcard.sh --check
 ./scripts/deploy/flash-sdcard.sh
 ```
-Follow the interactive prompts to safely write the image to your disk.
+The macOS flasher deliberately prompts for the sudo password in the user's own
+Terminal. It automatically selects the only attached external physical disk,
+rejects internal, read-only and partition targets, shows the exact device details,
+and requires a `y/N` confirmation before it writes the image. When multiple
+external disks are attached it refuses to guess; disconnect the others or pass
+the intended whole disk explicitly, for example `/dev/disk5` (never a partition
+such as `disk5s1`).
 
 **Expanding the Filesystem (Important):**
 Because the raw image is deliberately kept small (~6GB) to speed up flashing, it will not automatically fill large SD cards. If you encounter "No space left on device" errors over SSH, you must manually expand the root partition:
