@@ -27,15 +27,23 @@ def command(*args, timeout=20):
     return result.stdout
 
 
-def eventually(check, timeout=30):
+def eventually(check, timeout=30, stable_for=0):
     deadline = time.monotonic() + timeout
     last = None
+    stable_since = None
     while time.monotonic() < deadline:
         try:
-            return check()
+            result = check()
         except (AssertionError, subprocess.SubprocessError) as error:
             last = error
-            time.sleep(0.2)
+            stable_since = None
+        else:
+            now = time.monotonic()
+            if stable_since is None:
+                stable_since = now
+            if now - stable_since >= stable_for:
+                return result
+        time.sleep(0.2)
     raise AssertionError(
         f"Condition did not become true in {timeout}s: {last}"
     )
@@ -375,7 +383,11 @@ class DesktopE2E(unittest.TestCase):
         def browse_ready():
             self.click(300, 20)
             self.assert_selected_tab(1)
-        eventually(browse_ready)
+        # ControllerSettings can redirect to Devices from its 1.5s startup
+        # watchdog after the first successful Browse frame. Require a stable
+        # page beyond that interval before clicking any playlist/toolbar rows;
+        # otherwise those clicks hit Settings and Queue All never runs.
+        eventually(browse_ready, stable_for=2)
         self.click(100, 55)  # Playlists exists because the saved playlist exists.
         self.click(100, 83)  # Queue Test.
         time.sleep(1)
