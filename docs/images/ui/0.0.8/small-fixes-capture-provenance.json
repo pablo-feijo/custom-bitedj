@@ -1,0 +1,40 @@
+{
+  "source_commit": "1374fc75ae23e053f5568a852c41a81d43aec0ee",
+  "source_branch": "codex/small-fixes",
+  "dirty": true,
+  "source_hash": "705e9b159a82c23236fc2300addedc51b96c52dffd8680f326601a1883af8fad",
+  "binary_version": "Bite DJ 0.0.8-codex-small-fixes.4",
+  "binary_sha256": "d18195cc463918d83c04261cc36a9826b6341bf4fdbac1f1b3f69429d9ae9cb0",
+  "platform": "linux/arm64",
+  "built_at": "2026-09-13T03:09:46.676911+00:00",
+  "capture_date": "2026-09-13",
+  "fixture": "scripts/test/generate_test_music.py",
+  "capture_profiles": {
+    "original": {
+      "size": [1024, 600],
+      "ui_scale": 1.0
+    },
+    "touch_display_2": {
+      "size": [1280, 720],
+      "ui_scale": 1.2
+    }
+  },
+  "source_assets": {
+    "res/skins/BiteDJ/deck.xml": "5237123a94e8f09b6955f944fe8a16562740f8d79efda9ee8d2277e7bc668841",
+    "res/skins/BiteDJ/waveform.xml": "af05814a5f663456694d33f905da60ff32564d4c6886dd67009bb3fa2c4fe7c6",
+    "src/widget/textscroll.h": "7fa7bc39bab14756380be4fff1aa5c8c3469cbb222f43ac355feb8de0ea32a07",
+    "src/widget/wlabel.cpp": "5e3e79c86316cc8bc74be30bc08067394b82ff7c792d57987409f4c40d0d819c",
+    "src/widget/woverview.cpp": "96e2ef5d21a55ff59f8f4b08bd58e8f5ed37f9df9ac88aedf7cff7b2e7f34735",
+    "src/widget/woverview.h": "481ae2af6c3c7ab09fd2e86387a33de193ea1aebde3fb0b01a460aff5f078a78",
+    "src/widget/wtrainingphase.cpp": "f45ed80ad6f2ec308f8de584dd421b521df26d6dda9c2573647167fc2035459b",
+    "src/widget/wtrainingphase.h": "4fabf344f3c95ace0ec416548075af26aa0cbe3395cc6c249a09e85d977c1ea1"
+  },
+  "images": {
+    "play.png": "3d001b27faf21850609dc654707c50b8e4a68dede4601be9ee1e9d6dcdc812d3",
+    "deck-time-modes.png": "db4ec4b6876194fa9a63b53e6c165466a32763c1ff88ff9aaf6663d1e12bfd66",
+    "play-training-boxes.png": "e0619a0edc9e6c415283ea95b1141d39052f6a52de54723e309f371f1efef7af",
+    "play-training-line.png": "79893b1550df3bb4cf10af09b634e83e62eabcf1c0a5caf09f43be41a6ef6077",
+    "play-touch-display-2.png": "c8bb593ab5daa9ec7f867003167e7c1bd1a71267c48e4b11ccb7c50a2fd640ba",
+    "play-training-boxes-touch-display-2.png": "74b5e21f006433acdeebc536ff57653df1787c7e17504539dd38a7faf160d3a0"
+  }
+}

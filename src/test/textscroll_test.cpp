@@ -5,11 +5,11 @@
 #include <QDomDocument>
 
 class TextScrollTest : public MixxxTest {};
-TEST_F(TextScrollTest, PausesTravelsAndRestartsWithoutOvershoot) {
+TEST_F(TextScrollTest, PausesThenWrapsAtAContinuousCycleBoundary) {
     EXPECT_DOUBLE_EQ(mixxx::textScrollOffset(1000, 90, 30), 0);
     EXPECT_DOUBLE_EQ(mixxx::textScrollOffset(2500, 90, 30), 30);
-    EXPECT_DOUBLE_EQ(mixxx::textScrollOffset(5000, 90, 30), 90);
-    EXPECT_DOUBLE_EQ(mixxx::textScrollOffset(6000, 90, 30), 0);
+    EXPECT_NEAR(mixxx::textScrollOffset(4499, 90, 30), 89.97, 0.0001);
+    EXPECT_DOUBLE_EQ(mixxx::textScrollOffset(4500, 90, 30), 0);
     EXPECT_DOUBLE_EQ(mixxx::textScrollOffset(5000, 0, 30), 0);
 }
 TEST_F(TextScrollTest, TimerStopsWhenHiddenOrTextFitsAndDoesNotGrowDeck) {

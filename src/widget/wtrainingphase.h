@@ -43,6 +43,8 @@ class WTrainingPhase final : public WWidget {
 
   private:
     friend class DeckPresentationTest;
+    static constexpr qreal kSideLabelWidth = 120.0;
+    static constexpr qreal kMeterGap = 8.0;
     struct DeckState {
         TrackPointer track;
         BaseTrackPlayer* player = nullptr;
@@ -53,6 +55,7 @@ class WTrainingPhase final : public WWidget {
     };
 
     Position deckPosition(int index) const;
+    static QString positionText(const Position& position);
     void drawBoxes(QPainter* painter, const QRectF& area, const Position& position,
             const QColor& color) const;
     void drawLine(QPainter* painter, const QRectF& area, const Position& position,

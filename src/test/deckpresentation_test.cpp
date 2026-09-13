@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <QDomDocument>
+#include <QFontMetricsF>
 #include <QTest>
 #include "audio/frame.h"
 #include "control/controlobject.h"
@@ -19,6 +20,12 @@ class DeckPresentationTest : public MixxxTest {
     }
     WTrainingPhase::Position phasePosition(const WTrainingPhase& widget) {
         return widget.deckPosition(0);
+    }
+    QString phasePositionText(const WTrainingPhase::Position& position) {
+        return WTrainingPhase::positionText(position);
+    }
+    qreal phaseSideLabelWidth() {
+        return WTrainingPhase::kSideLabelWidth;
     }
 };
 
@@ -107,6 +114,15 @@ TEST_F(DeckPresentationTest, TrainingPhaseUsesFourBeatCycleAndAbsoluteBarText) {
 
     const auto invalid = WTrainingPhase::calculatePosition({}, 0.0, 0.0);
     EXPECT_FALSE(invalid.valid);
+
+    WTrainingPhase widget(nullptr);
+    const WTrainingPhase::Position threeDigitBar{true, 999, 4, 0.0};
+    EXPECT_EQ(phasePositionText(threeDigitBar), QStringLiteral("999.4 BARS"));
+    QFont labelFont = widget.font();
+    labelFont.setBold(true);
+    labelFont.setPixelSize(17);
+    EXPECT_LE(QFontMetricsF(labelFont).horizontalAdvance(phasePositionText(threeDigitBar)),
+            phaseSideLabelWidth());
 }
 
 TEST_F(DeckPresentationTest, PerDeckTimeModesAreIndependentAndRefreshWhenPaused) {

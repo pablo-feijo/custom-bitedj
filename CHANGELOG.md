@@ -21,6 +21,14 @@ BiteDJ based on Mixxx. Versions use Semantic Versioning.
   single interpolated audio position, avoiding independently sampled beat timing.
   Paint the bounded phase area within that tick to avoid queued repaint delays.
   See the [Training gallery](docs/UI_SCREENSHOTS_0.0.8.md#training-mode).
+- Make overflowing deck titles wrap continuously after their initial pause
+  instead of snapping back to the start.
+- Add a deliberate safety gap between Quantize/Lock and Play/Cue while
+  preserving 44px touch targets and saved controls.
+- Mirror each deck's elapsed/remaining selection in the compact overview time
+  watermark and progress shading direction.
+- Keep three-digit Training bar numbers visible instead of clipping their
+  leading digit after bar 99.
 
 - Boot freshly flashed images with SSH enabled and support both the original
   1024×600 HDMI touchscreen and the portrait-native Raspberry Pi Touch Display

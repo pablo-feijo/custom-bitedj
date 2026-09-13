@@ -47,7 +47,41 @@ class WaveformRenderingTest : public MixxxTest {
     static QImage source(const WOverview& overview) { return overview.m_waveformSourceImage; }
     static int completion(const WOverview& overview) { return overview.m_actualCompletion; }
     static void style(WOverview& overview, int value) { overview.slotTypeControlChanged(value); }
+    static QImage progressOverlay(WOverview& overview, int mode) {
+        overview.m_waveformSourceImage = QImage(100, 10, QImage::Format_ARGB32_Premultiplied);
+        overview.m_waveformSourceImage.fill(Qt::white);
+        overview.m_waveformImageScaled = overview.m_waveformSourceImage;
+        overview.m_playedOverlayColor = QColor(255, 0, 255, 255);
+        overview.m_iPlayPos = 40;
+        overview.setTimeDisplayMode(mode);
+        QImage image(100, 10, QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::transparent);
+        QPainter painter(&image);
+        overview.drawPlayedOverlay(&painter);
+        return image;
+    }
+    static QString timeText(const WOverview& overview) {
+        return overview.displayedTimeText();
+    }
 };
+
+TEST_F(WaveformRenderingTest, OverviewProgressAndWatermarkMirrorDeckTimeMode) {
+    ControlObject elapsed(ConfigKey("[Channel1]", "time_elapsed"));
+    ControlObject remaining(ConfigKey("[Channel1]", "time_remaining"));
+    elapsed.set(12);
+    remaining.set(48);
+    WOverview overview("[Channel1]", nullptr, config());
+
+    const auto elapsedOverlay = progressOverlay(overview, 0);
+    EXPECT_EQ(elapsedOverlay.pixelColor(10, 5), QColor(Qt::magenta));
+    EXPECT_EQ(elapsedOverlay.pixelColor(90, 5), QColor(Qt::transparent));
+    EXPECT_EQ(timeText(overview), QStringLiteral("0:12"));
+
+    const auto remainingOverlay = progressOverlay(overview, 1);
+    EXPECT_EQ(remainingOverlay.pixelColor(10, 5), QColor(Qt::transparent));
+    EXPECT_EQ(remainingOverlay.pixelColor(90, 5), QColor(Qt::magenta));
+    EXPECT_EQ(timeText(overview), QStringLiteral("-0:48"));
+}
 
 TEST_F(WaveformRenderingTest, EmptyAndUnpublishedDataDoNotRender) {
     auto wave = summary();

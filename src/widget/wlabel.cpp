@@ -191,14 +191,19 @@ void WLabel::paintEvent(QPaintEvent* event) {
     }
     const QRect area = scrollRect();
     const int width = fontMetrics().horizontalAdvance(m_longText);
+    const int gap = std::max(fontMetrics().horizontalAdvance(QStringLiteral("   ")),
+            static_cast<int>(24.0 * m_scaleFactor));
+    const int cycleDistance = width + gap;
     const double offset = mixxx::textScrollOffset(
             m_scrollClock.isValid() ? m_scrollClock.elapsed() : 0,
-            width - area.width(), 30.0 * m_scaleFactor);
+            cycleDistance, 30.0 * m_scaleFactor);
     QPainter painter(this);
     painter.setClipRect(area);
     painter.setPen(m_scrollColor.isValid() ? m_scrollColor :
             palette().color(isEnabled() ? QPalette::Active : QPalette::Disabled, foregroundRole()));
     painter.drawText(QRectF(area.x() - offset, area.y(), width, area.height()),
+            Qt::AlignLeft | Qt::AlignVCenter | Qt::TextSingleLine, m_longText);
+    painter.drawText(QRectF(area.x() - offset + cycleDistance, area.y(), width, area.height()),
             Qt::AlignLeft | Qt::AlignVCenter | Qt::TextSingleLine, m_longText);
 }
 

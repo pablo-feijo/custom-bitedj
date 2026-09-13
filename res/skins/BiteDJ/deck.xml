@@ -593,6 +593,10 @@
             <Connection>
               <ConfigKey>[Channel<Variable name="channel"/>],playposition</ConfigKey>
             </Connection>
+            <Connection>
+              <ConfigKey>[Skin],deck<Variable name="channel"/>_time_mode</ConfigKey>
+              <BindProperty>timeDisplayMode</BindProperty>
+            </Connection>
             <!-- The watermark is off on the Play page, where the scrolling
                  waveform and the Time readout already carry the countdown.
                  Kept next to the connection above because setupConnections

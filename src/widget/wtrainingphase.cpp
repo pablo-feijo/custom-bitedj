@@ -157,8 +157,9 @@ void WTrainingPhase::paintEvent(QPaintEvent* pEvent) {
     drawDeck(&painter, 0, firstRow, style);
     drawDeck(&painter, 1, secondRow, style);
 
-    const qreal meterLeft = left + 112.0;
-    const qreal meterRight = left + contentWidth - 112.0;
+    const qreal meterInset = kSideLabelWidth + kMeterGap;
+    const qreal meterLeft = left + meterInset;
+    const qreal meterRight = left + contentWidth - meterInset;
     painter.setPen(QPen(m_markerColor, 2.0));
     painter.drawLine(QPointF((meterLeft + meterRight) / 2.0, firstRow.top() - 14.0),
             QPointF((meterLeft + meterRight) / 2.0, secondRow.bottom() + 14.0));
@@ -171,13 +172,14 @@ void WTrainingPhase::drawDeck(
     labelFont.setPixelSize(17);
     painter->setFont(labelFont);
     painter->setPen(m_deckColors[index]);
-    painter->drawText(QRectF(row.left(), row.top(), 104.0, row.height()),
+    painter->drawText(QRectF(row.left(), row.top(), kSideLabelWidth, row.height()),
             Qt::AlignLeft | Qt::AlignVCenter,
             tr("DECK %1").arg(index + 1));
 
-    const QRectF meter(row.left() + 112.0,
+    const qreal meterInset = kSideLabelWidth + kMeterGap;
+    const QRectF meter(row.left() + meterInset,
             row.top() + 2.0,
-            std::max(80.0, row.width() - 224.0),
+            std::max(80.0, row.width() - 2.0 * meterInset),
             row.height() - 4.0);
     const Position position = deckPosition(index);
     if (style == 1) {
@@ -187,14 +189,21 @@ void WTrainingPhase::drawDeck(
     }
 
     painter->setPen(m_deckColors[index]);
-    const QString positionText = position.valid
+    const QString text = positionText(position);
+    painter->drawText(QRectF(row.right() - kSideLabelWidth,
+                              row.top(),
+                              kSideLabelWidth,
+                              row.height()),
+            Qt::AlignRight | Qt::AlignVCenter,
+            text);
+}
+
+QString WTrainingPhase::positionText(const Position& position) {
+    return position.valid
             ? QStringLiteral("%1.%2 BARS")
                       .arg(position.bar, 2, 10, QLatin1Char('0'))
                       .arg(position.beat)
             : QStringLiteral("--.- BARS");
-    painter->drawText(QRectF(row.right() - 104.0, row.top(), 104.0, row.height()),
-            Qt::AlignRight | Qt::AlignVCenter,
-            positionText);
 }
 
 void WTrainingPhase::drawBoxes(QPainter* painter,

@@ -8,6 +8,9 @@
   and the waveform factory's synchronization; do not step both synchronized decks
   separately, which would apply each action twice.
 - Deck time modes use persisted `[Skin],deck1_time_mode` and `deck2_time_mode`.
+  Each selector also drives its compact overview: Elapsed shows a positive
+  watermark and shades the played region to the left of the playhead; Remaining
+  shows a negative watermark and shades the unplayed region to the right.
 - For touch library loading, begin with a horizontal move to distinguish a drag
   from vertical scrolling. Only actual visible deck regions accept that drag;
   Escape cancels it. Highlight geometry must match the release target geometry.
@@ -31,9 +34,22 @@ beat ticks point inward and a thin red mark identifies each
 downbeat. Boxes uses exactly four boxes per deck and an orange active beat.
 deck 1 red, deck 2 cyan and a
 white center reference. The separate absolute `BB.b BARS` readout remains
-visible; only the line segments and boxes represent beats.
+visible; its symmetric 120px side labels accommodate three-digit bar numbers
+through `999.4 BARS` without clipping while keeping the phase meter centered.
+Only the line segments and boxes represent beats.
 The fixed 126px source/key/loop/Quantize/Lock/Play/Cue panel for each deck stays
 visible; only the waveform pixels to its right are replaced.
+
+Quantize and Lock retain their 44px touch targets, but a dedicated 12px spacer
+separates their row from Play/Cue. Including the surrounding 8px row spacing,
+the nearest button edges are 28px apart at 1024x600 and about 34 physical pixels
+at 1280x720 / 1.20. At 1024x600, deck 1 centers are Quantize (32,141), Lock
+(88,141), Play (32,213), Cue (88,213); deck 2 uses y=346 and y=418. Preserve
+the saved control IDs and this safety gap when changing the fixed panel.
+
+Overflowing deck titles pause for 1.5 seconds, then move continuously at 30px/s.
+Two painted copies use at least a 24 scaled-pixel separator so the title wraps
+without snapping back to its start.
 
 Only BPM numbers are concealed. Deck header previews, main deck BPM boxes and
 Grid `file_bpm` readouts show `?.?` while training is active. A press-and-hold

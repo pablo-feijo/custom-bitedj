@@ -24,6 +24,12 @@ Integration target: `codex/v0.0.8`. Development commits are published; this is n
   Quantize alone no longer aligns decks when pressing Play.
 - Both main decks start with Quantize on. Manual Off lasts for the session,
   including subsequent track loads.
+- Long deck titles now loop as a continuous marquee. A larger safety gap keeps
+  Quantize/Lock away from Play/Cue without shrinking their touch targets.
+- Elapsed/Remaining now applies to both the deck time readout and the compact
+  overview: elapsed shades played audio on the left, while remaining shades
+  unplayed audio on the right.
+- Training phase labels retain all three digits from bar 100 through 999.
 - GUI/rendering workers use normal scheduling; audio and reader threads retain
   dedicated real-time priorities.
 - Browser previews prefer exported Rekordbox overview data on a bounded

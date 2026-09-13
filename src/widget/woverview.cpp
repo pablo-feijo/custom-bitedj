@@ -77,6 +77,9 @@ WOverview::WOverview(
           m_playpositionControl(
                   m_group,
                   QStringLiteral("playposition")),
+          m_timeElapsedControl(
+                  m_group,
+                  QStringLiteral("time_elapsed")),
           m_timeRemainingControl(
                   m_group,
                   QStringLiteral("time_remaining")),
@@ -87,7 +90,8 @@ WOverview::WOverview(
           m_timeRemainingScale(TimeRemainingOverlay::kDefaultScale),
           m_timeRemainingAlign(Qt::AlignHCenter | Qt::AlignVCenter),
           m_bTimeRemainingVisible(true),
-          m_iTimeRemainingSeconds(0) {
+          m_timeDisplayMode(1),
+          m_iDisplayedTimeSeconds(0) {
     m_endOfTrackControl = make_parented<ControlProxy>(
             m_group, QStringLiteral("end_of_track"), this, ControlFlag::NoAssertIfMissing);
     m_endOfTrackControl->connectValueChanged(this, &WOverview::onEndOfTrackChange);
@@ -346,9 +350,9 @@ void WOverview::onConnectedControlChanged(double dParameter, double dValue) {
     // The time-remaining watermark shows whole seconds, and on a short overview
     // one pixel of play marker can span several of them. Redraw on the digits
     // changing too, or the countdown would visibly skip.
-    const int oldTimeRemainingSeconds = m_iTimeRemainingSeconds;
-    m_iTimeRemainingSeconds = static_cast<int>(std::ceil(m_timeRemainingControl.get()));
-    if (m_bTimeRemainingVisible && oldTimeRemainingSeconds != m_iTimeRemainingSeconds) {
+    const int oldDisplayedTimeSeconds = m_iDisplayedTimeSeconds;
+    m_iDisplayedTimeSeconds = static_cast<int>(std::ceil(displayedTimeSeconds()));
+    if (m_bTimeRemainingVisible && oldDisplayedTimeSeconds != m_iDisplayedTimeSeconds) {
         redraw = true;
     }
 
@@ -847,19 +851,30 @@ void WOverview::drawPlayedOverlay(QPainter* pPainter) {
     // Overlay the played part of the overview-waveform with a skin defined color
     if (!m_waveformSourceImage.isNull() && m_playedOverlayColor.alpha() > 0) {
         if (m_orientation == Qt::Vertical) {
-            pPainter->fillRect(0,
-                    0,
-                    m_waveformImageScaled.width(),
-                    m_iPlayPos,
+            const int start = m_timeDisplayMode == 1 ? m_iPlayPos : 0;
+            const int end = m_timeDisplayMode == 1 ? m_waveformImageScaled.height() : m_iPlayPos;
+            pPainter->fillRect(0, start, m_waveformImageScaled.width(), end - start,
                     m_playedOverlayColor);
         } else {
-            pPainter->fillRect(0,
-                    0,
-                    m_iPlayPos,
-                    m_waveformImageScaled.height(),
+            const int start = m_timeDisplayMode == 1 ? m_iPlayPos : 0;
+            const int end = m_timeDisplayMode == 1 ? m_waveformImageScaled.width() : m_iPlayPos;
+            pPainter->fillRect(start, 0, end - start, m_waveformImageScaled.height(),
                     m_playedOverlayColor);
         }
     }
+}
+
+double WOverview::displayedTimeSeconds() const {
+    return m_timeDisplayMode == 1
+            ? m_timeRemainingControl.get()
+            : m_timeElapsedControl.get();
+}
+
+QString WOverview::displayedTimeText() const {
+    const double seconds = displayedTimeSeconds();
+    return m_timeDisplayMode == 1
+            ? TimeRemainingOverlay::remainingTimeToString(seconds)
+            : mixxx::Duration::formatTime(seconds, mixxx::Duration::Precision::SECONDS);
 }
 
 void WOverview::drawPlayPosition(QPainter* pPainter) {
@@ -1417,6 +1432,16 @@ void WOverview::setTimeRemainingVisible(bool visible) {
     update();
 }
 
+void WOverview::setTimeDisplayMode(int mode) {
+    const int normalizedMode = mode == 1 ? 1 : 0;
+    if (m_timeDisplayMode == normalizedMode) {
+        return;
+    }
+    m_timeDisplayMode = normalizedMode;
+    m_iDisplayedTimeSeconds = static_cast<int>(std::ceil(displayedTimeSeconds()));
+    update();
+}
+
 /// The part of the widget an ancestor doesn't cut off, in widget coordinates.
 /// A skin may hand the overview a widget taller than the room its container
 /// leaves it — deck.xml lays the summary out at double height and shows the
@@ -1441,8 +1466,8 @@ void WOverview::drawTimeRemaining(QPainter* pPainter) {
         return;
     }
 
-    const double remainingSeconds = m_timeRemainingControl.get();
-    if (remainingSeconds < 0.0) {
+    const double displayedSeconds = displayedTimeSeconds();
+    if (displayedSeconds < 0.0) {
         return;
     }
 
@@ -1457,7 +1482,7 @@ void WOverview::drawTimeRemaining(QPainter* pPainter) {
     const qreal visibleLength = horizontal ? visible.width() : visible.height();
     const qreal visibleBreadth = horizontal ? visible.height() : visible.width();
 
-    const QString text = TimeRemainingOverlay::remainingTimeToString(remainingSeconds);
+    const QString text = displayedTimeText();
     const TimeRemainingOverlay::TextLayout layout = TimeRemainingOverlay::layoutFor(
             text, visibleBreadth, visibleLength, m_timeRemainingScale);
     if (!layout.valid) {

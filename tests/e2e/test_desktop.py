@@ -453,7 +453,10 @@ class DesktopE2E(unittest.TestCase):
         self.inside("scrot", "-o", "/tmp/waveforms.png")
         regions = []
         # Verified Play geometry: scrolling lane above, compact deck summary below.
-        for crop in ("240:120:520:70", "470:28:12:555"):
+        # Sample the left half of the compact overview so the deliberate
+        # remaining-time shade over its unplayed/right side does not alter the
+        # waveform palette comparison at the freshly cued position.
+        for crop in ("240:120:520:70", "220:28:20:555"):
             regions.append(self.inside(
                 "ffmpeg", "-v", "error", "-i", "/tmp/waveforms.png",
                 "-vf", "crop=" + crop, "-f", "rawvideo", "-pix_fmt", "rgb24", "pipe:1"))
@@ -528,8 +531,21 @@ class DesktopE2E(unittest.TestCase):
                 expected = (80, 1000, 8000).index(frequency)
                 self.assertEqual(max(range(3), key=lambda channel: play[channel]), expected,
                                  f"Wrong analyzed tone color: {frequency} Hz, {play}")
-            self.assertLessEqual(max(abs(a - b) for a, b in zip(play, preview)), 40,
-                                 f"RGB colors diverged: Play={play}, bottom={preview}")
+            # The compact overview deliberately shades the side represented by
+            # the selected time mode with #40ffffff. Accept either an unshaded
+            # sample or that exact source-over blend, but still compare the
+            # underlying waveform palette to the scrolling renderer.
+            alpha = 0x40
+            unshaded = tuple(max(0, min(255,
+                round((value * 255 - alpha * 255) / (255 - alpha))))
+                for value in preview)
+            divergence = min(
+                max(abs(a - b) for a, b in zip(play, preview)),
+                max(abs(a - b) for a, b in zip(play, unshaded)),
+            )
+            self.assertLessEqual(divergence, 40,
+                                 f"RGB colors diverged: Play={play}, bottom={preview}, "
+                                 f"unshaded={unshaded}")
 
         def select(style, palette):
             self.click(950, 20)

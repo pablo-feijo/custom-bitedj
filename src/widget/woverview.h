@@ -29,6 +29,11 @@ class WOverview : public WWidget, public TrackDropTarget {
     /// deck. Defaults to on, so a skin that never binds it is unaffected.
     Q_PROPERTY(bool timeRemainingVisible READ timeRemainingVisible WRITE
                     setTimeRemainingVisible)
+    /// Mirrors the deck time selector: 0 shades and labels elapsed time, while
+    /// 1 shades and labels remaining time. Other legacy modes fall back to
+    /// elapsed so skins that expose both values retain the familiar direction.
+    /// The default remains remaining-time for skins that do not bind it.
+    Q_PROPERTY(int timeDisplayMode READ timeDisplayMode WRITE setTimeDisplayMode)
   public:
     WOverview(
             const QString& group,
@@ -43,6 +48,10 @@ class WOverview : public WWidget, public TrackDropTarget {
         return m_bTimeRemainingVisible;
     }
     void setTimeRemainingVisible(bool visible);
+    int timeDisplayMode() const {
+        return m_timeDisplayMode;
+    }
+    void setTimeDisplayMode(int mode);
 
     enum class Type {
         Filtered,
@@ -113,6 +122,8 @@ class WOverview : public WWidget, public TrackDropTarget {
     void drawAxis(QPainter* pPainter);
     void drawWaveformPixmap(QPainter* pPainter);
     void drawPlayedOverlay(QPainter* pPainter);
+    double displayedTimeSeconds() const;
+    QString displayedTimeText() const;
     void drawPlayPosition(QPainter* pPainter);
     void drawEndOfTrackFrame(QPainter* pPainter);
     void drawAnalyzerProgress(QPainter* pPainter);
@@ -220,6 +231,7 @@ class WOverview : public WWidget, public TrackDropTarget {
     PollingControlProxy m_trackSampleRateControl;
     PollingControlProxy m_trackSamplesControl;
     PollingControlProxy m_playpositionControl;
+    PollingControlProxy m_timeElapsedControl;
     PollingControlProxy m_timeRemainingControl;
     parented_ptr<ControlProxy> m_pPassthroughControl;
     parented_ptr<ControlProxy> m_pTypeControl;
@@ -247,9 +259,10 @@ class WOverview : public WWidget, public TrackDropTarget {
     double m_timeRemainingScale;
     Qt::Alignment m_timeRemainingAlign;
     bool m_bTimeRemainingVisible;
-    /// Whole seconds left, so paints can be forced when the digits change
+    int m_timeDisplayMode;
+    /// Whole displayed seconds, so paints can be forced when the digits change
     /// rather than only when the play marker crosses a pixel.
-    int m_iTimeRemainingSeconds;
+    int m_iDisplayedTimeSeconds;
     int m_dimBrightThreshold;
     parented_ptr<QLabel> m_pPassthroughLabel;
 

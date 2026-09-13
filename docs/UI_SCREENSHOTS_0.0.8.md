@@ -1,10 +1,10 @@
 # Custom Bite DJ 0.0.8 UI gallery
 
 Custom Bite DJ is an independent fork of Team Deckshark’s BiteDJ, based on Mixxx.
-These 1024×600 captures (Night mode unless noted) use synthetic Rekordbox fixtures and binary
-`0.0.8-codex-v0-0-8-controller-validation.7` in an owned ARM64 test instance.
-[Capture provenance](images/ui/0.0.8/capture-provenance.json) records the exact
-build source snapshot and image hashes. [Capture procedure](GUI_TESTING.md#documentation-screenshots).
+These captures (Night mode unless noted) use synthetic fixtures in owned ARM64
+test instances. [Foundational capture provenance](images/ui/0.0.8/capture-provenance.json)
+and [small-fixes capture provenance](images/ui/0.0.8/small-fixes-capture-provenance.json)
+record the exact build snapshots and image hashes. [Capture procedure](GUI_TESTING.md#documentation-screenshots).
 The released [0.0.7 gallery](UI_SCREENSHOTS.md) preserves the remaining unchanged pages.
 
 ## Play
@@ -13,6 +13,8 @@ Both decks start with Quantize enabled. Shift + jog adjusts the beat grid only
 while the right-panel Grid tab is active. The loaded synthetic decks retain
 exported Rekordbox RGB colors and phrase markers. RGB uses PWV4/PWV5 colors;
 3 Band uses the independent PWV6/PWV7 band envelopes.
+Quantize/Lock are separated from Play/Cue by a deliberate safety gap, and long
+deck titles now wrap as a continuous marquee instead of snapping to the start.
 
 ![Play with Grid and Quantize enabled](images/ui/0.0.8/play.png)
 
@@ -24,8 +26,8 @@ profile remains at 1.00.
 
 ![Play filling the Touch Display 2 landscape canvas](images/ui/0.0.8/play-touch-display-2.png)
 
-[Responsive capture provenance](images/ui/0.0.8/responsive-capture-provenance.json)
-records the compatible ARM64 binary and exact skin asset used for this image.
+[Small-fixes capture provenance](images/ui/0.0.8/small-fixes-capture-provenance.json)
+records the ARM64 binary, 1.20 scale profile and exact image hash.
 
 ### Training mode
 
@@ -46,8 +48,17 @@ records the replacement image and video measurements.
 
 ![Training mode boxes on Touch Display 2](images/ui/0.0.8/play-training-boxes-touch-display-2.png)
 
-[Training-mode capture provenance](images/ui/0.0.8/training-mode-capture-provenance.json)
-records both geometries, the branch-specific binary and exact skin hashes.
+[Small-fixes capture provenance](images/ui/0.0.8/small-fixes-capture-provenance.json)
+records both refreshed geometries, the branch-specific binary and exact skin hashes.
+
+### Independent deck time display
+
+Each deck's Elapsed/Remaining selector now changes the numeric readout and its
+compact overview together. Elapsed shades the played left side and uses a
+positive watermark; Remaining shades the unplayed right side and uses a
+negative watermark.
+
+![Deck 1 elapsed and Deck 2 remaining](images/ui/0.0.8/deck-time-modes.png)
 
 The same profile keeps the contained Beat FX picker readable and aligned, and
 uses the additional height for larger System actions without changing saved

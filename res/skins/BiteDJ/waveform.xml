@@ -109,6 +109,12 @@
               </PushButton>
             </Children>
           </WidgetGroup>
+          <!-- Keep destructive transport actions out of the same thumb zone
+               as persistent Quantize/Lock toggles. -->
+          <WidgetGroup>
+            <ObjectName>WaveformTransportSafetyGap</ObjectName>
+            <Size>0me,12f</Size>
+          </WidgetGroup>
           <WidgetGroup>
             <ObjectName>WaveformTransportRow</ObjectName>
             <Layout>horizontal</Layout>

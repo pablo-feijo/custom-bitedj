@@ -635,6 +635,8 @@ replaced while the compact bottom-deck waves remain visible. Line spans four
 major bar divisions, and Boxes draws exactly four boxes
 per deck. The left source/key/loop/Quantize/Lock/Play/Cue panels remain visible.
 Track time, pitch rate/range and absolute bar position remain visible.
+Seek beyond bar 99 and confirm both phase styles show the complete three-digit
+bar number (for example `100.1 BARS`) without moving the centered phase meter.
 
 Confirm `?.?` in the main BPM boxes, deck header chips, Grid headers and the
 deck-preview footer on Browse, Sampler, Levels and every Settings sub-page.
@@ -662,6 +664,24 @@ Stop the recording after the script completes, then run
 the owned container (copy the checker there first). It fails if the header
 leaves its verified y=456–497 border after the drawer appears. Keep the
 recording and JSON report under the task's ignored `test-results/` directory.
+
+## Play safety spacing, title marquee and deck time mode
+
+At 1024x600, verify the Quantize/Lock and Play/Cue rows retain 44px targets and
+have 28px clear edge-to-edge separation. Deck 1 centers are (32,141), (88,141),
+(32,213), (88,213); deck 2 uses y=346 and y=418. At 1280x720 / 1.20 the same
+logical spacing renders at about 34 physical pixels. Native taps at each center
+must activate only the intended control.
+
+Load a title wider than its label, wait through the initial 1.5-second pause and
+observe a full cycle. It must move at a steady rate and wrap through the second
+copy with at least a 24 scaled-pixel gap; it must not jump back to the beginning.
+
+Tap each deck's time selector independently. Elapsed must show a positive deck
+time and overview watermark, with the played region shaded to the left of the
+playhead. Remaining must show negative values in both places and shade the
+unplayed region to the right. Confirm changing one deck does not affect the
+other and that `[Skin],deck1_time_mode` / `deck2_time_mode` still persist.
 
 ## Play Grid, Key and FX controls
 

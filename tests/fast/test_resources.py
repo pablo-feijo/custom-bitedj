@@ -67,6 +67,28 @@ class SkinContracts(unittest.TestCase):
         self.assertEqual("BeatFX_Container", panel.findtext("ObjectName"))
         self.assertEqual("204f,0me", panel.findtext("Size"))
 
+    def test_deck_transport_has_safety_gap_and_overview_follows_time_mode(self):
+        waveform = ET.parse(SKIN / "waveform.xml")
+        gap = waveform.find(".//WidgetGroup[ObjectName='WaveformTransportSafetyGap']")
+        self.assertIsNotNone(gap)
+        self.assertEqual("0me,12f", gap.findtext("Size"))
+
+        deck = ET.parse(SKIN / "deck.xml")
+        overview = deck.find(".//Overview")
+        mode_connections = [
+            connection
+            for connection in overview.findall("Connection")
+            if connection.findtext("BindProperty") == "timeDisplayMode"
+        ]
+        self.assertEqual(1, len(mode_connections))
+        self.assertEqual(
+            "[Skin],deck<Variable name=\"channel\" />_time_mode",
+            ET.tostring(mode_connections[0].find("ConfigKey"), encoding="unicode")
+            .replace("<ConfigKey>", "")
+            .replace("</ConfigKey>", "")
+            .strip(),
+        )
+
     def test_training_mode_masks_every_deck_bpm_readout(self):
         deck = ET.parse(SKIN / "deck.xml")
         grid = ET.parse(SKIN / "templates/grid_deck.xml")
