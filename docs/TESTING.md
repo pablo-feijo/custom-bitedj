@@ -63,9 +63,9 @@ no published host ports. It never replaces the interactive test instance or
 changes `test-config/active-instance`. Containers are removed at completion;
 PNG evidence and service logs remain under `test-results/bitedj-e2e-*/`.
 Startup and polling have deadlines, and command failures include stderr.
-After the saved-playlist fixture restarts, Browse must remain selected for two
-seconds before row/toolbar clicks. This covers the controller startup watchdog's
-1.5-second redirect to Devices; a single successful frame can precede that
+At initial startup and after the saved-playlist fixture restarts, Browse must
+remain selected for two seconds before row/toolbar clicks. This covers the
+controller startup watchdog's 1.5-second redirect to Devices; a single successful frame can precede that
 redirect. Queue count, duplicate ordering, removal and audio assertions still
 run against the real desktop and database.
 
