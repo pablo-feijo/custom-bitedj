@@ -27,6 +27,28 @@ profile remains at 1.00.
 [Responsive capture provenance](images/ui/0.0.8/responsive-capture-provenance.json)
 records the compatible ARM64 binary and exact skin asset used for this image.
 
+### Training mode
+
+Training mode removes only the stacked scrolling waveforms while retaining the
+bottom-deck overview waves, track time, pitch rate/range and absolute bar
+position. The phase view uses either the older CDJ Type 1 amber/blue beat grids
+scrolling under a fixed white playhead, with small beat ticks and red
+downbeats, or Type 2 with exactly four beat boxes per deck. BPM readouts—including
+deck previews on other pages—show `?.?` and reveal the value only while held.
+
+![Training mode with four phase boxes](images/ui/0.0.8/play-training-boxes.png)
+
+The Line capture uses `0.0.8-codex-training-mode.3` with synchronized audio/frame
+timing and bounded synchronous phase painting; [timing capture provenance](images/ui/0.0.8/training-line-timing-provenance.json)
+records the replacement image and video measurements.
+
+![Training mode with the four-beat phase line](images/ui/0.0.8/play-training-line.png)
+
+![Training mode boxes on Touch Display 2](images/ui/0.0.8/play-training-boxes-touch-display-2.png)
+
+[Training-mode capture provenance](images/ui/0.0.8/training-mode-capture-provenance.json)
+records both geometries, the branch-specific binary and exact skin hashes.
+
 The same profile keeps the contained Beat FX picker readable and aligned, and
 uses the additional height for larger System actions without changing saved
 tab/control IDs.
@@ -44,14 +66,21 @@ summary becomes available. Preview reads run on a bounded background worker and 
 
 ![Rekordbox browser waveform previews](images/ui/0.0.8/browse-preview.png)
 
-## Settings General
+## Settings General and Library
 
 Vinyl Brake Off, Short and Long retain their saved controls. Normal jog release
 uses the selected native ramp; Long and Return to Play On are selected here.
 The first page host is prepared during skin setup, and Return to Play reuses
 an unchanged waveform layout after the loaded track’s widget updates.
 
-![General settings with jog and Return to Play controls](images/ui/0.0.8/settings-general.png)
+The balanced General columns use one Training Off/Line/Boxes selector and place
+Track Load opposite the playback controls.
+Library keeps equal seven-row column blocks, then places Grid and Played in a
+shared action row with a full-width Clear Library Data row beneath it.
+
+![General settings with training controls](images/ui/0.0.8/settings-general-training.png)
+
+![Balanced Library settings and actions](images/ui/0.0.8/settings-library-training.png)
 
 See [controller mappings](DDJ400_MAPPING.md), [release notes](../RELEASE_0.0.8.md)
 and the [0.0.8 changelog](../CHANGELOG.md#008--unreleased).

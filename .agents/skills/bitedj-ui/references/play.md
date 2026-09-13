@@ -15,6 +15,33 @@
   Keep the 8px minute ruler in a separate row; do not crop a double-height widget.
   Check RGB, FILT and 3 BAND after changing overview rendering. Stacked rendering
   uses bottom-origin image coordinates and must not get the symmetric translation.
+- Training mode hides only the stacked scrolling waveforms while preserving the
+  compact bottom-deck overview waves, track time, pitch rate/range and absolute
+  bar position.
+
+## Training mode
+
+`[BiteDJ],training_mode` is the single saved selector: Off=0 restores the
+waveforms, Line=1 (older CDJ phase meter Type 1) and Boxes=2 (Type 2) replace the
+two-deck waveform lane with the chosen native phase view. Line and Boxes each
+show the four beats of the current bar;
+Line stacks a thin amber master grid and blue player grid closely. The white
+playhead stays fixed while each deck's two-bar grid scrolls beneath it; subdued
+beat ticks point inward and a thin red mark identifies each
+downbeat. Boxes uses exactly four boxes per deck and an orange active beat.
+deck 1 red, deck 2 cyan and a
+white center reference. The separate absolute `BB.b BARS` readout remains
+visible; only the line segments and boxes represent beats.
+The fixed 126px source/key/loop/Quantize/Lock/Play/Cue panel for each deck stays
+visible; only the waveform pixels to its right are replaced.
+
+Only BPM numbers are concealed. Deck header previews, main deck BPM boxes and
+Grid `file_bpm` readouts show `?.?` while training is active. A press-and-hold
+on the numeric readout reveals the real BPM only for the duration of that hold;
+release, touch cancel, drag-out, page hide or window deactivation remasks it.
+The same deck template is used on Browse, Sampler, Levels and Settings, so their
+preview chips must remain masked too. Training is intentionally limited to the
+existing visible Channels 1/2; it does not change deck scope.
 
 ## Waveform renderer defaults
 
@@ -70,8 +97,9 @@ Buttons emit momentary press/release, with no background repeat timer. Actions
 require a loaded track with an editable beat grid. BPM actions edit the track's
 grid, not the playback-rate slider. DDJ-400 Shift + jog edits the grid only while this tab is active; FX, Key and Jump use fast track search.
 
-Grid deck headers display `[ChannelN],file_bpm` to two decimal places so each
-0.01 BPM adjustment is visible without changing the deck playback rate.
+Grid deck headers display `[ChannelN],file_bpm` to two decimal places normally.
+In Training mode they use the same `?.?` hold-to-reveal behavior as every other
+deck BPM readout; the BPM −/+ actions still operate normally.
 
 The waveform region expands beside the fixed 204px panel: 820px at 1024×600
 and 1076px at the Touch Display 2's 1280×720 landscape resolution. Combined

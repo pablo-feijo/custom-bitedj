@@ -275,7 +275,7 @@
                   <WidgetGroup>
                     <ObjectName>SettingsRow</ObjectName>
                     <Layout>horizontal</Layout>
-                    <Size>0me,52f</Size>
+                    <Size>0me,58f</Size>
                     <Children>
                       <Label>
                         <ObjectName>SettingsRowLabel</ObjectName>
@@ -304,43 +304,7 @@
                     </Children>
                   </WidgetGroup>
 
-                  <WidgetGroup>
-                    <ObjectName>SettingsRow</ObjectName>
-                    <Layout>horizontal</Layout><Size>0me,58f</Size>
-                    <Children>
-                      <Label><ObjectName>SettingsRowLabel</ObjectName><Text>Track Load</Text></Label>
-                      <WidgetGroup><ObjectName>LoadPolicySegmented</ObjectName><Size>240f,44f</Size><Layout>horizontal</Layout><Children>
-                        <Template src="skin:templates/setting_segment_button.xml">
-                          <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
-                          <SetVariable name="Text">Lock</SetVariable>
-                          <SetVariable name="ConfigKey">[BiteDJ],track_load_policy</SetVariable>
-                          <SetVariable name="Value">0</SetVariable>
-                        </Template>
-                        <Template src="skin:templates/setting_segment_button.xml">
-                          <SetVariable name="ObjectName">SettingsSegmentMid</SetVariable>
-                          <SetVariable name="Text">Fader</SetVariable>
-                          <SetVariable name="ConfigKey">[BiteDJ],track_load_policy</SetVariable>
-                          <SetVariable name="Value">3</SetVariable>
-                        </Template>
-                        <Template src="skin:templates/setting_segment_button.xml">
-                          <SetVariable name="ObjectName">SettingsSegmentMid</SetVariable>
-                          <SetVariable name="Text">Stop</SetVariable>
-                          <SetVariable name="ConfigKey">[BiteDJ],track_load_policy</SetVariable>
-                          <SetVariable name="Value">2</SetVariable>
-                        </Template>
-                        <Template src="skin:templates/setting_segment_button.xml">
-                          <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
-                          <SetVariable name="Text">Live</SetVariable>
-                          <SetVariable name="ConfigKey">[BiteDJ],track_load_policy</SetVariable>
-                          <SetVariable name="Value">1</SetVariable>
-                        </Template>
-                      </Children></WidgetGroup>
-                    </Children>
-                  </WidgetGroup>
-                  <WidgetGroup>
-                    <ObjectName>SettingsSpacer</ObjectName>
-                    <Size>0me,0me</Size>
-                  </WidgetGroup>
+                  <WidgetGroup><ObjectName>SettingsSpacer</ObjectName><Size>0me,0me</Size></WidgetGroup>
 
                 </Children>
               </WidgetGroup>
@@ -364,8 +328,8 @@
                       <WidgetGroup><ObjectName>PhraseVisibility</ObjectName><Layout>horizontal</Layout><Size>112f,40f</Size><Children>
                       <PushButton>
                         <ObjectName>SettingsSegmentLeft</ObjectName><Size>0me,0me</Size><NumberStates>2</NumberStates>
-                        <State><Number>0</Number><Text>Phrases Off</Text></State>
-                        <State><Number>1</Number><Text>Phrases On</Text></State>
+                        <State><Number>0</Number><Text>Phrases</Text></State>
+                        <State><Number>1</Number><Text>Phrases</Text></State>
                         <Connection><ConfigKey>[BiteDJ],show_phrases</ConfigKey><EmitOnDownPress>true</EmitOnDownPress></Connection>
                       </PushButton>
                       </Children></WidgetGroup>
@@ -469,129 +433,34 @@
                     </Children>
                   </WidgetGroup>
 
+                  <WidgetGroup><ObjectName>SettingsRow</ObjectName><Layout>horizontal</Layout><Size>0me,52f</Size><Children>
+                    <Label><ObjectName>SettingsRowLabel</ObjectName><Text>Training</Text><Size>0me,0me</Size></Label>
+                    <WidgetGroup><ObjectName>SettingsSegmented</ObjectName><Layout>horizontal</Layout><Size>168f,40f</Size><Children>
+                      <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable><SetVariable name="Text">Off</SetVariable><SetVariable name="ConfigKey">[BiteDJ],training_mode</SetVariable><SetVariable name="Value">0</SetVariable></Template>
+                      <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentMid</SetVariable><SetVariable name="Text">Line</SetVariable><SetVariable name="ConfigKey">[BiteDJ],training_mode</SetVariable><SetVariable name="Value">1</SetVariable></Template>
+                      <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentRight</SetVariable><SetVariable name="Text">Boxes</SetVariable><SetVariable name="ConfigKey">[BiteDJ],training_mode</SetVariable><SetVariable name="Value">2</SetVariable></Template>
+                    </Children></WidgetGroup>
+                  </Children></WidgetGroup>
                   <WidgetGroup>
-                    <ObjectName>SettingsRow</ObjectName>
-                    <Layout>horizontal</Layout>
-                    <Size>0me,52f</Size>
-                    <Children>
-                      <Label>
-                        <ObjectName>SettingsRowLabel</ObjectName>
-                        <Text>Grid</Text>
-                        <Size>0me,0me</Size>
-                      </Label>
-                      <WidgetGroup>
-                        <ObjectName>SettingsSegmented</ObjectName>
-                        <Layout>horizontal</Layout>
-                        <Size>168f,40f</Size>
-                        <Children>
-                          <Template src="skin:templates/setting_segment_button.xml">
-                            <SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable>
-                            <SetVariable name="Text">Compact</SetVariable>
-                            <SetVariable name="ConfigKey">[Library],grid_layout</SetVariable>
-                            <SetVariable name="Value">0</SetVariable>
-                          </Template>
-                          <Template src="skin:templates/setting_segment_button.xml">
-                            <SetVariable name="ObjectName">SettingsSegmentRight</SetVariable>
-                            <SetVariable name="Text">Detail</SetVariable>
-                            <SetVariable name="ConfigKey">[Library],grid_layout</SetVariable>
-                            <SetVariable name="Value">1</SetVariable>
-                          </Template>
-                        </Children>
-                      </WidgetGroup>
-                    </Children>
-                  </WidgetGroup>
-
-                  <WidgetGroup>
-                    <ObjectName>SettingsRow</ObjectName>
-                    <Layout>horizontal</Layout>
-                    <Size>0me,52f</Size>
-                    <Children>
-                      <Label>
-                        <ObjectName>SettingsRowLabel</ObjectName>
-                        <Text>Clear</Text>
-                        <Size>0me,0me</Size>
-                      </Label>
-                      <WidgetGroup>
-                        <ObjectName>SettingsSegmented</ObjectName>
-                        <Layout>horizontal</Layout>
-                        <Size>168f,40f</Size>
-                        <Children>
-                          <PushButton>
-                            <ObjectName>SettingsActionButton</ObjectName>
-                            <Size> 0me,0me</Size>
-                            <NumberStates>1</NumberStates>
-                            <State>
-                              <Number>0</Number>
-                              <Text>Cache</Text>
-                            </State>
-                            <Connection>
-                              <ConfigKey>[Library],clear_cached_waveforms</ConfigKey>
-                              <EmitOnDownPress>true</EmitOnDownPress>
-                            </Connection>
-                          </PushButton>
-                          <PushButton>
-                            <ObjectName>SettingsActionButton</ObjectName>
-                            <Size> 0me,0me</Size>
-                            <NumberStates>1</NumberStates>
-                            <State>
-                              <Number>0</Number>
-                              <Text>Cues</Text>
-                            </State>
-                            <Connection>
-                              <ConfigKey>[Library],clear_cue_overrides</ConfigKey>
-                              <EmitOnDownPress>true</EmitOnDownPress>
-                            </Connection>
-                          </PushButton>
-                          <PushButton>
-                            <ObjectName>SettingsActionButton</ObjectName>
-                            <Size> 0me,0me</Size>
-                            <NumberStates>1</NumberStates>
-                            <State>
-                              <Number>0</Number>
-                              <Text>Meta</Text>
-                            </State>
-                            <Connection>
-                              <ConfigKey>[Library],clear_meta_overrides</ConfigKey>
-                              <EmitOnDownPress>true</EmitOnDownPress>
-                            </Connection>
-                          </PushButton>
-                        </Children>
-                      </WidgetGroup>
-                    </Children>
-                  </WidgetGroup>
-
-                  <WidgetGroup>
-                    <ObjectName>SettingsRow</ObjectName>
-                    <Layout>horizontal</Layout>
-                    <Size>0me,52f</Size>
-                    <Children>
-                      <Label>
-                        <ObjectName>SettingsRowLabel</ObjectName>
-                        <Text>Played</Text>
-                        <Size>0me,0me</Size>
-                      </Label>
-                      <PushButton>
-                        <ObjectName>SettingsActionButton</ObjectName>
-                        <Size> 160f,40f</Size>
-                        <NumberStates>1</NumberStates>
-                        <State>
-                          <Number>0</Number>
-                          <Text>Reset</Text>
-                        </State>
-                        <Connection>
-                          <ConfigKey>[Library],reset_played_tracks</ConfigKey>
-                          <EmitOnDownPress>true</EmitOnDownPress>
-                        </Connection>
-                      </PushButton>
-                    </Children>
-                  </WidgetGroup>
-                  <WidgetGroup>
-                    <ObjectName>SettingsRow</ObjectName><Layout>horizontal</Layout><Size>0me,58f</Size>
+                    <ObjectName>SettingsRow</ObjectName><Layout>horizontal</Layout><Size>0me,52f</Size>
                     <Children>
                       <Label><ObjectName>SettingsRowLabel</ObjectName><Text>Return to Play</Text></Label>
                       <WidgetGroup><ObjectName>SettingsSegmented</ObjectName><Layout>horizontal</Layout><Size>168f,40f</Size><Children>
                         <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable><SetVariable name="Text">Off</SetVariable><SetVariable name="ConfigKey">[BiteDJ],return_to_play</SetVariable><SetVariable name="Value">0</SetVariable></Template>
                         <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentRight</SetVariable><SetVariable name="Text">On</SetVariable><SetVariable name="ConfigKey">[BiteDJ],return_to_play</SetVariable><SetVariable name="Value">1</SetVariable></Template>
+                      </Children></WidgetGroup>
+                    </Children>
+                  </WidgetGroup>
+                  <WidgetGroup>
+                    <ObjectName>SettingsRow</ObjectName>
+                    <Layout>horizontal</Layout><Size>0me,58f</Size>
+                    <Children>
+                      <Label><ObjectName>SettingsRowLabel</ObjectName><Text>Track Load</Text></Label>
+                      <WidgetGroup><ObjectName>LoadPolicySegmented</ObjectName><Size>240f,44f</Size><Layout>horizontal</Layout><Children>
+                        <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable><SetVariable name="Text">Lock</SetVariable><SetVariable name="ConfigKey">[BiteDJ],track_load_policy</SetVariable><SetVariable name="Value">0</SetVariable></Template>
+                        <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentMid</SetVariable><SetVariable name="Text">Fader</SetVariable><SetVariable name="ConfigKey">[BiteDJ],track_load_policy</SetVariable><SetVariable name="Value">3</SetVariable></Template>
+                        <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentMid</SetVariable><SetVariable name="Text">Stop</SetVariable><SetVariable name="ConfigKey">[BiteDJ],track_load_policy</SetVariable><SetVariable name="Value">2</SetVariable></Template>
+                        <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentRight</SetVariable><SetVariable name="Text">Live</SetVariable><SetVariable name="ConfigKey">[BiteDJ],track_load_policy</SetVariable><SetVariable name="Value">1</SetVariable></Template>
                       </Children></WidgetGroup>
                     </Children>
                   </WidgetGroup>
@@ -702,10 +571,15 @@
 
           <WidgetGroup trigger="[SettingsTab],columns">
             <ObjectName>SettingsPanel</ObjectName>
-            <Layout>horizontal</Layout>
+            <Layout>vertical</Layout>
             <SizePolicy>me,me</SizePolicy>
             <Children>
 
+              <WidgetGroup>
+                <ObjectName>LibraryColumnsGrid</ObjectName>
+                <Layout>horizontal</Layout>
+                <SizePolicy>me,me</SizePolicy>
+                <Children>
               <WidgetGroup>
                 <ObjectName>LibraryColumnsCol</ObjectName>
                 <Layout>vertical</Layout>
@@ -746,10 +620,7 @@
                     <SetVariable name="VisibleConfigKey">[Library],column_visible_duration</SetVariable>
                     <SetVariable name="WeightConfigKey">[Library],column_weight_duration</SetVariable>
                   </Template>
-                  <WidgetGroup>
-                    <ObjectName>SettingsSpacer</ObjectName>
-                    <Size>0me,0me</Size>
-                  </WidgetGroup>
+                  <WidgetGroup><ObjectName>SettingsSpacer</ObjectName><Size>0me,0me</Size></WidgetGroup>
                 </Children>
               </WidgetGroup>
 
@@ -793,6 +664,40 @@
                     <SetVariable name="VisibleConfigKey">[Library],column_visible_preview</SetVariable>
                     <SetVariable name="WeightConfigKey">[Library],column_weight_preview</SetVariable>
                   </Template>
+                  <WidgetGroup><ObjectName>SettingsSpacer</ObjectName><Size>0me,0me</Size></WidgetGroup>
+                </Children>
+              </WidgetGroup>
+                </Children>
+              </WidgetGroup>
+
+              <WidgetGroup>
+                <ObjectName>LibraryActionsRow</ObjectName>
+                <Layout>horizontal</Layout>
+                <Size>0me,52f</Size>
+                <Children>
+                  <WidgetGroup><ObjectName>SettingsRow</ObjectName><Layout>horizontal</Layout><Size>0me,52f</Size><Children>
+                    <Label><ObjectName>SettingsRowLabel</ObjectName><Text>Grid</Text><Size>0me,0me</Size></Label>
+                    <WidgetGroup><ObjectName>SettingsSegmented</ObjectName><Layout>horizontal</Layout><Size>168f,40f</Size><Children>
+                      <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentLeft</SetVariable><SetVariable name="Text">Compact</SetVariable><SetVariable name="ConfigKey">[Library],grid_layout</SetVariable><SetVariable name="Value">0</SetVariable></Template>
+                      <Template src="skin:templates/setting_segment_button.xml"><SetVariable name="ObjectName">SettingsSegmentRight</SetVariable><SetVariable name="Text">Detail</SetVariable><SetVariable name="ConfigKey">[Library],grid_layout</SetVariable><SetVariable name="Value">1</SetVariable></Template>
+                    </Children></WidgetGroup>
+                  </Children></WidgetGroup>
+                  <WidgetGroup><ObjectName>SettingsRow</ObjectName><Layout>horizontal</Layout><Size>0me,52f</Size><Children>
+                    <Label><ObjectName>SettingsRowLabel</ObjectName><Text>Played</Text><Size>0me,0me</Size></Label>
+                    <PushButton><ObjectName>SettingsActionButton</ObjectName><Size>168f,40f</Size><NumberStates>1</NumberStates><State><Number>0</Number><Text>Reset</Text></State><Connection><ConfigKey>[Library],reset_played_tracks</ConfigKey><EmitOnDownPress>true</EmitOnDownPress></Connection></PushButton>
+                  </Children></WidgetGroup>
+                </Children>
+              </WidgetGroup>
+
+              <WidgetGroup>
+                <ObjectName>SettingsRow</ObjectName><Layout>horizontal</Layout><Size>0me,52f</Size>
+                <Children>
+                  <Label><ObjectName>SettingsRowLabel</ObjectName><Text>Clear Library Data</Text><Size>0me,0me</Size></Label>
+                  <WidgetGroup><ObjectName>SettingsSegmented</ObjectName><Layout>horizontal</Layout><Size>336f,40f</Size><Children>
+                    <PushButton><ObjectName>SettingsActionButton</ObjectName><Size>0me,0me</Size><NumberStates>1</NumberStates><State><Number>0</Number><Text>Cache</Text></State><Connection><ConfigKey>[Library],clear_cached_waveforms</ConfigKey><EmitOnDownPress>true</EmitOnDownPress></Connection></PushButton>
+                    <PushButton><ObjectName>SettingsActionButton</ObjectName><Size>0me,0me</Size><NumberStates>1</NumberStates><State><Number>0</Number><Text>Cues</Text></State><Connection><ConfigKey>[Library],clear_cue_overrides</ConfigKey><EmitOnDownPress>true</EmitOnDownPress></Connection></PushButton>
+                    <PushButton><ObjectName>SettingsActionButton</ObjectName><Size>0me,0me</Size><NumberStates>1</NumberStates><State><Number>0</Number><Text>Metadata</Text></State><Connection><ConfigKey>[Library],clear_meta_overrides</ConfigKey><EmitOnDownPress>true</EmitOnDownPress></Connection></PushButton>
+                  </Children></WidgetGroup>
                 </Children>
               </WidgetGroup>
 

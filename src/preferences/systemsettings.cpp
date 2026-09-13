@@ -203,6 +203,30 @@ SystemSettings::SystemSettings(UserSettingsPointer pConfig,
     connect(m_pCoShowPhrases.get(), &ControlObject::valueChanged, this,
             [this, phrasesKey](double value) { m_pConfig->setValue(phrasesKey, value != 0.0); });
 
+    const ConfigKey trainingModeKey(kBiteDj, QStringLiteral("training_mode"));
+    m_pCoTrainingMode = std::make_unique<ControlObject>(trainingModeKey);
+    double savedTrainingMode = m_pConfig->getValue(trainingModeKey, 0.0);
+    const ConfigKey legacyPhaseMeterKey(kBiteDj, QStringLiteral("phase_meter"));
+    if (m_pConfig->exists(legacyPhaseMeterKey)) {
+        const double legacyPhaseMeter = m_pConfig->getValue(legacyPhaseMeterKey, 0.0);
+        savedTrainingMode = savedTrainingMode != 0.0 ? legacyPhaseMeter : 0.0;
+        m_pConfig->remove(legacyPhaseMeterKey);
+    }
+    m_pCoTrainingMode->set(std::isfinite(savedTrainingMode) &&
+                            savedTrainingMode == std::floor(savedTrainingMode) &&
+                            savedTrainingMode >= 0.0 && savedTrainingMode <= 2.0
+                    ? savedTrainingMode
+                    : 0.0);
+    connect(m_pCoTrainingMode.get(), &ControlObject::valueChanged, this,
+            [this, trainingModeKey](double value) {
+                if (std::isfinite(value) && value == std::floor(value) &&
+                        value >= 0.0 && value <= 2.0) {
+                    m_pConfig->setValue(trainingModeKey, value);
+                } else {
+                    m_pCoTrainingMode->set(m_pConfig->getValue(trainingModeKey, 0.0));
+                }
+            });
+
     const ConfigKey returnKey("[BiteDJ]", "return_to_play");
     m_pCoReturnToPlay = std::make_unique<ControlObject>(returnKey);
     m_pCoReturnToPlay->set(m_pConfig->getValue(returnKey, false));

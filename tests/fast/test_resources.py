@@ -38,12 +38,81 @@ class SkinContracts(unittest.TestCase):
         )
 
     def test_play_waveforms_expand_beside_fixed_control_panel(self):
-        waveforms = ET.parse(SKIN / "waveforms.xml").find(".//WidgetGroup")
+        root = ET.parse(SKIN / "waveforms.xml")
+        waveforms = root.find(".//WidgetStack[@currentpage='[BiteDJ],training_mode']")
+        normal = waveforms.find("./Children/WidgetGroup")
+        phases = waveforms.findall("./Children/WidgetGroup/Children/TrainingPhase")
+        training_layouts = waveforms.findall("./Children/WidgetGroup")[1:]
         panel = ET.parse(SKIN / "effects.xml").find(".//WidgetGroup")
         self.assertEqual("Waveforms", waveforms.findtext("ObjectName"))
         self.assertEqual("0me,0me", waveforms.findtext("Size"))
+        self.assertEqual("WaveformsNormal", normal.findtext("ObjectName"))
+        self.assertEqual("0me,0me", normal.findtext("Size"))
+        self.assertEqual(2, len(phases))
+        self.assertEqual(
+            ["TrainingPhaseLine", "TrainingPhaseBoxes"],
+            [phase.findtext("ObjectName") for phase in phases],
+        )
+        self.assertTrue(all(phase.findtext("Size") == "0me,0me" for phase in phases))
+        self.assertEqual(
+            ["TrainingLineLayout", "TrainingBoxesLayout"],
+            [layout.findtext("ObjectName") for layout in training_layouts],
+        )
+        self.assertTrue(
+            all(
+                layout.findtext("./Children/WidgetGroup/Size") == "126f,0me"
+                for layout in training_layouts
+            )
+        )
         self.assertEqual("BeatFX_Container", panel.findtext("ObjectName"))
         self.assertEqual("204f,0me", panel.findtext("Size"))
+
+    def test_training_mode_masks_every_deck_bpm_readout(self):
+        deck = ET.parse(SKIN / "deck.xml")
+        grid = ET.parse(SKIN / "templates/grid_deck.xml")
+        self.assertFalse(deck.findall(".//NumberBpm"))
+        self.assertFalse(grid.findall(".//NumberBpm"))
+        self.assertEqual(2, len(deck.findall(".//TrainingBpm")))
+        self.assertEqual(1, len(grid.findall(".//TrainingBpm")))
+        self.assertTrue(
+            all(
+                "visual_bpm" in ET.tostring(widget, encoding="unicode")
+                for widget in deck.findall(".//TrainingBpm")
+            )
+        )
+        self.assertIn(
+            "file_bpm",
+            ET.tostring(grid.find(".//TrainingBpm"), encoding="unicode"),
+        )
+
+    def test_library_actions_stay_out_of_general_settings(self):
+        root = ET.parse(SKIN / "settings.xml")
+        general = root.find(".//WidgetGroup[@trigger='[SettingsTab],general']")
+        library = root.find(".//WidgetGroup[@trigger='[SettingsTab],columns']")
+        general_xml = ET.tostring(general, encoding="unicode")
+        library_xml = ET.tostring(library, encoding="unicode")
+        for key in (
+            "[Library],grid_layout",
+            "[Library],reset_played_tracks",
+            "[Library],clear_cached_waveforms",
+            "[Library],clear_cue_overrides",
+            "[Library],clear_meta_overrides",
+        ):
+            self.assertNotIn(key, general_xml)
+            self.assertIn(key, library_xml)
+        self.assertNotIn("[BiteDJ],phase_meter", general_xml)
+        training_values = {
+            variable.text
+            for template in general.iter("Template")
+            for variable in template.findall("SetVariable")
+            if variable.get("name") == "Value"
+            and any(
+                sibling.get("name") == "ConfigKey"
+                and sibling.text == "[BiteDJ],training_mode"
+                for sibling in template.findall("SetVariable")
+            )
+        }
+        self.assertEqual({"0", "1", "2"}, training_values)
 
     def test_top_tabs_remain_select_only(self):
         button = ET.parse(SKIN / "tab.xml").find(".//PushButton")

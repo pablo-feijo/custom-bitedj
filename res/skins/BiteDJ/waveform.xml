@@ -158,6 +158,11 @@
         <ObjectName>Waveform<Variable name="channel"/></ObjectName>
         <Channel><Variable name="channel"/></Channel>
         <DisableSeek>true</DisableSeek>
+        <Connection>
+          <ConfigKey>[BiteDJ],training_mode</ConfigKey>
+          <BindProperty>visible</BindProperty>
+          <Transform><Not/></Transform>
+        </Connection>
         <Connection><ConfigKey>[FxPanel],grid</ConfigKey><BindProperty>gridEditMode</BindProperty></Connection>
         <BgColor>#000</BgColor>
         <BeatColor>#fff</BeatColor>

@@ -5,7 +5,22 @@ BiteDJ based on Mixxx. Versions use Semantic Versioning.
 
 ## [0.0.8] — Unreleased
 
+### Added
+
+- Add a two-deck Training mode with a single Off/Line/Boxes selector. Line and
+  Boxes replace the stacked scrolling waveforms, retain the compact bottom
+  overview waves plus time/pitch/bar position,
+  and mask every deck/Grid BPM as `?.?` with temporary press-and-hold reveal.
+- Move Grid layout, Played Reset and library-data clearing into a balanced
+  Library settings footer; align the General settings columns and simplify the
+  Phrases state label.
+
 ### Fixed
+
+- Smooth the Training phase line with the shared waveform frame clock and a
+  single interpolated audio position, avoiding independently sampled beat timing.
+  Paint the bounded phase area within that tick to avoid queued repaint delays.
+  See the [Training gallery](docs/UI_SCREENSHOTS_0.0.8.md#training-mode).
 
 - Boot freshly flashed images with SSH enabled and support both the original
   1024×600 HDMI touchscreen and the portrait-native Raspberry Pi Touch Display

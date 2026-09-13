@@ -874,6 +874,7 @@ void WaveformWidgetFactory::renderSelf() {
         // Notify all other waveform-like widgets (e.g. WSpinny's) that they should
         // update.
         //int t1 = m_vsyncThread->elapsed();
+        emit renderTrainingPhase(m_vsyncThread);
         emit waveformUpdateTick();
         //qDebug() << "emit" << m_vsyncThread->elapsed() - t1;
 

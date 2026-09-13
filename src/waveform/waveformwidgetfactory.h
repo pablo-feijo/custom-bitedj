@@ -179,6 +179,7 @@ class WaveformWidgetFactory : public QObject, public Singleton<WaveformWidgetFac
 
   signals:
     void waveformUpdateTick();
+    void renderTrainingPhase(VSyncThread*);
     void waveformMeasured(float frameRate, int droppedFrames);
     void renderSpinnies(VSyncThread*);
     void swapSpinnies();

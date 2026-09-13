@@ -623,8 +623,25 @@ Buttons emit momentary press/release, with no background repeat timer. Actions
 require a loaded track with an editable beat grid. BPM actions edit the track's
 grid, not the playback-rate slider. No controller mapping changes are required.
 
-Grid deck headers display `[ChannelN],file_bpm` to two decimal places so each
-0.01 BPM adjustment is visible without changing the deck playback rate.
+Grid deck headers display `[ChannelN],file_bpm` to two decimal places normally.
+Training mode masks them as `?.?` and reveals the number only while the header
+readout is held; BPM −/+ still adjust the editable grid normally.
+
+## Training mode
+
+In Settings → General, exercise the single Training Off, Line and Boxes selector.
+At 1024×600 and 1280×720 confirm that the stacked scrolling waveforms are
+replaced while the compact bottom-deck waves remain visible. Line spans four
+major bar divisions, and Boxes draws exactly four boxes
+per deck. The left source/key/loop/Quantize/Lock/Play/Cue panels remain visible.
+Track time, pitch rate/range and absolute bar position remain visible.
+
+Confirm `?.?` in the main BPM boxes, deck header chips, Grid headers and the
+deck-preview footer on Browse, Sampler, Levels and every Settings sub-page.
+Press and hold each numeric target with a native touch sequence: the real BPM
+must appear only during the hold. Release, TouchCancel, drag-out, page hide and
+window deactivation must remask immediately. Do not treat a direct button call
+or mouse-only click as touch validation.
 
 Combined 204px panel verified at 1024×600: Grid tab (994,70); deck 1
 Earlier/Later (892/976,146), Set (934,194), BPM −/+ (892/976,242).
@@ -866,3 +883,29 @@ movement. Repeat Day/Night and check the finalized take. The former red `>>`
 title marker must be absent. See the [Play control map](../.agents/skills/bitedj-ui/references/play.md#recording-indicator-beside-source)
 for geometry and control mapping. On Pi, use USB Record/Stop and wait for
 notifications to clear before top-bar navigation.
+
+### Training line frame timing
+
+Training phase rendering uses the shared waveform frame tick and one interpolated
+audio playback position per deck for both the whole beat and its fraction. Do not
+combine coarse `playposition` with independently sampled `beat_distance`. Hidden
+phase widgets skip render work. Control IDs and geometry are unchanged.
+
+For animation regression, record both synthetic decks playing from the beginning.
+Use 120 fps X11 capture of the phase region to sample the 60 fps render clock,
+retain timestamps (`-fps_mode passthrough`), and inspect both rows. Track red
+markers modulo the four-beat spacing, treating disappearance beneath the fixed
+white playhead as occlusion rather than a missing frame. Check capture timestamp
+gaps separately. Do not run builds or E2E beside a performance capture.
+
+Build .3 completes a bounded 160px-high repaint inside the shared render tick,
+instead of queuing a repaint of the whole waveform lane. Its 30-second desktop
+capture contained 3,600 video samples and 1,800 distinct phase positions per deck;
+median/99th-percentile update intervals were 17ms, maximum 25ms at the capture's
+8.33ms sampling resolution. No >26ms hold or >4.5px jump was detected. This does
+not establish physical Pi display cadence.
+
+Preserve the original capture timing when exporting video. The earlier stacked
+comparison merged independent input timelines into an irregular cadence; even
+fixed 60 fps downsampling of a 120 fps capture can introduce repeated positions.
+The .3 delivery retains every source frame/timestamp without motion interpolation.

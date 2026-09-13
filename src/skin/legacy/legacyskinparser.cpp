@@ -90,6 +90,8 @@
 #include "widget/wsofttakeoverindicator.h"
 #include "widget/wstatuslight.h"
 #include "widget/wtime.h"
+#include "widget/wtrainingbpm.h"
+#include "widget/wtrainingphase.h"
 #include "widget/wtrackproperty.h"
 #include "widget/wtrackwidgetgroup.h"
 #include "widget/wvumeter.h"
@@ -561,6 +563,8 @@ QList<QWidget*> LegacySkinParser::parseNode(const QDomElement& node) {
         result = wrapWidget(parseStandardWidget<WPadFxEditor>(node));
     } else if (nodeName == "Overview") {
         result = wrapWidget(parseOverview(node));
+    } else if (nodeName == "TrainingPhase") {
+        result = wrapWidget(parseTrainingPhase(node));
     } else if (nodeName == "Visual") {
         result = wrapWidget(parseVisual(node));
     } else if (nodeName == "Text") {
@@ -601,6 +605,8 @@ QList<QWidget*> LegacySkinParser::parseNode(const QDomElement& node) {
         result = wrapWidget(parseRateRange(node));
     } else if (nodeName == "NumberPos") {
         result = wrapWidget(parseNumberPos(node));
+    } else if (nodeName == "TrainingBpm") {
+        result = wrapWidget(parseLabelWidget<WTrainingBpm>(node));
     } else if (nodeName == "Number" || nodeName == "NumberBpm") {
         // NumberBpm is deprecated, and is now the same as a Number
         result = wrapWidget(parseLabelWidget<WNumber>(node));
@@ -1058,6 +1064,20 @@ QWidget* LegacySkinParser::parseOverview(const QDomElement& node) {
     connect(pPlayer, &BaseTrackPlayer::loadingTrack, overviewWidget, &WOverview::slotLoadingTrack);
 
     return overviewWidget;
+}
+
+QWidget* LegacySkinParser::parseTrainingPhase(const QDomElement& node) {
+    auto* widget = new WTrainingPhase(m_pPlayerManager, m_pParent);
+    connect(WaveformWidgetFactory::instance(),
+            &WaveformWidgetFactory::renderTrainingPhase,
+            widget,
+            &WTrainingPhase::render);
+    commonWidgetSetup(node, widget);
+    widget->setup(node, *m_pContext);
+    widget->installEventFilter(m_pKeyboard);
+    widget->installEventFilter(
+            m_pControllerManager->getControllerLearningEventFilter());
+    return widget;
 }
 
 QWidget* LegacySkinParser::parseVisual(const QDomElement& node) {

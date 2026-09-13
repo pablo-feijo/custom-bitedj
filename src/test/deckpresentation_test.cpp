@@ -1,11 +1,113 @@
 #include <gtest/gtest.h>
 #include <QDomDocument>
+#include <QTest>
+#include "audio/frame.h"
 #include "control/controlobject.h"
 #include "skin/legacy/skincontext.h"
 #include "test/mixxxtest.h"
+#include "track/beats.h"
+#include "track/track.h"
+#include "waveform/visualplayposition.h"
 #include "widget/wnumberpos.h"
+#include "widget/wtrainingbpm.h"
+#include "widget/wtrainingphase.h"
 
-class DeckPresentationTest : public MixxxTest {};
+class DeckPresentationTest : public MixxxTest {
+  protected:
+    void setPhaseTrack(WTrainingPhase* widget, TrackPointer track) {
+        widget->m_decks[0].track = std::move(track);
+    }
+    WTrainingPhase::Position phasePosition(const WTrainingPhase& widget) {
+        return widget.deckPosition(0);
+    }
+};
+
+TEST_F(DeckPresentationTest, TrainingPhaseKeepsWholeBeatAndFractionOnSameClock) {
+    ControlObject training(ConfigKey("[BiteDJ]", "training_mode"));
+    ControlObject samples(ConfigKey("[Channel1]", "track_samples"));
+    ControlObject coarsePosition(ConfigKey("[Channel1]", "playposition"));
+    ControlObject beatDistance(ConfigKey("[Channel1]", "beat_distance"));
+    training.set(1);
+    samples.set(1000000);
+    auto track = Track::newTemporary();
+    track->setAudioProperties(mixxx::audio::ChannelCount(2),
+            mixxx::audio::SampleRate(44100), mixxx::audio::Bitrate(),
+            mixxx::Duration::fromSeconds(180));
+    ASSERT_TRUE(track->trySetBpm(120));
+    WTrainingPhase widget(nullptr);
+    setPhaseTrack(&widget, track);
+    widget.show();
+    auto clock = VisualPlayPosition::getVisualPlayPosition("[Channel1]");
+    // Hold the coarse controls behind the audio clock across a bar wrap.
+    coarsePosition.set(3.8 * 44100 / 1000000);
+    beatDistance.set(0.8);
+    for (double beat : {3.95, 3.99, 4.01, 4.05, 4.10}) {
+        clock->set(beat * 44100 / 1000000, 1, 0, 0, 0,
+                SlipModeState::Disabled, false, false, false, 0, 0, 180, 0);
+        widget.render(nullptr);
+        const auto actual = phasePosition(widget);
+        ASSERT_TRUE(actual.valid);
+        EXPECT_NEAR((actual.bar - 1) * 4 + actual.cycle * 4, beat, 1e-9);
+    }
+    // A seek/reverse step must take effect immediately, without smoothing lag.
+    clock->set(1.25 * 44100 / 1000000, -1, 0, 0, 0,
+            SlipModeState::Disabled, false, false, false, 0, 0, 180, 0);
+    widget.render(nullptr);
+    EXPECT_NEAR(phasePosition(widget).cycle, 1.25 / 4, 1e-9);
+}
+
+TEST_F(DeckPresentationTest, TrainingBpmRevealsOnlyWhileHeld) {
+    ControlObject training(ConfigKey("[BiteDJ]", "training_mode"));
+    WTrainingBpm bpm;
+    SkinContext context(config(), "test");
+    QDomDocument xml;
+    ASSERT_TRUE(xml.setContent(QStringLiteral(
+            "<TrainingBpm><Text>%1</Text><NumberOfDigits>1</NumberOfDigits></TrainingBpm>")));
+    bpm.setup(xml.documentElement(), context);
+    bpm.resize(100, 40);
+    bpm.show();
+    bpm.setValue(128.0);
+    EXPECT_EQ(bpm.text(), QStringLiteral("128.0"));
+
+    training.set(1.0);
+    EXPECT_EQ(bpm.text(), QStringLiteral("?.?"));
+    QTest::mousePress(&bpm, Qt::LeftButton);
+    EXPECT_EQ(bpm.text(), QStringLiteral("128.0"));
+    QTest::mouseRelease(&bpm, Qt::LeftButton);
+    EXPECT_EQ(bpm.text(), QStringLiteral("?.?"));
+
+    auto* touchDevice = QTest::createTouchDevice();
+    QTest::touchEvent(&bpm, touchDevice).press(0, bpm.rect().center(), &bpm);
+    EXPECT_EQ(bpm.text(), QStringLiteral("128.0"));
+    QTest::touchEvent(&bpm, touchDevice).release(0, bpm.rect().center(), &bpm);
+    EXPECT_EQ(bpm.text(), QStringLiteral("?.?"));
+
+    QTest::mousePress(&bpm, Qt::LeftButton);
+    QEvent leave(QEvent::Leave);
+    QApplication::sendEvent(&bpm, &leave);
+    EXPECT_EQ(bpm.text(), QStringLiteral("?.?"));
+    training.set(0.0);
+    EXPECT_EQ(bpm.text(), QStringLiteral("128.0"));
+}
+
+TEST_F(DeckPresentationTest, TrainingPhaseUsesFourBeatCycleAndAbsoluteBarText) {
+    const auto beats = std::make_shared<const mixxx::Beats>(
+            mixxx::audio::FramePos(0.0),
+            mixxx::Bpm(120.0),
+            mixxx::audio::SampleRate(44100),
+            QStringLiteral(BEAT_GRID_2_VERSION));
+    constexpr double trackSamples = 1000000.0;
+    constexpr double tenthAndQuarterBeatEngineSample = 10.25 * 22050.0 * 2.0;
+    const auto position = WTrainingPhase::calculatePosition(
+            beats, trackSamples, tenthAndQuarterBeatEngineSample / trackSamples);
+    ASSERT_TRUE(position.valid);
+    EXPECT_EQ(position.bar, 3);
+    EXPECT_EQ(position.beat, 3);
+    EXPECT_DOUBLE_EQ(position.cycle, 2.25 / 4.0);
+
+    const auto invalid = WTrainingPhase::calculatePosition({}, 0.0, 0.0);
+    EXPECT_FALSE(invalid.valid);
+}
 
 TEST_F(DeckPresentationTest, PerDeckTimeModesAreIndependentAndRefreshWhenPaused) {
     ControlObject global(ConfigKey("[Controls]", "ShowDurationRemaining"));

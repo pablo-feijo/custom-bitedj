@@ -70,9 +70,10 @@ than their logical sizes, including native full-screen menus. Preserve the
 
 ## D. Settings -> General Options (`x=73, y=60`)
 
-Verified at 1024×600. Left: mixer and playback. Right: waveform/display and
-cleanup. Standard row centers are `104 + 52 * row`; Track Load uses a 58px
-row with center `y=470`. All rows fit above the deck footer at `y=520`.
+Verified at 1024×600. Left: mixer and playback. Right: waveform/display,
+training and load policy. Standard row centers are `104 + 52 * row`; Hot Cue
+and Track Load use 58px final rows with center `y=418`. Both columns contain
+seven rows and finish together above the deck footer at `y=520`.
 
 | Column | Option | y | Button centers x (left to right) | Control mapping |
 | --- | --- | --- | --- | --- |
@@ -82,17 +83,15 @@ row with center `y=470`. All rows fit above the deck footer at `y=520`.
 | Left | EQ Mode | 260 | EQ 374, ISO 458 | `[BiteDJ],eq_mode`: EQ=0, ISO=1 |
 | Left | Jog | 312 | Vinyl 374, CDJ 458 | `[BiteDJ],vinyl_mode`: Vinyl=1, CDJ=0 |
 | Left | Vinyl Brake | 364 | Off 360, Short 416, Long 472 | `[BiteDJ],vinyl_brake`: Off=0, Short=1.8, Long=3.6 |
-| Left | Hot Cue | 416 | Ungated 374, Gated 458 | `[Controls],HotcueActivatePlays`: Ungated=1, Gated=0 |
-| Left | Track Load | 470 | Lock 290, Fader 350, Stop 410, Live 470 | `[BiteDJ],track_load_policy`: Lock=0, Fader=3, Stop=2, Live=1 |
-| Right | Phrases | 104 | Toggle 788 | `[BiteDJ],show_phrases`: Off=0, On=1 (default); native two-state toggle |
+| Left | Hot Cue | 418 | Ungated 374, Gated 458 | `[Controls],HotcueActivatePlays`: Ungated=1, Gated=0 |
+| Right | Phrases | 104 | Toggle 788 | `[BiteDJ],show_phrases`: Off=0, On=1 (default); both states read `Phrases`, with the selected color communicating state |
 | Right | Wave | 104 | RGB 872, Filt 928, 3 Band 984 | `[Waveform],waveform_type`: RGB=17, Filt=19, 3 Band=25 |
 | Right | Apply Waveform EQ | 156 | On 886, Off 970 | `[Waveform],apply_eq_to_waveform`: On=1, Off=0 |
 | Right | Palette | 208 | BiteDJ 886, Amber 970 | `[BiteDJ],waveform_palette`: BiteDJ=0, Amber=1 |
 | Right | Key | 260 | Camelot 886, Trad 970 | `[Library],key_notation`: Camelot=3, Trad=4 |
-| Right | Grid | 312 | Compact 886, Detail 970 | `[Library],grid_layout`: Compact=0, Detail=1 |
-| Right | Clear | 364 | Cache 872, Cues 928, Meta 984 | Cache: `[Library],clear_cached_waveforms`; Cues: `[Library],clear_cue_overrides`; Meta: `[Library],clear_meta_overrides` |
-| Right | Played | 416 | Reset 932 | Reset: `[Library],reset_played_tracks` |
-| Right | Return to Play | 470 | Off 886, On 970 | `[BiteDJ],return_to_play`: Off=0 (default), On=1; successful main-deck Browse loads only |
+| Right | Training | 312 | Off 872, Line 928, Boxes 984 | `[BiteDJ],training_mode`: Off=0 (default), Line=1, Boxes=2 |
+| Right | Return to Play | 364 | Off 886, On 970 | `[BiteDJ],return_to_play`: Off=0 (default), On=1; successful main-deck Browse loads only |
+| Right | Track Load | 418 | Lock 802, Fader 862, Stop 922, Live 982 | `[BiteDJ],track_load_policy`: Lock=0, Fader=3, Stop=2, Live=1 |
 
 General Settings typography: labels 12px, segment/action text 11px; button
 geometry and the coordinate mappings above are unchanged. This leaves clearance
@@ -120,6 +119,12 @@ Visibility uses `[Library],column_visible_<column>` (Off=0, On=1); width
 uses `[Library],column_weight_<column>` (XS=1, S=2, M=3, L=4). Selecting a width does not enable an
 Off column. Rekordbox rows load exported waveform overviews in the background
 when native cached summaries are absent; this does not load a deck. See [the current Library screenshot](../../../../docs/UI_SCREENSHOTS.md#settings-library).
+
+The two seven-row column blocks finish at the same height. A balanced action
+footer follows: Grid Compact/Detail and Played Reset share the first row; Clear
+Library Data spans the second row with Cache, Cues and Metadata. These controls
+retain `[Library],grid_layout`, `reset_played_tracks`,
+`clear_cached_waveforms`, `clear_cue_overrides` and `clear_meta_overrides`.
 
 ## F. Levels Page (`x=700, y=20`)
 

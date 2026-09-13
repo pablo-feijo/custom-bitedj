@@ -1,0 +1,41 @@
+{
+  "source_commit": "d60a7fa0568cc8a807aeab512aa785c8af5cf281",
+  "source_branch": "codex/training-mode",
+  "source_hash": "ba00cc48962e9e8dd21f5c7d0517975f253c49817f42afade324d0a16d7e9475",
+  "version": "0.0.8-codex-training-mode.3",
+  "dirty": true,
+  "platform": "linux/arm64",
+  "builder_image": "sha256:b89c43e60a1216d2b06916ea0ba2bf93e4714f0b9ca0c7be7a20244be240cdef",
+  "binary_version": "Bite DJ 0.0.8-codex-training-mode.3",
+  "built_at": "2026-09-13T02:32:44.548192+00:00",
+  "artifact_hash": "ef34f32750cf78482226481e31ef4b0372e2302857e96b2efb46ec0d41e5d65e",
+  "capture": "play-training-line.png",
+  "capture_sha256": "5f2a2b72eb2ac8c0e74f4a199fa5f0fe4f1b396b08e1d69b23c8cb985f15d9ec",
+  "geometry": "1024x600",
+  "fixture": "scripts/test/generate_test_music.py",
+  "capture_fps": 120,
+  "delivery": "phase-build3-original-timing.mp4",
+  "deck1_cadence": {
+    "frames": 3600,
+    "duration_s": 29.992,
+    "detected_updates": 1800,
+    "median_update_ms": 16.99999999999946,
+    "p99_update_ms": 17.000000000003013,
+    "max_update_ms": 25.00000000000213,
+    "anomaly_count": 0,
+    "anomalies": [],
+    "capture_gaps": []
+  },
+  "deck2_cadence": {
+    "frames": 3600,
+    "duration_s": 29.992,
+    "detected_updates": 1800,
+    "median_update_ms": 16.99999999999946,
+    "p99_update_ms": 17.000000000003013,
+    "max_update_ms": 25.00000000000213,
+    "anomaly_count": 0,
+    "anomalies": [],
+    "capture_gaps": []
+  },
+  "limits": "Desktop X11 capture; 8.33ms sample spacing; no physical Pi cadence claim."
+}

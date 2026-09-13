@@ -1,0 +1,24 @@
+{
+  "source_commit": "3b4d98ac1b3734e56c8b5adec70231840eb49463",
+  "source_branch": "codex/training-mode",
+  "dirty": true,
+  "source_hash": "9d546639cb7462c4c9b253e7ce49577b0b20c5e64988321d1c23d05f7d217731",
+  "binary_version": "0.0.8-codex-training-mode.1",
+  "binary_sha256": "0563e954007ffd80f8be824e25070fabd84ca4fa86a276b0a4a5043ad925a543",
+  "platform": "linux/arm64",
+  "capture_date": "2026-09-12",
+  "fixture": "scripts/test/generate_test_music.py",
+  "skin_assets": {
+    "res/skins/BiteDJ/waveforms.xml": "6c9ead0871ffe0437201f13f9cd1f200840d80481fa012d3f3522806d35195c3",
+    "res/skins/BiteDJ/settings.xml": "e521677f0d57d51a863fdb618408351073cc030d7f4f4350e2eb61e715b6d199"
+  },
+  "images": {
+    "play-training-boxes.png": "fb75f3d857a4e473677c1719f4d1935a9f217152a94e457f9b13ac1f31432ad8",
+    "play-training-boxes-touch-display-2.png": "e152b81f93dd2498291d70260aac3e19eb748d55b68a5a4e72d94f417b781385",
+    "settings-general-training.png": "8bb1dd295530c5fe1eab6d5d13b05b03dd8f8f508b8f38fccba4fd113558ca73",
+    "settings-library-training.png": "4fdf3c6524ae82fe83c88fc657f68b5556b258066fbe23d8d3c21fd8ec45ec8a"
+  },
+  "superseded_captures": {
+    "play-training-line.png": "training-line-timing-provenance.json"
+  }
+}

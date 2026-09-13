@@ -5,6 +5,13 @@ Integration target: `codex/v0.0.8`. Development commits are published; this is n
 
 ## Changes
 
+- Training Off/Line/Boxes is one saved General setting. Line and Boxes replace
+  both stacked scrolling waveforms with a four-beat phase aid, retain the compact
+  bottom overview waves plus time, pitch and absolute bar position, and mask BPM in Play, Grid and
+  the deck previews on every other page. Holding the numeric BPM temporarily
+  reveals it. Library-specific Grid, Played and Clear actions now live in the
+  balanced Library settings footer.
+
 - Local Time card touchscreen taps now open the date/time editor. Agent guidance
   requires native touch sequences through the widget hierarchy for touch tests.
 

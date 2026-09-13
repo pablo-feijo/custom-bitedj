@@ -15,7 +15,7 @@
             <Text>Deck <Variable name="channel" /></Text>
             <Size>0me,20f</Size>
           </Label>
-          <NumberBpm>
+          <TrainingBpm>
             <ObjectName>GridBpm</ObjectName>
             <Size>64f,20f</Size>
             <NumberOfDigits>2</NumberOfDigits>
@@ -25,7 +25,7 @@
             <Connection>
               <ConfigKey>[Channel<Variable name="channel" />],file_bpm</ConfigKey>
             </Connection>
-          </NumberBpm>
+          </TrainingBpm>
         </Children>
       </WidgetGroup>
       <WidgetGroup>

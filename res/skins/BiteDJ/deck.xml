@@ -32,7 +32,7 @@
                 <Layout>horizontal</Layout>
                 <SizePolicy>max,me</SizePolicy>
                 <Children>
-                  <NumberBpm>
+                  <TrainingBpm>
                     <ObjectName>DeckHeaderBPM</ObjectName>
                     <TooltipId>visual_bpm</TooltipId>
                     <Size><Variable name="bpm_badge_size"/></Size>
@@ -53,7 +53,7 @@
                       </Transform>
                       <BindProperty>highlight</BindProperty>
                     </Connection>
-                  </NumberBpm>
+                  </TrainingBpm>
                 </Children>
                 <!-- Overview has the full-size DeckBPM readout in DeckInfo;
                      this chip only stands in on the other tabs. -->
@@ -381,7 +381,7 @@
                 <Layout>vertical</Layout>
                 <Size>0me,0me</Size>
                 <Children>
-                  <NumberBpm>
+                  <TrainingBpm>
                     <ObjectName>DeckBPM</ObjectName>
                     <TooltipId>visual_bpm</TooltipId>
                     <NumberOfDigits>1</NumberOfDigits>
@@ -397,9 +397,10 @@
                       </Transform>
                       <BindProperty>highlight</BindProperty>
                     </Connection>
-                  </NumberBpm>
+                  </TrainingBpm>
                   <WidgetGroup>
                     <ObjectName>DeckBPMTitleWrapper</ObjectName>
+                    <MouseTransparent>true</MouseTransparent>
                     <Layout>horizontal</Layout>
                     <Children>
                       <Label>
@@ -604,7 +605,9 @@
           </Overview>
         </Children>
       </WidgetGroup>
-      <OverviewRuler><ObjectName>OverviewRuler</ObjectName><Size>0me,8f</Size><Channel><Variable name="channel"/></Channel></OverviewRuler>
+      <WidgetGroup><ObjectName>OverviewRulerSlot</ObjectName><Layout>vertical</Layout><Size>0me,8f</Size><Children>
+        <OverviewRuler><ObjectName>OverviewRuler</ObjectName><Size>0me,8f</Size><Channel><Variable name="channel"/></Channel></OverviewRuler>
+      </Children></WidgetGroup>
     </Children>
   </WidgetGroup>
 </Template>

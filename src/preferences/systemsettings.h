@@ -255,6 +255,9 @@ class SystemSettings : public QObject {
     std::unique_ptr<ControlObject> m_pCoTrackLoadPolicy;
     std::unique_ptr<ControlObject> m_pCoReturnToPlay;
     std::unique_ptr<ControlPushButton> m_pCoShowPhrases;
+    // Training mode masks BPM and replaces waveforms with the selected phase
+    // aid. The enum is 0 = Off, 1 = Line, 2 = Boxes.
+    std::unique_ptr<ControlObject> m_pCoTrainingMode;
     // [BiteDJ],vinyl_brake — vinyl-brake time in seconds: how long a jog wheel
     // released at normal (1x) speed takes to coast to a standstill. 0 disables
     // the brake. Persisted to config; read by ControllerScriptInterfaceLegacy
